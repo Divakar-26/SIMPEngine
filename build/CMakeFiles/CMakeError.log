@@ -1,0 +1,713 @@
+Performing C SOURCE FILE Test HAVE_GCC_WDOCUMENTATION failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-V0HwcE
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_42344/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_42344.dir/build.make CMakeFiles/cmTC_42344.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-V0HwcE'
+Building C object CMakeFiles/cmTC_42344.dir/src.c.o
+/usr/bin/cc -DHAVE_GCC_WDOCUMENTATION  -D_GNU_SOURCE=1   -Wdocumentation -o CMakeFiles/cmTC_42344.dir/src.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-V0HwcE/src.c
+cc: error: unrecognized command-line option '-Wdocumentation'
+gmake[1]: *** [CMakeFiles/cmTC_42344.dir/build.make:78: CMakeFiles/cmTC_42344.dir/src.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-V0HwcE'
+gmake: *** [Makefile:127: cmTC_42344/fast] Error 2
+
+
+Source file was:
+int main(void) { return 0; }
+
+Performing C SOURCE FILE Test HAVE_GCC_WDOCUMENTATION_UNKNOWN_COMMAND failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-VbZGj2
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_b9b10/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_b9b10.dir/build.make CMakeFiles/cmTC_b9b10.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-VbZGj2'
+Building C object CMakeFiles/cmTC_b9b10.dir/src.c.o
+/usr/bin/cc -DHAVE_GCC_WDOCUMENTATION_UNKNOWN_COMMAND  -D_GNU_SOURCE=1   -Wdocumentation-unknown-command -o CMakeFiles/cmTC_b9b10.dir/src.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-VbZGj2/src.c
+cc: error: unrecognized command-line option '-Wdocumentation-unknown-command'
+gmake[1]: *** [CMakeFiles/cmTC_b9b10.dir/build.make:78: CMakeFiles/cmTC_b9b10.dir/src.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-VbZGj2'
+gmake: *** [Makefile:127: cmTC_b9b10/fast] Error 2
+
+
+Source file was:
+int main(void) { return 0; }
+
+Performing C SOURCE FILE Test HAVE_GCC_COMMENT_BLOCK_COMMANDS failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-8mRatk
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_ef5c1/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_ef5c1.dir/build.make CMakeFiles/cmTC_ef5c1.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-8mRatk'
+Building C object CMakeFiles/cmTC_ef5c1.dir/src.c.o
+/usr/bin/cc -DHAVE_GCC_COMMENT_BLOCK_COMMANDS  -D_GNU_SOURCE=1   -fcomment-block-commands=threadsafety -o CMakeFiles/cmTC_ef5c1.dir/src.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-8mRatk/src.c
+cc: error: unrecognized command-line option '-fcomment-block-commands=threadsafety'
+gmake[1]: *** [CMakeFiles/cmTC_ef5c1.dir/build.make:78: CMakeFiles/cmTC_ef5c1.dir/src.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-8mRatk'
+gmake: *** [Makefile:127: cmTC_ef5c1/fast] Error 2
+
+
+Source file was:
+int main(void) { return 0; }
+
+Performing C SOURCE FILE Test HAVE_CLANG_COMMENT_BLOCK_COMMANDS failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-7nZjHq
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_38169/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_38169.dir/build.make CMakeFiles/cmTC_38169.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-7nZjHq'
+Building C object CMakeFiles/cmTC_38169.dir/src.c.o
+/usr/bin/cc -DHAVE_CLANG_COMMENT_BLOCK_COMMANDS  -D_GNU_SOURCE=1   /clang:-fcomment-block-commands=threadsafety -o CMakeFiles/cmTC_38169.dir/src.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-7nZjHq/src.c
+cc: warning: /clang:-fcomment-block-commands=threadsafety: linker input file unused because linking not done
+cc: error: /clang:-fcomment-block-commands=threadsafety: linker input file not found: No such file or directory
+gmake[1]: *** [CMakeFiles/cmTC_38169.dir/build.make:78: CMakeFiles/cmTC_38169.dir/src.c.o] Error 1
+gmake[1]: *** Deleting file 'CMakeFiles/cmTC_38169.dir/src.c.o'
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-7nZjHq'
+gmake: *** [Makefile:127: cmTC_38169/fast] Error 2
+
+
+Source file was:
+int main(void) { return 0; }
+
+Determining if the _i64toa exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2axeth
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_73134/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_73134.dir/build.make CMakeFiles/cmTC_73134.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2axeth'
+Building C object CMakeFiles/cmTC_73134.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_73134.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2axeth/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2axeth/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2axeth/CheckSymbolExists.c:26:19: error: ‘_i64toa’ undeclared (first use in this function)
+   26 |   return ((int*)(&_i64toa))[argc];
+      |                   ^~~~~~~
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2axeth/CheckSymbolExists.c:26:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_73134.dir/build.make:78: CMakeFiles/cmTC_73134.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2axeth'
+gmake: *** [Makefile:127: cmTC_73134/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <float.h>
+#include <iconv.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <memory.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wchar.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef _i64toa
+  return ((int*)(&_i64toa))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the itoa exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-6Kxq1b
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_9172f/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_9172f.dir/build.make CMakeFiles/cmTC_9172f.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-6Kxq1b'
+Building C object CMakeFiles/cmTC_9172f.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_9172f.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-6Kxq1b/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-6Kxq1b/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-6Kxq1b/CheckSymbolExists.c:26:19: error: ‘itoa’ undeclared (first use in this function)
+   26 |   return ((int*)(&itoa))[argc];
+      |                   ^~~~
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-6Kxq1b/CheckSymbolExists.c:26:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_9172f.dir/build.make:78: CMakeFiles/cmTC_9172f.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-6Kxq1b'
+gmake: *** [Makefile:127: cmTC_9172f/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <float.h>
+#include <iconv.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <memory.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wchar.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef itoa
+  return ((int*)(&itoa))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the _ltoa exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-kmmoIk
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_fba3c/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_fba3c.dir/build.make CMakeFiles/cmTC_fba3c.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-kmmoIk'
+Building C object CMakeFiles/cmTC_fba3c.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_fba3c.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-kmmoIk/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-kmmoIk/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-kmmoIk/CheckSymbolExists.c:26:19: error: ‘_ltoa’ undeclared (first use in this function)
+   26 |   return ((int*)(&_ltoa))[argc];
+      |                   ^~~~~
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-kmmoIk/CheckSymbolExists.c:26:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_fba3c.dir/build.make:78: CMakeFiles/cmTC_fba3c.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-kmmoIk'
+gmake: *** [Makefile:127: cmTC_fba3c/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <float.h>
+#include <iconv.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <memory.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wchar.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef _ltoa
+  return ((int*)(&_ltoa))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the sqr exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-JiHcbQ
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_55762/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_55762.dir/build.make CMakeFiles/cmTC_55762.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-JiHcbQ'
+Building C object CMakeFiles/cmTC_55762.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_55762.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-JiHcbQ/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-JiHcbQ/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-JiHcbQ/CheckSymbolExists.c:26:19: error: ‘sqr’ undeclared (first use in this function); did you mean ‘sqrt’?
+   26 |   return ((int*)(&sqr))[argc];
+      |                   ^~~
+      |                   sqrt
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-JiHcbQ/CheckSymbolExists.c:26:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_55762.dir/build.make:78: CMakeFiles/cmTC_55762.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-JiHcbQ'
+gmake: *** [Makefile:127: cmTC_55762/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <float.h>
+#include <iconv.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <memory.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wchar.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef sqr
+  return ((int*)(&sqr))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the strlcat exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-BnWj9B
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_eb9f3/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_eb9f3.dir/build.make CMakeFiles/cmTC_eb9f3.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-BnWj9B'
+Building C object CMakeFiles/cmTC_eb9f3.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_eb9f3.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-BnWj9B/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-BnWj9B/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-BnWj9B/CheckSymbolExists.c:26:19: error: ‘strlcat’ undeclared (first use in this function); did you mean ‘strncat’?
+   26 |   return ((int*)(&strlcat))[argc];
+      |                   ^~~~~~~
+      |                   strncat
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-BnWj9B/CheckSymbolExists.c:26:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_eb9f3.dir/build.make:78: CMakeFiles/cmTC_eb9f3.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-BnWj9B'
+gmake: *** [Makefile:127: cmTC_eb9f3/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <float.h>
+#include <iconv.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <memory.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wchar.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef strlcat
+  return ((int*)(&strlcat))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the strlcpy exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2waqCp
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_ff312/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_ff312.dir/build.make CMakeFiles/cmTC_ff312.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2waqCp'
+Building C object CMakeFiles/cmTC_ff312.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_ff312.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2waqCp/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2waqCp/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2waqCp/CheckSymbolExists.c:26:19: error: ‘strlcpy’ undeclared (first use in this function); did you mean ‘strncpy’?
+   26 |   return ((int*)(&strlcpy))[argc];
+      |                   ^~~~~~~
+      |                   strncpy
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2waqCp/CheckSymbolExists.c:26:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_ff312.dir/build.make:78: CMakeFiles/cmTC_ff312.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-2waqCp'
+gmake: *** [Makefile:127: cmTC_ff312/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <float.h>
+#include <iconv.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <memory.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wchar.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef strlcpy
+  return ((int*)(&strlcpy))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the strnstr exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-o4jjhF
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_fe1df/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_fe1df.dir/build.make CMakeFiles/cmTC_fe1df.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-o4jjhF'
+Building C object CMakeFiles/cmTC_fe1df.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_fe1df.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-o4jjhF/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-o4jjhF/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-o4jjhF/CheckSymbolExists.c:26:19: error: ‘strnstr’ undeclared (first use in this function); did you mean ‘strstr’?
+   26 |   return ((int*)(&strnstr))[argc];
+      |                   ^~~~~~~
+      |                   strstr
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-o4jjhF/CheckSymbolExists.c:26:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_fe1df.dir/build.make:78: CMakeFiles/cmTC_fe1df.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-o4jjhF'
+gmake: *** [Makefile:127: cmTC_fe1df/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <float.h>
+#include <iconv.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <memory.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wchar.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef strnstr
+  return ((int*)(&strnstr))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the wcslcat exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-cGNg81
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_028fc/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_028fc.dir/build.make CMakeFiles/cmTC_028fc.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-cGNg81'
+Building C object CMakeFiles/cmTC_028fc.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_028fc.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-cGNg81/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-cGNg81/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-cGNg81/CheckSymbolExists.c:26:19: error: ‘wcslcat’ undeclared (first use in this function); did you mean ‘wcsncat’?
+   26 |   return ((int*)(&wcslcat))[argc];
+      |                   ^~~~~~~
+      |                   wcsncat
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-cGNg81/CheckSymbolExists.c:26:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_028fc.dir/build.make:78: CMakeFiles/cmTC_028fc.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-cGNg81'
+gmake: *** [Makefile:127: cmTC_028fc/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <float.h>
+#include <iconv.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <memory.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wchar.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef wcslcat
+  return ((int*)(&wcslcat))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the wcslcpy exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-OvinNB
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_a9f35/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_a9f35.dir/build.make CMakeFiles/cmTC_a9f35.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-OvinNB'
+Building C object CMakeFiles/cmTC_a9f35.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_a9f35.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-OvinNB/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-OvinNB/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-OvinNB/CheckSymbolExists.c:26:19: error: ‘wcslcpy’ undeclared (first use in this function); did you mean ‘wcsncpy’?
+   26 |   return ((int*)(&wcslcpy))[argc];
+      |                   ^~~~~~~
+      |                   wcsncpy
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-OvinNB/CheckSymbolExists.c:26:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_a9f35.dir/build.make:78: CMakeFiles/cmTC_a9f35.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-OvinNB'
+gmake: *** [Makefile:127: cmTC_a9f35/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <float.h>
+#include <iconv.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <memory.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <time.h>
+#include <wchar.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef wcslcpy
+  return ((int*)(&wcslcpy))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the sysctlbyname exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-55Ep41
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_146dc/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_146dc.dir/build.make CMakeFiles/cmTC_146dc.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-55Ep41'
+Building C object CMakeFiles/cmTC_146dc.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_146dc.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-55Ep41/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-55Ep41/CheckSymbolExists.c:3:10: fatal error: sys/sysctl.h: No such file or directory
+    3 | #include <sys/sysctl.h>
+      |          ^~~~~~~~~~~~~~
+compilation terminated.
+gmake[1]: *** [CMakeFiles/cmTC_146dc.dir/build.make:78: CMakeFiles/cmTC_146dc.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-55Ep41'
+gmake: *** [Makefile:127: cmTC_146dc/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <sys/types.h>
+#include <sys/sysctl.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef sysctlbyname
+  return ((int*)(&sysctlbyname))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the elf_aux_info exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-XTtLcR
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_aac53/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_aac53.dir/build.make CMakeFiles/cmTC_aac53.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-XTtLcR'
+Building C object CMakeFiles/cmTC_aac53.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_aac53.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-XTtLcR/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-XTtLcR/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-XTtLcR/CheckSymbolExists.c:8:19: error: ‘elf_aux_info’ undeclared (first use in this function)
+    8 |   return ((int*)(&elf_aux_info))[argc];
+      |                   ^~~~~~~~~~~~
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-XTtLcR/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_aac53.dir/build.make:78: CMakeFiles/cmTC_aac53.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-XTtLcR'
+gmake: *** [Makefile:127: cmTC_aac53/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <sys/auxv.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef elf_aux_info
+  return ((int*)(&elf_aux_info))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Determining if the posix_spawn_file_actions_addchdir exist failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-syQORz
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_72c97/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_72c97.dir/build.make CMakeFiles/cmTC_72c97.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-syQORz'
+Building C object CMakeFiles/cmTC_72c97.dir/CheckSymbolExists.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_72c97.dir/CheckSymbolExists.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-syQORz/CheckSymbolExists.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-syQORz/CheckSymbolExists.c: In function ‘main’:
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-syQORz/CheckSymbolExists.c:8:19: error: ‘posix_spawn_file_actions_addchdir’ undeclared (first use in this function); did you mean ‘posix_spawn_file_actions_addchdir_np’?
+    8 |   return ((int*)(&posix_spawn_file_actions_addchdir))[argc];
+      |                   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      |                   posix_spawn_file_actions_addchdir_np
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-syQORz/CheckSymbolExists.c:8:19: note: each undeclared identifier is reported only once for each function it appears in
+gmake[1]: *** [CMakeFiles/cmTC_72c97.dir/build.make:78: CMakeFiles/cmTC_72c97.dir/CheckSymbolExists.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-syQORz'
+gmake: *** [Makefile:127: cmTC_72c97/fast] Error 2
+
+
+File CheckSymbolExists.c:
+/* */
+#include <spawn.h>
+
+int main(int argc, char** argv)
+{
+  (void)argv;
+#ifndef posix_spawn_file_actions_addchdir
+  return ((int*)(&posix_spawn_file_actions_addchdir))[argc];
+#else
+  (void)argc;
+  return 0;
+#endif
+}
+Performing C SOURCE FILE Test ICONV_IN_LIBICONV failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-lVm3UK
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_a023a/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_a023a.dir/build.make CMakeFiles/cmTC_a023a.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-lVm3UK'
+Building C object CMakeFiles/cmTC_a023a.dir/src.c.o
+/usr/bin/cc -DICONV_IN_LIBICONV  -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_a023a.dir/src.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-lVm3UK/src.c
+Linking C executable cmTC_a023a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a023a.dir/link.txt --verbose=1
+/usr/bin/cc   -D_GNU_SOURCE=1 CMakeFiles/cmTC_a023a.dir/src.c.o -o cmTC_a023a  -liconv 
+/usr/bin/ld: cannot find -liconv: No such file or directory
+collect2: error: ld returned 1 exit status
+gmake[1]: *** [CMakeFiles/cmTC_a023a.dir/build.make:99: cmTC_a023a] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-lVm3UK'
+gmake: *** [Makefile:127: cmTC_a023a/fast] Error 2
+
+
+Source file was:
+
+        #include <stddef.h>
+        #include <iconv.h>
+        int main(int argc, char **argv) {
+            return !iconv_open(NULL,NULL);
+        }
+
+Performing C SOURCE FILE Test LIBC_HAS_WORKING_LIBUNWIND failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-hUwV6Y
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_ccb9f/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_ccb9f.dir/build.make CMakeFiles/cmTC_ccb9f.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-hUwV6Y'
+Building C object CMakeFiles/cmTC_ccb9f.dir/src.c.o
+/usr/bin/cc -DLIBC_HAS_WORKING_LIBUNWIND  -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_ccb9f.dir/src.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-hUwV6Y/src.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-hUwV6Y/src.c:1:16: fatal error: libunwind.h: No such file or directory
+    1 |       #include <libunwind.h>
+      |                ^~~~~~~~~~~~~
+compilation terminated.
+gmake[1]: *** [CMakeFiles/cmTC_ccb9f.dir/build.make:78: CMakeFiles/cmTC_ccb9f.dir/src.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-hUwV6Y'
+gmake: *** [Makefile:127: cmTC_ccb9f/fast] Error 2
+
+
+Source file was:
+      #include <libunwind.h>
+      int main(int argc, char *argv[]) {
+        (void)argc; (void)argv;
+        unw_context_t context;
+        unw_cursor_t cursor;
+        unw_word_t pc;
+        char sym[256];
+        unw_word_t offset;
+        unw_getcontext(&context);
+        unw_step(&cursor);
+        unw_get_reg(&cursor, UNW_REG_IP, &pc);
+        unw_get_proc_name(&cursor, sym, sizeof(sym), &offset);
+        return 0;
+      }
+
+Performing C SOURCE FILE Test LIBUNWIND_HAS_WORKINGLIBUNWIND failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-05qsYE
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_be250/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_be250.dir/build.make CMakeFiles/cmTC_be250.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-05qsYE'
+Building C object CMakeFiles/cmTC_be250.dir/src.c.o
+/usr/bin/cc -DLIBUNWIND_HAS_WORKINGLIBUNWIND  -D_GNU_SOURCE=1 -o CMakeFiles/cmTC_be250.dir/src.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-05qsYE/src.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-05qsYE/src.c:1:16: fatal error: libunwind.h: No such file or directory
+    1 |       #include <libunwind.h>
+      |                ^~~~~~~~~~~~~
+compilation terminated.
+gmake[1]: *** [CMakeFiles/cmTC_be250.dir/build.make:78: CMakeFiles/cmTC_be250.dir/src.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-05qsYE'
+gmake: *** [Makefile:127: cmTC_be250/fast] Error 2
+
+
+Source file was:
+      #include <libunwind.h>
+      int main(int argc, char *argv[]) {
+        (void)argc; (void)argv;
+        unw_context_t context;
+        unw_cursor_t cursor;
+        unw_word_t pc;
+        char sym[256];
+        unw_word_t offset;
+        unw_getcontext(&context);
+        unw_step(&cursor);
+        unw_get_reg(&cursor, UNW_REG_IP, &pc);
+        unw_get_proc_name(&cursor, sym, sizeof(sym), &offset);
+        return 0;
+      }
+
+Determining if the include file pthread_np.h exists failed with the following output:
+Change Dir: /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-jSGlvo
+
+Run Build Command(s):/usr/bin/gmake -f Makefile cmTC_4ae59/fast && /usr/bin/gmake  -f CMakeFiles/cmTC_4ae59.dir/build.make CMakeFiles/cmTC_4ae59.dir/build
+gmake[1]: Entering directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-jSGlvo'
+Building C object CMakeFiles/cmTC_4ae59.dir/CheckIncludeFile.c.o
+/usr/bin/cc   -D_GNU_SOURCE=1 -D_REENTRANT -pthread -o CMakeFiles/cmTC_4ae59.dir/CheckIncludeFile.c.o -c /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-jSGlvo/CheckIncludeFile.c
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-jSGlvo/CheckIncludeFile.c:1:10: fatal error: pthread_np.h: No such file or directory
+    1 | #include <pthread_np.h>
+      |          ^~~~~~~~~~~~~~
+compilation terminated.
+gmake[1]: *** [CMakeFiles/cmTC_4ae59.dir/build.make:78: CMakeFiles/cmTC_4ae59.dir/CheckIncludeFile.c.o] Error 1
+gmake[1]: Leaving directory '/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/CMakeScratch/TryCompile-jSGlvo'
+gmake: *** [Makefile:127: cmTC_4ae59/fast] Error 2
+
+
+

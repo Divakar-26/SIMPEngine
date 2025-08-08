@@ -1,0 +1,13 @@
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/edit_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles/rebuild_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/SDL3-shared.dir
+/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/SDL3_test.dir
+/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/SDL_uclibc.dir
+/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/edit_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/rebuild_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/engine/CMakeFiles/Engine.dir
+/home/divakar/Desktop/SDLGameEngine/build/engine/CMakeFiles/edit_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/engine/CMakeFiles/rebuild_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/game/CMakeFiles/GameApp.dir
+/home/divakar/Desktop/SDLGameEngine/build/game/CMakeFiles/edit_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/game/CMakeFiles/rebuild_cache.dir
