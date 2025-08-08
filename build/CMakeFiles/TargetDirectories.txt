@@ -5,6 +5,10 @@
 /home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/SDL_uclibc.dir
 /home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/edit_cache.dir
 /home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/rebuild_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/vendor/spdlog/CMakeFiles/spdlog.dir
+/home/divakar/Desktop/SDLGameEngine/build/vendor/spdlog/CMakeFiles/edit_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/vendor/spdlog/CMakeFiles/rebuild_cache.dir
+/home/divakar/Desktop/SDLGameEngine/build/engine/CMakeFiles/imgui.dir
 /home/divakar/Desktop/SDLGameEngine/build/engine/CMakeFiles/Engine.dir
 /home/divakar/Desktop/SDLGameEngine/build/engine/CMakeFiles/edit_cache.dir
 /home/divakar/Desktop/SDLGameEngine/build/engine/CMakeFiles/rebuild_cache.dir

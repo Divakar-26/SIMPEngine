@@ -1,2 +1,2 @@
-/usr/bin/ar qc libEngine.a CMakeFiles/Engine.dir/src/Window.cpp.o CMakeFiles/Engine.dir/src/Application.cpp.o
+/usr/bin/ar qc libEngine.a CMakeFiles/Engine.dir/src/Window.cpp.o CMakeFiles/Engine.dir/src/Application.cpp.o CMakeFiles/Engine.dir/src/Log.cpp.o CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o
 /usr/bin/ranlib libEngine.a

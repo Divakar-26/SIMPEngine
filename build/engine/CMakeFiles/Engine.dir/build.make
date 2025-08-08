@@ -97,20 +97,52 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Engine.dir/src/Application.cpp.s"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/divakar/Desktop/SDLGameEngine/engine/src/Application.cpp -o CMakeFiles/Engine.dir/src/Application.cpp.s
 
+engine/CMakeFiles/Engine.dir/src/Log.cpp.o: engine/CMakeFiles/Engine.dir/flags.make
+engine/CMakeFiles/Engine.dir/src/Log.cpp.o: /home/divakar/Desktop/SDLGameEngine/engine/src/Log.cpp
+engine/CMakeFiles/Engine.dir/src/Log.cpp.o: engine/CMakeFiles/Engine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object engine/CMakeFiles/Engine.dir/src/Log.cpp.o"
+	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT engine/CMakeFiles/Engine.dir/src/Log.cpp.o -MF CMakeFiles/Engine.dir/src/Log.cpp.o.d -o CMakeFiles/Engine.dir/src/Log.cpp.o -c /home/divakar/Desktop/SDLGameEngine/engine/src/Log.cpp
+
+engine/CMakeFiles/Engine.dir/src/Log.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Engine.dir/src/Log.cpp.i"
+	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/divakar/Desktop/SDLGameEngine/engine/src/Log.cpp > CMakeFiles/Engine.dir/src/Log.cpp.i
+
+engine/CMakeFiles/Engine.dir/src/Log.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Engine.dir/src/Log.cpp.s"
+	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/divakar/Desktop/SDLGameEngine/engine/src/Log.cpp -o CMakeFiles/Engine.dir/src/Log.cpp.s
+
+engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o: engine/CMakeFiles/Engine.dir/flags.make
+engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o: /home/divakar/Desktop/SDLGameEngine/engine/src/ImGuiLayer.cpp
+engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o: engine/CMakeFiles/Engine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o"
+	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o -MF CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o.d -o CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o -c /home/divakar/Desktop/SDLGameEngine/engine/src/ImGuiLayer.cpp
+
+engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.i"
+	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/divakar/Desktop/SDLGameEngine/engine/src/ImGuiLayer.cpp > CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.i
+
+engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.s"
+	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/divakar/Desktop/SDLGameEngine/engine/src/ImGuiLayer.cpp -o CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.s
+
 # Object files for target Engine
 Engine_OBJECTS = \
 "CMakeFiles/Engine.dir/src/Window.cpp.o" \
-"CMakeFiles/Engine.dir/src/Application.cpp.o"
+"CMakeFiles/Engine.dir/src/Application.cpp.o" \
+"CMakeFiles/Engine.dir/src/Log.cpp.o" \
+"CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o"
 
 # External object files for target Engine
 Engine_EXTERNAL_OBJECTS =
 
 engine/libEngine.a: engine/CMakeFiles/Engine.dir/src/Window.cpp.o
 engine/libEngine.a: engine/CMakeFiles/Engine.dir/src/Application.cpp.o
+engine/libEngine.a: engine/CMakeFiles/Engine.dir/src/Log.cpp.o
+engine/libEngine.a: engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o
 engine/libEngine.a: engine/CMakeFiles/Engine.dir/build.make
 engine/libEngine.a: /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi.sym
 engine/libEngine.a: engine/CMakeFiles/Engine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libEngine.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library libEngine.a"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && $(CMAKE_COMMAND) -P CMakeFiles/Engine.dir/cmake_clean_target.cmake
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Engine.dir/link.txt --verbose=$(VERBOSE)
 

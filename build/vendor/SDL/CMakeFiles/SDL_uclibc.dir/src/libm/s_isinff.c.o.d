@@ -2,7 +2,7 @@ vendor/SDL/CMakeFiles/SDL_uclibc.dir/src/libm/s_isinff.c.o: \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/libm/s_isinff.c \
  /usr/include/stdc-predef.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/SDL_internal.h \
- /home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/include-config-/build_config/SDL_build_config.h \
+ /home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/include-config-release/build_config/SDL_build_config.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform_defines.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi_overrides.h \
@@ -50,14 +50,17 @@ vendor/SDL/CMakeFiles/SDL_uclibc.dir/src/libm/s_isinff.c.o: \
  /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
  /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
  /usr/include/x86_64-linux-gnu/bits/floatn.h \
- /usr/include/x86_64-linux-gnu/bits/floatn-common.h /usr/include/stdlib.h \
+ /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h /usr/include/stdlib.h \
  /usr/include/x86_64-linux-gnu/bits/waitflags.h \
  /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
  /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
- /usr/include/alloca.h /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
- /usr/include/memory.h /usr/include/string.h /usr/include/strings.h \
- /usr/include/wchar.h /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ /usr/include/alloca.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
+ /usr/include/x86_64-linux-gnu/bits/stdlib-float.h /usr/include/memory.h \
+ /usr/include/string.h /usr/include/strings.h /usr/include/wchar.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar.h \
  /usr/include/x86_64-linux-gnu/bits/types/wint_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h \
  /usr/include/inttypes.h \

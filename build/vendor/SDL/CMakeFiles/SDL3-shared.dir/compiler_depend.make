@@ -5,7 +5,7 @@ vendor/SDL/CMakeFiles/SDL3-shared.dir/cmake_pch.h.gch: vendor/SDL/CMakeFiles/SDL
   vendor/SDL/CMakeFiles/SDL3-shared.dir/cmake_pch.h.c \
   /usr/include/stdc-predef.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/SDL_internal.h \
-  vendor/SDL/include-config-/build_config/SDL_build_config.h \
+  vendor/SDL/include-config-release/build_config/SDL_build_config.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform_defines.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi_overrides.h \
@@ -57,12 +57,14 @@ vendor/SDL/CMakeFiles/SDL3-shared.dir/cmake_pch.h.gch: vendor/SDL/CMakeFiles/SDL
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
   /usr/include/x86_64-linux-gnu/bits/floatn.h \
   /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
   /usr/include/stdlib.h \
   /usr/include/x86_64-linux-gnu/bits/waitflags.h \
   /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
   /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
   /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
   /usr/include/alloca.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
   /usr/include/memory.h \
   /usr/include/string.h \
@@ -2798,7 +2800,7 @@ vendor/SDL/CMakeFiles/SDL3-shared.dir/src/dialog/unix/SDL_zenitydialog.c.o: vend
 
 vendor/SDL/CMakeFiles/SDL3-shared.dir/src/dynapi/SDL_dynapi.c.o: /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi.c \
   /usr/include/stdc-predef.h \
-  vendor/SDL/include-config-/build_config/SDL_build_config.h \
+  vendor/SDL/include-config-release/build_config/SDL_build_config.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform_defines.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi_unsupported.h \
@@ -2826,6 +2828,7 @@ vendor/SDL/CMakeFiles/SDL3-shared.dir/src/dynapi/SDL_dynapi.c.o: /home/divakar/D
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
   /usr/include/x86_64-linux-gnu/bits/floatn.h \
   /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
   /usr/include/stdlib.h \
   /usr/include/x86_64-linux-gnu/bits/waitflags.h \
   /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
@@ -2853,6 +2856,7 @@ vendor/SDL/CMakeFiles/SDL3-shared.dir/src/dynapi/SDL_dynapi.c.o: /home/divakar/D
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
   /usr/include/alloca.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_stdinc.h \
@@ -12530,13 +12534,7 @@ vendor/SDL/wayland-generated-protocols/idle-inhibit-unstable-v1-client-protocol.
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/render/ngage/SDL_render_ngage.c:
 
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/video/wayland/SDL_waylanddyn.c:
-
-/usr/include/X11/XKBlib.h:
-
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/joystick/SDL_steam_virtual_gamepad.c:
-
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_assert.h:
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/render/gpu/shaders/tri_color.vert.spv.h:
 
 /usr/include/X11/Xosdefs.h:
 
@@ -12908,6 +12906,8 @@ vendor/SDL/wayland-generated-protocols/frog-color-management-v1-client-protocol.
 
 /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
+
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/joystick/SDL_gamepad_c.h:
 
 /usr/include/x86_64-linux-gnu/bits/signal_ext.h:
@@ -13010,6 +13010,24 @@ vendor/SDL/wayland-generated-protocols/pointer-constraints-unstable-v1-client-pr
 
 /usr/include/dbus-1.0/dbus/dbus-misc.h:
 
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/events/SDL_events_c.h:
+
+/usr/include/x86_64-linux-gnu/bits/fp-logb.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/idtype_t.h:
+
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/audio/SDL_sysaudio.h:
+
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/events/SDL_categories_c.h:
+
+/usr/include/dbus-1.0/dbus/dbus-message.h:
+
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/io/SDL_iostream_c.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
+
+/usr/include/features-time64.h:
+
 /usr/lib/gcc/x86_64-linux-gnu/12/include/bmi2intrin.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/process/SDL_process.c:
@@ -13021,10 +13039,6 @@ vendor/SDL/wayland-generated-protocols/pointer-constraints-unstable-v1-client-pr
 /usr/include/glib-2.0/glib/gqueue.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/12/include/avx512bf16vlintrin.h:
-
-/usr/include/x86_64-linux-gnu/bits/uio_lim.h:
-
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_hints.h:
 
 /usr/include/x86_64-linux-gnu/bits/types.h:
 
@@ -13065,12 +13079,6 @@ vendor/SDL/wayland-generated-protocols/pointer-constraints-unstable-v1-client-pr
 /usr/include/ibus-1.0/ibusaccelgroup.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_asyncio.h:
-
-/usr/include/x86_64-linux-gnu/bits/fp-logb.h:
-
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/events/SDL_events_c.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/idtype_t.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/video/x11/SDL_x11xinput2.c:
 
@@ -13196,6 +13204,8 @@ vendor/SDL/wayland-generated-protocols/primary-selection-unstable-v1-protocol.c:
 
 /usr/include/x86_64-linux-gnu/bits/param.h:
 
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_assert.h:
+
 /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/12/include/avx512fintrin.h:
@@ -13266,16 +13276,6 @@ vendor/SDL/wayland-generated-protocols/xdg-activation-v1-client-protocol.h:
 
 /usr/include/glib-2.0/gio/gdataoutputstream.h:
 
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/audio/SDL_audioresample.c:
-
-/usr/include/x86_64-linux-gnu/bits/fcntl.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/12/include/xsavecintrin.h:
-
-/usr/include/dbus-1.0/dbus/dbus-types.h:
-
-/usr/include/glib-2.0/gio/gfileicon.h:
-
 /usr/include/X11/Xutil.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/core/linux/SDL_threadprio.c:
@@ -13292,19 +13292,17 @@ vendor/SDL/wayland-generated-protocols/xdg-activation-v1-client-protocol.h:
 
 /usr/include/stdint.h:
 
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/events/scancodes_xfree86.h:
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/render/gpu/shaders/texture_rgba_pixelart.frag.spv.h:
 
-/usr/include/X11/extensions/XI.h:
+/usr/include/endian.h:
+
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/events/scancodes_xfree86.h:
 
 /usr/include/ibus-1.0/ibusobservedpath.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
 
 /usr/include/linux/ioctl.h:
-
-/usr/include/x86_64-linux-gnu/sys/types.h:
-
-/usr/include/glib-2.0/gio/gioerror.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/core/unix/SDL_appid.c:
 
@@ -13313,10 +13311,6 @@ vendor/SDL/wayland-generated-protocols/xdg-activation-v1-client-protocol.h:
 /usr/include/alsa/error.h:
 
 /usr/include/x86_64-linux-gnu/bits/local_lim.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
-
-/usr/include/features-time64.h:
 
 /usr/include/glib-2.0/gobject/gobject-autocleanups.h:
 
@@ -13384,6 +13378,26 @@ vendor/SDL/wayland-generated-protocols/xdg-activation-v1-client-protocol.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_tray.h:
 
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/audio/SDL_audioresample.c:
+
+/usr/include/glib-2.0/gio/gioerror.h:
+
+/usr/include/x86_64-linux-gnu/sys/types.h:
+
+/usr/include/x86_64-linux-gnu/bits/fcntl.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/12/include/xsavecintrin.h:
+
+/usr/include/dbus-1.0/dbus/dbus-types.h:
+
+/usr/include/glib-2.0/gio/gfileicon.h:
+
+vendor/SDL/include-config-release/build_config/SDL_build_config.h:
+
+/usr/include/asm-generic/types.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/12/include/smmintrin.h:
+
 /usr/lib/gcc/x86_64-linux-gnu/12/include/fxsrintrin.h:
 
 /usr/include/glib-2.0/glib/deprecated/grel.h:
@@ -13391,8 +13405,6 @@ vendor/SDL/wayland-generated-protocols/xdg-activation-v1-client-protocol.h:
 /usr/include/glib-2.0/gio/ginputstream.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h:
-
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/render/gpu/shaders/tri_color.vert.spv.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
 
@@ -13429,6 +13441,10 @@ vendor/SDL/wayland-generated-protocols/xdg-activation-v1-client-protocol.h:
 /usr/lib/gcc/x86_64-linux-gnu/12/include/mwaitintrin.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_guid.h:
+
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/core/SDL_core_unsupported.c:
+
+/usr/lib/gcc/x86_64-linux-gnu/12/include/immintrin.h:
 
 /usr/include/x86_64-linux-gnu/bits/wordsize.h:
 
@@ -13568,6 +13584,10 @@ vendor/SDL/CMakeFiles/SDL3-shared.dir/cmake_pch.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h:
 
+/usr/include/x86_64-linux-gnu/bits/uio_lim.h:
+
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_hints.h:
+
 /usr/include/X11/keysym.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_statx_timestamp.h:
@@ -13588,11 +13608,11 @@ vendor/SDL/CMakeFiles/SDL3-shared.dir/cmake_pch.h:
 
 /usr/include/x86_64-linux-gnu/gnu/stubs.h:
 
-/usr/include/X11/Xresource.h:
-
 /usr/include/x86_64-linux-gnu/bits/timex.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/events/SDL_displayevents.c:
+
+/usr/include/X11/Xresource.h:
 
 /usr/include/x86_64-linux-gnu/bits/endianness.h:
 
@@ -13657,10 +13677,6 @@ vendor/SDL/wayland-generated-protocols/viewporter-client-protocol.h:
 /usr/include/glib-2.0/glib/goption.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/12/include/mmintrin.h:
-
-/usr/include/asm-generic/types.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/12/include/smmintrin.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/audio/disk/SDL_diskaudio.c:
 
@@ -13772,6 +13788,8 @@ vendor/SDL/wayland-generated-protocols/cursor-shape-v1-protocol.c:
 
 /usr/include/pulse/gccmacro.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
+
 vendor/SDL/wayland-generated-protocols/xdg-foreign-unstable-v2-client-protocol.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/12/include/avx512erintrin.h:
@@ -13805,8 +13823,6 @@ vendor/SDL/wayland-generated-protocols/xdg-foreign-unstable-v2-client-protocol.h
 /usr/lib/gcc/x86_64-linux-gnu/12/include/avx512ifmavlintrin.h:
 
 /usr/include/glib-2.0/gio/gbufferedoutputstream.h:
-
-vendor/SDL/include-config-/build_config/SDL_build_config.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/atomic/SDL_atomic.c:
 
@@ -13920,17 +13936,11 @@ vendor/SDL/include-config-/build_config/SDL_build_config.h:
 
 /usr/include/x86_64-linux-gnu/bits/resource.h:
 
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/core/SDL_core_unsupported.c:
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/video/wayland/SDL_waylanddyn.c:
 
-/usr/lib/gcc/x86_64-linux-gnu/12/include/immintrin.h:
+/usr/include/X11/XKBlib.h:
 
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/audio/SDL_sysaudio.h:
-
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/events/SDL_categories_c.h:
-
-/usr/include/dbus-1.0/dbus/dbus-message.h:
-
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/io/SDL_iostream_c.h:
+/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/joystick/SDL_steam_virtual_gamepad.c:
 
 /usr/include/X11/extensions/XKB.h:
 
@@ -14053,6 +14063,8 @@ vendor/SDL/wayland-generated-protocols/keyboard-shortcuts-inhibit-unstable-v1-pr
 /usr/include/inttypes.h:
 
 /usr/include/X11/extensions/XInput.h:
+
+/usr/include/X11/extensions/XI.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/video/kmsdrm/SDL_kmsdrmvulkan.h:
 
@@ -14563,10 +14575,6 @@ vendor/SDL/wayland-generated-protocols/xdg-foreign-unstable-v2-protocol.c:
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/gpu/vulkan/SDL_gpu_vulkan.c:
 
 /usr/include/glib-2.0/gio/gpropertyaction.h:
-
-/usr/include/endian.h:
-
-/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/render/gpu/shaders/texture_rgba_pixelart.frag.spv.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/video/x11/SDL_x11xfixes.h:
 

@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/GameApp.dir/src/main.cpp.o -o GameApp  -Wl,-rpath,/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL ../engine/libEngine.a ../vendor/SDL/libSDL3.so.0.3.0 
+/usr/bin/c++ -O3 -DNDEBUG CMakeFiles/GameApp.dir/src/main.cpp.o -o GameApp  -Wl,-rpath,/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL ../engine/libEngine.a ../engine/libimgui.a ../vendor/SDL/libSDL3.so.0.3.0 ../vendor/spdlog/libspdlog.a 

@@ -1,6 +1,10 @@
 file(REMOVE_RECURSE
   "CMakeFiles/Engine.dir/src/Application.cpp.o"
   "CMakeFiles/Engine.dir/src/Application.cpp.o.d"
+  "CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o"
+  "CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o.d"
+  "CMakeFiles/Engine.dir/src/Log.cpp.o"
+  "CMakeFiles/Engine.dir/src/Log.cpp.o.d"
   "CMakeFiles/Engine.dir/src/Window.cpp.o"
   "CMakeFiles/Engine.dir/src/Window.cpp.o.d"
   "libEngine.a"

@@ -5,5 +5,5 @@ add_executable(GameApp
 
 # Link game with engine library
 target_link_libraries(GameApp
-    PRIVATE Engine
+    PRIVATE Engine imgui
 )

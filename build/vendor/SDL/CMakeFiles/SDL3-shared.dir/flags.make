@@ -4,9 +4,9 @@
 # compile C with /usr/bin/cc
 C_DEFINES = -DDLL_EXPORT -DSDL_BUILD_MAJOR_VERSION=3 -DSDL_BUILD_MICRO_VERSION=0 -DSDL_BUILD_MINOR_VERSION=3 -DUSING_GENERATED_CONFIG_H
 
-C_INCLUDES = -I/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/include-config-/build_config -I/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/include-revision -I/home/divakar/Desktop/SDLGameEngine/vendor/SDL/include -I/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src -isystem /home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/wayland-generated-protocols -isystem /usr/include/libdrm -isystem /usr/include/libdecor-0 -isystem /usr/include/dbus-1.0 -isystem /usr/lib/x86_64-linux-gnu/dbus-1.0/include -isystem /usr/include/ibus-1.0 -isystem /usr/include/glib-2.0 -isystem /usr/lib/x86_64-linux-gnu/glib-2.0/include -isystem /usr/include/libmount -isystem /usr/include/blkid -isystem /usr/include/libusb-1.0
+C_INCLUDES = -I/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/include-config-release/build_config -I/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/include-revision -I/home/divakar/Desktop/SDLGameEngine/vendor/SDL/include -I/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src -isystem /home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/wayland-generated-protocols -isystem /usr/include/libdrm -isystem /usr/include/libdecor-0 -isystem /usr/include/dbus-1.0 -isystem /usr/lib/x86_64-linux-gnu/dbus-1.0/include -isystem /usr/include/ibus-1.0 -isystem /usr/include/glib-2.0 -isystem /usr/lib/x86_64-linux-gnu/glib-2.0/include -isystem /usr/include/libmount -isystem /usr/include/blkid -isystem /usr/include/libusb-1.0
 
-C_FLAGS = -fPIC -fvisibility=hidden -Wall -Wundef -Wfloat-conversion -fno-strict-aliasing -Wshadow -Wno-unused-local-typedefs -Wimplicit-fallthrough -fdiagnostics-color=always -idirafter/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/video/khronos -D_REENTRANT
+C_FLAGS = -O3 -DNDEBUG -fPIC -fvisibility=hidden -Wall -Wundef -Wfloat-conversion -fno-strict-aliasing -Wshadow -Wno-unused-local-typedefs -Wimplicit-fallthrough -fdiagnostics-color=always -idirafter/home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/video/khronos -D_REENTRANT
 
 # PCH options: vendor/SDL/CMakeFiles/SDL3-shared.dir/cmake_pch.h.gch_OPTIONS = -Winvalid-pch;-x;c-header;-include;/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/SDL3-shared.dir/cmake_pch.h
 

@@ -22,6 +22,12 @@ namespace SIMPEngine
         EventType GetEventType() const override { return StaticType(); }
         const char *GetName() const override { return "KeyPressed"; }
 
+        std::string ToString() const override
+        {
+            return std::string(GetName()) + ": " + std::to_string(m_KeyCode) +
+                   (m_Repeat ? " (repeat)" : "");
+        }
+
     private:
         bool m_Repeat;
     };
@@ -34,14 +40,25 @@ namespace SIMPEngine
         static EventType StaticType() { return EventType::KeyReleased; }
         EventType GetEventType() const override { return StaticType(); }
         const char *GetName() const override { return "KeyReleased"; }
+
+        std::string ToString() const override
+        {
+            return std::string(GetName()) + ": " + std::to_string(m_KeyCode);
+        }
     };
 
     class KeyTypedEvent : public KeyEvent
     {
+    public:
         KeyTypedEvent(int keycode) : KeyEvent(keycode) {}
 
         static EventType StaticType() { return EventType::KeyTyped; }
         EventType GetEventType() const override { return StaticType(); }
         const char *GetName() const override { return "KeyTyped"; }
+
+        std::string ToString() const override
+        {
+            return std::string(GetName()) + ": " + std::to_string(m_KeyCode);
+        }
     };
 }

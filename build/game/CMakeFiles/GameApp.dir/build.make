@@ -93,7 +93,9 @@ GameApp_EXTERNAL_OBJECTS =
 game/GameApp: game/CMakeFiles/GameApp.dir/src/main.cpp.o
 game/GameApp: game/CMakeFiles/GameApp.dir/build.make
 game/GameApp: engine/libEngine.a
+game/GameApp: engine/libimgui.a
 game/GameApp: vendor/SDL/libSDL3.so.0.3.0
+game/GameApp: vendor/spdlog/libspdlog.a
 game/GameApp: /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi.sym
 game/GameApp: game/CMakeFiles/GameApp.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable GameApp"

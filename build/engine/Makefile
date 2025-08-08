@@ -117,6 +117,20 @@ depend:
 .PHONY : depend
 
 # Convenience name for target.
+engine/CMakeFiles/imgui.dir/rule:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 engine/CMakeFiles/imgui.dir/rule
+.PHONY : engine/CMakeFiles/imgui.dir/rule
+
+# Convenience name for target.
+imgui: engine/CMakeFiles/imgui.dir/rule
+.PHONY : imgui
+
+# fast build rule for target.
+imgui/fast:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/build
+.PHONY : imgui/fast
+
+# Convenience name for target.
 engine/CMakeFiles/Engine.dir/rule:
 	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 engine/CMakeFiles/Engine.dir/rule
 .PHONY : engine/CMakeFiles/Engine.dir/rule
@@ -129,6 +143,174 @@ Engine: engine/CMakeFiles/Engine.dir/rule
 Engine/fast:
 	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/build
 .PHONY : Engine/fast
+
+__/vendor/imgui/backends/imgui_impl_sdl3.o: __/vendor/imgui/backends/imgui_impl_sdl3.cpp.o
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdl3.o
+
+# target to build an object file
+__/vendor/imgui/backends/imgui_impl_sdl3.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/backends/imgui_impl_sdl3.cpp.o
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdl3.cpp.o
+
+__/vendor/imgui/backends/imgui_impl_sdl3.i: __/vendor/imgui/backends/imgui_impl_sdl3.cpp.i
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdl3.i
+
+# target to preprocess a source file
+__/vendor/imgui/backends/imgui_impl_sdl3.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/backends/imgui_impl_sdl3.cpp.i
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdl3.cpp.i
+
+__/vendor/imgui/backends/imgui_impl_sdl3.s: __/vendor/imgui/backends/imgui_impl_sdl3.cpp.s
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdl3.s
+
+# target to generate assembly for a file
+__/vendor/imgui/backends/imgui_impl_sdl3.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/backends/imgui_impl_sdl3.cpp.s
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdl3.cpp.s
+
+__/vendor/imgui/backends/imgui_impl_sdlrenderer3.o: __/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.o
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdlrenderer3.o
+
+# target to build an object file
+__/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.o
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.o
+
+__/vendor/imgui/backends/imgui_impl_sdlrenderer3.i: __/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.i
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdlrenderer3.i
+
+# target to preprocess a source file
+__/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.i
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.i
+
+__/vendor/imgui/backends/imgui_impl_sdlrenderer3.s: __/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.s
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdlrenderer3.s
+
+# target to generate assembly for a file
+__/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.s
+.PHONY : __/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp.s
+
+__/vendor/imgui/imgui.o: __/vendor/imgui/imgui.cpp.o
+.PHONY : __/vendor/imgui/imgui.o
+
+# target to build an object file
+__/vendor/imgui/imgui.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui.cpp.o
+.PHONY : __/vendor/imgui/imgui.cpp.o
+
+__/vendor/imgui/imgui.i: __/vendor/imgui/imgui.cpp.i
+.PHONY : __/vendor/imgui/imgui.i
+
+# target to preprocess a source file
+__/vendor/imgui/imgui.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui.cpp.i
+.PHONY : __/vendor/imgui/imgui.cpp.i
+
+__/vendor/imgui/imgui.s: __/vendor/imgui/imgui.cpp.s
+.PHONY : __/vendor/imgui/imgui.s
+
+# target to generate assembly for a file
+__/vendor/imgui/imgui.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui.cpp.s
+.PHONY : __/vendor/imgui/imgui.cpp.s
+
+__/vendor/imgui/imgui_demo.o: __/vendor/imgui/imgui_demo.cpp.o
+.PHONY : __/vendor/imgui/imgui_demo.o
+
+# target to build an object file
+__/vendor/imgui/imgui_demo.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_demo.cpp.o
+.PHONY : __/vendor/imgui/imgui_demo.cpp.o
+
+__/vendor/imgui/imgui_demo.i: __/vendor/imgui/imgui_demo.cpp.i
+.PHONY : __/vendor/imgui/imgui_demo.i
+
+# target to preprocess a source file
+__/vendor/imgui/imgui_demo.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_demo.cpp.i
+.PHONY : __/vendor/imgui/imgui_demo.cpp.i
+
+__/vendor/imgui/imgui_demo.s: __/vendor/imgui/imgui_demo.cpp.s
+.PHONY : __/vendor/imgui/imgui_demo.s
+
+# target to generate assembly for a file
+__/vendor/imgui/imgui_demo.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_demo.cpp.s
+.PHONY : __/vendor/imgui/imgui_demo.cpp.s
+
+__/vendor/imgui/imgui_draw.o: __/vendor/imgui/imgui_draw.cpp.o
+.PHONY : __/vendor/imgui/imgui_draw.o
+
+# target to build an object file
+__/vendor/imgui/imgui_draw.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_draw.cpp.o
+.PHONY : __/vendor/imgui/imgui_draw.cpp.o
+
+__/vendor/imgui/imgui_draw.i: __/vendor/imgui/imgui_draw.cpp.i
+.PHONY : __/vendor/imgui/imgui_draw.i
+
+# target to preprocess a source file
+__/vendor/imgui/imgui_draw.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_draw.cpp.i
+.PHONY : __/vendor/imgui/imgui_draw.cpp.i
+
+__/vendor/imgui/imgui_draw.s: __/vendor/imgui/imgui_draw.cpp.s
+.PHONY : __/vendor/imgui/imgui_draw.s
+
+# target to generate assembly for a file
+__/vendor/imgui/imgui_draw.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_draw.cpp.s
+.PHONY : __/vendor/imgui/imgui_draw.cpp.s
+
+__/vendor/imgui/imgui_tables.o: __/vendor/imgui/imgui_tables.cpp.o
+.PHONY : __/vendor/imgui/imgui_tables.o
+
+# target to build an object file
+__/vendor/imgui/imgui_tables.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_tables.cpp.o
+.PHONY : __/vendor/imgui/imgui_tables.cpp.o
+
+__/vendor/imgui/imgui_tables.i: __/vendor/imgui/imgui_tables.cpp.i
+.PHONY : __/vendor/imgui/imgui_tables.i
+
+# target to preprocess a source file
+__/vendor/imgui/imgui_tables.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_tables.cpp.i
+.PHONY : __/vendor/imgui/imgui_tables.cpp.i
+
+__/vendor/imgui/imgui_tables.s: __/vendor/imgui/imgui_tables.cpp.s
+.PHONY : __/vendor/imgui/imgui_tables.s
+
+# target to generate assembly for a file
+__/vendor/imgui/imgui_tables.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_tables.cpp.s
+.PHONY : __/vendor/imgui/imgui_tables.cpp.s
+
+__/vendor/imgui/imgui_widgets.o: __/vendor/imgui/imgui_widgets.cpp.o
+.PHONY : __/vendor/imgui/imgui_widgets.o
+
+# target to build an object file
+__/vendor/imgui/imgui_widgets.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_widgets.cpp.o
+.PHONY : __/vendor/imgui/imgui_widgets.cpp.o
+
+__/vendor/imgui/imgui_widgets.i: __/vendor/imgui/imgui_widgets.cpp.i
+.PHONY : __/vendor/imgui/imgui_widgets.i
+
+# target to preprocess a source file
+__/vendor/imgui/imgui_widgets.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_widgets.cpp.i
+.PHONY : __/vendor/imgui/imgui_widgets.cpp.i
+
+__/vendor/imgui/imgui_widgets.s: __/vendor/imgui/imgui_widgets.cpp.s
+.PHONY : __/vendor/imgui/imgui_widgets.s
+
+# target to generate assembly for a file
+__/vendor/imgui/imgui_widgets.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/__/vendor/imgui/imgui_widgets.cpp.s
+.PHONY : __/vendor/imgui/imgui_widgets.cpp.s
 
 src/Application.o: src/Application.cpp.o
 .PHONY : src/Application.o
@@ -153,6 +335,54 @@ src/Application.s: src/Application.cpp.s
 src/Application.cpp.s:
 	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Application.cpp.s
 .PHONY : src/Application.cpp.s
+
+src/ImGuiLayer.o: src/ImGuiLayer.cpp.o
+.PHONY : src/ImGuiLayer.o
+
+# target to build an object file
+src/ImGuiLayer.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o
+.PHONY : src/ImGuiLayer.cpp.o
+
+src/ImGuiLayer.i: src/ImGuiLayer.cpp.i
+.PHONY : src/ImGuiLayer.i
+
+# target to preprocess a source file
+src/ImGuiLayer.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.i
+.PHONY : src/ImGuiLayer.cpp.i
+
+src/ImGuiLayer.s: src/ImGuiLayer.cpp.s
+.PHONY : src/ImGuiLayer.s
+
+# target to generate assembly for a file
+src/ImGuiLayer.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.s
+.PHONY : src/ImGuiLayer.cpp.s
+
+src/Log.o: src/Log.cpp.o
+.PHONY : src/Log.o
+
+# target to build an object file
+src/Log.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Log.cpp.o
+.PHONY : src/Log.cpp.o
+
+src/Log.i: src/Log.cpp.i
+.PHONY : src/Log.i
+
+# target to preprocess a source file
+src/Log.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Log.cpp.i
+.PHONY : src/Log.cpp.i
+
+src/Log.s: src/Log.cpp.s
+.PHONY : src/Log.s
+
+# target to generate assembly for a file
+src/Log.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Log.cpp.s
+.PHONY : src/Log.cpp.s
 
 src/Window.o: src/Window.cpp.o
 .PHONY : src/Window.o
@@ -187,9 +417,37 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... Engine"
+	@echo "... imgui"
+	@echo "... __/vendor/imgui/backends/imgui_impl_sdl3.o"
+	@echo "... __/vendor/imgui/backends/imgui_impl_sdl3.i"
+	@echo "... __/vendor/imgui/backends/imgui_impl_sdl3.s"
+	@echo "... __/vendor/imgui/backends/imgui_impl_sdlrenderer3.o"
+	@echo "... __/vendor/imgui/backends/imgui_impl_sdlrenderer3.i"
+	@echo "... __/vendor/imgui/backends/imgui_impl_sdlrenderer3.s"
+	@echo "... __/vendor/imgui/imgui.o"
+	@echo "... __/vendor/imgui/imgui.i"
+	@echo "... __/vendor/imgui/imgui.s"
+	@echo "... __/vendor/imgui/imgui_demo.o"
+	@echo "... __/vendor/imgui/imgui_demo.i"
+	@echo "... __/vendor/imgui/imgui_demo.s"
+	@echo "... __/vendor/imgui/imgui_draw.o"
+	@echo "... __/vendor/imgui/imgui_draw.i"
+	@echo "... __/vendor/imgui/imgui_draw.s"
+	@echo "... __/vendor/imgui/imgui_tables.o"
+	@echo "... __/vendor/imgui/imgui_tables.i"
+	@echo "... __/vendor/imgui/imgui_tables.s"
+	@echo "... __/vendor/imgui/imgui_widgets.o"
+	@echo "... __/vendor/imgui/imgui_widgets.i"
+	@echo "... __/vendor/imgui/imgui_widgets.s"
 	@echo "... src/Application.o"
 	@echo "... src/Application.i"
 	@echo "... src/Application.s"
+	@echo "... src/ImGuiLayer.o"
+	@echo "... src/ImGuiLayer.i"
+	@echo "... src/ImGuiLayer.s"
+	@echo "... src/Log.o"
+	@echo "... src/Log.i"
+	@echo "... src/Log.s"
 	@echo "... src/Window.o"
 	@echo "... src/Window.i"
 	@echo "... src/Window.s"
