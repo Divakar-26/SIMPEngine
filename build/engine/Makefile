@@ -384,6 +384,102 @@ src/Log.cpp.s:
 	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Log.cpp.s
 .PHONY : src/Log.cpp.s
 
+src/Renderer.o: src/Renderer.cpp.o
+.PHONY : src/Renderer.o
+
+# target to build an object file
+src/Renderer.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Renderer.cpp.o
+.PHONY : src/Renderer.cpp.o
+
+src/Renderer.i: src/Renderer.cpp.i
+.PHONY : src/Renderer.i
+
+# target to preprocess a source file
+src/Renderer.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Renderer.cpp.i
+.PHONY : src/Renderer.cpp.i
+
+src/Renderer.s: src/Renderer.cpp.s
+.PHONY : src/Renderer.s
+
+# target to generate assembly for a file
+src/Renderer.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Renderer.cpp.s
+.PHONY : src/Renderer.cpp.s
+
+src/RenderingAPI.o: src/RenderingAPI.cpp.o
+.PHONY : src/RenderingAPI.o
+
+# target to build an object file
+src/RenderingAPI.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/RenderingAPI.cpp.o
+.PHONY : src/RenderingAPI.cpp.o
+
+src/RenderingAPI.i: src/RenderingAPI.cpp.i
+.PHONY : src/RenderingAPI.i
+
+# target to preprocess a source file
+src/RenderingAPI.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/RenderingAPI.cpp.i
+.PHONY : src/RenderingAPI.cpp.i
+
+src/RenderingAPI.s: src/RenderingAPI.cpp.s
+.PHONY : src/RenderingAPI.s
+
+# target to generate assembly for a file
+src/RenderingAPI.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/RenderingAPI.cpp.s
+.PHONY : src/RenderingAPI.cpp.s
+
+src/RenderingLayer.o: src/RenderingLayer.cpp.o
+.PHONY : src/RenderingLayer.o
+
+# target to build an object file
+src/RenderingLayer.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/RenderingLayer.cpp.o
+.PHONY : src/RenderingLayer.cpp.o
+
+src/RenderingLayer.i: src/RenderingLayer.cpp.i
+.PHONY : src/RenderingLayer.i
+
+# target to preprocess a source file
+src/RenderingLayer.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/RenderingLayer.cpp.i
+.PHONY : src/RenderingLayer.cpp.i
+
+src/RenderingLayer.s: src/RenderingLayer.cpp.s
+.PHONY : src/RenderingLayer.s
+
+# target to generate assembly for a file
+src/RenderingLayer.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/RenderingLayer.cpp.s
+.PHONY : src/RenderingLayer.cpp.s
+
+src/SDLRenderingAPI.o: src/SDLRenderingAPI.cpp.o
+.PHONY : src/SDLRenderingAPI.o
+
+# target to build an object file
+src/SDLRenderingAPI.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/SDLRenderingAPI.cpp.o
+.PHONY : src/SDLRenderingAPI.cpp.o
+
+src/SDLRenderingAPI.i: src/SDLRenderingAPI.cpp.i
+.PHONY : src/SDLRenderingAPI.i
+
+# target to preprocess a source file
+src/SDLRenderingAPI.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/SDLRenderingAPI.cpp.i
+.PHONY : src/SDLRenderingAPI.cpp.i
+
+src/SDLRenderingAPI.s: src/SDLRenderingAPI.cpp.s
+.PHONY : src/SDLRenderingAPI.s
+
+# target to generate assembly for a file
+src/SDLRenderingAPI.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/SDLRenderingAPI.cpp.s
+.PHONY : src/SDLRenderingAPI.cpp.s
+
 src/Window.o: src/Window.cpp.o
 .PHONY : src/Window.o
 
@@ -448,6 +544,18 @@ help:
 	@echo "... src/Log.o"
 	@echo "... src/Log.i"
 	@echo "... src/Log.s"
+	@echo "... src/Renderer.o"
+	@echo "... src/Renderer.i"
+	@echo "... src/Renderer.s"
+	@echo "... src/RenderingAPI.o"
+	@echo "... src/RenderingAPI.i"
+	@echo "... src/RenderingAPI.s"
+	@echo "... src/RenderingLayer.o"
+	@echo "... src/RenderingLayer.i"
+	@echo "... src/RenderingLayer.s"
+	@echo "... src/SDLRenderingAPI.o"
+	@echo "... src/SDLRenderingAPI.i"
+	@echo "... src/SDLRenderingAPI.s"
 	@echo "... src/Window.o"
 	@echo "... src/Window.i"
 	@echo "... src/Window.s"

@@ -2,11 +2,13 @@
     #include "Engine/Log.h"
     #include "Engine/LayerStack.h"
     #include "Engine/ImGuiLayer.h"
+    #include "Engine/RenderingLayer.h"
 
     class MyGame : public SIMPEngine::Application {
     public:
         MyGame() {
             // Custom game initialization
+            PushOverlay(new SIMPEngine::RenderingLayer()); // Add it here only if needed
             PushOverlay(new SIMPEngine::ImGuiLayer()); // Add it here only if needed
         }
     };

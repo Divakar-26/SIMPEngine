@@ -231,8 +231,12 @@ engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o: \
  /usr/include/c++/12/bits/stl_tempbuf.h \
  /usr/include/c++/12/bits/uniform_int_dist.h \
  /usr/include/c++/12/pstl/glue_algorithm_defs.h \
- /usr/include/c++/12/pstl/execution_defs.h /usr/include/c++/12/functional \
- /usr/include/c++/12/tuple /usr/include/c++/12/bits/uses_allocator.h \
+ /usr/include/c++/12/pstl/execution_defs.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingLayer.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Renderer.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingAPI.h \
+ /usr/include/c++/12/functional /usr/include/c++/12/tuple \
+ /usr/include/c++/12/bits/uses_allocator.h \
  /usr/include/c++/12/bits/std_function.h \
  /usr/include/c++/12/unordered_map \
  /usr/include/c++/12/ext/aligned_buffer.h \

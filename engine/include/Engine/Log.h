@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <spdlog/spdlog.h>
-#include <spdlog/fmt/ostr.h> // so spdlog can log std::string
+#include <spdlog/fmt/ostr.h>
 
 namespace SIMPEngine {
 

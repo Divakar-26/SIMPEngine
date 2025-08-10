@@ -12,8 +12,6 @@
 #include "Engine/Events/KeyEvent.h"
 #include "Engine/Events/MouseEvent.h"
 
-
-
 namespace SIMPEngine
 {
 
@@ -77,7 +75,6 @@ namespace SIMPEngine
     {
         Begin();
 
-        // Here you can create ImGui windows, UI elements etc.
         ImGui::Begin("Hello, ImGui!");
 
         if (ImGui::Button("Click Me"))
@@ -92,9 +89,20 @@ namespace SIMPEngine
         End();
     }
 
-    void ImGuiLayer::OnEvent(Event &e)
+void ImGuiLayer::OnEvent(Event &e)
+{
+    CORE_INFO("Event: {} | WantCaptureMouse = {}", e.ToString(), ImGui::GetIO().WantCaptureMouse);
+
+    if (ImGui::GetIO().WantCaptureMouse &&
+        (e.GetEventType() == EventType::MouseButtonPressed ||
+         e.GetEventType() == EventType::MouseButtonReleased ||
+         e.GetEventType() == EventType::MouseMoved))
     {
+        e.Handled = true;
+        CORE_INFO("ImGui handled this mouse event");
     }
+}
+
 
     void ImGuiLayer::OnSDLEvent(SDL_Event &e)
     {

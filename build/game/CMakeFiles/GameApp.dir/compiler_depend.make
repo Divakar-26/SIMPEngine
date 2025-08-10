@@ -270,6 +270,9 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: /home/divakar/Desktop/SDLGameEngine/
   /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imconfig.h \
   /usr/lib/gcc/x86_64-linux-gnu/12/include/float.h \
   /usr/include/assert.h \
+  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingLayer.h \
+  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Renderer.h \
+  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingAPI.h \
   /usr/include/c++/12/functional \
   /usr/include/c++/12/tuple \
   /usr/include/c++/12/bits/uses_allocator.h \
@@ -535,6 +538,8 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: /home/divakar/Desktop/SDLGameEngine/
 
 /usr/include/c++/12/bits/uses_allocator.h:
 
+/home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Renderer.h:
+
 /usr/include/assert.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imconfig.h:
@@ -721,6 +726,8 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: /home/divakar/Desktop/SDLGameEngine/
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_cpuinfo.h:
 
+/home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingLayer.h:
+
 /usr/include/x86_64-linux-gnu/bits/endian.h:
 
 /usr/include/c++/12/bits/ostream_insert.h:
@@ -838,6 +845,8 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: /home/divakar/Desktop/SDLGameEngine/
 /usr/include/features.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_pixels.h:
+
+/home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingAPI.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
 

@@ -3,6 +3,7 @@
 #include "Engine/Events/Event.h"
 #include "Engine/LayerStack.h"
 #include "Engine/ImGuiLayer.h"
+#include "Engine/RenderingLayer.h"
 #include <functional>
 
 namespace SIMPEngine
@@ -32,6 +33,7 @@ namespace SIMPEngine
 
         LayerStack m_LayerStack;
         ImGuiLayer *m_ImGuiLayer;
+        RenderingLayer *m_RenderingLayer;
        
         static Application *s_Instance;
     };

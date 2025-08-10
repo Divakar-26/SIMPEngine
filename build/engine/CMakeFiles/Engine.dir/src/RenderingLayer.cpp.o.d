@@ -1,14 +1,11 @@
-engine/CMakeFiles/Engine.dir/src/Application.cpp.o: \
- /home/divakar/Desktop/SDLGameEngine/engine/src/Application.cpp \
+engine/CMakeFiles/Engine.dir/src/RenderingLayer.cpp.o: \
+ /home/divakar/Desktop/SDLGameEngine/engine/src/RenderingLayer.cpp \
  /usr/include/stdc-predef.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Application.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Window.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_stdinc.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform_defines.h \
- /usr/lib/gcc/x86_64-linux-gnu/12/include/stdarg.h \
- /usr/lib/gcc/x86_64-linux-gnu/12/include/stdint.h /usr/include/stdint.h \
- /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingLayer.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Layer.h \
+ /usr/include/c++/12/string \
+ /usr/include/x86_64-linux-gnu/c++/12/bits/c++config.h \
+ /usr/include/x86_64-linux-gnu/c++/12/bits/os_defines.h \
  /usr/include/features.h /usr/include/features-time64.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
  /usr/include/x86_64-linux-gnu/bits/timesize.h \
@@ -16,94 +13,33 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/long-double.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs.h \
  /usr/include/x86_64-linux-gnu/gnu/stubs-64.h \
- /usr/include/x86_64-linux-gnu/bits/types.h \
- /usr/include/x86_64-linux-gnu/bits/typesizes.h \
- /usr/include/x86_64-linux-gnu/bits/time64.h \
- /usr/include/x86_64-linux-gnu/bits/wchar.h \
- /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
- /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h /usr/include/string.h \
- /usr/lib/gcc/x86_64-linux-gnu/12/include/stddef.h \
- /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
- /usr/include/strings.h /usr/include/wchar.h \
- /usr/include/x86_64-linux-gnu/bits/floatn.h \
- /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
- /usr/include/x86_64-linux-gnu/bits/types/wint_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
- /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_begin_code.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_close_code.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_assert.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_asyncio.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_atomic.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_audio.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_endian.h \
- /usr/include/endian.h /usr/include/x86_64-linux-gnu/bits/endian.h \
- /usr/include/x86_64-linux-gnu/bits/endianness.h \
- /usr/include/x86_64-linux-gnu/bits/byteswap.h \
- /usr/include/x86_64-linux-gnu/bits/uintn-identity.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_error.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_mutex.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_thread.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_properties.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_iostream.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_bits.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_blendmode.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_camera.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_pixels.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_surface.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_rect.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_clipboard.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_cpuinfo.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_dialog.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_video.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_events.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_gamepad.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_guid.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_joystick.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_power.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_sensor.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_keyboard.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_keycode.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_scancode.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_mouse.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_pen.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_touch.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_filesystem.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_gpu.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_haptic.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_hidapi.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_hints.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_init.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_loadso.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_locale.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_log.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_messagebox.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_metal.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_misc.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_process.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_render.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_storage.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_system.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_time.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_timer.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_tray.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_version.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_oldnames.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/Event.h \
- /usr/include/c++/12/string \
- /usr/include/x86_64-linux-gnu/c++/12/bits/c++config.h \
- /usr/include/x86_64-linux-gnu/c++/12/bits/os_defines.h \
  /usr/include/x86_64-linux-gnu/c++/12/bits/cpu_defines.h \
  /usr/include/c++/12/pstl/pstl_config.h \
  /usr/include/c++/12/bits/stringfwd.h \
  /usr/include/c++/12/bits/memoryfwd.h \
  /usr/include/c++/12/bits/char_traits.h \
  /usr/include/c++/12/bits/postypes.h /usr/include/c++/12/cwchar \
+ /usr/include/wchar.h \
+ /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
+ /usr/include/x86_64-linux-gnu/bits/floatn.h \
+ /usr/include/x86_64-linux-gnu/bits/floatn-common.h \
+ /usr/lib/gcc/x86_64-linux-gnu/12/include/stddef.h \
+ /usr/lib/gcc/x86_64-linux-gnu/12/include/stdarg.h \
+ /usr/include/x86_64-linux-gnu/bits/wchar.h \
+ /usr/include/x86_64-linux-gnu/bits/types/wint_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__mbstate_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/types/FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/types/locale_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
  /usr/include/c++/12/type_traits /usr/include/c++/12/cstdint \
+ /usr/lib/gcc/x86_64-linux-gnu/12/include/stdint.h /usr/include/stdint.h \
+ /usr/include/x86_64-linux-gnu/bits/types.h \
+ /usr/include/x86_64-linux-gnu/bits/typesizes.h \
+ /usr/include/x86_64-linux-gnu/bits/time64.h \
+ /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
+ /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
  /usr/include/c++/12/bits/allocator.h \
  /usr/include/x86_64-linux-gnu/c++/12/bits/c++allocator.h \
  /usr/include/c++/12/bits/new_allocator.h /usr/include/c++/12/new \
@@ -117,6 +53,8 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.o: \
  /usr/include/c++/12/clocale /usr/include/locale.h \
  /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/12/iosfwd \
  /usr/include/c++/12/cctype /usr/include/ctype.h \
+ /usr/include/x86_64-linux-gnu/bits/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/endianness.h \
  /usr/include/c++/12/bits/ostream_insert.h \
  /usr/include/c++/12/bits/cxxabi_forced.h \
  /usr/include/c++/12/bits/stl_iterator_base_types.h \
@@ -150,7 +88,9 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/types/clock_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/clockid_t.h \
  /usr/include/x86_64-linux-gnu/bits/types/time_t.h \
- /usr/include/x86_64-linux-gnu/bits/types/timer_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/timer_t.h /usr/include/endian.h \
+ /usr/include/x86_64-linux-gnu/bits/byteswap.h \
+ /usr/include/x86_64-linux-gnu/bits/uintn-identity.h \
  /usr/include/x86_64-linux-gnu/sys/select.h \
  /usr/include/x86_64-linux-gnu/bits/select.h \
  /usr/include/x86_64-linux-gnu/bits/types/sigset_t.h \
@@ -214,56 +154,90 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.o: \
  /usr/include/c++/12/bits/basic_ios.tcc \
  /usr/include/c++/12/bits/ostream.tcc /usr/include/c++/12/istream \
  /usr/include/c++/12/bits/istream.tcc \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/LayerStack.h \
- /usr/include/c++/12/vector /usr/include/c++/12/bits/stl_uninitialized.h \
- /usr/include/c++/12/bits/stl_vector.h \
- /usr/include/c++/12/bits/stl_bvector.h \
- /usr/include/c++/12/bits/vector.tcc /usr/include/c++/12/algorithm \
- /usr/include/c++/12/bits/stl_algo.h \
- /usr/include/c++/12/bits/algorithmfwd.h \
- /usr/include/c++/12/bits/stl_heap.h \
- /usr/include/c++/12/bits/stl_tempbuf.h \
- /usr/include/c++/12/bits/uniform_int_dist.h \
- /usr/include/c++/12/pstl/glue_algorithm_defs.h \
- /usr/include/c++/12/pstl/execution_defs.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Layer.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/ImGuiLayer.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imgui.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imconfig.h \
- /usr/lib/gcc/x86_64-linux-gnu/12/include/float.h /usr/include/assert.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingLayer.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/Event.h \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Renderer.h \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingAPI.h \
- /usr/include/c++/12/functional /usr/include/c++/12/tuple \
- /usr/include/c++/12/bits/uses_allocator.h \
- /usr/include/c++/12/bits/std_function.h \
- /usr/include/c++/12/unordered_map \
- /usr/include/c++/12/ext/aligned_buffer.h \
- /usr/include/c++/12/bits/hashtable.h \
- /usr/include/c++/12/bits/hashtable_policy.h \
- /usr/include/c++/12/bits/enable_special_members.h \
- /usr/include/c++/12/bits/node_handle.h \
- /usr/include/c++/12/bits/unordered_map.h \
- /usr/include/c++/12/bits/erase_if.h /usr/include/c++/12/array \
- /usr/include/c++/12/compare \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/ApplicationEvent.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/EventDispatcher.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/KeyEvent.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_stdinc.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform_defines.h \
+ /usr/include/string.h /usr/include/strings.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_begin_code.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_close_code.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_assert.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_asyncio.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_atomic.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_audio.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_endian.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_error.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_mutex.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_thread.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_properties.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_iostream.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_bits.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_blendmode.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_camera.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_pixels.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_surface.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_rect.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_clipboard.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_cpuinfo.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_dialog.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_video.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_events.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_gamepad.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_guid.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_joystick.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_power.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_sensor.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_keyboard.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_keycode.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_scancode.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_mouse.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_pen.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_touch.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_filesystem.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_gpu.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_haptic.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_hidapi.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_hints.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_init.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_loadso.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_locale.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_log.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_messagebox.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_metal.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_misc.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_process.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_render.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_storage.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_system.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_time.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_timer.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_tray.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_version.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_oldnames.h \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/MouseEvent.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/KeyEvent.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/EventDispatcher.h \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Log.h \
- /usr/include/c++/12/memory \
+ /usr/include/c++/12/memory /usr/include/c++/12/bits/stl_uninitialized.h \
+ /usr/include/c++/12/bits/stl_tempbuf.h \
  /usr/include/c++/12/bits/stl_raw_storage_iter.h \
  /usr/include/c++/12/bits/align.h /usr/include/c++/12/bit \
- /usr/include/c++/12/bits/unique_ptr.h \
+ /usr/include/c++/12/bits/uses_allocator.h \
+ /usr/include/c++/12/bits/unique_ptr.h /usr/include/c++/12/tuple \
  /usr/include/c++/12/bits/shared_ptr.h \
  /usr/include/c++/12/bits/shared_ptr_base.h \
  /usr/include/c++/12/bits/allocated_ptr.h \
+ /usr/include/c++/12/ext/aligned_buffer.h \
  /usr/include/c++/12/ext/concurrence.h \
  /usr/include/c++/12/bits/shared_ptr_atomic.h \
  /usr/include/c++/12/bits/atomic_base.h \
  /usr/include/c++/12/bits/atomic_lockfree_defines.h \
  /usr/include/c++/12/backward/auto_ptr.h \
  /usr/include/c++/12/pstl/glue_memory_defs.h \
+ /usr/include/c++/12/pstl/execution_defs.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/spdlog.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/common.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/null_mutex.h \
@@ -273,6 +247,20 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.o: \
  /usr/include/c++/12/chrono /usr/include/c++/12/bits/chrono.h \
  /usr/include/c++/12/ratio /usr/include/c++/12/limits \
  /usr/include/c++/12/ctime /usr/include/c++/12/bits/parse_numbers.h \
+ /usr/include/c++/12/functional /usr/include/c++/12/bits/std_function.h \
+ /usr/include/c++/12/unordered_map /usr/include/c++/12/bits/hashtable.h \
+ /usr/include/c++/12/bits/hashtable_policy.h \
+ /usr/include/c++/12/bits/enable_special_members.h \
+ /usr/include/c++/12/bits/node_handle.h \
+ /usr/include/c++/12/bits/unordered_map.h \
+ /usr/include/c++/12/bits/erase_if.h /usr/include/c++/12/vector \
+ /usr/include/c++/12/bits/stl_vector.h \
+ /usr/include/c++/12/bits/stl_bvector.h \
+ /usr/include/c++/12/bits/vector.tcc /usr/include/c++/12/array \
+ /usr/include/c++/12/compare /usr/include/c++/12/bits/stl_algo.h \
+ /usr/include/c++/12/bits/algorithmfwd.h \
+ /usr/include/c++/12/bits/stl_heap.h \
+ /usr/include/c++/12/bits/uniform_int_dist.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/fmt.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/format.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/base.h \
@@ -317,7 +305,7 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.o: \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/logger.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/backtracer.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/circular_q.h \
- /usr/include/c++/12/cassert \
+ /usr/include/c++/12/cassert /usr/include/assert.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/log_msg_buffer.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/log_msg.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/version.h \
@@ -328,6 +316,8 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.o: \
  /usr/include/x86_64-linux-gnu/c++/12/bits/c++io.h \
  /usr/include/c++/12/bits/fstream.tcc \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/chrono.h \
+ /usr/include/c++/12/algorithm \
+ /usr/include/c++/12/pstl/glue_algorithm_defs.h \
  /usr/include/c++/12/iterator /usr/include/c++/12/bits/stream_iterator.h \
  /usr/include/c++/12/locale \
  /usr/include/c++/12/bits/locale_facets_nonio.h \
@@ -335,5 +325,4 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.o: \
  /usr/include/x86_64-linux-gnu/c++/12/bits/messages_members.h \
  /usr/include/libintl.h /usr/include/c++/12/bits/locale_facets_nonio.tcc \
  /usr/include/c++/12/bits/locale_conv.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/format.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/SDLRenderingAPI.h
+ /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/format.h

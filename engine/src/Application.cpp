@@ -6,6 +6,9 @@
 
 #include "Engine/Log.h"
 
+#include "Engine/SDLRenderingAPI.h"
+#include "Engine/Renderer.h"
+
 #include <iostream>
 
 namespace SIMPEngine
@@ -19,7 +22,10 @@ namespace SIMPEngine
             // You can handle this better, maybe throw or assert
         }
         s_Instance = this;
-        m_Window.Init("My Game", 800, 600);
+        m_Window.Init("My Game", 1024, 720);
+
+        auto sdlAPI = new SDLRenderingAPI();
+        Renderer::Init(sdlAPI, m_Window.GetRenderer());
     }
 
     Application::~Application()
@@ -35,19 +41,20 @@ namespace SIMPEngine
             SDL_Event sdlEvent;
             while (SDL_PollEvent(&sdlEvent))
             {
-                // Map SDL events to engine events (WindowCloseEvent, etc.)
-                m_ImGuiLayer->OnSDLEvent(sdlEvent);
+                // if(m_ImGuiLayer)
+                    m_ImGuiLayer->OnSDLEvent(sdlEvent);
                 SDLEventToEngine(sdlEvent);
             }
 
-            SDL_SetRenderDrawColor(m_Window.GetRenderer(), 100, 0, 0, 255);
-            SDL_RenderClear(m_Window.GetRenderer());
+
+            Renderer::SetClearColor(0.81f, 0.55f, 0.78f, 1.0f);
+            Renderer::Clear();
 
             for (Layer *layer : m_LayerStack)
                 layer->OnUpdate();
+            
+            Renderer::Present();
 
-            // Game update logic goes here
-            SDL_RenderPresent(m_Window.GetRenderer());
         }
     }
 
@@ -80,7 +87,7 @@ namespace SIMPEngine
         m_LayerStack.PushOverlay(overlay);
     }
 
-    void Application::SDLEventToEngine(SDL_Event & sdlEvent)
+    void Application::SDLEventToEngine(SDL_Event &sdlEvent)
     {
         switch (sdlEvent.type)
         {

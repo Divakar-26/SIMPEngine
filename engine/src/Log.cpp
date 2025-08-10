@@ -8,7 +8,7 @@ namespace SIMPEngine {
 
     void Log::Init()
     {
-        spdlog::set_pattern("%^[%T] %n: %v%$"); // [Time] LoggerName: message (colored)
+        spdlog::set_pattern("%^[%T] %n: %v%$");
 
         s_CoreLogger = spdlog::stdout_color_mt("ENGINE");
         s_CoreLogger->set_level(spdlog::level::trace);

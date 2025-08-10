@@ -24,6 +24,10 @@ add_library(Engine
     src/Application.cpp
     src/Log.cpp
     src/ImGuiLayer.cpp
+    src/Renderer.cpp
+    src/SDLRenderingAPI.cpp
+    src/RenderingAPI.cpp
+    src/RenderingLayer.cpp
 )
 
 target_include_directories(Engine
