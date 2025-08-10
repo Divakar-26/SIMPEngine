@@ -155,6 +155,7 @@ engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o: \
  /usr/include/c++/12/bits/ostream.tcc /usr/include/c++/12/istream \
  /usr/include/c++/12/bits/istream.tcc \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/Event.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/TimeStep.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_events.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_stdinc.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform_defines.h \

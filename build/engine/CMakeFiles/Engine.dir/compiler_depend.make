@@ -265,6 +265,7 @@ engine/CMakeFiles/Engine.dir/src/Application.cpp.o: /home/divakar/Desktop/SDLGam
   /usr/include/c++/12/pstl/glue_algorithm_defs.h \
   /usr/include/c++/12/pstl/execution_defs.h \
   /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Layer.h \
+  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/TimeStep.h \
   /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/ImGuiLayer.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imgui.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imconfig.h \
@@ -582,6 +583,7 @@ engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.o: /home/divakar/Desktop/SDLGame
   /usr/include/c++/12/istream \
   /usr/include/c++/12/bits/istream.tcc \
   /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/Event.h \
+  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/TimeStep.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_events.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_stdinc.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform_defines.h \
@@ -1496,6 +1498,7 @@ engine/CMakeFiles/Engine.dir/src/RenderingLayer.cpp.o: /home/divakar/Desktop/SDL
   /usr/include/c++/12/istream \
   /usr/include/c++/12/bits/istream.tcc \
   /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/Event.h \
+  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/TimeStep.h \
   /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Renderer.h \
   /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingAPI.h \
   /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL.h \
@@ -2196,8 +2199,6 @@ engine/CMakeFiles/Engine.dir/src/Window.cpp.o: /home/divakar/Desktop/SDLGameEngi
 
 /usr/include/c++/12/fstream:
 
-/home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/ostream.h:
-
 /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/version.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/log_msg_buffer.h:
@@ -2343,6 +2344,10 @@ engine/CMakeFiles/Engine.dir/src/Window.cpp.o: /home/divakar/Desktop/SDLGameEngi
 /usr/include/assert.h:
 
 /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imconfig.h:
+
+/home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/ostream.h:
+
+/home/divakar/Desktop/SDLGameEngine/engine/include/Engine/TimeStep.h:
 
 /usr/include/c++/12/pstl/execution_defs.h:
 

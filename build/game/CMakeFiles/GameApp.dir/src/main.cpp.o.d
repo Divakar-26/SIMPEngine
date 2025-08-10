@@ -227,6 +227,7 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: \
  /usr/include/c++/12/pstl/glue_algorithm_defs.h \
  /usr/include/c++/12/pstl/execution_defs.h \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Layer.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/TimeStep.h \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/ImGuiLayer.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imgui.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imconfig.h \

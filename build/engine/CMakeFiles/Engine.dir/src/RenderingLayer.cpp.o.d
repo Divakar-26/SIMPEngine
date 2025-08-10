@@ -155,6 +155,7 @@ engine/CMakeFiles/Engine.dir/src/RenderingLayer.cpp.o: \
  /usr/include/c++/12/bits/ostream.tcc /usr/include/c++/12/istream \
  /usr/include/c++/12/bits/istream.tcc \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/Event.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/TimeStep.h \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Renderer.h \
  /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingAPI.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL.h \
