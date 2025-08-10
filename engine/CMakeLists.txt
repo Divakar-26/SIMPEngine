@@ -28,6 +28,7 @@ add_library(Engine
     src/SDLRenderingAPI.cpp
     src/RenderingAPI.cpp
     src/RenderingLayer.cpp
+    src/Input.cpp
 )
 
 target_include_directories(Engine

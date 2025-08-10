@@ -86,6 +86,8 @@ namespace SIMPEngine
         }
         // ImGui::Text("Delta Time: %.3f ms", ts.GetMilliseconds());
         // ImGui::Text("FPS: %.1f", 1.0f / ts.GetSeconds());
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+
 
         ImGui::Text("This is some text.");
 
@@ -95,7 +97,7 @@ namespace SIMPEngine
 
     void ImGuiLayer::OnEvent(Event &e)
     {
-        CORE_INFO("Event: {} | WantCaptureMouse = {}", e.ToString(), ImGui::GetIO().WantCaptureMouse);
+        // CORE_INFO("Event: {} | WantCaptureMouse = {}", e.ToString(), ImGui::GetIO().WantCaptureMouse);
 
         if (ImGui::GetIO().WantCaptureMouse &&
             (e.GetEventType() == EventType::MouseButtonPressed ||
@@ -103,7 +105,7 @@ namespace SIMPEngine
              e.GetEventType() == EventType::MouseMoved))
         {
             e.Handled = true;
-            CORE_INFO("ImGui handled this mouse event");
+            // CORE_INFO("ImGui handled this mouse event");
         }
     }
 

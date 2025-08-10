@@ -152,7 +152,7 @@ vendor/spdlog/clean: vendor/spdlog/CMakeFiles/spdlog.dir/clean
 vendor/SDL/CMakeFiles/SDL3-shared.dir/all: vendor/SDL/CMakeFiles/SDL_uclibc.dir/all
 	$(MAKE) $(MAKESILENT) -f vendor/SDL/CMakeFiles/SDL3-shared.dir/build.make vendor/SDL/CMakeFiles/SDL3-shared.dir/depend
 	$(MAKE) $(MAKESILENT) -f vendor/SDL/CMakeFiles/SDL3-shared.dir/build.make vendor/SDL/CMakeFiles/SDL3-shared.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86 "Built target SDL3-shared"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86 "Built target SDL3-shared"
 .PHONY : vendor/SDL/CMakeFiles/SDL3-shared.dir/all
 
 # Build rule for subdir invocation for target.
@@ -204,12 +204,12 @@ vendor/SDL/CMakeFiles/SDL3_test.dir/clean:
 vendor/SDL/CMakeFiles/SDL_uclibc.dir/all:
 	$(MAKE) $(MAKESILENT) -f vendor/SDL/CMakeFiles/SDL_uclibc.dir/build.make vendor/SDL/CMakeFiles/SDL_uclibc.dir/depend
 	$(MAKE) $(MAKESILENT) -f vendor/SDL/CMakeFiles/SDL_uclibc.dir/build.make vendor/SDL/CMakeFiles/SDL_uclibc.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=90,91,92,93,94,95 "Built target SDL_uclibc"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=90,91,92,93,94,95,96 "Built target SDL_uclibc"
 .PHONY : vendor/SDL/CMakeFiles/SDL_uclibc.dir/all
 
 # Build rule for subdir invocation for target.
 vendor/SDL/CMakeFiles/SDL_uclibc.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 vendor/SDL/CMakeFiles/SDL_uclibc.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 0
 .PHONY : vendor/SDL/CMakeFiles/SDL_uclibc.dir/rule
@@ -230,12 +230,12 @@ vendor/SDL/CMakeFiles/SDL_uclibc.dir/clean:
 vendor/spdlog/CMakeFiles/spdlog.dir/all:
 	$(MAKE) $(MAKESILENT) -f vendor/spdlog/CMakeFiles/spdlog.dir/build.make vendor/spdlog/CMakeFiles/spdlog.dir/depend
 	$(MAKE) $(MAKESILENT) -f vendor/spdlog/CMakeFiles/spdlog.dir/build.make vendor/spdlog/CMakeFiles/spdlog.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=98,99,100 "Built target spdlog"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=99,100 "Built target spdlog"
 .PHONY : vendor/spdlog/CMakeFiles/spdlog.dir/all
 
 # Build rule for subdir invocation for target.
 vendor/spdlog/CMakeFiles/spdlog.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 vendor/spdlog/CMakeFiles/spdlog.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 0
 .PHONY : vendor/spdlog/CMakeFiles/spdlog.dir/rule
@@ -257,12 +257,12 @@ engine/CMakeFiles/imgui.dir/all: vendor/spdlog/CMakeFiles/spdlog.dir/all
 engine/CMakeFiles/imgui.dir/all: vendor/SDL/CMakeFiles/SDL3-shared.dir/all
 	$(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/depend
 	$(MAKE) $(MAKESILENT) -f engine/CMakeFiles/imgui.dir/build.make engine/CMakeFiles/imgui.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=96,97 "Built target imgui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=97,98 "Built target imgui"
 .PHONY : engine/CMakeFiles/imgui.dir/all
 
 # Build rule for subdir invocation for target.
 engine/CMakeFiles/imgui.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 95
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 94
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 engine/CMakeFiles/imgui.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 0
 .PHONY : engine/CMakeFiles/imgui.dir/rule
@@ -290,7 +290,7 @@ engine/CMakeFiles/Engine.dir/all: vendor/SDL/CMakeFiles/SDL3-shared.dir/all
 
 # Build rule for subdir invocation for target.
 engine/CMakeFiles/Engine.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 97
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 96
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 engine/CMakeFiles/Engine.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 0
 .PHONY : engine/CMakeFiles/Engine.dir/rule
@@ -314,7 +314,7 @@ game/CMakeFiles/GameApp.dir/all: engine/CMakeFiles/Engine.dir/all
 game/CMakeFiles/GameApp.dir/all: vendor/SDL/CMakeFiles/SDL3-shared.dir/all
 	$(MAKE) $(MAKESILENT) -f game/CMakeFiles/GameApp.dir/build.make game/CMakeFiles/GameApp.dir/depend
 	$(MAKE) $(MAKESILENT) -f game/CMakeFiles/GameApp.dir/build.make game/CMakeFiles/GameApp.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num= "Built target GameApp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=3 "Built target GameApp"
 .PHONY : game/CMakeFiles/GameApp.dir/all
 
 # Build rule for subdir invocation for target.

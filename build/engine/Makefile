@@ -360,6 +360,30 @@ src/ImGuiLayer.cpp.s:
 	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/ImGuiLayer.cpp.s
 .PHONY : src/ImGuiLayer.cpp.s
 
+src/Input.o: src/Input.cpp.o
+.PHONY : src/Input.o
+
+# target to build an object file
+src/Input.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Input.cpp.o
+.PHONY : src/Input.cpp.o
+
+src/Input.i: src/Input.cpp.i
+.PHONY : src/Input.i
+
+# target to preprocess a source file
+src/Input.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Input.cpp.i
+.PHONY : src/Input.cpp.i
+
+src/Input.s: src/Input.cpp.s
+.PHONY : src/Input.s
+
+# target to generate assembly for a file
+src/Input.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/src/Input.cpp.s
+.PHONY : src/Input.cpp.s
+
 src/Log.o: src/Log.cpp.o
 .PHONY : src/Log.o
 
@@ -541,6 +565,9 @@ help:
 	@echo "... src/ImGuiLayer.o"
 	@echo "... src/ImGuiLayer.i"
 	@echo "... src/ImGuiLayer.s"
+	@echo "... src/Input.o"
+	@echo "... src/Input.i"
+	@echo "... src/Input.s"
 	@echo "... src/Log.o"
 	@echo "... src/Log.i"
 	@echo "... src/Log.s"

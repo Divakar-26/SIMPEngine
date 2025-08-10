@@ -8,6 +8,7 @@
 
 #include "Engine/SDLRenderingAPI.h"
 #include "Engine/Renderer.h"
+#include "Engine/Input.h"
 
 #include <iostream>
 
@@ -32,7 +33,6 @@ namespace SIMPEngine
 
         PushOverlay(m_RenderingLayer);
         PushOverlay(m_ImGuiLayer);
-
     }
 
     Application::~Application()
@@ -49,7 +49,7 @@ namespace SIMPEngine
         while (m_Running)
         {
             uint64_t currentFrameTime = SDL_GetPerformanceCounter();
-            float deltaTime = (float)((currentFrameTime - lastFrameTime) / freq);
+            float deltaTime = (float)((currentFrameTime - lastFrameTime) / (float)freq);
             lastFrameTime = currentFrameTime;
 
             SDL_Event sdlEvent;
@@ -66,15 +66,12 @@ namespace SIMPEngine
             Renderer::SetClearColor(0.81f, 0.55f, 0.78f, 1.0f);
             Renderer::Clear();
 
-
             m_ImGuiLayer->Begin();
-            
+
             for (Layer *layer : m_LayerStack)
                 layer->OnRender();
 
             m_ImGuiLayer->End();
-
-
 
             Renderer::Present();
         }
@@ -83,13 +80,53 @@ namespace SIMPEngine
     void Application::OnEvent(Event &e)
     {
 
-        CORE_TRACE("{}", e.ToString());
+        // CORE_TRACE("{}", e.ToString());
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
                                               {
             m_Running = false;
             return true; });
+        dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
+                                             {
+                                                 CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
+                                                 
+                                                 Input::OnKeyPressed(ev.GetKeyCode());
+                                                 return false; });
+
+        dispatcher.Dispatch<KeyReleasedEvent>([](KeyReleasedEvent &ev)
+                                              {
+                                                 CORE_INFO("{}", ev.ToString());
+
+        Input::OnKeyReleased(ev.GetKeyCode());
+        return false; });
+
+        dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &ev)
+                                                     {
+                                                 CORE_INFO("{}", ev.ToString());
+
+        Input::OnMouseButtonPressed(ev.GetMouseButton());
+        return false; });
+
+        dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
+                                                      {
+                                                 CORE_INFO("{}", ev.ToString());
+
+        Input::OnMouseButtonReleased(ev.GetMouseButton());
+        return false; });
+
+        dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
+                                             {
+                                                //  CORE_INFO("{}", ev.ToString());
+
+        Input::OnMouseMoved(ev.GetX(), ev.GetY());
+        return false; });
+
+        dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
+                                                {
+                                                    CORE_INFO("{}", ev.ToString());
+                                                    return false;
+                                                });
 
         for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
         {
