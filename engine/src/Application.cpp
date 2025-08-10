@@ -26,6 +26,13 @@ namespace SIMPEngine
 
         auto sdlAPI = new SDLRenderingAPI();
         Renderer::Init(sdlAPI, m_Window.GetRenderer());
+
+        m_ImGuiLayer = new ImGuiLayer();
+        m_RenderingLayer = new RenderingLayer();
+
+        PushOverlay(m_RenderingLayer);
+        PushOverlay(m_ImGuiLayer);
+
     }
 
     Application::~Application()
@@ -36,25 +43,40 @@ namespace SIMPEngine
 
     void Application::Run()
     {
+        uint64_t lastFrameTime = SDL_GetPerformanceCounter();
+        const double freq = (double)SDL_GetPerformanceFrequency();
+
         while (m_Running)
         {
+            uint64_t currentFrameTime = SDL_GetPerformanceCounter();
+            float deltaTime = (float)((currentFrameTime - lastFrameTime) / freq);
+            lastFrameTime = currentFrameTime;
+
             SDL_Event sdlEvent;
             while (SDL_PollEvent(&sdlEvent))
             {
                 // if(m_ImGuiLayer)
-                    m_ImGuiLayer->OnSDLEvent(sdlEvent);
+                m_ImGuiLayer->OnSDLEvent(sdlEvent);
                 SDLEventToEngine(sdlEvent);
             }
 
+            for (Layer *layer : m_LayerStack)
+                layer->OnUpdate(deltaTime);
 
             Renderer::SetClearColor(0.81f, 0.55f, 0.78f, 1.0f);
             Renderer::Clear();
 
-            for (Layer *layer : m_LayerStack)
-                layer->OnUpdate();
-            
-            Renderer::Present();
 
+            m_ImGuiLayer->Begin();
+            
+            for (Layer *layer : m_LayerStack)
+                layer->OnRender();
+
+            m_ImGuiLayer->End();
+
+
+
+            Renderer::Present();
         }
     }
 

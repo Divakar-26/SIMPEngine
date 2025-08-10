@@ -3,6 +3,7 @@
 #include<string>
 #include<iostream>
 #include"Engine/Events/Event.h"
+#include"Engine/TimeStep.h"
 
 namespace SIMPEngine{
     class Layer{
@@ -12,7 +13,8 @@ namespace SIMPEngine{
 
         virtual void OnAttach() {}
         virtual void OnDetach() {}
-        virtual void OnUpdate() {}
+        virtual void OnUpdate(class TimeStep ts) {}
+        virtual void OnRender() {}
         virtual void OnEvent(Event &e) {}
 
         const std::string & GetName() const {return m_DebugName;}

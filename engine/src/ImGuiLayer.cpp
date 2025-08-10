@@ -71,9 +71,12 @@ namespace SIMPEngine
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_Renderer);
     }
 
-    void ImGuiLayer::OnUpdate()
+    void ImGuiLayer::OnUpdate(class TimeStep ts)
     {
-        Begin();
+    }
+
+    void ImGuiLayer::OnRender()
+    {
 
         ImGui::Begin("Hello, ImGui!");
 
@@ -81,28 +84,28 @@ namespace SIMPEngine
         {
             CORE_INFO("Button Clicked!");
         }
+        // ImGui::Text("Delta Time: %.3f ms", ts.GetMilliseconds());
+        // ImGui::Text("FPS: %.1f", 1.0f / ts.GetSeconds());
 
         ImGui::Text("This is some text.");
 
         ImGui::End();
 
-        End();
     }
 
-void ImGuiLayer::OnEvent(Event &e)
-{
-    CORE_INFO("Event: {} | WantCaptureMouse = {}", e.ToString(), ImGui::GetIO().WantCaptureMouse);
-
-    if (ImGui::GetIO().WantCaptureMouse &&
-        (e.GetEventType() == EventType::MouseButtonPressed ||
-         e.GetEventType() == EventType::MouseButtonReleased ||
-         e.GetEventType() == EventType::MouseMoved))
+    void ImGuiLayer::OnEvent(Event &e)
     {
-        e.Handled = true;
-        CORE_INFO("ImGui handled this mouse event");
-    }
-}
+        CORE_INFO("Event: {} | WantCaptureMouse = {}", e.ToString(), ImGui::GetIO().WantCaptureMouse);
 
+        if (ImGui::GetIO().WantCaptureMouse &&
+            (e.GetEventType() == EventType::MouseButtonPressed ||
+             e.GetEventType() == EventType::MouseButtonReleased ||
+             e.GetEventType() == EventType::MouseMoved))
+        {
+            e.Handled = true;
+            CORE_INFO("ImGui handled this mouse event");
+        }
+    }
 
     void ImGuiLayer::OnSDLEvent(SDL_Event &e)
     {

@@ -18,9 +18,13 @@ namespace SIMPEngine
         // Clean up if needed
     }
 
-    void RenderingLayer::OnUpdate()
+    void RenderingLayer::OnUpdate(class TimeStep ts)
     {
-        // Clear screen
+        
+    }
+
+    void RenderingLayer::OnRender()
+    {
         Renderer::Clear();
 
         // Draw some quads
@@ -36,10 +40,10 @@ namespace SIMPEngine
     void RenderingLayer::OnEvent(Event &e)
     {
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &ev){
-            return false;
-
-        });
+        dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &ev)
+                                                     {
+                                                         return false;
+                                                     });
     }
 
 }

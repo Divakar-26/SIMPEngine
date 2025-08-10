@@ -8,8 +8,6 @@
     public:
         MyGame() {
             // Custom game initialization
-            PushOverlay(new SIMPEngine::RenderingLayer()); // Add it here only if needed
-            PushOverlay(new SIMPEngine::ImGuiLayer()); // Add it here only if needed
         }
     };
 
