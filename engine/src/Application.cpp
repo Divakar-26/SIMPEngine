@@ -80,7 +80,20 @@ namespace SIMPEngine
     void Application::OnEvent(Event &e)
     {
 
-        // CORE_TRACE("{}", e.ToString());
+        if ((ImGui::GetIO().WantCaptureMouse &&
+             (e.GetEventType() == EventType::MouseButtonPressed ||
+              e.GetEventType() == EventType::MouseButtonReleased ||
+              e.GetEventType() == EventType::MouseMoved ||
+              e.GetEventType() == EventType::MouseScrolled)) ||
+            (ImGui::GetIO().WantCaptureKeyboard &&
+             (e.GetEventType() == EventType::KeyPressed ||
+              e.GetEventType() == EventType::KeyReleased ||
+              e.GetEventType() == EventType::KeyTyped)))
+        {
+            e.Handled = true;
+            return; 
+        }
+
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
@@ -125,8 +138,7 @@ namespace SIMPEngine
         dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
                                                 {
                                                     CORE_INFO("{}", ev.ToString());
-                                                    return false;
-                                                });
+                                                    return false; });
 
         for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
         {

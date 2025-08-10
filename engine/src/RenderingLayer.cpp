@@ -7,6 +7,8 @@
 #include "Engine/Input.h"
 #include <SDL3/SDL_keycode.h>
 
+#include<iostream>
+
 float i = 1.0f;
 
 namespace SIMPEngine
@@ -26,9 +28,13 @@ namespace SIMPEngine
     {
         i += 50.0 * ts.GetSeconds();
 
-        if (Input::IsKeyPressed(SDLK_W))
+        if (Input::IsMouseButtonPressed(SDL_BUTTON_LEFT))
         {
             i -= 50.0 * ts.GetSeconds();
+        }
+        else if(Input::IsMouseButtonPressed(SDL_BUTTON_RIGHT)){
+            auto cor = Input::GetMousePosition();
+            i = cor.first - 50;
         }
     }
 
