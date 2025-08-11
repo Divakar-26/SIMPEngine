@@ -18,7 +18,7 @@ namespace SIMPEngine
         int GetHeight() const {return m_Height;}
 
     private:
-        SDL_Texture * m_Texture;
+        SDL_Texture * m_Texture = nullptr;
         int m_Width;
         int m_Height;
     };

@@ -17,6 +17,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/RenderingAPI.cpp" "engine/CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.o.d"
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/SDLRenderingAPI.cpp" "engine/CMakeFiles/Engine.dir/Engine/Rendering/SDLRenderingAPI.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Rendering/SDLRenderingAPI.cpp.o.d"
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Texture.cpp" "engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o.d"
+  "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/TextureManager.cpp" "engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o.d"
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/UI/ImGuiLayer.cpp" "engine/CMakeFiles/Engine.dir/Engine/UI/ImGuiLayer.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/UI/ImGuiLayer.cpp.o.d"
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Window.cpp" "engine/CMakeFiles/Engine.dir/Engine/Window.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Window.cpp.o.d"
   )

@@ -5,6 +5,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include "TextureManager.h"
 
 namespace SIMPEngine
 {
@@ -13,7 +14,7 @@ namespace SIMPEngine
     void SDLRenderingAPI::Init(SDL_Renderer *sdlRenderer)
     {
         m_Renderer = sdlRenderer;
-        circleTexture.LoadFromFile(m_Renderer, "circle.png");
+        TextureManager::Get().LoadTexture("circle", "circle.png", m_Renderer);
     }
 
     void SDLRenderingAPI::SetClearColor(float r, float g, float b, float a)
@@ -81,7 +82,8 @@ namespace SIMPEngine
 
     void SDLRenderingAPI::DrawCircle(float cx, float cy, float radius, SDL_Color color)
     {
-        DrawTexture(circleTexture.GetSDLTexture(), cx, cy, radius, radius, {0, 255, 255, 255}, 0);
+        auto circleTexture = TextureManager::Get().GetTexture("circle");
+        DrawTexture(circleTexture->GetSDLTexture(), cx, cy, radius, radius, {0, 255, 255, 255}, 0);
     }
 
     void SDLRenderingAPI::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation)
@@ -117,6 +119,10 @@ namespace SIMPEngine
             return nullptr;
         }
         return tex;
+    }
+
+    SDL_Renderer * SDLRenderingAPI::GetSDLRenderer(){
+        return m_Renderer;
     }
 
 }

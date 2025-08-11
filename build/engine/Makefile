@@ -360,6 +360,30 @@ Engine/Rendering/Texture.cpp.s:
 	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.s
 .PHONY : Engine/Rendering/Texture.cpp.s
 
+Engine/Rendering/TextureManager.o: Engine/Rendering/TextureManager.cpp.o
+.PHONY : Engine/Rendering/TextureManager.o
+
+# target to build an object file
+Engine/Rendering/TextureManager.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o
+.PHONY : Engine/Rendering/TextureManager.cpp.o
+
+Engine/Rendering/TextureManager.i: Engine/Rendering/TextureManager.cpp.i
+.PHONY : Engine/Rendering/TextureManager.i
+
+# target to preprocess a source file
+Engine/Rendering/TextureManager.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.i
+.PHONY : Engine/Rendering/TextureManager.cpp.i
+
+Engine/Rendering/TextureManager.s: Engine/Rendering/TextureManager.cpp.s
+.PHONY : Engine/Rendering/TextureManager.s
+
+# target to generate assembly for a file
+Engine/Rendering/TextureManager.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.s
+.PHONY : Engine/Rendering/TextureManager.cpp.s
+
 Engine/UI/ImGuiLayer.o: Engine/UI/ImGuiLayer.cpp.o
 .PHONY : Engine/UI/ImGuiLayer.o
 
@@ -613,6 +637,9 @@ help:
 	@echo "... Engine/Rendering/Texture.o"
 	@echo "... Engine/Rendering/Texture.i"
 	@echo "... Engine/Rendering/Texture.s"
+	@echo "... Engine/Rendering/TextureManager.o"
+	@echo "... Engine/Rendering/TextureManager.i"
+	@echo "... Engine/Rendering/TextureManager.s"
 	@echo "... Engine/UI/ImGuiLayer.o"
 	@echo "... Engine/UI/ImGuiLayer.i"
 	@echo "... Engine/UI/ImGuiLayer.s"

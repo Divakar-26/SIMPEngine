@@ -25,5 +25,7 @@ namespace SIMPEngine
         virtual std::shared_ptr<Texture> CreateTexture(const char *path) = 0;
         virtual void SetViewport(int x, int y, int width, int height) = 0;
         virtual void ResetViewport() = 0;
+
+        virtual SDL_Renderer * GetSDLRenderer() = 0;
     };
 }

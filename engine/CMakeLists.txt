@@ -37,6 +37,7 @@ add_library(Engine
     Engine/Rendering/SDLRenderingAPI.cpp
     Engine/Rendering/RenderingAPI.cpp
     Engine/Rendering/Texture.cpp
+    Engine/Rendering/TextureManager.cpp
     Engine/Layer/RenderingLayer.cpp
     Engine/Input/Input.cpp
     Engine/Math/Camera2D.cpp

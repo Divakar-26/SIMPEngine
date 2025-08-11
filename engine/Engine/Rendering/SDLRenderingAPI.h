@@ -28,6 +28,7 @@ namespace SIMPEngine
 
         virtual void SetViewport(int x, int y, int width, int height) override;
         virtual void ResetViewport() override;
+        virtual SDL_Renderer * GetSDLRenderer() override;
 
     private:
         SDL_Renderer *m_Renderer = nullptr;

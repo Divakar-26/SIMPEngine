@@ -350,4 +350,34 @@ engine/CMakeFiles/Engine.dir/Engine/Rendering/SDLRenderingAPI.cpp.o: \
  /usr/include/c++/12/bits/algorithmfwd.h \
  /usr/include/c++/12/initializer_list /usr/include/c++/12/bits/stl_heap.h \
  /usr/include/c++/12/bits/uniform_int_dist.h /usr/include/c++/12/cstdlib \
- /usr/include/c++/12/pstl/glue_algorithm_defs.h
+ /usr/include/c++/12/pstl/glue_algorithm_defs.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/TextureManager.h \
+ /usr/include/c++/12/string /usr/include/c++/12/bits/char_traits.h \
+ /usr/include/c++/12/bits/localefwd.h \
+ /usr/include/x86_64-linux-gnu/c++/12/bits/c++locale.h \
+ /usr/include/c++/12/clocale /usr/include/locale.h \
+ /usr/include/x86_64-linux-gnu/bits/locale.h /usr/include/c++/12/cctype \
+ /usr/include/ctype.h /usr/include/c++/12/bits/ostream_insert.h \
+ /usr/include/c++/12/bits/cxxabi_forced.h \
+ /usr/include/c++/12/bits/range_access.h \
+ /usr/include/c++/12/bits/basic_string.h /usr/include/c++/12/string_view \
+ /usr/include/c++/12/bits/string_view.tcc \
+ /usr/include/c++/12/ext/string_conversions.h /usr/include/c++/12/cstdio \
+ /usr/include/stdio.h /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/__fpos64_t.h \
+ /usr/include/x86_64-linux-gnu/bits/types/struct_FILE.h \
+ /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/stdio.h /usr/include/c++/12/cerrno \
+ /usr/include/errno.h /usr/include/x86_64-linux-gnu/bits/errno.h \
+ /usr/include/linux/errno.h /usr/include/x86_64-linux-gnu/asm/errno.h \
+ /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
+ /usr/include/x86_64-linux-gnu/bits/types/error_t.h \
+ /usr/include/c++/12/bits/charconv.h \
+ /usr/include/c++/12/bits/basic_string.tcc \
+ /usr/include/c++/12/unordered_map /usr/include/c++/12/bits/hashtable.h \
+ /usr/include/c++/12/bits/hashtable_policy.h \
+ /usr/include/c++/12/bits/enable_special_members.h \
+ /usr/include/c++/12/bits/node_handle.h \
+ /usr/include/c++/12/bits/unordered_map.h \
+ /usr/include/c++/12/bits/erase_if.h

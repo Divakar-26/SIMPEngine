@@ -8,9 +8,12 @@
 #include "Input/Input.h"
 #include <SDL3/SDL_keycode.h>
 
+#include"Rendering/TextureManager.h"
+
 #include <iostream>
 
 float i = 1.0f;
+float angle = 0.0f;
 
 namespace SIMPEngine
 {
@@ -49,6 +52,16 @@ namespace SIMPEngine
             auto pos = m_Camera.GetPosition();
             m_Camera.SetPosition({pos.x + 100.0f * ts.GetSeconds(), pos.y});
         }
+        if (Input::IsKeyPressed(SDLK_W))
+        {
+            auto pos = m_Camera.GetPosition();
+            m_Camera.SetPosition({pos.x, pos.y  - 100.0f * ts.GetSeconds()});
+        }
+        if (Input::IsKeyPressed(SDLK_S))
+        {
+            auto pos = m_Camera.GetPosition();
+            m_Camera.SetPosition({pos.x , pos.y + 100.0f * ts.GetSeconds()});
+        }
         float zoomSpeed = 1.0f;
         if (Input::IsKeyPressed(SDLK_Q))
         {
@@ -68,6 +81,8 @@ namespace SIMPEngine
         }
 
         Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
+
+        angle += 1.0f;
     }
 
     void RenderingLayer::OnRender()
@@ -83,10 +98,13 @@ namespace SIMPEngine
         Renderer::DrawQuad(0, 0, 36, 54, SDL_Color{255, 255, 255, 255});
         Renderer::DrawLine(0, 0, 800, 600, SDL_Color{0, 0, 0, 255});
 
-        Renderer::DrawCircle(300 + i, 200, 200, SDL_Color{255, 255, 0, 255});
+        Renderer::DrawCircle(300, 200, 200, SDL_Color{255, 255, 0, 255});
 
-        auto tex = Renderer::CreateTexture("player.png");
-        Renderer::DrawTexture(tex->GetSDLTexture(), 100,100,tex->GetWidth(), tex->GetHeight(), {255,255,255,255}, 45.0f);
+        auto tex = TextureManager::Get().LoadTexture("player", "player.png", Renderer::GetSDLRenderer());
+        Renderer::DrawTexture(tex->GetSDLTexture(), 100,100,tex->GetWidth(), tex->GetHeight(), {255,255,255,255}, angle);
+
+        auto tex2 = TextureManager::Get().GetTexture("circle");
+        Renderer::DrawTexture(tex2->GetSDLTexture(), 300,300, tex->GetWidth(), tex->GetWidth(), {0,255,0,255}, 0);
     }
 
     void RenderingLayer::OnEvent(Event &e)

@@ -385,12 +385,12 @@ engine/CMakeFiles/Engine.dir/all: vendor/SDL_image/CMakeFiles/SDL3_image-shared.
 engine/CMakeFiles/Engine.dir/all: engine/CMakeFiles/imgui.dir/all
 	$(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/depend
 	$(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=1,2 "Built target Engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=1,2,3 "Built target Engine"
 .PHONY : engine/CMakeFiles/Engine.dir/all
 
 # Build rule for subdir invocation for target.
 engine/CMakeFiles/Engine.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 96
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 97
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 engine/CMakeFiles/Engine.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/divakar/Desktop/SDLGameEngine/build/CMakeFiles 0
 .PHONY : engine/CMakeFiles/Engine.dir/rule
@@ -415,7 +415,7 @@ game/CMakeFiles/GameApp.dir/all: engine/CMakeFiles/imgui.dir/all
 game/CMakeFiles/GameApp.dir/all: engine/CMakeFiles/Engine.dir/all
 	$(MAKE) $(MAKESILENT) -f game/CMakeFiles/GameApp.dir/build.make game/CMakeFiles/GameApp.dir/depend
 	$(MAKE) $(MAKESILENT) -f game/CMakeFiles/GameApp.dir/build.make game/CMakeFiles/GameApp.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=3 "Built target GameApp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num= "Built target GameApp"
 .PHONY : game/CMakeFiles/GameApp.dir/all
 
 # Build rule for subdir invocation for target.

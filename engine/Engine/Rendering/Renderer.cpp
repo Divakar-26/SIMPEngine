@@ -75,4 +75,8 @@ namespace SIMPEngine
     {
         return s_RenderingAPI->CreateTexture(path);
     }
+
+    SDL_Renderer * Renderer::GetSDLRenderer(){
+        return s_RenderingAPI->GetSDLRenderer();
+    }
 }

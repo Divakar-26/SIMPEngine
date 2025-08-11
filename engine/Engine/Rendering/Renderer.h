@@ -27,6 +27,8 @@ namespace SIMPEngine
         static void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation);
         static std::shared_ptr<Texture> CreateTexture(const char* path);
 
+        static SDL_Renderer * GetSDLRenderer();
+
     private:
         static RenderingAPI *s_RenderingAPI;
         static glm::mat4 s_ViewMatrix;

@@ -17,6 +17,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/Engine.dir/Engine/Rendering/SDLRenderingAPI.cpp.o.d"
   "CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o"
   "CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o.d"
+  "CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o"
+  "CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o.d"
   "CMakeFiles/Engine.dir/Engine/UI/ImGuiLayer.cpp.o"
   "CMakeFiles/Engine.dir/Engine/UI/ImGuiLayer.cpp.o.d"
   "CMakeFiles/Engine.dir/Engine/Window.cpp.o"
