@@ -1,3 +1,12 @@
+cmake_minimum_required(VERSION 3.15)
+project(SIMPEngine)
+
+# Find SDL3 and spdlog (make sure you have SDL3 package config)
+find_package(SDL3 REQUIRED)
+find_package(SDL3_image REQUIRED)
+find_package(spdlog REQUIRED)
+
+# ImGui library (assuming vendor/imgui is at project root)
 add_library(imgui
     ${CMAKE_SOURCE_DIR}/vendor/imgui/imgui.cpp
     ${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_draw.cpp
@@ -18,25 +27,28 @@ target_link_libraries(imgui
     PUBLIC spdlog::spdlog
 )
 
-# Your existing Engine library:
+# Engine library
 add_library(Engine
-    src/Window.cpp
-    src/Application.cpp
-    src/Log.cpp
-    src/ImGuiLayer.cpp
-    src/Renderer.cpp
-    src/SDLRenderingAPI.cpp
-    src/RenderingAPI.cpp
-    src/RenderingLayer.cpp
-    src/Input.cpp
+    Engine/Window.cpp
+    Engine/Application/Application.cpp
+    Engine/Log.cpp
+    Engine/UI/ImGuiLayer.cpp
+    Engine/Rendering/Renderer.cpp
+    Engine/Rendering/SDLRenderingAPI.cpp
+    Engine/Rendering/RenderingAPI.cpp
+    Engine/Rendering/Texture.cpp
+    Engine/Layer/RenderingLayer.cpp
+    Engine/Input/Input.cpp
+    Engine/Math/Camera2D.cpp
 )
 
 target_include_directories(Engine
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine
 )
 
 target_link_libraries(Engine
     PUBLIC SDL3::SDL3
     PUBLIC spdlog::spdlog
     PUBLIC imgui
+    PUBLIC SDL3_image::SDL3_image 
 )

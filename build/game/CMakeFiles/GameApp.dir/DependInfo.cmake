@@ -15,8 +15,9 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
 set(CMAKE_TARGET_LINKED_INFO_FILES
   "/home/divakar/Desktop/SDLGameEngine/build/engine/CMakeFiles/Engine.dir/DependInfo.cmake"
   "/home/divakar/Desktop/SDLGameEngine/build/engine/CMakeFiles/imgui.dir/DependInfo.cmake"
-  "/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/SDL3-shared.dir/DependInfo.cmake"
   "/home/divakar/Desktop/SDLGameEngine/build/vendor/spdlog/CMakeFiles/spdlog.dir/DependInfo.cmake"
+  "/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL_image/CMakeFiles/SDL3_image-shared.dir/DependInfo.cmake"
+  "/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/CMakeFiles/SDL3-shared.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

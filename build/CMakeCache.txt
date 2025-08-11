@@ -23,6 +23,9 @@ ALSA_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libasound.so
 //Path to a library.
 ASOUND_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libasound.so
 
+//Build the library as a shared library
+BUILD_SHARED_LIBS:BOOL=ON
+
 //Path to a program.
 CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 
@@ -197,6 +200,9 @@ CMAKE_OBJCOPY:FILEPATH=/usr/bin/objcopy
 //Path to a program.
 CMAKE_OBJDUMP:FILEPATH=/usr/bin/objdump
 
+//Build static libraries with -fPIC
+CMAKE_POSITION_INDEPENDENT_CODE:BOOL=ON
+
 //Value Computed by CMake
 CMAKE_PROJECT_DESCRIPTION:STATIC=
 
@@ -313,6 +319,66 @@ GBM_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libgbm.so
 //Git command line client
 GIT_EXECUTABLE:FILEPATH=/usr/bin/git
 
+//Generate the install target
+GLM_BUILD_INSTALL:BOOL=OFF
+
+//Build dynamic/static library
+GLM_BUILD_LIBRARY:BOOL=ON
+
+//Build the test programs
+GLM_BUILD_TESTS:BOOL=OFF
+
+//Disable platform, compiler, arch and C++ language detection
+GLM_DISABLE_AUTO_DETECTION:BOOL=OFF
+
+//Enable C++ 11
+GLM_ENABLE_CXX_11:BOOL=OFF
+
+//Enable C++ 14
+GLM_ENABLE_CXX_14:BOOL=OFF
+
+//Enable C++ 17
+GLM_ENABLE_CXX_17:BOOL=OFF
+
+//Enable C++ 20
+GLM_ENABLE_CXX_20:BOOL=OFF
+
+//Enable C++ 98
+GLM_ENABLE_CXX_98:BOOL=OFF
+
+//Enable fast math optimizations
+GLM_ENABLE_FAST_MATH:BOOL=OFF
+
+//Enable language extensions
+GLM_ENABLE_LANG_EXTENSIONS:BOOL=OFF
+
+//Enable AVX optimizations
+GLM_ENABLE_SIMD_AVX:BOOL=OFF
+
+//Enable AVX2 optimizations
+GLM_ENABLE_SIMD_AVX2:BOOL=OFF
+
+//Enable ARM NEON optimizations
+GLM_ENABLE_SIMD_NEON:BOOL=OFF
+
+//Enable SSE2 optimizations
+GLM_ENABLE_SIMD_SSE2:BOOL=OFF
+
+//Enable SSE3 optimizations
+GLM_ENABLE_SIMD_SSE3:BOOL=OFF
+
+//Enable SSE 4.1 optimizations
+GLM_ENABLE_SIMD_SSE4_1:BOOL=OFF
+
+//Enable SSE 4.2 optimizations
+GLM_ENABLE_SIMD_SSE4_2:BOOL=OFF
+
+//Enable SSSE3 optimizations
+GLM_ENABLE_SIMD_SSSE3:BOOL=OFF
+
+//Force 'pure' instructions
+GLM_FORCE_PURE:BOOL=OFF
+
 //Path to a file.
 HAVE_LIBURING_H:PATH=HAVE_LIBURING_H-NOTFOUND
 
@@ -412,11 +478,134 @@ PULSE_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libpulse.so
 //Value Computed by CMake
 SDL3_BINARY_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL
 
+//The directory containing a CMake configuration file for SDL3.
+SDL3_DIR:PATH=/usr/local/lib/cmake/SDL3
+
 //Value Computed by CMake
 SDL3_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
 SDL3_SOURCE_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/vendor/SDL
+
+//Value Computed by CMake
+SDL3_image_BINARY_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL_image
+
+//The directory containing a CMake configuration file for SDL3_image.
+SDL3_image_DIR:PATH=/usr/local/lib/cmake/SDL3_image
+
+//Value Computed by CMake
+SDL3_image_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+SDL3_image_SOURCE_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/vendor/SDL_image
+
+//Support loading AVIF images
+SDLIMAGE_AVIF:BOOL=ON
+
+//Add AVIF save support
+SDLIMAGE_AVIF_SAVE:BOOL=ON
+
+//Dynamically load AVIF support (requires shared libavif)
+SDLIMAGE_AVIF_SHARED:BOOL=ON
+
+//Use stb_image for loading JPEG and PNG files
+SDLIMAGE_BACKEND_STB:BOOL=ON
+
+//Support loading BMP images
+SDLIMAGE_BMP:BOOL=ON
+
+//Add BMP save support
+SDLIMAGE_BMP_SAVE:BOOL=ON
+
+//Load dependencies dynamically
+SDLIMAGE_DEPS_SHARED:BOOL=ON
+
+//Support loading GIF images
+SDLIMAGE_GIF:BOOL=ON
+
+//Add GIF save support
+SDLIMAGE_GIF_SAVE:BOOL=ON
+
+//Enable SDL3_image install target
+SDLIMAGE_INSTALL:BOOL=OFF
+
+//Support loading JPEG images
+SDLIMAGE_JPG:BOOL=ON
+
+//Add JPEG save support
+SDLIMAGE_JPG_SAVE:BOOL=ON
+
+//Support loading JXL images
+SDLIMAGE_JXL:BOOL=OFF
+
+//Support loading LBM images
+SDLIMAGE_LBM:BOOL=ON
+
+//Support loading PCX images
+SDLIMAGE_PCX:BOOL=ON
+
+//Support loading PNG images
+SDLIMAGE_PNG:BOOL=ON
+
+//Add PNG save support
+SDLIMAGE_PNG_SAVE:BOOL=ON
+
+//Support loading PNM images
+SDLIMAGE_PNM:BOOL=ON
+
+//Support loading QOI images
+SDLIMAGE_QOI:BOOL=ON
+
+//Build the SDL3_image sample program(s)
+SDLIMAGE_SAMPLES:BOOL=OFF
+
+//Fail when a dependency could not be found
+SDLIMAGE_STRICT:BOOL=OFF
+
+//Support loading SVG images
+SDLIMAGE_SVG:BOOL=ON
+
+//Build unit tests?
+SDLIMAGE_TESTS:BOOL=OFF
+
+//Install unit tests?
+SDLIMAGE_TESTS_INSTALL:BOOL=OFF
+
+//Support loading TGA images
+SDLIMAGE_TGA:BOOL=ON
+
+//Add TGA save support
+SDLIMAGE_TGA_SAVE:BOOL=ON
+
+//Support loading TIFF images
+SDLIMAGE_TIF:BOOL=ON
+
+//Dynamically load TIFF support (requires shared libtiff)
+SDLIMAGE_TIF_SHARED:BOOL=ON
+
+//Use vendored third-party libraries
+SDLIMAGE_VENDORED:BOOL=OFF
+
+//Support loading WEBP images
+SDLIMAGE_WEBP:BOOL=ON
+
+//Add WEBP save support
+SDLIMAGE_WEBP_SAVE:BOOL=ON
+
+//Dynamically load WEBP support (requires shared libwebp)
+SDLIMAGE_WEBP_SHARED:BOOL=ON
+
+//Treat warnings as errors
+SDLIMAGE_WERROR:BOOL=OFF
+
+//Support loading XCF images
+SDLIMAGE_XCF:BOOL=ON
+
+//Support loading XPM images
+SDLIMAGE_XPM:BOOL=ON
+
+//Support loading XV images
+SDLIMAGE_XV:BOOL=ON
 
 //Support the ALSA audio API
 SDL_ALSA:BOOL=ON
@@ -549,6 +738,12 @@ SDL_HIDAPI_LIBUSB_SHARED:BOOL=ON
 
 //Enable IBus support
 SDL_IBUS:BOOL=ON
+
+//Path to a file.
+SDL_IMAGE_INCLUDE_DIR:PATH=SDL_IMAGE_INCLUDE_DIR-NOTFOUND
+
+//Path to a library.
+SDL_IMAGE_LIBRARY:FILEPATH=SDL_IMAGE_LIBRARY-NOTFOUND
 
 //Enable installation of SDL3
 SDL_INSTALL:BOOL=OFF
@@ -746,6 +941,15 @@ SDL_X11_XSYNC:BOOL=ON
 //Enable XTest support
 SDL_X11_XTEST:BOOL=ON
 
+//Value Computed by CMake
+SIMPEngine_BINARY_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/build/engine
+
+//Value Computed by CMake
+SIMPEngine_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+SIMPEngine_SOURCE_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/engine
+
 //Path to a library.
 SNDIO_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libsndio.so
 
@@ -843,6 +1047,18 @@ SPDLOG_WCHAR_FILENAMES:BOOL=OFF
 
 //non supported option
 SPDLOG_WCHAR_SUPPORT:BOOL=OFF
+
+//The directory containing a CMake configuration file for TIFF.
+TIFF_DIR:PATH=TIFF_DIR-NOTFOUND
+
+//Path to a file.
+TIFF_INCLUDE_DIR:PATH=/usr/include/x86_64-linux-gnu
+
+//Path to a library.
+TIFF_LIBRARY_DEBUG:FILEPATH=TIFF_LIBRARY_DEBUG-NOTFOUND
+
+//Path to a library.
+TIFF_LIBRARY_RELEASE:FILEPATH=/usr/lib/x86_64-linux-gnu/libtiff.so
 
 //Path to a library.
 UDEV_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libudev.so
@@ -1141,6 +1357,21 @@ XSS_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libXss.so
 //Path to a library.
 XTST_LIB:FILEPATH=/usr/lib/x86_64-linux-gnu/libXtst.so
 
+//The directory containing a CMake configuration file for fmt.
+fmt_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/fmt
+
+//Value Computed by CMake
+glm_BINARY_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/build/vendor/glm
+
+//Value Computed by CMake
+glm_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+glm_SOURCE_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/vendor/glm
+
+//The directory containing a CMake configuration file for libavif.
+libavif_DIR:PATH=libavif_DIR-NOTFOUND
+
 //Path to a library.
 pkgcfg_lib_DBUS_dbus-1:FILEPATH=/usr/lib/x86_64-linux-gnu/libdbus-1.so
 
@@ -1201,11 +1432,62 @@ pkgcfg_lib_PKG_FONTCONFIG_freetype:FILEPATH=/usr/lib/x86_64-linux-gnu/libfreetyp
 //Value Computed by CMake
 spdlog_BINARY_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/build/vendor/spdlog
 
+//The directory containing a CMake configuration file for spdlog.
+spdlog_DIR:PATH=/usr/lib/x86_64-linux-gnu/cmake/spdlog
+
 //Value Computed by CMake
 spdlog_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
 spdlog_SOURCE_DIR:STATIC=/home/divakar/Desktop/SDLGameEngine/vendor/spdlog
+
+//Extra compile options of webp
+webp_COMPILE_OPTIONS:STRING=
+
+//The directory containing a CMake configuration file for webp.
+webp_DIR:PATH=webp_DIR-NOTFOUND
+
+//Path to a file.
+webp_INCLUDE_PATH:PATH=/usr/include
+
+//Path to a library.
+webp_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libwebp.so
+
+//Extra link flags of webp
+webp_LINK_FLAGS:STRING=
+
+//Extra link libraries of webp
+webp_LINK_LIBRARIES:STRING=
+
+//Extra compile options of webpdemux
+webpdemux_COMPILE_OPTIONS:STRING=
+
+//Path to a file.
+webpdemux_INCLUDE_PATH:PATH=/usr/include
+
+//Path to a library.
+webpdemux_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libwebpdemux.so
+
+//Extra link flags of webpdemux
+webpdemux_LINK_FLAGS:STRING=
+
+//Extra link libraries of webpdemux
+webpdemux_LINK_LIBRARIES:STRING=
+
+//Extra compile options of webpmux
+webpmux_COMPILE_OPTIONS:STRING=
+
+//Path to a file.
+webpmux_INCLUDE_PATH:PATH=/usr/include
+
+//Path to a library.
+webpmux_LIBRARY:FILEPATH=/usr/lib/x86_64-linux-gnu/libwebpmux.so
+
+//Extra link flags of webpmux
+webpmux_LINK_FLAGS:STRING=
+
+//Extra link libraries of webpmux
+webpmux_LINK_LIBRARIES:STRING=
 
 
 ########################
@@ -1360,7 +1642,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=5
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=8
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
@@ -1470,10 +1752,14 @@ FIND_PACKAGE_MESSAGE_DETAILS_LibUSB:INTERNAL=[/usr/lib/x86_64-linux-gnu/libusb-1
 FIND_PACKAGE_MESSAGE_DETAILS_OpenGL:INTERNAL=[/usr/lib/x86_64-linux-gnu/libOpenGL.so][/usr/lib/x86_64-linux-gnu/libGLX.so][/usr/include][c ][v()]
 //Details about finding PkgConfig
 FIND_PACKAGE_MESSAGE_DETAILS_PkgConfig:INTERNAL=[/usr/bin/pkg-config][v1.8.1()]
+//Details about finding TIFF
+FIND_PACKAGE_MESSAGE_DETAILS_TIFF:INTERNAL=[/usr/lib/x86_64-linux-gnu/libtiff.so][/usr/include/x86_64-linux-gnu][c ][v4.5.0()]
 //Details about finding Threads
 FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 //Details about finding X11
 FIND_PACKAGE_MESSAGE_DETAILS_X11:INTERNAL=[/usr/include][/usr/lib/x86_64-linux-gnu/libX11.so][c ][v()]
+//Details about finding webp
+FIND_PACKAGE_MESSAGE_DETAILS_webp:INTERNAL=[/usr/lib/x86_64-linux-gnu/libwebp.so][/usr/include][/usr/lib/x86_64-linux-gnu/libwebpdemux.so][/usr/include][/usr/lib/x86_64-linux-gnu/libwebpmux.so][/usr/include][v()]
 //Have library c
 FOUND_CLOCK_GETTIME_LIBC:INTERNAL=1
 //ADVANCED property for variable: FREETYPE_INCLUDE_DIR_freetype2
@@ -1608,6 +1894,8 @@ HAVE_SYSCONF:INTERNAL=1
 HAVE_SYSCTLBYNAME:INTERNAL=
 //Have include sys/inotify.h
 HAVE_SYS_INOTIFY_H:INTERNAL=1
+//Test HAVE_WL_NO_UNDEFINED
+HAVE_WL_NO_UNDEFINED:INTERNAL=1
 //Test HAVE_XFIXES_H
 HAVE_XFIXES_H:INTERNAL=1
 //Test HAVE_XGENERICEVENT
@@ -2354,6 +2642,12 @@ SDL_CMAKE_C_COMPILER_LINKER_ID-ADVANCED:INTERNAL=1
 SDL_CPU_CHECK_ALL:INTERNAL=TRUE
 //Have include X11/XKBlib.h
 SDL_VIDEO_DRIVER_X11_HAS_XKBLIB:INTERNAL=1
+//ADVANCED property for variable: TIFF_INCLUDE_DIR
+TIFF_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: TIFF_LIBRARY_DEBUG
+TIFF_LIBRARY_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: TIFF_LIBRARY_RELEASE
+TIFF_LIBRARY_RELEASE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_ICE_INCLUDE_PATH
 X11_ICE_INCLUDE_PATH-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: X11_ICE_LIB

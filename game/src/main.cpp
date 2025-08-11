@@ -1,8 +1,8 @@
-    #include "Engine/Application.h"
-    #include "Engine/Log.h"
-    #include "Engine/LayerStack.h"
-    #include "Engine/ImGuiLayer.h"
-    #include "Engine/RenderingLayer.h"
+    #include "Application/Application.h"
+    #include "Log.h"
+    #include "Layer/LayerStack.h"
+    #include "UI/ImGuiLayer.h"
+    #include "Layer/RenderingLayer.h"
 
     class MyGame : public SIMPEngine::Application {
     public:
@@ -18,7 +18,6 @@
     int main() {
 
         SIMPEngine::Log::Init();
-
         CORE_INFO("Engine Starting up....");
         auto app = SIMPEngine::CreateApplication();
         app->Run();

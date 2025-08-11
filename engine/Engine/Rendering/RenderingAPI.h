@@ -1,0 +1,29 @@
+#pragma once
+#include <SDL3/SDL.h>
+#include <glm/glm.hpp>
+
+#include<memory>
+#include"Texture.h"
+
+namespace SIMPEngine
+{
+    class RenderingAPI
+    {
+    public:
+        virtual ~RenderingAPI();
+
+        virtual void Init(SDL_Renderer *sdlRenderer) = 0;
+        virtual void SetClearColor(float r, float g, float b, float a) = 0;
+        virtual void Clear() = 0;
+        virtual void DrawQuad(float x, float y, float width, float height, SDL_Color color) = 0;
+        virtual void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color) = 0;
+        virtual void DrawCircle(float x, float y, float r, SDL_Color color) = 0;
+        virtual void Present() = 0;
+        virtual void SetViewMatrix(const glm::mat4 &view) = 0;
+
+        virtual void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation) = 0;
+        virtual std::shared_ptr<Texture> CreateTexture(const char *path) = 0;
+        virtual void SetViewport(int x, int y, int width, int height) = 0;
+        virtual void ResetViewport() = 0;
+    };
+}

@@ -169,6 +169,32 @@ spdlog/fast:
 .PHONY : spdlog/fast
 
 #=============================================================================
+# Target rules for targets named glm
+
+# Build rule for target.
+glm: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 glm
+.PHONY : glm
+
+# fast build rule for target.
+glm/fast:
+	$(MAKE) $(MAKESILENT) -f vendor/glm/glm/CMakeFiles/glm.dir/build.make vendor/glm/glm/CMakeFiles/glm.dir/build
+.PHONY : glm/fast
+
+#=============================================================================
+# Target rules for targets named SDL3_image-shared
+
+# Build rule for target.
+SDL3_image-shared: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 SDL3_image-shared
+.PHONY : SDL3_image-shared
+
+# fast build rule for target.
+SDL3_image-shared/fast:
+	$(MAKE) $(MAKESILENT) -f vendor/SDL_image/CMakeFiles/SDL3_image-shared.dir/build.make vendor/SDL_image/CMakeFiles/SDL3_image-shared.dir/build
+.PHONY : SDL3_image-shared/fast
+
+#=============================================================================
 # Target rules for targets named imgui
 
 # Build rule for target.
@@ -218,8 +244,10 @@ help:
 	@echo "... Engine"
 	@echo "... GameApp"
 	@echo "... SDL3-shared"
+	@echo "... SDL3_image-shared"
 	@echo "... SDL3_test"
 	@echo "... SDL_uclibc"
+	@echo "... glm"
 	@echo "... imgui"
 	@echo "... spdlog"
 .PHONY : help

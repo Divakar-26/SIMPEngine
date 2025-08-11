@@ -6,5 +6,5 @@ C_DEFINES =
 
 C_INCLUDES = -I/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/include-revision -I/home/divakar/Desktop/SDLGameEngine/vendor/SDL/include
 
-C_FLAGS = -O3 -DNDEBUG -Wall -Wundef -Wfloat-conversion -fno-strict-aliasing -Wshadow -Wno-unused-local-typedefs -Wimplicit-fallthrough -fdiagnostics-color=always
+C_FLAGS = -O3 -DNDEBUG -fPIC -Wall -Wundef -Wfloat-conversion -fno-strict-aliasing -Wshadow -Wno-unused-local-typedefs -Wimplicit-fallthrough -fdiagnostics-color=always
 

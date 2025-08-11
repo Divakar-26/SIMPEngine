@@ -1,8 +1,8 @@
 game/CMakeFiles/GameApp.dir/src/main.cpp.o: \
  /home/divakar/Desktop/SDLGameEngine/game/src/main.cpp \
  /usr/include/stdc-predef.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Application.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Window.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Application/Application.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Window.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_stdinc.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_platform_defines.h \
@@ -93,7 +93,8 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_tray.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_version.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/SDL/include/SDL3/SDL_oldnames.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Events/Event.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/SDL_image/include/SDL3_image/SDL_image.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Events/Event.h \
  /usr/include/c++/12/string \
  /usr/include/x86_64-linux-gnu/c++/12/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/12/bits/os_defines.h \
@@ -214,7 +215,7 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: \
  /usr/include/c++/12/bits/basic_ios.tcc \
  /usr/include/c++/12/bits/ostream.tcc /usr/include/c++/12/istream \
  /usr/include/c++/12/bits/istream.tcc \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/LayerStack.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Layer/LayerStack.h \
  /usr/include/c++/12/vector /usr/include/c++/12/bits/stl_uninitialized.h \
  /usr/include/c++/12/bits/stl_vector.h \
  /usr/include/c++/12/bits/stl_bvector.h \
@@ -226,62 +227,18 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: \
  /usr/include/c++/12/bits/uniform_int_dist.h \
  /usr/include/c++/12/pstl/glue_algorithm_defs.h \
  /usr/include/c++/12/pstl/execution_defs.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Layer.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/TimeStep.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/ImGuiLayer.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Layer/Layer.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/TimeStep.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/UI/ImGuiLayer.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imgui.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/imgui/imconfig.h \
  /usr/lib/gcc/x86_64-linux-gnu/12/include/float.h /usr/include/assert.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingLayer.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Renderer.h \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/RenderingAPI.h \
- /usr/include/c++/12/functional /usr/include/c++/12/tuple \
- /usr/include/c++/12/bits/uses_allocator.h \
- /usr/include/c++/12/bits/std_function.h \
- /usr/include/c++/12/unordered_map \
- /usr/include/c++/12/ext/aligned_buffer.h \
- /usr/include/c++/12/bits/hashtable.h \
- /usr/include/c++/12/bits/hashtable_policy.h \
- /usr/include/c++/12/bits/enable_special_members.h \
- /usr/include/c++/12/bits/node_handle.h \
- /usr/include/c++/12/bits/unordered_map.h \
- /usr/include/c++/12/bits/erase_if.h /usr/include/c++/12/array \
- /usr/include/c++/12/compare \
- /home/divakar/Desktop/SDLGameEngine/engine/include/Engine/Log.h \
- /usr/include/c++/12/memory \
- /usr/include/c++/12/bits/stl_raw_storage_iter.h \
- /usr/include/c++/12/bits/align.h /usr/include/c++/12/bit \
- /usr/include/c++/12/bits/unique_ptr.h \
- /usr/include/c++/12/bits/shared_ptr.h \
- /usr/include/c++/12/bits/shared_ptr_base.h \
- /usr/include/c++/12/bits/allocated_ptr.h \
- /usr/include/c++/12/ext/concurrence.h \
- /usr/include/c++/12/bits/shared_ptr_atomic.h \
- /usr/include/c++/12/bits/atomic_base.h \
- /usr/include/c++/12/bits/atomic_lockfree_defines.h \
- /usr/include/c++/12/backward/auto_ptr.h \
- /usr/include/c++/12/pstl/glue_memory_defs.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/spdlog.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/common.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/null_mutex.h \
- /usr/include/c++/12/atomic /usr/include/c++/12/utility \
- /usr/include/c++/12/bits/stl_relops.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/tweakme.h \
- /usr/include/c++/12/chrono /usr/include/c++/12/bits/chrono.h \
- /usr/include/c++/12/ratio /usr/include/c++/12/limits \
- /usr/include/c++/12/ctime /usr/include/c++/12/bits/parse_numbers.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/fmt.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/format.h \
- /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/base.h \
- /usr/lib/gcc/x86_64-linux-gnu/12/include/limits.h \
- /usr/lib/gcc/x86_64-linux-gnu/12/include/syslimits.h \
- /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
- /usr/include/x86_64-linux-gnu/bits/local_lim.h \
- /usr/include/linux/limits.h \
- /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
- /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
- /usr/include/x86_64-linux-gnu/bits/uio_lim.h /usr/include/c++/12/cmath \
- /usr/include/math.h /usr/include/x86_64-linux-gnu/bits/math-vector.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Layer/RenderingLayer.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Renderer.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/RenderingAPI.h \
+ /usr/include/glm/glm.hpp /usr/include/glm/detail/_fixes.hpp \
+ /usr/include/c++/12/cmath /usr/include/math.h \
+ /usr/include/x86_64-linux-gnu/bits/math-vector.h \
  /usr/include/x86_64-linux-gnu/bits/libm-simd-decl-stubs.h \
  /usr/include/x86_64-linux-gnu/bits/flt-eval-method.h \
  /usr/include/x86_64-linux-gnu/bits/fp-logb.h \
@@ -290,7 +247,8 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: \
  /usr/include/x86_64-linux-gnu/bits/mathcalls.h \
  /usr/include/x86_64-linux-gnu/bits/mathcalls-narrow.h \
  /usr/include/x86_64-linux-gnu/bits/iscanonical.h \
- /usr/include/c++/12/bits/specfun.h /usr/include/c++/12/tr1/gamma.tcc \
+ /usr/include/c++/12/bits/specfun.h /usr/include/c++/12/limits \
+ /usr/include/c++/12/tr1/gamma.tcc \
  /usr/include/c++/12/tr1/special_function_util.h \
  /usr/include/c++/12/tr1/bessel_function.tcc \
  /usr/include/c++/12/tr1/beta_function.tcc \
@@ -301,7 +259,166 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: \
  /usr/include/c++/12/tr1/modified_bessel_func.tcc \
  /usr/include/c++/12/tr1/poly_hermite.tcc \
  /usr/include/c++/12/tr1/poly_laguerre.tcc \
- /usr/include/c++/12/tr1/riemann_zeta.tcc /usr/include/c++/12/cstddef \
+ /usr/include/c++/12/tr1/riemann_zeta.tcc \
+ /usr/include/glm/detail/setup.hpp /usr/include/c++/12/cassert \
+ /usr/include/c++/12/cstddef /usr/include/glm/simd/platform.h \
+ /usr/include/c++/12/climits \
+ /usr/lib/gcc/x86_64-linux-gnu/12/include/limits.h \
+ /usr/lib/gcc/x86_64-linux-gnu/12/include/syslimits.h \
+ /usr/include/limits.h /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/local_lim.h \
+ /usr/include/linux/limits.h \
+ /usr/include/x86_64-linux-gnu/bits/posix2_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/xopen_lim.h \
+ /usr/include/x86_64-linux-gnu/bits/uio_lim.h /usr/include/c++/12/cfloat \
+ /usr/include/glm/fwd.hpp /usr/include/glm/detail/qualifier.hpp \
+ /usr/include/glm/detail/setup.hpp /usr/include/glm/vec2.hpp \
+ /usr/include/glm/ext/vector_bool2.hpp \
+ /usr/include/glm/detail/type_vec2.hpp \
+ /usr/include/glm/detail/type_vec2.inl \
+ /usr/include/glm/detail/compute_vector_relational.hpp \
+ /usr/include/glm/ext/vector_bool2_precision.hpp \
+ /usr/include/glm/ext/vector_float2.hpp \
+ /usr/include/glm/ext/vector_float2_precision.hpp \
+ /usr/include/glm/ext/vector_double2.hpp \
+ /usr/include/glm/ext/vector_double2_precision.hpp \
+ /usr/include/glm/ext/vector_int2.hpp \
+ /usr/include/glm/ext/vector_int2_sized.hpp \
+ /usr/include/glm/ext/scalar_int_sized.hpp \
+ /usr/include/glm/detail/setup.hpp /usr/include/glm/ext/vector_uint2.hpp \
+ /usr/include/glm/ext/vector_uint2_sized.hpp \
+ /usr/include/glm/ext/scalar_uint_sized.hpp /usr/include/glm/vec3.hpp \
+ /usr/include/glm/ext/vector_bool3.hpp \
+ /usr/include/glm/detail/type_vec3.hpp \
+ /usr/include/glm/detail/type_vec3.inl \
+ /usr/include/glm/ext/vector_bool3_precision.hpp \
+ /usr/include/glm/ext/vector_float3.hpp \
+ /usr/include/glm/ext/vector_float3_precision.hpp \
+ /usr/include/glm/ext/vector_double3.hpp \
+ /usr/include/glm/ext/vector_double3_precision.hpp \
+ /usr/include/glm/ext/vector_int3.hpp \
+ /usr/include/glm/ext/vector_int3_sized.hpp \
+ /usr/include/glm/ext/vector_uint3.hpp \
+ /usr/include/glm/ext/vector_uint3_sized.hpp /usr/include/glm/vec4.hpp \
+ /usr/include/glm/ext/vector_bool4.hpp \
+ /usr/include/glm/detail/type_vec4.hpp \
+ /usr/include/glm/detail/type_vec4.inl \
+ /usr/include/glm/ext/vector_bool4_precision.hpp \
+ /usr/include/glm/ext/vector_float4.hpp \
+ /usr/include/glm/ext/vector_float4_precision.hpp \
+ /usr/include/glm/ext/vector_double4.hpp \
+ /usr/include/glm/ext/vector_double4_precision.hpp \
+ /usr/include/glm/ext/vector_int4.hpp \
+ /usr/include/glm/ext/vector_int4_sized.hpp \
+ /usr/include/glm/ext/vector_uint4.hpp \
+ /usr/include/glm/ext/vector_uint4_sized.hpp /usr/include/glm/mat2x2.hpp \
+ /usr/include/glm/ext/matrix_double2x2.hpp \
+ /usr/include/glm/detail/type_mat2x2.hpp \
+ /usr/include/glm/detail/type_mat2x2.inl /usr/include/glm/matrix.hpp \
+ /usr/include/glm/mat2x3.hpp /usr/include/glm/ext/matrix_double2x3.hpp \
+ /usr/include/glm/detail/type_mat2x3.hpp \
+ /usr/include/glm/detail/type_mat2x3.inl \
+ /usr/include/glm/ext/matrix_double2x3_precision.hpp \
+ /usr/include/glm/ext/matrix_float2x3.hpp \
+ /usr/include/glm/ext/matrix_float2x3_precision.hpp \
+ /usr/include/glm/mat2x4.hpp /usr/include/glm/ext/matrix_double2x4.hpp \
+ /usr/include/glm/detail/type_mat2x4.hpp \
+ /usr/include/glm/detail/type_mat2x4.inl \
+ /usr/include/glm/ext/matrix_double2x4_precision.hpp \
+ /usr/include/glm/ext/matrix_float2x4.hpp \
+ /usr/include/glm/ext/matrix_float2x4_precision.hpp \
+ /usr/include/glm/mat3x2.hpp /usr/include/glm/ext/matrix_double3x2.hpp \
+ /usr/include/glm/detail/type_mat3x2.hpp \
+ /usr/include/glm/detail/type_mat3x2.inl \
+ /usr/include/glm/ext/matrix_double3x2_precision.hpp \
+ /usr/include/glm/ext/matrix_float3x2.hpp \
+ /usr/include/glm/ext/matrix_float3x2_precision.hpp \
+ /usr/include/glm/mat3x3.hpp /usr/include/glm/ext/matrix_double3x3.hpp \
+ /usr/include/glm/detail/type_mat3x3.hpp \
+ /usr/include/glm/detail/type_mat3x3.inl \
+ /usr/include/glm/ext/matrix_double3x3_precision.hpp \
+ /usr/include/glm/ext/matrix_float3x3.hpp \
+ /usr/include/glm/ext/matrix_float3x3_precision.hpp \
+ /usr/include/glm/mat3x4.hpp /usr/include/glm/ext/matrix_double3x4.hpp \
+ /usr/include/glm/detail/type_mat3x4.hpp \
+ /usr/include/glm/detail/type_mat3x4.inl \
+ /usr/include/glm/ext/matrix_double3x4_precision.hpp \
+ /usr/include/glm/ext/matrix_float3x4.hpp \
+ /usr/include/glm/ext/matrix_float3x4_precision.hpp \
+ /usr/include/glm/mat4x2.hpp /usr/include/glm/ext/matrix_double4x2.hpp \
+ /usr/include/glm/detail/type_mat4x2.hpp \
+ /usr/include/glm/detail/type_mat4x2.inl \
+ /usr/include/glm/ext/matrix_double4x2_precision.hpp \
+ /usr/include/glm/ext/matrix_float4x2.hpp \
+ /usr/include/glm/ext/matrix_float4x2_precision.hpp \
+ /usr/include/glm/mat4x3.hpp /usr/include/glm/ext/matrix_double4x3.hpp \
+ /usr/include/glm/detail/type_mat4x3.hpp \
+ /usr/include/glm/detail/type_mat4x3.inl \
+ /usr/include/glm/ext/matrix_double4x3_precision.hpp \
+ /usr/include/glm/ext/matrix_float4x3.hpp \
+ /usr/include/glm/ext/matrix_float4x3_precision.hpp \
+ /usr/include/glm/mat4x4.hpp /usr/include/glm/ext/matrix_double4x4.hpp \
+ /usr/include/glm/detail/type_mat4x4.hpp \
+ /usr/include/glm/detail/type_mat4x4.inl \
+ /usr/include/glm/ext/matrix_double4x4_precision.hpp \
+ /usr/include/glm/ext/matrix_float4x4.hpp \
+ /usr/include/glm/ext/matrix_float4x4_precision.hpp \
+ /usr/include/glm/detail/func_matrix.inl /usr/include/glm/geometric.hpp \
+ /usr/include/glm/detail/func_geometric.inl \
+ /usr/include/glm/exponential.hpp /usr/include/glm/detail/type_vec1.hpp \
+ /usr/include/glm/detail/type_vec1.inl \
+ /usr/include/glm/detail/func_exponential.inl \
+ /usr/include/glm/vector_relational.hpp \
+ /usr/include/glm/detail/func_vector_relational.inl \
+ /usr/include/glm/detail/_vectorize.hpp /usr/include/glm/common.hpp \
+ /usr/include/glm/detail/func_common.inl \
+ /usr/include/glm/detail/compute_common.hpp \
+ /usr/include/glm/ext/matrix_double2x2_precision.hpp \
+ /usr/include/glm/ext/matrix_float2x2.hpp \
+ /usr/include/glm/ext/matrix_float2x2_precision.hpp \
+ /usr/include/glm/trigonometric.hpp \
+ /usr/include/glm/detail/func_trigonometric.inl \
+ /usr/include/glm/packing.hpp /usr/include/glm/detail/func_packing.inl \
+ /usr/include/glm/detail/type_half.hpp \
+ /usr/include/glm/detail/type_half.inl /usr/include/glm/integer.hpp \
+ /usr/include/glm/detail/func_integer.inl /usr/include/c++/12/memory \
+ /usr/include/c++/12/bits/stl_raw_storage_iter.h \
+ /usr/include/c++/12/bits/align.h /usr/include/c++/12/bit \
+ /usr/include/c++/12/bits/uses_allocator.h \
+ /usr/include/c++/12/bits/unique_ptr.h /usr/include/c++/12/tuple \
+ /usr/include/c++/12/bits/shared_ptr.h \
+ /usr/include/c++/12/bits/shared_ptr_base.h \
+ /usr/include/c++/12/bits/allocated_ptr.h \
+ /usr/include/c++/12/ext/aligned_buffer.h \
+ /usr/include/c++/12/ext/concurrence.h \
+ /usr/include/c++/12/bits/shared_ptr_atomic.h \
+ /usr/include/c++/12/bits/atomic_base.h \
+ /usr/include/c++/12/bits/atomic_lockfree_defines.h \
+ /usr/include/c++/12/backward/auto_ptr.h \
+ /usr/include/c++/12/pstl/glue_memory_defs.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Texture.h \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Math/Camera2D.h \
+ /usr/include/c++/12/functional /usr/include/c++/12/bits/std_function.h \
+ /usr/include/c++/12/unordered_map /usr/include/c++/12/bits/hashtable.h \
+ /usr/include/c++/12/bits/hashtable_policy.h \
+ /usr/include/c++/12/bits/enable_special_members.h \
+ /usr/include/c++/12/bits/node_handle.h \
+ /usr/include/c++/12/bits/unordered_map.h \
+ /usr/include/c++/12/bits/erase_if.h /usr/include/c++/12/array \
+ /usr/include/c++/12/compare \
+ /home/divakar/Desktop/SDLGameEngine/engine/Engine/Log.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/spdlog.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/common.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/null_mutex.h \
+ /usr/include/c++/12/atomic /usr/include/c++/12/utility \
+ /usr/include/c++/12/bits/stl_relops.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/tweakme.h \
+ /usr/include/c++/12/chrono /usr/include/c++/12/bits/chrono.h \
+ /usr/include/c++/12/ratio /usr/include/c++/12/ctime \
+ /usr/include/c++/12/bits/parse_numbers.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/fmt.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/format.h \
+ /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/fmt/bundled/base.h \
  /usr/include/c++/12/cstring \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/registry.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/periodic_worker.h \
@@ -314,7 +431,6 @@ game/CMakeFiles/GameApp.dir/src/main.cpp.o: \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/logger.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/backtracer.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/circular_q.h \
- /usr/include/c++/12/cassert \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/log_msg_buffer.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/details/log_msg.h \
  /home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include/spdlog/version.h \
