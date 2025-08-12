@@ -22,7 +22,7 @@ namespace SIMPEngine
         void OnDetach() override;            // Called when layer is popped
         void OnUpdate(class TimeStep ts) override;            // Called every frame to update ImGui
         void OnRender() override;            // Called every frame to update ImGui
-        void OnEvent(Event &event) override; // Optional: if you want to handle events
+        void OnEvent(Event &event) override;
         void OnSDLEvent(SDL_Event &e);
         void Begin();
         void End();

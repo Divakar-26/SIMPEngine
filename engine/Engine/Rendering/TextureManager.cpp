@@ -22,6 +22,8 @@ namespace SIMPEngine {
 
         m_TextureMap[id] = texture;
         LOG_INFO("Loaded texture: {}", id);
+        SDL_SetTextureScaleMode(texture->GetSDLTexture(), SDL_SCALEMODE_NEAREST);
+
         return texture;
     }
 

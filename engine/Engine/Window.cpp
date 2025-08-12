@@ -29,11 +29,13 @@
             }
 
             SDL_PropertiesID props = SDL_CreateProperties();
-            SDL_SetStringProperty(props, SDL_PROP_RENDERER_CREATE_NAME_STRING, "opengl"); // could be "metal", "vulkan", etc.
+            SDL_SetStringProperty(props, SDL_PROP_RENDERER_CREATE_NAME_STRING, "opengl");
             SDL_SetPointerProperty(props, SDL_PROP_RENDERER_CREATE_WINDOW_POINTER, m_Window);
-            SDL_SetNumberProperty(props, SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER, 1); // enable vsync
+            SDL_SetNumberProperty(props, SDL_PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER, 0);
 
             m_Renderer = SDL_CreateRendererWithProperties(props);
+
+            SDL_SetRenderDrawBlendMode(m_Renderer, SDL_BLENDMODE_NONE);
             SDL_DestroyProperties(props);
 
             if (!m_Renderer)

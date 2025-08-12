@@ -20,14 +20,12 @@ namespace SIMPEngine {
 
 }
 
-// Core log macros
 #define CORE_TRACE(...)   ::SIMPEngine::Log::GetCoreLogger()->trace(__VA_ARGS__)
 #define CORE_INFO(...)    ::SIMPEngine::Log::GetCoreLogger()->info(__VA_ARGS__)
 #define CORE_WARN(...)    ::SIMPEngine::Log::GetCoreLogger()->warn(__VA_ARGS__)
 #define CORE_ERROR(...)   ::SIMPEngine::Log::GetCoreLogger()->error(__VA_ARGS__)
 #define CORE_CRITICAL(...)::SIMPEngine::Log::GetCoreLogger()->critical(__VA_ARGS__)
 
-// Client log macros
 #define LOG_TRACE(...)    ::SIMPEngine::Log::GetClientLogger()->trace(__VA_ARGS__)
 #define LOG_INFO(...)     ::SIMPEngine::Log::GetClientLogger()->info(__VA_ARGS__)
 #define LOG_WARN(...)     ::SIMPEngine::Log::GetClientLogger()->warn(__VA_ARGS__)

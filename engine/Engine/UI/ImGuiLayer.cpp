@@ -38,13 +38,11 @@ namespace SIMPEngine
         ImGui::CreateContext();
 
         ImGuiIO &io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; 
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;    
 
-        // Setup Dear ImGui style
         ImGui::StyleColorsDark();
 
-        // Setup Platform/Renderer backends
         ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
         ImGui_ImplSDLRenderer3_Init(m_Renderer);
     }

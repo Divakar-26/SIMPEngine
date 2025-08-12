@@ -8,12 +8,14 @@
 #include "Input/Input.h"
 #include <SDL3/SDL_keycode.h>
 
-#include"Rendering/TextureManager.h"
+#include "Rendering/TextureManager.h"
+#include "Rendering/Sprite.h"
 
 #include <iostream>
 
 float i = 1.0f;
 float angle = 0.0f;
+int id = 0;
 
 namespace SIMPEngine
 {
@@ -21,6 +23,7 @@ namespace SIMPEngine
     {
         // Set up anything needed before rendering starts
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        srand(time(NULL));
     }
 
     void RenderingLayer::OnDetach()
@@ -41,7 +44,15 @@ namespace SIMPEngine
             auto cor = Input::GetMousePosition();
             i = cor.first - 50;
         }
-
+        else if (Input::IsKeyPressed(SDLK_H))
+        {
+            id += 1;
+            if (id > 12)
+            {
+                id = 0;
+                CORE_WARN("I increased {}", id*16);
+            }
+        }
         if (Input::IsKeyPressed(SDLK_A))
         {
             auto pos = m_Camera.GetPosition();
@@ -55,12 +66,12 @@ namespace SIMPEngine
         if (Input::IsKeyPressed(SDLK_W))
         {
             auto pos = m_Camera.GetPosition();
-            m_Camera.SetPosition({pos.x, pos.y  - 100.0f * ts.GetSeconds()});
+            m_Camera.SetPosition({pos.x, pos.y - 100.0f * ts.GetSeconds()});
         }
         if (Input::IsKeyPressed(SDLK_S))
         {
             auto pos = m_Camera.GetPosition();
-            m_Camera.SetPosition({pos.x , pos.y + 100.0f * ts.GetSeconds()});
+            m_Camera.SetPosition({pos.x, pos.y + 100.0f * ts.GetSeconds()});
         }
         float zoomSpeed = 1.0f;
         if (Input::IsKeyPressed(SDLK_Q))
@@ -82,7 +93,9 @@ namespace SIMPEngine
 
         Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
 
-        angle += 1.0f;
+        angle += 90.0f * ts.GetSeconds();
+
+        id += 2 * ts.GetSeconds();
     }
 
     void RenderingLayer::OnRender()
@@ -101,10 +114,17 @@ namespace SIMPEngine
         Renderer::DrawCircle(300, 200, 200, SDL_Color{255, 255, 0, 255});
 
         auto tex = TextureManager::Get().LoadTexture("player", "player.png", Renderer::GetSDLRenderer());
-        Renderer::DrawTexture(tex->GetSDLTexture(), 100,100,tex->GetWidth(), tex->GetHeight(), {255,255,255,255}, angle);
+        Renderer::DrawTexture(tex->GetSDLTexture(), 100, 100, tex->GetWidth(), tex->GetHeight(), {255, 255, 255, 255}, angle);
 
         auto tex2 = TextureManager::Get().GetTexture("circle");
-        Renderer::DrawTexture(tex2->GetSDLTexture(), 300,300, tex->GetWidth(), tex->GetWidth(), {0,255,0,255}, 0);
+        Renderer::DrawTexture(tex2->GetSDLTexture(), 300, 300, tex->GetWidth(), tex->GetWidth(), {0, 255, 0, 255}, 0);
+
+        auto coinTex = TextureManager::Get().GetTexture("coin");
+
+        SDL_FRect srcRect = {(float)(16 * id), 0, 16, 16};
+
+        Sprite playerSprite(coinTex, srcRect);
+        playerSprite.Draw(500, 400, 64, 64, SDL_Color{255, 255, 255, 255}, 0);
     }
 
     void RenderingLayer::OnEvent(Event &e)

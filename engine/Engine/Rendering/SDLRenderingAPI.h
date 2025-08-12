@@ -22,7 +22,7 @@ namespace SIMPEngine
         void Present() override;
         void SetViewMatrix(const glm::mat4 &view) override; // <-- override here
 
-        void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation);
+        void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, SDL_FRect * srcRect = nullptr);
         std::shared_ptr<Texture> CreateTexture(const char* path);
 
 

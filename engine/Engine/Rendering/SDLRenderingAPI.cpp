@@ -15,6 +15,7 @@ namespace SIMPEngine
     {
         m_Renderer = sdlRenderer;
         TextureManager::Get().LoadTexture("circle", "circle.png", m_Renderer);
+        TextureManager::Get().LoadTexture("coin", "coin.png", m_Renderer);
     }
 
     void SDLRenderingAPI::SetClearColor(float r, float g, float b, float a)
@@ -86,7 +87,7 @@ namespace SIMPEngine
         DrawTexture(circleTexture->GetSDLTexture(), cx, cy, radius, radius, {0, 255, 255, 255}, 0);
     }
 
-    void SDLRenderingAPI::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation)
+    void SDLRenderingAPI::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, SDL_FRect * srcRect)
     {
         glm::vec4 posWorld(x, y, 0.0f, 1.0f);
         glm::vec4 posCamera = s_ViewMatrix * posWorld;
@@ -108,7 +109,7 @@ namespace SIMPEngine
         center.x = dest.w / 2;
         center.y = dest.h / 2;
 
-        SDL_RenderTextureRotated(m_Renderer, texture, nullptr, &dest, rotation, &center, SDL_FLIP_NONE);
+        SDL_RenderTextureRotated(m_Renderer, texture, srcRect, &dest, rotation, &center, SDL_FLIP_NONE);
     }
 
     std::shared_ptr<Texture> SDLRenderingAPI::CreateTexture(const char *path)

@@ -12,6 +12,7 @@ namespace SIMPEngine
     {
         s_RenderingAPI = api;
         s_RenderingAPI->Init(sdlRenderer);
+
     }
 
     void Renderer::SetClearColor(float r, float g, float b, float a)
@@ -66,9 +67,9 @@ namespace SIMPEngine
         s_RenderingAPI->ResetViewport();
     }
 
-    void Renderer::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation)
+    void Renderer::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, SDL_FRect * srcRect)
     {
-        s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation);
+        s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation, srcRect);
     }
 
     std::shared_ptr<Texture> Renderer::CreateTexture(const char *path)

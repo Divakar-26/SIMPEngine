@@ -336,6 +336,30 @@ Engine/Rendering/SDLRenderingAPI.cpp.s:
 	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/SDLRenderingAPI.cpp.s
 .PHONY : Engine/Rendering/SDLRenderingAPI.cpp.s
 
+Engine/Rendering/Sprite.o: Engine/Rendering/Sprite.cpp.o
+.PHONY : Engine/Rendering/Sprite.o
+
+# target to build an object file
+Engine/Rendering/Sprite.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o
+.PHONY : Engine/Rendering/Sprite.cpp.o
+
+Engine/Rendering/Sprite.i: Engine/Rendering/Sprite.cpp.i
+.PHONY : Engine/Rendering/Sprite.i
+
+# target to preprocess a source file
+Engine/Rendering/Sprite.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.i
+.PHONY : Engine/Rendering/Sprite.cpp.i
+
+Engine/Rendering/Sprite.s: Engine/Rendering/Sprite.cpp.s
+.PHONY : Engine/Rendering/Sprite.s
+
+# target to generate assembly for a file
+Engine/Rendering/Sprite.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.s
+.PHONY : Engine/Rendering/Sprite.cpp.s
+
 Engine/Rendering/Texture.o: Engine/Rendering/Texture.cpp.o
 .PHONY : Engine/Rendering/Texture.o
 
@@ -634,6 +658,9 @@ help:
 	@echo "... Engine/Rendering/SDLRenderingAPI.o"
 	@echo "... Engine/Rendering/SDLRenderingAPI.i"
 	@echo "... Engine/Rendering/SDLRenderingAPI.s"
+	@echo "... Engine/Rendering/Sprite.o"
+	@echo "... Engine/Rendering/Sprite.i"
+	@echo "... Engine/Rendering/Sprite.s"
 	@echo "... Engine/Rendering/Texture.o"
 	@echo "... Engine/Rendering/Texture.i"
 	@echo "... Engine/Rendering/Texture.s"
