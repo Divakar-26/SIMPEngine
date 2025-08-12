@@ -18,6 +18,7 @@ namespace SIMPEngine
         TextureManager::Get().LoadTexture("circle", "circle.png", m_Renderer);
         TextureManager::Get().LoadTexture("coin", "coin.png", m_Renderer);
         TextureManager::Get().LoadTexture("walk", "Walk.png", m_Renderer);
+        TextureManager::Get().LoadTexture("spriteSheet", "spritesheet.png", m_Renderer);
     }
 
     void SDLRenderingAPI::SetClearColor(float r, float g, float b, float a)
@@ -41,8 +42,8 @@ namespace SIMPEngine
         glm::vec4 posCamera = s_ViewMatrix * posWorld;
         SDL_FRect rect;
 
-        float zoomX = glm::length(glm::vec3(s_ViewMatrix[0])); // length of first column vector
-        float zoomY = glm::length(glm::vec3(s_ViewMatrix[1])); // length of second column vector
+        float zoomX = glm::length(glm::vec3(s_ViewMatrix[0]));
+        float zoomY = glm::length(glm::vec3(s_ViewMatrix[1])); 
 
         rect.w = width * zoomX;
         rect.h = height * zoomY;
@@ -74,7 +75,7 @@ namespace SIMPEngine
 
     void SDLRenderingAPI::ResetViewport()
     {
-        SDL_SetRenderViewport(m_Renderer, nullptr); // resets to full window
+        SDL_SetRenderViewport(m_Renderer, nullptr); 
     }
 
     void SDLRenderingAPI::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)

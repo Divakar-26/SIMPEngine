@@ -20,7 +20,7 @@ namespace SIMPEngine
         void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color) override;
         void DrawCircle(float x, float y, float r, SDL_Color color) override;
         void Present() override;
-        void SetViewMatrix(const glm::mat4 &view) override; // <-- override here
+        void SetViewMatrix(const glm::mat4 &view) override; 
 
         void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect * srcRect = nullptr);
         std::shared_ptr<Texture> CreateTexture(const char* path);

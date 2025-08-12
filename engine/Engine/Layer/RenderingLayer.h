@@ -4,7 +4,7 @@
 #include "Rendering/Renderer.h"
 #include "Events/Event.h"
 #include"TimeStep.h"
-#include <SDL3/SDL_pixels.h> // for SDL_Color
+#include <SDL3/SDL_pixels.h> 
 
 #include "Math/Camera2D.h"
 

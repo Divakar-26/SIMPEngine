@@ -11,6 +11,7 @@
 #include "Rendering/TextureManager.h"
 #include "Rendering/Sprite.h"
 #include "Rendering/Animation.h"
+#include "Rendering/SpriteAtlas.h"
 
 #include <iostream>
 
@@ -29,29 +30,24 @@ namespace SIMPEngine
 {
     void RenderingLayer::OnAttach()
     {
-        // Set up anything needed before rendering starts
+
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 
-        int w = 90;
-        int h = 90;
-        int numFrame = 9;
-        std::vector<Sprite> frames;
-        auto cointex = TextureManager::Get().GetTexture("walk");
-        for (int i = 0; i < numFrame; i++)
-        {
-            Sprite frame(cointex);
-            SDL_FRect temp = {(float)i * w, 0, (float)w, (float)h};
-            frame.SetSourceRect(temp);
-            frames.push_back(frame);
-        }
+        SpriteAtlas atlas;
+        atlas.Load(Renderer::GetSDLRenderer(), "spritesheet.png");
 
-        coinA = new Animation(cointex, frames, frameDuration, loop);
+        atlas.AddFrame("idle_0", {0, 0, 64, 64});
+        atlas.AddFrame("idle_1", {64, 0, 64, 64});
+        atlas.AddFrame("idle_2", {128, 0, 64, 64});
+
+        std::vector<Sprite> frames = atlas.GetAnimationFrames({"idle_0", "idle_1", "idle_2"});
+        coinA = new Animation(atlas.GetTexture(), frames, frameDuration, loop);
     }
 
     void RenderingLayer::OnDetach()
     {
-        // Clean up if needed
+
     }
 
     void RenderingLayer::OnUpdate(class TimeStep ts)
@@ -102,7 +98,7 @@ namespace SIMPEngine
             float zoom = m_Camera.GetZoom();
             zoom -= zoomSpeed * ts.GetSeconds();
             if (zoom < 0.1f)
-                zoom = 0.1f; // clamp minimum zoom
+                zoom = 0.1f;
             m_Camera.SetZoom(zoom);
         }
         if (Input::IsKeyPressed(SDLK_E))
@@ -110,7 +106,7 @@ namespace SIMPEngine
             float zoom = m_Camera.GetZoom();
             zoom += zoomSpeed * ts.GetSeconds();
             if (zoom > 5.0f)
-                zoom = 5.0f; // clamp maximum zoom
+                zoom = 5.0f; 
             m_Camera.SetZoom(zoom);
         }
 
@@ -131,7 +127,6 @@ namespace SIMPEngine
 
         Renderer::Clear();
 
-        // Draw your game scene here
         Renderer::DrawQuad(50 + i, 50, 200, 150, SDL_Color{255, 0, 0, 255});
         Renderer::DrawQuad(300, 100, 100, 100, SDL_Color{0, 255, 0, 255});
         Renderer::DrawQuad(450, 200, 150, 150, SDL_Color{0, 0, 255, 0});
