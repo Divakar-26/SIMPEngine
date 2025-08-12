@@ -167,10 +167,24 @@ engine/CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.s"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/RenderingAPI.cpp -o CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.s
 
+engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o: engine/CMakeFiles/Engine.dir/flags.make
+engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o: /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Animation.cpp
+engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o: engine/CMakeFiles/Engine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o"
+	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o -MF CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o.d -o CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o -c /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Animation.cpp
+
+engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.i"
+	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Animation.cpp > CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.i
+
+engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.s"
+	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Animation.cpp -o CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.s
+
 engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o: engine/CMakeFiles/Engine.dir/flags.make
 engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o: /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Sprite.cpp
 engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o: engine/CMakeFiles/Engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o -MF CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o.d -o CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o -c /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Sprite.cpp
 
 engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.i: cmake_force
@@ -184,7 +198,7 @@ engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.s: cmake_force
 engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o: engine/CMakeFiles/Engine.dir/flags.make
 engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o: /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Texture.cpp
 engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o: engine/CMakeFiles/Engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o -MF CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o.d -o CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o -c /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Texture.cpp
 
 engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.i: cmake_force
@@ -198,7 +212,7 @@ engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.s: cmake_force
 engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o: engine/CMakeFiles/Engine.dir/flags.make
 engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o: /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/TextureManager.cpp
 engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o: engine/CMakeFiles/Engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o -MF CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o.d -o CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o -c /home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/TextureManager.cpp
 
 engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.i: cmake_force
@@ -212,7 +226,7 @@ engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.s: cmake_force
 engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o: engine/CMakeFiles/Engine.dir/flags.make
 engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o: /home/divakar/Desktop/SDLGameEngine/engine/Engine/Layer/RenderingLayer.cpp
 engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o: engine/CMakeFiles/Engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o -MF CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o.d -o CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o -c /home/divakar/Desktop/SDLGameEngine/engine/Engine/Layer/RenderingLayer.cpp
 
 engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.i: cmake_force
@@ -226,7 +240,7 @@ engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.s: cmake_force
 engine/CMakeFiles/Engine.dir/Engine/Input/Input.cpp.o: engine/CMakeFiles/Engine.dir/flags.make
 engine/CMakeFiles/Engine.dir/Engine/Input/Input.cpp.o: /home/divakar/Desktop/SDLGameEngine/engine/Engine/Input/Input.cpp
 engine/CMakeFiles/Engine.dir/Engine/Input/Input.cpp.o: engine/CMakeFiles/Engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Input/Input.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Input/Input.cpp.o"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT engine/CMakeFiles/Engine.dir/Engine/Input/Input.cpp.o -MF CMakeFiles/Engine.dir/Engine/Input/Input.cpp.o.d -o CMakeFiles/Engine.dir/Engine/Input/Input.cpp.o -c /home/divakar/Desktop/SDLGameEngine/engine/Engine/Input/Input.cpp
 
 engine/CMakeFiles/Engine.dir/Engine/Input/Input.cpp.i: cmake_force
@@ -240,7 +254,7 @@ engine/CMakeFiles/Engine.dir/Engine/Input/Input.cpp.s: cmake_force
 engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o: engine/CMakeFiles/Engine.dir/flags.make
 engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o: /home/divakar/Desktop/SDLGameEngine/engine/Engine/Math/Camera2D.cpp
 engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o: engine/CMakeFiles/Engine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o -MF CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o.d -o CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o -c /home/divakar/Desktop/SDLGameEngine/engine/Engine/Math/Camera2D.cpp
 
 engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.i: cmake_force
@@ -260,6 +274,7 @@ Engine_OBJECTS = \
 "CMakeFiles/Engine.dir/Engine/Rendering/Renderer.cpp.o" \
 "CMakeFiles/Engine.dir/Engine/Rendering/SDLRenderingAPI.cpp.o" \
 "CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.o" \
+"CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o" \
 "CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o" \
 "CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o" \
 "CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o" \
@@ -277,6 +292,7 @@ engine/libEngine.so: engine/CMakeFiles/Engine.dir/Engine/UI/ImGuiLayer.cpp.o
 engine/libEngine.so: engine/CMakeFiles/Engine.dir/Engine/Rendering/Renderer.cpp.o
 engine/libEngine.so: engine/CMakeFiles/Engine.dir/Engine/Rendering/SDLRenderingAPI.cpp.o
 engine/libEngine.so: engine/CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.o
+engine/libEngine.so: engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o
 engine/libEngine.so: engine/CMakeFiles/Engine.dir/Engine/Rendering/Sprite.cpp.o
 engine/libEngine.so: engine/CMakeFiles/Engine.dir/Engine/Rendering/Texture.cpp.o
 engine/libEngine.so: engine/CMakeFiles/Engine.dir/Engine/Rendering/TextureManager.cpp.o
@@ -290,7 +306,7 @@ engine/libEngine.so: vendor/spdlog/libspdlog.so.1.15.3
 engine/libEngine.so: vendor/SDL/libSDL3.so.0.3.0
 engine/libEngine.so: /home/divakar/Desktop/SDLGameEngine/vendor/SDL/src/dynapi/SDL_dynapi.sym
 engine/libEngine.so: engine/CMakeFiles/Engine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Linking CXX shared library libEngine.so"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/divakar/Desktop/SDLGameEngine/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Linking CXX shared library libEngine.so"
 	cd /home/divakar/Desktop/SDLGameEngine/build/engine && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/Engine.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

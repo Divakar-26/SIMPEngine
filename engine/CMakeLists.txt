@@ -36,6 +36,7 @@ add_library(Engine
     Engine/Rendering/Renderer.cpp
     Engine/Rendering/SDLRenderingAPI.cpp
     Engine/Rendering/RenderingAPI.cpp
+    Engine/Rendering/Animation.cpp
     Engine/Rendering/Sprite.cpp
     Engine/Rendering/Texture.cpp
     Engine/Rendering/TextureManager.cpp

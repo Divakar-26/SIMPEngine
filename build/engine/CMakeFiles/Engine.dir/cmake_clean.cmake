@@ -9,6 +9,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/Engine.dir/Engine/Log.cpp.o.d"
   "CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o"
   "CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o.d"
+  "CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o"
+  "CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o.d"
   "CMakeFiles/Engine.dir/Engine/Rendering/Renderer.cpp.o"
   "CMakeFiles/Engine.dir/Engine/Rendering/Renderer.cpp.o.d"
   "CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.o"

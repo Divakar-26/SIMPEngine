@@ -10,12 +10,20 @@
 
 #include "Rendering/TextureManager.h"
 #include "Rendering/Sprite.h"
+#include "Rendering/Animation.h"
 
 #include <iostream>
 
 float i = 1.0f;
 float angle = 0.0f;
 int id = 0;
+
+float x, y;
+
+float frameDuration = 0.1;
+bool loop = true;
+
+SIMPEngine::Animation *coinA = nullptr;
 
 namespace SIMPEngine
 {
@@ -24,6 +32,20 @@ namespace SIMPEngine
         // Set up anything needed before rendering starts
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
+
+        int w = 90;
+        int h = 90;
+        int numFrame = 9;
+        std::vector<Sprite> frames;
+        auto cointex = TextureManager::Get().GetTexture("walk");
+        for (int i = 0; i < numFrame; i++)
+        {
+            Sprite frame(cointex);
+            frame.SetSourceRect(SDL_FRect{(float)i * w, 0, (float)w, (float)h});
+            frames.push_back(frame);
+        }
+
+        coinA = new Animation(cointex, frames, frameDuration, loop);
     }
 
     void RenderingLayer::OnDetach()
@@ -50,7 +72,7 @@ namespace SIMPEngine
             if (id > 12)
             {
                 id = 0;
-                CORE_WARN("I increased {}", id*16);
+                CORE_WARN("I increased {}", id * 16);
             }
         }
         if (Input::IsKeyPressed(SDLK_A))
@@ -93,9 +115,14 @@ namespace SIMPEngine
 
         Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
 
+
         angle += 90.0f * ts.GetSeconds();
 
         id += 2 * ts.GetSeconds();
+
+        coinA->Update(ts.GetSeconds());
+
+        x += 20.0f * ts.GetSeconds();
     }
 
     void RenderingLayer::OnRender()
@@ -121,10 +148,7 @@ namespace SIMPEngine
 
         auto coinTex = TextureManager::Get().GetTexture("coin");
 
-        SDL_FRect srcRect = {(float)(16 * id), 0, 16, 16};
-
-        Sprite playerSprite(coinTex, srcRect);
-        playerSprite.Draw(500, 400, 64, 64, SDL_Color{255, 255, 255, 255}, 0);
+        coinA->Draw(500 + x, 400 + y, 200, 200, SDL_Color{255, 255, 255, 255}, 0.0f);
     }
 
     void RenderingLayer::OnEvent(Event &e)

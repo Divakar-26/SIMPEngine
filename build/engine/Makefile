@@ -264,6 +264,30 @@ Engine/Math/Camera2D.cpp.s:
 	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.s
 .PHONY : Engine/Math/Camera2D.cpp.s
 
+Engine/Rendering/Animation.o: Engine/Rendering/Animation.cpp.o
+.PHONY : Engine/Rendering/Animation.o
+
+# target to build an object file
+Engine/Rendering/Animation.cpp.o:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o
+.PHONY : Engine/Rendering/Animation.cpp.o
+
+Engine/Rendering/Animation.i: Engine/Rendering/Animation.cpp.i
+.PHONY : Engine/Rendering/Animation.i
+
+# target to preprocess a source file
+Engine/Rendering/Animation.cpp.i:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.i
+.PHONY : Engine/Rendering/Animation.cpp.i
+
+Engine/Rendering/Animation.s: Engine/Rendering/Animation.cpp.s
+.PHONY : Engine/Rendering/Animation.s
+
+# target to generate assembly for a file
+Engine/Rendering/Animation.cpp.s:
+	cd /home/divakar/Desktop/SDLGameEngine/build && $(MAKE) $(MAKESILENT) -f engine/CMakeFiles/Engine.dir/build.make engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.s
+.PHONY : Engine/Rendering/Animation.cpp.s
+
 Engine/Rendering/Renderer.o: Engine/Rendering/Renderer.cpp.o
 .PHONY : Engine/Rendering/Renderer.o
 
@@ -649,6 +673,9 @@ help:
 	@echo "... Engine/Math/Camera2D.o"
 	@echo "... Engine/Math/Camera2D.i"
 	@echo "... Engine/Math/Camera2D.s"
+	@echo "... Engine/Rendering/Animation.o"
+	@echo "... Engine/Rendering/Animation.i"
+	@echo "... Engine/Rendering/Animation.s"
 	@echo "... Engine/Rendering/Renderer.o"
 	@echo "... Engine/Rendering/Renderer.i"
 	@echo "... Engine/Rendering/Renderer.s"

@@ -13,6 +13,7 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Layer/RenderingLayer.cpp" "engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Layer/RenderingLayer.cpp.o.d"
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Log.cpp" "engine/CMakeFiles/Engine.dir/Engine/Log.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Log.cpp.o.d"
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Math/Camera2D.cpp" "engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Math/Camera2D.cpp.o.d"
+  "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Animation.cpp" "engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Rendering/Animation.cpp.o.d"
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/Renderer.cpp" "engine/CMakeFiles/Engine.dir/Engine/Rendering/Renderer.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Rendering/Renderer.cpp.o.d"
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/RenderingAPI.cpp" "engine/CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Rendering/RenderingAPI.cpp.o.d"
   "/home/divakar/Desktop/SDLGameEngine/engine/Engine/Rendering/SDLRenderingAPI.cpp" "engine/CMakeFiles/Engine.dir/Engine/Rendering/SDLRenderingAPI.cpp.o" "gcc" "engine/CMakeFiles/Engine.dir/Engine/Rendering/SDLRenderingAPI.cpp.o.d"
