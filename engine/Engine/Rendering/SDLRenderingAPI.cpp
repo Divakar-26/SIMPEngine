@@ -9,6 +9,7 @@
 
 namespace SIMPEngine
 {
+    
     SDLRenderingAPI::SDLRenderingAPI() {}
 
     void SDLRenderingAPI::Init(SDL_Renderer *sdlRenderer)
@@ -88,7 +89,7 @@ namespace SIMPEngine
         DrawTexture(circleTexture->GetSDLTexture(), cx, cy, radius, radius, {0, 255, 255, 255}, 0);
     }
 
-    void SDLRenderingAPI::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, SDL_FRect * srcRect)
+    void SDLRenderingAPI::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect * srcRect)
     {
         glm::vec4 posWorld(x, y, 0.0f, 1.0f);
         glm::vec4 posCamera = s_ViewMatrix * posWorld;

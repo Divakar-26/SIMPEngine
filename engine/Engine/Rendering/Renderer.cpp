@@ -67,7 +67,7 @@ namespace SIMPEngine
         s_RenderingAPI->ResetViewport();
     }
 
-    void Renderer::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, SDL_FRect * srcRect)
+    void Renderer::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect * srcRect)
     {
         s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation, srcRect);
     }

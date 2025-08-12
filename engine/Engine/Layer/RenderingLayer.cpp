@@ -41,7 +41,8 @@ namespace SIMPEngine
         for (int i = 0; i < numFrame; i++)
         {
             Sprite frame(cointex);
-            frame.SetSourceRect(SDL_FRect{(float)i * w, 0, (float)w, (float)h});
+            SDL_FRect temp = {(float)i * w, 0, (float)w, (float)h};
+            frame.SetSourceRect(temp);
             frames.push_back(frame);
         }
 
@@ -114,7 +115,6 @@ namespace SIMPEngine
         }
 
         Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
-
 
         angle += 90.0f * ts.GetSeconds();
 

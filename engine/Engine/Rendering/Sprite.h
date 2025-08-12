@@ -1,28 +1,30 @@
 #pragma once
 
-#include "Renderer.h"
 #include "Texture.h"
 #include <memory>
-
+#include <SDL3/SDL.h>
 
 namespace SIMPEngine
 {
     class Sprite
     {
     public:
-        Sprite(std::shared_ptr<Texture> Texture);
-        Sprite(std::shared_ptr<Texture> Texture, SDL_FRect srcRect);
+        Sprite() = default;
+        explicit Sprite(std::shared_ptr<Texture> texture);
+        Sprite(std::shared_ptr<Texture> texture, const SDL_FRect& srcRect);
 
         void SetTexture(std::shared_ptr<Texture> texture);
-        void SetSourceRect(const SDL_FRect srcRect);
+        void SetSourceRect(const SDL_FRect& srcRect);
+        void ClearSourceRect();
 
-        void Draw(float x, float y, float width, float height, SDL_Color tint = {255,255,255,255}, float rotation = 0.0f);
+        void Draw(float x, float y, float width, float height,
+                  SDL_Color tint = {255, 255, 255, 255}, float rotation = 0.0f) const;
+
+        bool HasSourceRect() const { return m_HasSourceRect; }
 
     private:
-        std::shared_ptr<Texture> m_Texture;
-        
-        SDL_FRect m_SoourceRect;
-
-        bool m_HasSourceRect;
+        std::shared_ptr<Texture> m_Texture = nullptr;
+        SDL_FRect m_SourceRect{};
+        bool m_HasSourceRect = false;
     };
 }

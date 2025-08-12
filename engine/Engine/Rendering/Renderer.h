@@ -24,7 +24,7 @@ namespace SIMPEngine
 
         static void SetViewport(int x, int y, int width, int height);
         static void ResetViewport();
-        static void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, SDL_FRect * srcRect = nullptr);
+        static void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect * srcRect = nullptr);
         static std::shared_ptr<Texture> CreateTexture(const char* path);
 
         static SDL_Renderer * GetSDLRenderer();
