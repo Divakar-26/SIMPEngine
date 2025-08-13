@@ -9,6 +9,7 @@ add_subdirectory(vendor/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/spdlog EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/glm EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/SDL_image EXCLUDE_FROM_ALL)
+add_subdirectory(vendor/entt EXCLUDE_FROM_ALL)
 
 # Add engine and game subprojects
 add_subdirectory(engine)

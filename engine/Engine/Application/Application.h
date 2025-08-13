@@ -36,6 +36,8 @@ namespace SIMPEngine
         RenderingLayer *m_RenderingLayer;
        
         static Application *s_Instance;
+        
+
     };
 
     // To be defined by the client (game)

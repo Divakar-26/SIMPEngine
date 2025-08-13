@@ -44,11 +44,18 @@ add_library(Engine
     Engine/Layer/RenderingLayer.cpp
     Engine/Input/Input.cpp
     Engine/Math/Camera2D.cpp
+    Engine/Scene/Scene.cpp
+    Engine/Scene/SceneManager.cpp
 )
 
 target_include_directories(Engine
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine
 )
+
+target_include_directories(Engine PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/../vendor/entt/src
+)
+
 
 target_link_libraries(Engine
     PUBLIC SDL3::SDL3
