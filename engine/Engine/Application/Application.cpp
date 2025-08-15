@@ -3,6 +3,7 @@
 #include "Events/EventDispatcher.h"
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
+#include <entt/entt.hpp>
 
 #include "Log.h"
 
@@ -10,7 +11,7 @@
 #include "Rendering/Renderer.h"
 #include "Input/Input.h"
 
-#include"Rendering/Texture.h"
+#include "Rendering/Texture.h"
 
 #include <iostream>
 
@@ -35,6 +36,10 @@ namespace SIMPEngine
 
         PushOverlay(m_RenderingLayer);
         PushOverlay(m_ImGuiLayer);
+
+        CORE_INFO("Entt version {}", ENTT_VERSION);
+        entt::registry m_Registry;
+        CORE_ERROR("Registry is {}", typeid(m_Registry).name());
     }
 
     Application::~Application()
@@ -95,9 +100,8 @@ namespace SIMPEngine
               e.GetEventType() == EventType::KeyTyped)))
         {
             e.Handled = true;
-            return; 
+            return;
         }
-
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)

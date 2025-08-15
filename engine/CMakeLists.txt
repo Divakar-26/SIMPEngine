@@ -28,7 +28,7 @@ target_link_libraries(imgui
 )
 
 # Engine library
-add_library(Engine
+add_library(Engine SHARED
     Engine/Window.cpp
     Engine/Application/Application.cpp
     Engine/Log.cpp
@@ -51,6 +51,8 @@ add_library(Engine
 target_include_directories(Engine
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine
 )
+
+set_target_properties(Engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(Engine PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../vendor/entt/src

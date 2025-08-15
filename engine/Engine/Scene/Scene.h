@@ -1,6 +1,12 @@
 #pragma once
 
 #include <entt/entt.hpp>
+#include "Components/TransformComponent.h"
+#include "Components/SpriteComponent.h"
+#include "Components/VelocityComponent.h"
+#include "Components/CollisionComponent.h"
+#include "Components/TagComponent.h"
+
 #include <string>
 
 namespace SIMPEngine
@@ -13,14 +19,20 @@ namespace SIMPEngine
         Scene(const std::string &name = "untitled");
         ~Scene() = default;
 
-        Entity CreateEntity(const std::string &name = "");
         void DestroyEntity(Entity entity);
 
         void OnUpdate(float dt);
         void OnRender();
         void OnEvent();
 
-        entt::registry &GetRegistry() { return m_Registry; }
+        Entity CreatePlayer();
+        Entity CreateEntity(const std::string &name = "");
+        Entity GetEntityByName(const std::string &name);
+
+        entt::registry &GetRegistry()
+        {
+            return m_Registry;
+        }
         const std::string &GetName() const { return m_Name; }
 
     private:

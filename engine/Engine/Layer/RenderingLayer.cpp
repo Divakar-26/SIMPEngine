@@ -12,19 +12,9 @@
 #include "Rendering/Sprite.h"
 #include "Rendering/Animation.h"
 #include "Rendering/SpriteAtlas.h"
+#include "Scene/Entity.h"
 
 #include <iostream>
-
-float i = 1.0f;
-float angle = 0.0f;
-int id = 0;
-
-float x, y;
-
-float frameDuration = 0.1;
-bool loop = true;
-
-SIMPEngine::Animation *coinA = nullptr;
 
 namespace SIMPEngine
 {
@@ -34,44 +24,19 @@ namespace SIMPEngine
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 
-        SpriteAtlas atlas;
-        atlas.Load(Renderer::GetSDLRenderer(), "spritesheet.png");
-
-        atlas.AddFrame("idle_0", {0, 0, 64, 64});
-        atlas.AddFrame("idle_1", {64, 0, 64, 64});
-        atlas.AddFrame("idle_2", {128, 0, 64, 64});
-
-        std::vector<Sprite> frames = atlas.GetAnimationFrames({"idle_0", "idle_1", "idle_2"});
-        coinA = new Animation(atlas.GetTexture(), frames, frameDuration, loop);
+        Entity entity1 = m_Scene.CreateEntity("RedBox");
+        entity1.AddComponent<RenderComponent>(100.0f, 100.0f, SDL_Color{255, 0, 0, 255});
+        entity1.GetComponent<TransformComponent>().x = 500.0f;
+        entity1.GetComponent<TransformComponent>().y = 500.0f;
+        entity1.AddComponent<TagComponent>("RedBox");
     }
 
     void RenderingLayer::OnDetach()
     {
-
     }
 
     void RenderingLayer::OnUpdate(class TimeStep ts)
     {
-        i += 50.0 * ts.GetSeconds();
-
-        if (Input::IsMouseButtonPressed(SDL_BUTTON_LEFT))
-        {
-            i -= 50.0 * ts.GetSeconds();
-        }
-        else if (Input::IsMouseButtonPressed(SDL_BUTTON_RIGHT))
-        {
-            auto cor = Input::GetMousePosition();
-            i = cor.first - 50;
-        }
-        else if (Input::IsKeyPressed(SDLK_H))
-        {
-            id += 1;
-            if (id > 12)
-            {
-                id = 0;
-                CORE_WARN("I increased {}", id * 16);
-            }
-        }
         if (Input::IsKeyPressed(SDLK_A))
         {
             auto pos = m_Camera.GetPosition();
@@ -106,19 +71,25 @@ namespace SIMPEngine
             float zoom = m_Camera.GetZoom();
             zoom += zoomSpeed * ts.GetSeconds();
             if (zoom > 5.0f)
-                zoom = 5.0f; 
+                zoom = 5.0f;
             m_Camera.SetZoom(zoom);
         }
 
+        if(Input::IsKeyPressed(SDLK_UP)){
+            m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>().y -= ts.GetSeconds() * 100.0f;
+        }
+        if(Input::IsKeyPressed(SDLK_DOWN)){
+            m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>().y += ts.GetSeconds() * 100.0f;
+        }
+        if(Input::IsKeyPressed(SDLK_LEFT)){
+            m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>().x -= ts.GetSeconds() * 100.0f;
+        }
+        if(Input::IsKeyPressed(SDLK_RIGHT)){
+            m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>().x += ts.GetSeconds() * 100.0f;
+        }
+
         Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
-
-        angle += 90.0f * ts.GetSeconds();
-
-        id += 2 * ts.GetSeconds();
-
-        coinA->Update(ts.GetSeconds());
-
-        x += 20.0f * ts.GetSeconds();
+        m_Scene.OnUpdate(ts.GetSeconds());
     }
 
     void RenderingLayer::OnRender()
@@ -127,23 +98,16 @@ namespace SIMPEngine
 
         Renderer::Clear();
 
-        Renderer::DrawQuad(50 + i, 50, 200, 150, SDL_Color{255, 0, 0, 255});
-        Renderer::DrawQuad(300, 100, 100, 100, SDL_Color{0, 255, 0, 255});
-        Renderer::DrawQuad(450, 200, 150, 150, SDL_Color{0, 0, 255, 0});
-        Renderer::DrawQuad(0, 0, 36, 54, SDL_Color{255, 255, 255, 255});
-        Renderer::DrawLine(0, 0, 800, 600, SDL_Color{0, 0, 0, 255});
+        m_Scene.OnRender();
+        Renderer::DrawQuad(50, 50, 200, 150, SDL_Color{255, 0, 0, 255});
 
-        Renderer::DrawCircle(300, 200, 200, SDL_Color{255, 255, 0, 255});
-
-        auto tex = TextureManager::Get().LoadTexture("player", "player.png", Renderer::GetSDLRenderer());
-        Renderer::DrawTexture(tex->GetSDLTexture(), 100, 100, tex->GetWidth(), tex->GetHeight(), {255, 255, 255, 255}, angle);
-
-        auto tex2 = TextureManager::Get().GetTexture("circle");
-        Renderer::DrawTexture(tex2->GetSDLTexture(), 300, 300, tex->GetWidth(), tex->GetWidth(), {0, 255, 0, 255}, 0);
-
-        auto coinTex = TextureManager::Get().GetTexture("coin");
-
-        coinA->Draw(500 + x, 400 + y, 200, 200, SDL_Color{255, 255, 255, 255}, 0.0f);
+        auto cointex = TextureManager::Get().GetTexture("coin");
+        SDL_FRect rect;
+        rect.x = 0;
+        rect.y = 0;
+        rect.w = 16;
+        rect.h = 16;
+        Renderer::DrawTexture(cointex->GetSDLTexture(), 100, 100, 100, 100, SDL_Color{255, 255, 255, 255}, 45.0f, &rect);
     }
 
     void RenderingLayer::OnEvent(Event &e)

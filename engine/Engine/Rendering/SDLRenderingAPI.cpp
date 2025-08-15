@@ -15,10 +15,8 @@ namespace SIMPEngine
     void SDLRenderingAPI::Init(SDL_Renderer *sdlRenderer)
     {
         m_Renderer = sdlRenderer;
-        TextureManager::Get().LoadTexture("circle", "circle.png", m_Renderer);
-        TextureManager::Get().LoadTexture("coin", "coin.png", m_Renderer);
-        TextureManager::Get().LoadTexture("walk", "Walk.png", m_Renderer);
-        TextureManager::Get().LoadTexture("spriteSheet", "spritesheet.png", m_Renderer);
+        TextureManager::Get().LoadTexture("circle", "../assets/circle.png" , m_Renderer);
+        TextureManager::Get().LoadTexture("coin", "../assets/coin.png" , m_Renderer);
     }
 
     void SDLRenderingAPI::SetClearColor(float r, float g, float b, float a)
