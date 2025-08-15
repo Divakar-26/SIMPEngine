@@ -2,6 +2,7 @@
 #include "Entity.h"
 #include "../Rendering/TextureManager.h"
 #include "../Rendering/Renderer.h"
+#include "Log.h"
 #include <entt/entt.hpp>
 #include <iostream>
 
@@ -88,14 +89,14 @@ namespace SIMPEngine
             {
                 if (entityA == entityB)
                     continue;
+
                 auto &bTransform = collidable.get<TransformComponent>(entityB);
                 auto &bCollision = collidable.get<CollisionComponent>(entityB);
                 SDL_FRect bRect = bCollision.GetBounds(bTransform.x, bTransform.y);
 
-                // Simple AABB collision
                 if (SDL_HasRectIntersectionFloat(&aRect, &bRect))
                 {
-                    // handle collision
+                    CORE_INFO("Collision detected between entities!");
                 }
             }
         }
@@ -103,6 +104,25 @@ namespace SIMPEngine
 
     void Scene::OnRender()
     {
+        auto collidable = m_Registry.view<TransformComponent, CollisionComponent>();
+        for (auto entity : collidable)
+        {
+            auto &transform = collidable.get<TransformComponent>(entity);
+            auto &collision = collidable.get<CollisionComponent>(entity);
+
+            SDL_FRect rect = collision.GetBoundsWorld(transform);
+
+            // Optional: offset to camera if needed
+            // rect.x -= cameraX;
+            // rect.y -= cameraY;
+
+            // Draw outline
+            rect.x -= 2;
+            rect.y -= 2;
+            rect.w += 2;
+            rect.h += 2;
+            Renderer::DrawQuad(rect.x - 2.0f, rect.y - 2.0f, rect.w + 2.0f, rect.h + 2.0f, SDL_Color{255,255,0,255});
+        }
         auto view = m_Registry.view<TransformComponent, RenderComponent>();
         for (auto entity : view)
         {
@@ -111,6 +131,6 @@ namespace SIMPEngine
 
             Renderer::DrawQuad(transform.x, transform.y, render.width, render.height, render.color);
         }
-    }
 
+    }
 }

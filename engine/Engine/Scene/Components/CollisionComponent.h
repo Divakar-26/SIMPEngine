@@ -8,4 +8,8 @@ struct CollisionComponent
     {
         return SDL_FRect{x, y, width, height};
     }
+    SDL_FRect GetBoundsWorld(const TransformComponent &transform) const
+    {
+        return GetBounds(transform.x, transform.y);
+    }
 };

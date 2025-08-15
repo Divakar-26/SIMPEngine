@@ -29,6 +29,24 @@ namespace SIMPEngine
         entity1.GetComponent<TransformComponent>().x = 500.0f;
         entity1.GetComponent<TransformComponent>().y = 500.0f;
         entity1.AddComponent<TagComponent>("RedBox");
+
+        auto &col = entity1.AddComponent<CollisionComponent>();
+        col.width = 100.0f;
+        col.height = 100.0f;
+
+        auto &vel = entity1.AddComponent<VelocityComponent>();
+        vel.vx = 0.0f;
+        vel.vy = 0.0f;
+
+        Entity entity2 = m_Scene.CreateEntity("BlueBox");
+        entity2.AddComponent<RenderComponent>(100.0f, 100.0f, SDL_Color{0, 0, 255, 255});
+        entity2.GetComponent<TransformComponent>().x = 700.0f;
+        entity2.GetComponent<TransformComponent>().y = 700.0f;
+        entity2.AddComponent<TagComponent>("BlueBox");
+
+        auto &col2 = entity2.AddComponent<CollisionComponent>();
+        col2.width = 100.0f;
+        col2.height = 100.0f;
     }
 
     void RenderingLayer::OnDetach()
@@ -37,6 +55,7 @@ namespace SIMPEngine
 
     void RenderingLayer::OnUpdate(class TimeStep ts)
     {
+        m_Scene.OnUpdate(ts.GetSeconds());
         if (Input::IsKeyPressed(SDLK_A))
         {
             auto pos = m_Camera.GetPosition();
@@ -75,21 +94,23 @@ namespace SIMPEngine
             m_Camera.SetZoom(zoom);
         }
 
-        if(Input::IsKeyPressed(SDLK_UP)){
-            m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>().y -= ts.GetSeconds() * 100.0f;
-        }
-        if(Input::IsKeyPressed(SDLK_DOWN)){
-            m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>().y += ts.GetSeconds() * 100.0f;
-        }
-        if(Input::IsKeyPressed(SDLK_LEFT)){
-            m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>().x -= ts.GetSeconds() * 100.0f;
-        }
-        if(Input::IsKeyPressed(SDLK_RIGHT)){
-            m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>().x += ts.GetSeconds() * 100.0f;
-        }
+        auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<VelocityComponent>();
+
+        if (Input::IsKeyPressed(SDLK_UP))
+            vel.vy = -100.0f;
+        else if (Input::IsKeyPressed(SDLK_DOWN))
+            vel.vy = 100.0f;
+        else
+            vel.vy = 0.0f;
+
+        if (Input::IsKeyPressed(SDLK_LEFT))
+            vel.vx = -100.0f;
+        else if (Input::IsKeyPressed(SDLK_RIGHT))
+            vel.vx = 100.0f;
+        else
+            vel.vx = 0.0f;
 
         Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
-        m_Scene.OnUpdate(ts.GetSeconds());
     }
 
     void RenderingLayer::OnRender()
