@@ -13,6 +13,7 @@
 #include "Events/MouseEvent.h"
 
 #include "Rendering/Renderer.h"
+#include "ImGuiSink.h"
 
 namespace SIMPEngine
 {
@@ -32,7 +33,6 @@ namespace SIMPEngine
 
         auto &window = Application::Get().GetWindow();
 
-        // Grab native SDL_Window and SDL_Renderer pointers from your Window class
         m_Window = window.GetNativeWindow();
         m_Renderer = window.GetRenderer();
 
@@ -73,10 +73,6 @@ namespace SIMPEngine
 
     void ImGuiLayer::OnUpdate(class TimeStep ts)
     {
-        if (viewportFocused)
-        {
-            CORE_INFO("View port focues");
-        }
     }
 
     void ImGuiLayer::OnRender()
@@ -102,8 +98,20 @@ namespace SIMPEngine
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("View"))
+            {
+                if (ImGui::MenuItem("Log", nullptr, &showLogWindow))
+                {
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+
         ImGui::Begin("Console");
-        ImGui::Text("This is the console window");
+
         ImGui::End();
 
         ImGui::Begin("Scene");
@@ -129,7 +137,33 @@ namespace SIMPEngine
         ImGui::Text("Inspector panel");
         ImGui::End();
 
-        ImGui::End(); 
+        if (showLogWindow)
+        {
+            ImGui::Begin("Log", &showLogWindow);
+
+            auto sink = SIMPEngine::Log::GetImGuiSink();
+            if (sink)
+            {
+                for (auto &line : sink->Logs)
+                {
+                    ImVec4 color;
+                    if (line.find("[error]") != std::string::npos)
+                        color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); 
+                    else if (line.find("[info]") != std::string::npos)
+                        color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
+                    else
+                        color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+                    ImGui::TextColored(color, "%s", line.c_str());
+                }
+
+                ImGui::SetScrollHereY(1.0f);
+            }
+
+            ImGui::End();
+        }
+
+        ImGui::End();
     }
 
     void ImGuiLayer::OnEvent(Event &e)

@@ -96,7 +96,7 @@ namespace SIMPEngine
 
                 if (SDL_HasRectIntersectionFloat(&aRect, &bRect))
                 {
-                    CORE_INFO("Collision detected between entities!");
+                    // CORE_INFO("Collision detected between entities!");
                 }
             }
         }
