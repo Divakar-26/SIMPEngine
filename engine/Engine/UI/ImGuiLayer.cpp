@@ -38,8 +38,8 @@ namespace SIMPEngine
         ImGui::CreateContext();
 
         ImGuiIO &io = ImGui::GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; 
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;    
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         ImGui::StyleColorsDark();
 
@@ -75,22 +75,41 @@ namespace SIMPEngine
 
     void ImGuiLayer::OnRender()
     {
+        // 1. Start a full-screen window to host the dockspace
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 
-        ImGui::Begin("Hello, ImGui!");
+        ImGuiViewport *viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->Pos);
+        ImGui::SetNextWindowSize(viewport->Size);
+        ImGui::SetNextWindowViewport(viewport->ID);
 
-        if (ImGui::Button("Click Me"))
-        {
-            CORE_INFO("Button Clicked!");
-        }
-        // ImGui::Text("Delta Time: %.3f ms", ts.GetMilliseconds());
-        // ImGui::Text("FPS: %.1f", 1.0f / ts.GetSeconds());
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
+        ImGui::Begin("DockSpace Demo", nullptr, window_flags);
+        ImGui::PopStyleVar(2);
 
-        ImGui::Text("This is some text.");
+        // 2. Create the dockspace
+        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
+        // --- Place your docked windows here ---
+        ImGui::Begin("Console");
+        ImGui::Text("This is the console window");
         ImGui::End();
 
+        ImGui::Begin("Scene");
+        ImGui::Text("This is the scene/viewport panel");
+        ImGui::End();
+
+        ImGui::Begin("Inspector");
+        ImGui::Text("Inspector panel");
+        ImGui::End();
+
+        ImGui::End(); // End dockspace window
     }
 
     void ImGuiLayer::OnEvent(Event &e)

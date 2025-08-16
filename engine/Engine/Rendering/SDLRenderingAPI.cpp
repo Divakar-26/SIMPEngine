@@ -87,7 +87,8 @@ namespace SIMPEngine
         SDL_RenderPresent(m_Renderer);
     }
 
-    void SDLRenderingAPI::Flush(){
+    void SDLRenderingAPI::Flush()
+    {
         FlushTextureBatch();
         FlushQuadBatch();
     }
@@ -176,5 +177,6 @@ namespace SIMPEngine
             w * m_ViewState.zoomX,
             h * m_ViewState.zoomY};
     }
+
 
 }

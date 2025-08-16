@@ -27,6 +27,9 @@ namespace SIMPEngine
         void Flush();
 
         virtual SDL_Renderer *GetSDLRenderer() override;
+        
+        SDL_Texture* GetViewportTexture() { return m_ViewportTexture; }
+        void ResizeViewport(int width, int height);
 
     private:
         inline SDL_FRect WorldToScreen(float x, float y, float w, float h) const;
@@ -69,5 +72,8 @@ namespace SIMPEngine
 
         void FlushTextureBatch();
         void FlushQuadBatch();
+
+        SDL_Texture *m_ViewportTexture = nullptr;
+        int m_ViewportWidth = 0, m_ViewportHeight = 0;
     };
 }
