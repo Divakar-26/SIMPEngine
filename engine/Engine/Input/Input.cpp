@@ -51,4 +51,9 @@ namespace SIMPEngine
         s_MouseX = x;
         s_MouseY = y;
     }
+
+    void Input::ResetAllKeys()
+    {
+        s_KeysPressed.clear();
+    }
 } // namespace SIMPEngine

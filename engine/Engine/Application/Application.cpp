@@ -92,7 +92,7 @@ namespace SIMPEngine
                                               {
         m_Running = false;
         return true; });
-        
+
         if (m_ImGuiLayer->viewportFocused)
         {
             dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
@@ -133,6 +133,10 @@ namespace SIMPEngine
                                                     {
                                                     CORE_INFO("{}", ev.ToString());
                                                     return false; });
+        }
+
+        else{
+            Input::ResetAllKeys();
         }
 
         if (!e.Handled)

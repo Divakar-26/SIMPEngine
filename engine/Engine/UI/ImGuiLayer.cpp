@@ -102,20 +102,20 @@ namespace SIMPEngine
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-        // --- Console panel ---
         ImGui::Begin("Console");
         ImGui::Text("This is the console window");
         ImGui::End();
 
-        // --- Scene / Viewport panel ---
         ImGui::Begin("Scene");
 
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         viewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
 
-        // Resize and render your viewport as before
         Renderer::GetAPI()->ResizeViewport((int)viewportSize.x, (int)viewportSize.y);
         SDL_SetRenderTarget(Renderer::GetSDLRenderer(), Renderer::GetAPI()->GetViewportTexture());
+
+        Application::Get().GetRenderingLayer()->GetCamera().SetViewportSize(viewportSize.x, viewportSize.y);
+
         Renderer::Clear();
         Application::Get().GetRenderingLayer()->OnRender();
         SDL_SetRenderTarget(Renderer::GetSDLRenderer(), nullptr);
@@ -125,12 +125,11 @@ namespace SIMPEngine
 
         ImGui::End();
 
-        // --- Inspector panel ---
         ImGui::Begin("Inspector");
         ImGui::Text("Inspector panel");
         ImGui::End();
 
-        ImGui::End(); // End dockspace window
+        ImGui::End(); 
     }
 
     void ImGuiLayer::OnEvent(Event &e)
@@ -138,7 +137,6 @@ namespace SIMPEngine
         // CORE_INFO("Event: {} | WantCaptureMouse = {}", e.ToString(), ImGui::GetIO().WantCaptureMouse);
         if (!viewportFocused)
         {
-            // Only block events if ImGui is focused AND the viewport is NOT
             if ((ImGui::GetIO().WantCaptureMouse &&
                  (e.GetEventType() == EventType::MouseButtonPressed ||
                   e.GetEventType() == EventType::MouseButtonReleased ||

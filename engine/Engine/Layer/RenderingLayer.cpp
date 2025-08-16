@@ -14,8 +14,7 @@
 #include "Rendering/SpriteAtlas.h"
 #include "Scene/Entity.h"
 
-#include <iostream>
-
+#include <iostream> 
 
 float kl = 0.0f;
 
@@ -59,9 +58,9 @@ namespace SIMPEngine
     void RenderingLayer::OnUpdate(class TimeStep ts)
     {
         m_Scene.OnUpdate(ts.GetSeconds());
-        
+
         m_Camera.Update(ts.GetSeconds());
-        
+
         auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<VelocityComponent>();
 
         if (Input::IsKeyPressed(SDLK_UP))
@@ -86,7 +85,7 @@ namespace SIMPEngine
     void RenderingLayer::OnRender()
     {
         m_Scene.OnRender();
-        
+
         Renderer::DrawQuad(50, 50, 200, 150, SDL_Color{255, 0, 0, 255});
 
         auto cointex = TextureManager::Get().GetTexture("coin");
@@ -105,6 +104,18 @@ namespace SIMPEngine
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &ev)
                                                      { return false; });
+
+        dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent &ev)
+                                               {
+                                                int width = ev.GetWidth();
+    int height = ev.GetHeight();
+
+    Renderer::GetAPI()->ResizeViewport(width, height);
+    m_Camera.SetViewportSize(width, height);
+
+    CORE_INFO("Viewport resized: {}x{}", width, height);
+    return false;
+        return false; });
     }
 
 }

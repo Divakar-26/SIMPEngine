@@ -2,19 +2,19 @@
 #include "Events/EventDispatcher.h"
 #include "Events/KeyEvent.h"
 #include <SDL3/SDL_keycode.h>
+#include "Log.h"
 
 namespace SIMPEngine
 {
-    Camera2D::Camera2D(float zoom, const glm::vec2 &position) : 
-        m_Position(position),
-        m_TargetPosition(position),
-        m_Zoom(zoom),
-        m_Rotation(0.0f),
-        m_SmoothFactor(10.0f),
-        m_MoveSpeed(200.0f),
-        m_ZoomSpeed(1.0f),
-        m_Dirty(true),
-        m_ViewMatrix(1.0f)
+    Camera2D::Camera2D(float zoom, const glm::vec2 &position) : m_Position(position),
+                                                                m_TargetPosition(position),
+                                                                m_ManualZoom(zoom),
+                                                                m_Rotation(0.0f),
+                                                                m_SmoothFactor(10.0f),
+                                                                m_MoveSpeed(200.0f),
+                                                                m_ZoomSpeed(1.0f),
+                                                                m_Dirty(true),
+                                                                m_ViewMatrix(1.0f)
     {
     }
 
@@ -26,13 +26,13 @@ namespace SIMPEngine
 
     void Camera2D::Move(const glm::vec2 &delta)
     {
-        m_TargetPosition += delta; 
+        m_TargetPosition += delta;
         m_Dirty = true;
     }
 
     void Camera2D::SetZoom(float zoom)
     {
-        m_Zoom = glm::clamp(zoom, 0.1f, 10.0f);
+        m_ManualZoom = glm::clamp(zoom, 0.1f, 10.0f);
         m_Dirty = true;
     }
 
@@ -72,10 +72,10 @@ namespace SIMPEngine
             m_MoveDown = pressed;
             break;
         case SDLK_Q:
-            m_Zoom -= pressed ? m_ZoomSpeed * 0.1f : 0;
+            m_ManualZoom -= pressed ? m_ZoomSpeed * 0.1f : 0;
             break;
         case SDLK_E:
-            m_Zoom += pressed ? m_ZoomSpeed * 0.1f : 0;
+            m_ManualZoom += pressed ? m_ZoomSpeed * 0.1f : 0;
             break;
         default:
             break;
@@ -105,21 +105,36 @@ namespace SIMPEngine
             RecalculateViewMatrix();
         return m_ViewMatrix;
     }
-
     void Camera2D::RecalculateViewMatrix() const
     {
-        glm::mat4 transform = glm::mat4(1.0f);
+        float totalZoom = m_BaseZoom * m_ManualZoom;
 
-        // Translate to camera position (negative because we move the world)
-        transform = glm::translate(transform, glm::vec3(-m_Position, 0.0f));
+        float halfWidth = m_ViewportWidth / 2.0f;
+        float halfHeight = m_ViewportHeight / 2.0f;
 
-        // Apply rotation
-        transform = glm::rotate(transform, glm::radians(-m_Rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 transform(1.0f);
 
-        // Apply zoom
-        transform = glm::scale(transform, glm::vec3(m_Zoom, m_Zoom, 1.0f));
+        transform = glm::translate(transform, glm::vec3(halfWidth, halfHeight, 0.0f));
+
+        transform = glm::scale(transform, glm::vec3(totalZoom, totalZoom, 1.0f));
+
+        transform = glm::translate(transform, glm::vec3(-m_Position.x, -m_Position.y, 0.0f));
+
+        transform = glm::rotate(transform, glm::radians(-m_Rotation), glm::vec3(0, 0, 1));
 
         m_ViewMatrix = transform;
-        m_Dirty = false;
     }
+
+    void Camera2D::SetViewportSize(float width, float height)
+    {
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+
+        float zoomX = width / m_TargetWidth;
+        float zoomY = height / m_TargetHeight;
+        m_BaseZoom = std::min(zoomX, zoomY);
+
+        RecalculateViewMatrix();
+    }
+
 }

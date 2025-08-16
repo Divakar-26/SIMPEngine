@@ -24,8 +24,11 @@ namespace SIMPEngine
         void OnRender() override;
         void OnEvent(Event &e) override;
 
+        Camera2D &GetCamera() { return m_Camera; }
+        const Camera2D &GetCamera() const { return m_Camera; }
+
     private:
         Camera2D m_Camera;
-        Scene m_Scene; // <-- your Scene object
+        Scene m_Scene; 
     };
 }
