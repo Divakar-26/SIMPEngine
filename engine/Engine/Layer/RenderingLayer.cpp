@@ -79,7 +79,7 @@ namespace SIMPEngine
             vel.vx = 0.0f;
 
         Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
-        
+
         kl += ts.GetSeconds() * 90.0f;
     }
 
@@ -96,7 +96,6 @@ namespace SIMPEngine
         rect.w = 16;
         rect.h = 16;
         Renderer::DrawTexture(cointex->GetSDLTexture(), 100 + kl, 100, 100, 100, SDL_Color{255, 255, 255, 255}, 45.0f, &rect);
-        // Renderer::Present();
         Renderer::Flush();
     }
 

@@ -88,48 +88,51 @@ namespace SIMPEngine
         m_ImGuiLayer->OnEvent(e); // ImGui first
 
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
-                                              {
+        if (m_ImGuiLayer->viewportFocused)
+        {
+            dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
+                                                  {
             m_Running = false;
             return true; });
-        dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
-                                             {
+            dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
+                                                 {
                                                  CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
                                                  Input::OnKeyPressed(ev.GetKeyCode());
                                                  return false; });
 
-        dispatcher.Dispatch<KeyReleasedEvent>([](KeyReleasedEvent &ev)
-                                              {
+            dispatcher.Dispatch<KeyReleasedEvent>([](KeyReleasedEvent &ev)
+                                                  {
                                                  CORE_INFO("{}", ev.ToString());
 
         Input::OnKeyReleased(ev.GetKeyCode());
         return false; });
 
-        dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &ev)
-                                                     {
+            dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &ev)
+                                                         {
                                                  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseButtonPressed(ev.GetMouseButton());
         return false; });
 
-        dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
-                                                      {
+            dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
+                                                          {
                                                  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseButtonReleased(ev.GetMouseButton());
         return false; });
 
-        dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
-                                             {
+            dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
+                                                 {
                                                 //  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseMoved(ev.GetX(), ev.GetY());
         return false; });
 
-        dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
-                                                {
+            dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
+                                                    {
                                                     CORE_INFO("{}", ev.ToString());
                                                     return false; });
+        }
 
         if (!e.Handled)
         {

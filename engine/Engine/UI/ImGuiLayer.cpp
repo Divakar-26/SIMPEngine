@@ -18,7 +18,7 @@ namespace SIMPEngine
 {
 
     ImGuiLayer::ImGuiLayer()
-        : Layer("ImGuiLayer")
+        : Layer("ImGuiLayer"), viewportFocused(false)
     {
     }
 
@@ -130,24 +130,27 @@ namespace SIMPEngine
         ImGui::Text("Inspector panel");
         ImGui::End();
 
-        ImGui::End();
+        ImGui::End(); // End dockspace window
     }
 
     void ImGuiLayer::OnEvent(Event &e)
     {
         // CORE_INFO("Event: {} | WantCaptureMouse = {}", e.ToString(), ImGui::GetIO().WantCaptureMouse);
-
-        if ((ImGui::GetIO().WantCaptureMouse &&
-             (e.GetEventType() == EventType::MouseButtonPressed ||
-              e.GetEventType() == EventType::MouseButtonReleased ||
-              e.GetEventType() == EventType::MouseMoved ||
-              e.GetEventType() == EventType::MouseScrolled)) ||
-            (ImGui::GetIO().WantCaptureKeyboard &&
-             (e.GetEventType() == EventType::KeyPressed ||
-              e.GetEventType() == EventType::KeyReleased ||
-              e.GetEventType() == EventType::KeyTyped)))
+        if (!viewportFocused)
         {
-            e.Handled = true;
+            // Only block events if ImGui is focused AND the viewport is NOT
+            if ((ImGui::GetIO().WantCaptureMouse &&
+                 (e.GetEventType() == EventType::MouseButtonPressed ||
+                  e.GetEventType() == EventType::MouseButtonReleased ||
+                  e.GetEventType() == EventType::MouseMoved ||
+                  e.GetEventType() == EventType::MouseScrolled)) ||
+                (ImGui::GetIO().WantCaptureKeyboard &&
+                 (e.GetEventType() == EventType::KeyPressed ||
+                  e.GetEventType() == EventType::KeyReleased ||
+                  e.GetEventType() == EventType::KeyTyped)))
+            {
+                e.Handled = true;
+            }
         }
 
         // if (ImGui::GetIO().WantCaptureKeyboard)
