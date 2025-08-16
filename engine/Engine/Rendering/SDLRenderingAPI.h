@@ -24,6 +24,8 @@ namespace SIMPEngine
         void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect *srcRect = nullptr);
         std::shared_ptr<Texture> CreateTexture(const char *path);
 
+        void Flush();
+
         virtual SDL_Renderer *GetSDLRenderer() override;
 
     private:

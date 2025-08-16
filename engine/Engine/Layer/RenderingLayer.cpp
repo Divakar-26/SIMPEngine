@@ -59,44 +59,9 @@ namespace SIMPEngine
     void RenderingLayer::OnUpdate(class TimeStep ts)
     {
         m_Scene.OnUpdate(ts.GetSeconds());
-        if (Input::IsKeyPressed(SDLK_A))
-        {
-            auto pos = m_Camera.GetPosition();
-            m_Camera.SetPosition({pos.x - 100.0f * ts.GetSeconds(), pos.y});
-        }
-        if (Input::IsKeyPressed(SDLK_D))
-        {
-            auto pos = m_Camera.GetPosition();
-            m_Camera.SetPosition({pos.x + 100.0f * ts.GetSeconds(), pos.y});
-        }
-        if (Input::IsKeyPressed(SDLK_W))
-        {
-            auto pos = m_Camera.GetPosition();
-            m_Camera.SetPosition({pos.x, pos.y - 100.0f * ts.GetSeconds()});
-        }
-        if (Input::IsKeyPressed(SDLK_S))
-        {
-            auto pos = m_Camera.GetPosition();
-            m_Camera.SetPosition({pos.x, pos.y + 100.0f * ts.GetSeconds()});
-        }
-        float zoomSpeed = 1.0f;
-        if (Input::IsKeyPressed(SDLK_Q))
-        {
-            float zoom = m_Camera.GetZoom();
-            zoom -= zoomSpeed * ts.GetSeconds();
-            if (zoom < 0.1f)
-                zoom = 0.1f;
-            m_Camera.SetZoom(zoom);
-        }
-        if (Input::IsKeyPressed(SDLK_E))
-        {
-            float zoom = m_Camera.GetZoom();
-            zoom += zoomSpeed * ts.GetSeconds();
-            if (zoom > 5.0f)
-                zoom = 5.0f;
-            m_Camera.SetZoom(zoom);
-        }
-
+        
+        m_Camera.Update(ts.GetSeconds());
+        
         auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<VelocityComponent>();
 
         if (Input::IsKeyPressed(SDLK_UP))
@@ -119,7 +84,6 @@ namespace SIMPEngine
 
     void RenderingLayer::OnRender()
     {
-        // Set viewport to desired area, e.g., center 800x600 in a 1280x720 window:
         m_Scene.OnRender();
         
         Renderer::DrawQuad(50, 50, 200, 150, SDL_Color{255, 0, 0, 255});
@@ -131,11 +95,13 @@ namespace SIMPEngine
         rect.w = 16;
         rect.h = 16;
         Renderer::DrawTexture(cointex->GetSDLTexture(), 100 + kl, 100, 100, 100, SDL_Color{255, 255, 255, 255}, 45.0f, &rect);
-        Renderer::Present();
+        // Renderer::Present();
+        Renderer::Flush();
     }
 
     void RenderingLayer::OnEvent(Event &e)
     {
+        m_Camera.OnEvent(e);
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &ev)
                                                      { return false; });

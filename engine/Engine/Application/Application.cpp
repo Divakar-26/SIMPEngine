@@ -81,7 +81,7 @@ namespace SIMPEngine
             m_ImGuiLayer->End();
 
             
-            SDL_RenderPresent(m_Window.GetRenderer());
+            Renderer::Present();
             
         }
     }

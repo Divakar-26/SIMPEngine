@@ -2,24 +2,28 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include "Events/Event.h"
 
 namespace SIMPEngine
 {
     class Camera2D
     {
     public:
-        Camera2D(float zoom = 1.0f, const glm::vec2& position = {0.0f, 0.0f});
+        Camera2D(float zoom = 1.0f, const glm::vec2 &position = {0.0f, 0.0f}); 
 
-        void SetPosition(const glm::vec2& position);
-        inline const glm::vec2& GetPosition() const { return m_Position; }
+        void SetPosition(const glm::vec2 &position);
+        inline const glm::vec2 &GetPosition() const { return m_Position; }
 
-        void Move(const glm::vec2& delta);
+        void Move(const glm::vec2 &delta);
 
         void SetZoom(float zoom);
         inline float GetZoom() const { return m_Zoom; }
 
         void SetRotation(float rotationDegrees);
         inline float GetRotation() const { return m_Rotation; }
+
+        void OnEvent(Event &e);
+        void Update(float deltaTime);
 
         glm::mat4 GetViewMatrix() const;
 
@@ -32,5 +36,16 @@ namespace SIMPEngine
         mutable glm::mat4 m_ViewMatrix;
 
         void RecalculateViewMatrix() const;
+        void HandleKeyPress(int key, bool pressed);
+
+        glm::vec2 m_TargetPosition;
+        float m_SmoothFactor;
+        float m_MoveSpeed;
+        float m_ZoomSpeed;
+
+        bool m_MoveLeft = false;
+        bool m_MoveRight = false;
+        bool m_MoveUp = false;
+        bool m_MoveDown = false;
     };
 }

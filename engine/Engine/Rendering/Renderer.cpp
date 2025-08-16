@@ -39,6 +39,10 @@ namespace SIMPEngine
         s_RenderingAPI->Present();
     }
 
+    void Renderer::Flush(){
+        s_RenderingAPI->Flush();
+    }
+
     void Renderer::SetViewMatrix(const glm::mat4 &view)
     {
         s_ViewMatrix = view;

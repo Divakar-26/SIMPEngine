@@ -84,9 +84,12 @@ namespace SIMPEngine
 
     void SDLRenderingAPI::Present()
     {
+        SDL_RenderPresent(m_Renderer);
+    }
+
+    void SDLRenderingAPI::Flush(){
         FlushTextureBatch();
         FlushQuadBatch();
-        // SDL_RenderPresent(m_Renderer);
     }
 
     void SDLRenderingAPI::SetViewMatrix(const glm::mat4 &view)
