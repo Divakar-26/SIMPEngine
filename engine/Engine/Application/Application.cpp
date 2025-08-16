@@ -28,8 +28,7 @@ namespace SIMPEngine
         s_Instance = this;
         m_Window.Init("My Game", 1024, 720);
 
-        auto sdlAPI = new SDLRenderingAPI();
-        Renderer::Init(sdlAPI, m_Window.GetRenderer());
+        Renderer::Init(std::make_unique<SDLRenderingAPI>(), m_Window.GetRenderer());
 
         m_ImGuiLayer = new ImGuiLayer();
         m_RenderingLayer = new RenderingLayer();
@@ -70,19 +69,20 @@ namespace SIMPEngine
             for (Layer *layer : m_LayerStack)
                 layer->OnUpdate(deltaTime);
 
-            Renderer::SetClearColor(0.81f, 0.55f, 0.78f, 1.0f);
-            Renderer::Clear();
+            
+            SDL_SetRenderDrawColor(m_Window.GetRenderer(),100,100,100,255);
+            SDL_RenderClear(m_Window.GetRenderer());
 
+            
             m_ImGuiLayer->Begin();
-
-            Texture circleTexture;
-
             for (Layer *layer : m_LayerStack)
-                layer->OnRender();
-
+            layer->OnRender();
+            
             m_ImGuiLayer->End();
 
-            Renderer::Present();
+            
+            SDL_RenderPresent(m_Window.GetRenderer());
+            
         }
     }
 

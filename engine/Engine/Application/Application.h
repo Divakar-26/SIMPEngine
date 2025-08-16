@@ -5,6 +5,7 @@
 #include "UI/ImGuiLayer.h"
 #include "Layer/RenderingLayer.h"
 #include <functional>
+#include "Math/Camera2D.h"
 
 namespace SIMPEngine
 {
@@ -17,14 +18,14 @@ namespace SIMPEngine
 
         void Run();
         void OnEvent(Event &e);
-        void SDLEventToEngine(SDL_Event & event);
+        void SDLEventToEngine(SDL_Event &event);
 
         void PushLayer(Layer *layer);
         void PushOverlay(Layer *overlay);
 
         Window &GetWindow() { return m_Window; }
 
-        // Singleton access
+
         static Application &Get() { return *s_Instance; }
 
     private:
@@ -34,10 +35,8 @@ namespace SIMPEngine
         LayerStack m_LayerStack;
         ImGuiLayer *m_ImGuiLayer;
         RenderingLayer *m_RenderingLayer;
-       
-        static Application *s_Instance;
-        
 
+        static Application *s_Instance;
     };
 
     // To be defined by the client (game)

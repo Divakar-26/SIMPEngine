@@ -1,9 +1,9 @@
 #pragma once
 #include "RenderingAPI.h"
 #include <glm/glm.hpp>
-
-#include"Texture.h"
-#include<memory>
+#include <vector>
+#include "Texture.h"
+#include <memory>
 
 namespace SIMPEngine
 {
@@ -17,24 +17,55 @@ namespace SIMPEngine
         void SetClearColor(float r, float g, float b, float a) override;
         void Clear() override;
         void DrawQuad(float x, float y, float width, float height, SDL_Color color) override;
-        void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color) override;
         void DrawCircle(float x, float y, float r, SDL_Color color) override;
         void Present() override;
-        void SetViewMatrix(const glm::mat4 &view) override; 
+        void SetViewMatrix(const glm::mat4 &view) override;
 
-        void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect * srcRect = nullptr);
-        std::shared_ptr<Texture> CreateTexture(const char* path);
+        void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect *srcRect = nullptr);
+        std::shared_ptr<Texture> CreateTexture(const char *path);
 
-
-        virtual void SetViewport(int x, int y, int width, int height) override;
-        virtual void ResetViewport() override;
-        virtual SDL_Renderer * GetSDLRenderer() override;
+        virtual SDL_Renderer *GetSDLRenderer() override;
 
     private:
+        inline SDL_FRect WorldToScreen(float x, float y, float w, float h) const;
+
         SDL_Renderer *m_Renderer = nullptr;
         SDL_Color m_ClearColor{0, 0, 0, 255};
-        glm::mat4 s_ViewMatrix = glm::mat4(1.0f);
+
+        struct ViewState
+        {
+            glm::mat4 matrix;
+            float zoomX;
+            float zoomY;
+            bool isUniformZoom;
+        };
+
+        ViewState m_ViewState;
+        glm::vec2 TransformPosition(float x, float y) const;
+        glm::vec2 TransformSize(float w, float h) const;
 
         Texture circleTexture;
+
+        struct BatchedTexture
+        {
+            SDL_Texture *texture;
+            SDL_FRect dest;
+            SDL_Color tint;
+            float rotation;
+            const SDL_FRect *srcRect;
+        };
+
+        std::vector<BatchedTexture> m_TextureBatch;
+        SDL_Texture *m_CurrentTexture = nullptr;
+
+        struct BatchedQuad
+        {
+            SDL_FRect rect;
+            SDL_Color color;
+        };
+        std::vector<BatchedQuad> m_QuadBatch;
+
+        void FlushTextureBatch();
+        void FlushQuadBatch();
     };
 }

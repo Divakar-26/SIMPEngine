@@ -89,6 +89,11 @@
         "locale": "cpp",
         "queue": "cpp",
         "stack": "cpp",
-        "future": "cpp"
+        "future": "cpp",
+        "list": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "ranges": "cpp",
+        "shared_mutex": "cpp"
     }
 }

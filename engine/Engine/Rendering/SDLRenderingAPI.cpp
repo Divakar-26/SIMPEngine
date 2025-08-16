@@ -9,14 +9,14 @@
 
 namespace SIMPEngine
 {
-    
-    SDLRenderingAPI::SDLRenderingAPI() {}
+
+    SDLRenderingAPI::SDLRenderingAPI() : m_ViewState{glm::mat4(1.0f), 1.0f, 1.0f, true} {}
 
     void SDLRenderingAPI::Init(SDL_Renderer *sdlRenderer)
     {
         m_Renderer = sdlRenderer;
-        TextureManager::Get().LoadTexture("circle", "../assets/circle.png" , m_Renderer);
-        TextureManager::Get().LoadTexture("coin", "../assets/coin.png" , m_Renderer);
+        TextureManager::Get().LoadTexture("circle", "../assets/circle.png", m_Renderer);
+        TextureManager::Get().LoadTexture("coin", "../assets/coin.png", m_Renderer);
     }
 
     void SDLRenderingAPI::SetClearColor(float r, float g, float b, float a)
@@ -34,52 +34,67 @@ namespace SIMPEngine
         SDL_RenderClear(m_Renderer);
     }
 
-    void SDLRenderingAPI::DrawQuad(float x, float y, float width, float height, SDL_Color color)
+    void SDLRenderingAPI::DrawQuad(float x, float y, float w, float h, SDL_Color color)
     {
-        glm::vec4 posWorld(x, y, 0.0f, 1.0f);
-        glm::vec4 posCamera = s_ViewMatrix * posWorld;
-        SDL_FRect rect;
+        glm::vec2 pos = TransformPosition(x, y);
+        float tx = pos.x;
+        float ty = pos.y;
 
-        float zoomX = glm::length(glm::vec3(s_ViewMatrix[0]));
-        float zoomY = glm::length(glm::vec3(s_ViewMatrix[1])); 
+        glm::vec2 size = TransformSize(w, h);
+        float tw = size.x;
+        float th = size.y;
 
-        rect.w = width * zoomX;
-        rect.h = height * zoomY;
+        m_QuadBatch.push_back({SDL_FRect{tx, ty, tw, th},
+                               color});
 
-        rect.x = static_cast<float>(posCamera.x);
-        rect.y = static_cast<float>(posCamera.y);
-        // rect.w = static_cast<float>(width); // Optionally multiply by zoom scale if you want
-        // rect.h = static_cast<float>(height);
+        if (m_QuadBatch.size() >= 1000)
+            FlushQuadBatch();
+    }
 
-        SDL_SetRenderDrawColor(m_Renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderFillRect(m_Renderer, &rect);
+    void SDLRenderingAPI::FlushQuadBatch()
+    {
+        if (m_QuadBatch.empty())
+            return;
+
+        std::vector<SDL_Vertex> vertices;
+        std::vector<int> indices;
+        vertices.reserve(m_QuadBatch.size() * 4);
+        indices.reserve(m_QuadBatch.size() * 6);
+
+        for (size_t i = 0; i < m_QuadBatch.size(); ++i)
+        {
+            const auto &quad = m_QuadBatch[i];
+            size_t base_index = i * 4;
+
+            vertices.insert(vertices.end(), {{{quad.rect.x, quad.rect.y}, {quad.color.r, quad.color.g, quad.color.b, quad.color.a}, {0, 0}},
+                                             {{quad.rect.x + quad.rect.w, quad.rect.y}, {quad.color.r, quad.color.g, quad.color.b, quad.color.a}, {0, 0}},
+                                             {{quad.rect.x + quad.rect.w, quad.rect.y + quad.rect.h}, {quad.color.r, quad.color.g, quad.color.b, quad.color.a}, {0, 0}},
+                                             {{quad.rect.x, quad.rect.y + quad.rect.h}, {quad.color.r, quad.color.g, quad.color.b, quad.color.a}, {0, 0}}});
+
+            indices.insert(indices.end(), {(int)base_index, (int)base_index + 1, (int)base_index + 2,
+                                           (int)base_index, (int)base_index + 2, (int)base_index + 3});
+        }
+
+        SDL_RenderGeometry(m_Renderer, nullptr,
+                           vertices.data(), (int)vertices.size(),
+                           indices.data(), (int)indices.size());
+
+        m_QuadBatch.clear();
     }
 
     void SDLRenderingAPI::Present()
     {
-        SDL_RenderPresent(m_Renderer);
+        FlushTextureBatch();
+        FlushQuadBatch();
+        // SDL_RenderPresent(m_Renderer);
     }
 
     void SDLRenderingAPI::SetViewMatrix(const glm::mat4 &view)
     {
-        s_ViewMatrix = view;
-    }
-
-    void SDLRenderingAPI::SetViewport(int x, int y, int width, int height)
-    {
-        SDL_Rect viewport{x, y, width, height};
-        SDL_SetRenderViewport(m_Renderer, &viewport);
-    }
-
-    void SDLRenderingAPI::ResetViewport()
-    {
-        SDL_SetRenderViewport(m_Renderer, nullptr); 
-    }
-
-    void SDLRenderingAPI::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
-    {
-        SDL_SetRenderDrawColor(m_Renderer, color.r, color.g, color.b, color.a);
-        SDL_RenderLine(m_Renderer, x1, y1, x2, y2);
+        m_ViewState.matrix = view;
+        m_ViewState.zoomX = glm::length(glm::vec3(view[0]));
+        m_ViewState.zoomY = glm::length(glm::vec3(view[1]));
+        m_ViewState.isUniformZoom = (std::abs(m_ViewState.zoomX - m_ViewState.zoomY) < 0.001f);
     }
 
     void SDLRenderingAPI::DrawCircle(float cx, float cy, float radius, SDL_Color color)
@@ -88,29 +103,47 @@ namespace SIMPEngine
         DrawTexture(circleTexture->GetSDLTexture(), cx, cy, radius, radius, {0, 255, 255, 255}, 0);
     }
 
-    void SDLRenderingAPI::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect * srcRect)
+    void SDLRenderingAPI::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h,
+                                      SDL_Color tint, float rotation, const SDL_FRect *srcRect)
     {
-        glm::vec4 posWorld(x, y, 0.0f, 1.0f);
-        glm::vec4 posCamera = s_ViewMatrix * posWorld;
+        if (texture != m_CurrentTexture || m_TextureBatch.size() >= 1000)
+        {
+            FlushTextureBatch();
+            m_CurrentTexture = texture;
+        }
 
-        SDL_FRect dest;
-        dest.x = posCamera.x;
-        dest.y = posCamera.y;
+        glm::vec2 pos = TransformPosition(x, y);
+        float tx = pos.x;
+        float ty = pos.y;
 
-        float zoomX = glm::length(glm::vec3(s_ViewMatrix[0]));
-        float zoomY = glm::length(glm::vec3(s_ViewMatrix[1]));
+        glm::vec2 size = TransformSize(w, h);
+        float tw = size.x;
+        float th = size.y;
 
-        dest.w = w * zoomX;
-        dest.h = h * zoomY;
+        m_TextureBatch.push_back(BatchedTexture{
+            texture,
+            SDL_FRect{tx, ty, tw, th},
+            tint,
+            rotation,
+            srcRect});
+    }
 
-        SDL_SetTextureColorMod(texture, tint.r, tint.g, tint.b);
-        SDL_SetTextureAlphaMod(texture, tint.a);
+    void SDLRenderingAPI::FlushTextureBatch()
+    {
+        if (m_TextureBatch.empty())
+            return;
 
-        SDL_FPoint center;
-        center.x = dest.w / 2;
-        center.y = dest.h / 2;
+        for (const auto &batch : m_TextureBatch)
+        {
+            SDL_SetTextureColorMod(batch.texture, batch.tint.r, batch.tint.g, batch.tint.b);
+            SDL_SetTextureAlphaMod(batch.texture, batch.tint.a);
 
-        SDL_RenderTextureRotated(m_Renderer, texture, srcRect, &dest, rotation, &center, SDL_FLIP_NONE);
+            SDL_FPoint center = {batch.dest.w / 2, batch.dest.h / 2};
+            SDL_RenderTextureRotated(m_Renderer, batch.texture, batch.srcRect,
+                                     &batch.dest, batch.rotation, &center, SDL_FLIP_NONE);
+        }
+
+        m_TextureBatch.clear();
     }
 
     std::shared_ptr<Texture> SDLRenderingAPI::CreateTexture(const char *path)
@@ -123,8 +156,22 @@ namespace SIMPEngine
         return tex;
     }
 
-    SDL_Renderer * SDLRenderingAPI::GetSDLRenderer(){
+    SDL_Renderer *SDLRenderingAPI::GetSDLRenderer()
+    {
         return m_Renderer;
+    }
+
+    glm::vec2 SDLRenderingAPI::TransformPosition(float x, float y) const
+    {
+        glm::vec4 pos = m_ViewState.matrix * glm::vec4(x, y, 0.0f, 1.0f);
+        return {pos.x, pos.y};
+    }
+
+    glm::vec2 SDLRenderingAPI::TransformSize(float w, float h) const
+    {
+        return {
+            w * m_ViewState.zoomX,
+            h * m_ViewState.zoomY};
     }
 
 }

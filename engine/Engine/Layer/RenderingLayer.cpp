@@ -16,6 +16,9 @@
 
 #include <iostream>
 
+
+float kl = 0.0f;
+
 namespace SIMPEngine
 {
     void RenderingLayer::OnAttach()
@@ -111,15 +114,14 @@ namespace SIMPEngine
             vel.vx = 0.0f;
 
         Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
+        kl += ts.GetSeconds() * 90.0f;
     }
 
     void RenderingLayer::OnRender()
     {
         // Set viewport to desired area, e.g., center 800x600 in a 1280x720 window:
-
-        Renderer::Clear();
-
         m_Scene.OnRender();
+        
         Renderer::DrawQuad(50, 50, 200, 150, SDL_Color{255, 0, 0, 255});
 
         auto cointex = TextureManager::Get().GetTexture("coin");
@@ -128,7 +130,8 @@ namespace SIMPEngine
         rect.y = 0;
         rect.w = 16;
         rect.h = 16;
-        Renderer::DrawTexture(cointex->GetSDLTexture(), 100, 100, 100, 100, SDL_Color{255, 255, 255, 255}, 45.0f, &rect);
+        Renderer::DrawTexture(cointex->GetSDLTexture(), 100 + kl, 100, 100, 100, SDL_Color{255, 255, 255, 255}, 45.0f, &rect);
+        Renderer::Present();
     }
 
     void RenderingLayer::OnEvent(Event &e)

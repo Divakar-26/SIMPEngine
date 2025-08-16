@@ -46,6 +46,7 @@ add_library(Engine SHARED
     Engine/Math/Camera2D.cpp
     Engine/Scene/Scene.cpp
     Engine/Scene/SceneManager.cpp
+
 )
 
 target_include_directories(Engine
