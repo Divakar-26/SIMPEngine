@@ -9,6 +9,9 @@
 #include "Math/Camera2D.h"
 #include "Scene/Scene.h"
 
+#include <queue>
+#include <functional>
+
 namespace SIMPEngine
 {
     class RenderingLayer : public Layer
@@ -27,8 +30,20 @@ namespace SIMPEngine
         Camera2D &GetCamera() { return m_Camera; }
         const Camera2D &GetCamera() const { return m_Camera; }
 
+        Scene &GetScene() { return m_Scene; }
+        const Scene &GetScene() const { return m_Scene; }
+
+        using SceneCommand = std::function<void(Scene &)>;
+
+        void QueueCommand(const SceneCommand &command)
+        {
+            m_CommandQueue.push(command);
+        }
+
     private:
         Camera2D m_Camera;
-        Scene m_Scene; 
+        Scene m_Scene;
+
+        std::queue<SceneCommand> m_CommandQueue;
     };
 }

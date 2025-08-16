@@ -14,7 +14,7 @@
 #include "Rendering/SpriteAtlas.h"
 #include "Scene/Entity.h"
 
-#include <iostream> 
+#include <iostream>
 
 float kl = 0.0f;
 
@@ -57,6 +57,13 @@ namespace SIMPEngine
 
     void RenderingLayer::OnUpdate(class TimeStep ts)
     {
+        while (!m_CommandQueue.empty())
+        {
+            auto command = m_CommandQueue.front();
+            command(m_Scene);
+            m_CommandQueue.pop();
+        }
+
         m_Scene.OnUpdate(ts.GetSeconds());
 
         m_Camera.Update(ts.GetSeconds());
@@ -86,7 +93,7 @@ namespace SIMPEngine
     {
         m_Scene.OnRender();
 
-        Renderer::DrawQuad(50, 50, 200, 150, SDL_Color{255, 0, 0, 255});
+        Renderer::DrawQuad(0, 0, 200, 150, SDL_Color{255, 0, 0, 255});
 
         auto cointex = TextureManager::Get().GetTexture("coin");
         SDL_FRect rect;

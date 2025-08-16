@@ -6,6 +6,7 @@
 #include "Layer/RenderingLayer.h"
 #include <functional>
 #include "Math/Camera2D.h"
+#include "Scene/SceneManager.h"
 
 namespace SIMPEngine
 {
@@ -36,7 +37,7 @@ namespace SIMPEngine
         LayerStack m_LayerStack;
         ImGuiLayer *m_ImGuiLayer;
         RenderingLayer *m_RenderingLayer;
-
+        
         static Application *s_Instance;
     };
 

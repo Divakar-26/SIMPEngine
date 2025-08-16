@@ -76,6 +76,7 @@ namespace SIMPEngine
             for (Layer *layer : m_LayerStack)
                 layer->OnRender();
 
+
             m_ImGuiLayer->End();
 
             Renderer::Present();
@@ -135,7 +136,8 @@ namespace SIMPEngine
                                                     return false; });
         }
 
-        else{
+        else
+        {
             Input::ResetAllKeys();
         }
 

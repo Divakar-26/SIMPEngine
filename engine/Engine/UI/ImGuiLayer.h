@@ -4,6 +4,8 @@
 #include "TimeStep.h"
 #include <SDL3/SDL_events.h>
 #include <imgui.h>
+#include"Scene/Entity.h"
+#include"Scene/Scene.h"
 
 struct SDL_Window;
 struct SDL_Renderer;
@@ -33,6 +35,8 @@ namespace SIMPEngine
 
         SDL_Window *m_Window = nullptr;
         SDL_Renderer *m_Renderer = nullptr;
+
+        SIMPEngine::Entity selectedEntity;
     };
 
 }

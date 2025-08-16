@@ -110,9 +110,129 @@ namespace SIMPEngine
             ImGui::EndMainMenuBar();
         }
 
-        ImGui::Begin("Console");
+        ImGui::Begin("Scene Hierarchy");
+
+        // Get the rendering layer
+        auto &renderingLayer = *Application::Get().GetRenderingLayer();
+        auto &scene = renderingLayer.GetScene();
+        auto &registry = scene.GetRegistry();
+
+        // Iterate entities with a view
+        auto view = registry.view<TagComponent>();
+        for (auto entityID : view)
+        {
+            SIMPEngine::Entity entity(entityID, &scene);
+            std::string name = entity.HasComponent<TagComponent>() ? entity.GetComponent<TagComponent>().Tag : "Unnamed";
+
+            // Select entity
+            if (ImGui::Selectable(name.c_str(), selectedEntity.GetHandle() == entity.GetHandle()))
+                selectedEntity = entity;
+        }
+
+        // Queue entity creation instead of direct call
+        if (ImGui::Button("Create Entity"))
+        {
+            renderingLayer.QueueCommand([](Scene &scene)
+                                        {
+        auto e = scene.CreateEntity("New Entity");
+        e.AddComponent<TagComponent>("New Entity"); });
+        }
 
         ImGui::End();
+
+        // Inspector for selected entity
+        if (selectedEntity)
+        {
+            ImGui::Begin("Inspector");
+
+            // Transform component
+            if (selectedEntity.HasComponent<TransformComponent>())
+            {
+                auto &t = selectedEntity.GetComponent<TransformComponent>();
+                float x = t.x, y = t.y;
+
+                if (ImGui::DragFloat("X", &x, 1.0f) || ImGui::DragFloat("Y", &y, 1.0f))
+                {
+                    // Queue transform update
+                    renderingLayer.QueueCommand([entityHandle = selectedEntity.GetHandle(), x, y](Scene &scene)
+                                                {
+                Entity e(entityHandle, &scene);
+                if (e.HasComponent<TransformComponent>())
+                {
+                    auto &t = e.GetComponent<TransformComponent>();
+                    t.x = x;
+                    t.y = y;
+                } });
+                }
+            }
+
+            // Render component
+            if (selectedEntity.HasComponent<RenderComponent>())
+            {
+                auto &r = selectedEntity.GetComponent<RenderComponent>();
+                float color[4] = {r.color.r / 255.0f, r.color.g / 255.0f, r.color.b / 255.0f, r.color.a / 255.0f};
+
+                if (ImGui::ColorEdit4("Color", color))
+                {
+                    // Queue color update
+                    renderingLayer.QueueCommand([entityHandle = selectedEntity.GetHandle(), color](Scene &scene)
+                                                {
+                Entity e(entityHandle, &scene);
+                if (e.HasComponent<RenderComponent>())
+                {
+                    auto &r = e.GetComponent<RenderComponent>();
+                    r.color.r = (uint8_t)(color[0] * 255);
+                    r.color.g = (uint8_t)(color[1] * 255);
+                    r.color.b = (uint8_t)(color[2] * 255);
+                    r.color.a = (uint8_t)(color[3] * 255);
+                } });
+                }
+            }
+
+            if (selectedEntity.HasComponent<TransformComponent>())
+            {
+                auto &t = selectedEntity.GetComponent<TransformComponent>();
+                ImGui::DragFloat("X", &t.x, 1.0f);
+                ImGui::DragFloat("Y", &t.y, 1.0f);
+                ImGui::DragFloat("Rotation", &t.rotation, 1.0f);
+                ImGui::DragFloat("Scale X", &t.scaleX, 0.1f);
+                ImGui::DragFloat("Scale Y", &t.scaleY, 0.1f);
+            }
+            else
+            {
+                if (ImGui::Button("Add Transform Component"))
+                {
+                    auto entityHandle = selectedEntity.GetHandle();
+                    Application::Get().GetRenderingLayer()->QueueCommand([entityHandle](Scene &scene)
+                                                                         {
+                                                                             Entity e(entityHandle, &scene);
+                                                                             e.AddComponent<TransformComponent>(0.0f, 0.0f, 0.0f, 1.0f, 1.0f); // default values
+                                                                         });
+                }
+            }
+
+            if (selectedEntity.HasComponent<VelocityComponent>())
+            {
+                auto &vel = selectedEntity.GetComponent<VelocityComponent>();
+                ImGui::DragFloat("Velocity X", &vel.vx, 1.0f);
+                ImGui::DragFloat("Velocity Y", &vel.vy, 1.0f);
+            }
+            else
+            {
+                // Add Velocity Component button
+                if (ImGui::Button("Add Velocity Component"))
+                {
+                    auto entityHandle = selectedEntity.GetHandle();
+                    Application::Get().GetRenderingLayer()->QueueCommand([entityHandle](Scene &scene)
+                                                                         {
+                                                                             Entity e(entityHandle, &scene);
+                                                                             e.AddComponent<VelocityComponent>(0.0f, 0.0f); // default velocity
+                                                                         });
+                }
+            }
+
+            ImGui::End();
+        }
 
         ImGui::Begin("Scene");
 
@@ -148,7 +268,7 @@ namespace SIMPEngine
                 {
                     ImVec4 color;
                     if (line.find("[error]") != std::string::npos)
-                        color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); 
+                        color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
                     else if (line.find("[info]") != std::string::npos)
                         color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
                     else
