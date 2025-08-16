@@ -88,12 +88,13 @@ namespace SIMPEngine
         m_ImGuiLayer->OnEvent(e); // ImGui first
 
         EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
+                                              {
+        m_Running = false;
+        return true; });
+        
         if (m_ImGuiLayer->viewportFocused)
         {
-            dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
-                                                  {
-            m_Running = false;
-            return true; });
             dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
                                                  {
                                                  CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
