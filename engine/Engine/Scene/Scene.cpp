@@ -109,28 +109,25 @@ namespace SIMPEngine
         {
             auto &transform = collidable.get<TransformComponent>(entity);
             auto &collision = collidable.get<CollisionComponent>(entity);
-
+            
             SDL_FRect rect = collision.GetBoundsWorld(transform);
-
+            
             // Optional: offset to camera if needed
             // rect.x -= cameraX;
             // rect.y -= cameraY;
-
+            
             // Draw outline
-            rect.x -= 2;
-            rect.y -= 2;
-            rect.w += 2;
-            rect.h += 2;
-            Renderer::DrawQuad(rect.x - 2.0f, rect.y - 2.0f, rect.w + 2.0f, rect.h + 2.0f, SDL_Color{255,255,0,255});
+            Renderer::DrawQuad(rect.x - 2.0f, rect.y - 2.0f, rect.w * transform.scaleX + 4.0f, rect.h * transform.scaleY + 4.0f, SDL_Color{255,255,0,255});
         }
+        
         auto view = m_Registry.view<TransformComponent, RenderComponent>();
         for (auto entity : view)
         {
             auto &transform = view.get<TransformComponent>(entity);
             auto &render = view.get<RenderComponent>(entity);
 
-            Renderer::DrawQuad(transform.x, transform.y, render.width, render.height, render.color);
-        }
 
+            Renderer::DrawQuad(transform.x  , transform.y , render.width * transform.scaleX, render.height * transform.scaleY, render.color);
+        }
     }
 }

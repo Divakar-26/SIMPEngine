@@ -149,20 +149,41 @@ namespace SIMPEngine
             if (selectedEntity.HasComponent<TransformComponent>())
             {
                 auto &t = selectedEntity.GetComponent<TransformComponent>();
-                float x = t.x, y = t.y;
+                float x = t.x, y = t.y, rotation = t.rotation, scaleX = t.scaleX, scaleY = t.scaleY;
 
-                if (ImGui::DragFloat("X", &x, 1.0f) || ImGui::DragFloat("Y", &y, 1.0f))
+                bool changed = false;
+                changed |= ImGui::DragFloat("X", &x, 1.0f);
+                changed |= ImGui::DragFloat("Y", &y, 1.0f);
+                changed |= ImGui::DragFloat("Rotation", &rotation, 1.0f);
+                changed |= ImGui::DragFloat("Scale X", &scaleX, 0.1f);
+                changed |= ImGui::DragFloat("Scale Y", &scaleY, 0.1f);
+
+                if (changed)
                 {
                     // Queue transform update
-                    renderingLayer.QueueCommand([entityHandle = selectedEntity.GetHandle(), x, y](Scene &scene)
+                    renderingLayer.QueueCommand([entityHandle = selectedEntity.GetHandle(), x, y, rotation, scaleX, scaleY](Scene &scene)
                                                 {
-                Entity e(entityHandle, &scene);
-                if (e.HasComponent<TransformComponent>())
+            Entity e(entityHandle, &scene);
+            if (e.HasComponent<TransformComponent>())
+            {
+                auto &t = e.GetComponent<TransformComponent>();
+                t.x = x;
+                t.y = y;
+                t.rotation = rotation;
+                t.scaleX = scaleX;
+                t.scaleY = scaleY;
+            } });
+                }
+            }
+            else
+            {
+                if (ImGui::Button("Add Transform Component"))
                 {
-                    auto &t = e.GetComponent<TransformComponent>();
-                    t.x = x;
-                    t.y = y;
-                } });
+                    auto entityHandle = selectedEntity.GetHandle();
+                    renderingLayer.QueueCommand([entityHandle](Scene &scene)
+                                                {
+            Entity e(entityHandle, &scene);
+            e.AddComponent<TransformComponent>(0.0f, 0.0f, 0.0f, 1.0f, 1.0f); });
                 }
             }
 
@@ -174,40 +195,17 @@ namespace SIMPEngine
 
                 if (ImGui::ColorEdit4("Color", color))
                 {
-                    // Queue color update
                     renderingLayer.QueueCommand([entityHandle = selectedEntity.GetHandle(), color](Scene &scene)
                                                 {
                 Entity e(entityHandle, &scene);
                 if (e.HasComponent<RenderComponent>())
                 {
                     auto &r = e.GetComponent<RenderComponent>();
-                    r.color.r = (uint8_t)(color[0] * 255);
-                    r.color.g = (uint8_t)(color[1] * 255);
-                    r.color.b = (uint8_t)(color[2] * 255);
-                    r.color.a = (uint8_t)(color[3] * 255);
+                    r.color.r = (Uint8)(color[0] * 255);
+                    r.color.g = (Uint8)(color[1] * 255);
+                    r.color.b = (Uint8)(color[2] * 255);
+                    r.color.a = (Uint8)(color[3] * 255);
                 } });
-                }
-            }
-
-            if (selectedEntity.HasComponent<TransformComponent>())
-            {
-                auto &t = selectedEntity.GetComponent<TransformComponent>();
-                ImGui::DragFloat("X", &t.x, 1.0f);
-                ImGui::DragFloat("Y", &t.y, 1.0f);
-                ImGui::DragFloat("Rotation", &t.rotation, 1.0f);
-                ImGui::DragFloat("Scale X", &t.scaleX, 0.1f);
-                ImGui::DragFloat("Scale Y", &t.scaleY, 0.1f);
-            }
-            else
-            {
-                if (ImGui::Button("Add Transform Component"))
-                {
-                    auto entityHandle = selectedEntity.GetHandle();
-                    Application::Get().GetRenderingLayer()->QueueCommand([entityHandle](Scene &scene)
-                                                                         {
-                                                                             Entity e(entityHandle, &scene);
-                                                                             e.AddComponent<TransformComponent>(0.0f, 0.0f, 0.0f, 1.0f, 1.0f); // default values
-                                                                         });
                 }
             }
 

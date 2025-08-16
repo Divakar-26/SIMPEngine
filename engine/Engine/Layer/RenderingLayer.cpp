@@ -93,7 +93,7 @@ namespace SIMPEngine
     {
         m_Scene.OnRender();
 
-        Renderer::DrawQuad(0, 0, 200, 150, SDL_Color{255, 0, 0, 255});
+        Renderer::DrawQuad(0, 0, 200, 150, SDL_Color{255, 134, 244, 255});
 
         auto cointex = TextureManager::Get().GetTexture("coin");
         SDL_FRect rect;

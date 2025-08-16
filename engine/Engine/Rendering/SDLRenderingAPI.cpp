@@ -66,15 +66,25 @@ namespace SIMPEngine
             const auto &quad = m_QuadBatch[i];
             size_t base_index = i * 4;
 
-            vertices.insert(vertices.end(), {{{quad.rect.x, quad.rect.y}, {quad.color.r, quad.color.g, quad.color.b, quad.color.a}, {0, 0}},
-                                             {{quad.rect.x + quad.rect.w, quad.rect.y}, {quad.color.r, quad.color.g, quad.color.b, quad.color.a}, {0, 0}},
-                                             {{quad.rect.x + quad.rect.w, quad.rect.y + quad.rect.h}, {quad.color.r, quad.color.g, quad.color.b, quad.color.a}, {0, 0}},
-                                             {{quad.rect.x, quad.rect.y + quad.rect.h}, {quad.color.r, quad.color.g, quad.color.b, quad.color.a}, {0, 0}}});
+            // Convert SDL_Color (0-255) to SDL_FColor (0.0f - 1.0f)
+            SDL_FColor fc = {
+                quad.color.r / 255.0f,
+                quad.color.g / 255.0f,
+                quad.color.b / 255.0f,
+                quad.color.a / 255.0f};
 
+            // Add 4 vertices for the quad
+            vertices.insert(vertices.end(), {{{quad.rect.x, quad.rect.y}, fc, {0.0f, 0.0f}},
+                                             {{quad.rect.x + quad.rect.w, quad.rect.y}, fc, {0.0f, 0.0f}},
+                                             {{quad.rect.x + quad.rect.w, quad.rect.y + quad.rect.h}, fc, {0.0f, 0.0f}},
+                                             {{quad.rect.x, quad.rect.y + quad.rect.h}, fc, {0.0f, 0.0f}}});
+
+            // Add 6 indices for the two triangles
             indices.insert(indices.end(), {(int)base_index, (int)base_index + 1, (int)base_index + 2,
                                            (int)base_index, (int)base_index + 2, (int)base_index + 3});
         }
 
+        // Render all quads in the batch
         SDL_RenderGeometry(m_Renderer, nullptr,
                            vertices.data(), (int)vertices.size(),
                            indices.data(), (int)indices.size());
