@@ -27,8 +27,9 @@ namespace SIMPEngine
         void Flush();
 
         virtual SDL_Renderer *GetSDLRenderer() override;
-        
-        SDL_Texture* GetViewportTexture() { return m_ViewportTexture; }
+
+        SDL_Texture *GetViewportTexture() { return m_ViewportTexture; }
+
         void ResizeViewport(int width, int height);
 
     private:

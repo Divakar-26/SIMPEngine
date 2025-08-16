@@ -11,7 +11,11 @@ namespace SIMPEngine
     class Renderer
     {
     public:
-        static void Init(std::unique_ptr<RenderingAPI> api, SDL_Renderer * sdlRenderer);
+        static void Init(std::unique_ptr<RenderingAPI> api, SDL_Renderer *sdlRenderer);
+
+        // Renderer.h
+        static RenderingAPI *GetAPI(); // add this
+
         static void SetClearColor(float r, float g, float b, float a);
         static void Clear();
         static void DrawQuad(float x, float y, float width, float height, SDL_Color color);

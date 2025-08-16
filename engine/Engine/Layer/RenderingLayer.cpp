@@ -79,6 +79,7 @@ namespace SIMPEngine
             vel.vx = 0.0f;
 
         Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
+        
         kl += ts.GetSeconds() * 90.0f;
     }
 

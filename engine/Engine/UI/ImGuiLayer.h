@@ -26,6 +26,8 @@ namespace SIMPEngine
         void OnSDLEvent(SDL_Event &e);
         void Begin();
         void End();
+
+        bool viewportFocused = false;
     private:
 
         SDL_Window *m_Window = nullptr;

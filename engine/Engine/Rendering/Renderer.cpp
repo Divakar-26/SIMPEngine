@@ -8,6 +8,11 @@ namespace SIMPEngine
     std::unique_ptr<RenderingAPI> Renderer::s_RenderingAPI = nullptr;
     glm::mat4 Renderer::s_ViewMatrix = glm::mat4(1.0f);
 
+    RenderingAPI *Renderer::GetAPI()
+    {
+        return s_RenderingAPI.get();
+    }
+
     void Renderer::Init(std::unique_ptr<RenderingAPI> api, SDL_Renderer *sdlRenderer)
     {
         s_RenderingAPI = std::move(api);
@@ -39,7 +44,8 @@ namespace SIMPEngine
         s_RenderingAPI->Present();
     }
 
-    void Renderer::Flush(){
+    void Renderer::Flush()
+    {
         s_RenderingAPI->Flush();
     }
 
@@ -55,7 +61,7 @@ namespace SIMPEngine
         return s_ViewMatrix;
     }
 
-    void Renderer::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect * srcRect)
+    void Renderer::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect *srcRect)
     {
         s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation, srcRect);
     }
@@ -65,7 +71,8 @@ namespace SIMPEngine
         return s_RenderingAPI->CreateTexture(path);
     }
 
-    SDL_Renderer * Renderer::GetSDLRenderer(){
+    SDL_Renderer *Renderer::GetSDLRenderer()
+    {
         return s_RenderingAPI->GetSDLRenderer();
     }
 }

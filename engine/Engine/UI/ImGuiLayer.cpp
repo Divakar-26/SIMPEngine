@@ -12,6 +12,8 @@
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
 
+#include "Rendering/Renderer.h"
+
 namespace SIMPEngine
 {
 
@@ -71,12 +73,16 @@ namespace SIMPEngine
 
     void ImGuiLayer::OnUpdate(class TimeStep ts)
     {
+        if (viewportFocused)
+        {
+            CORE_INFO("View port focues");
+        }
     }
 
     void ImGuiLayer::OnRender()
     {
         // 1. Start a full-screen window to host the dockspace
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar;
 
         ImGuiViewport *viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->Pos);
@@ -96,34 +102,61 @@ namespace SIMPEngine
         ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
         ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
 
-        // --- Place your docked windows here ---
+        // --- Console panel ---
         ImGui::Begin("Console");
         ImGui::Text("This is the console window");
         ImGui::End();
 
+        // --- Scene / Viewport panel ---
         ImGui::Begin("Scene");
-        ImGui::Text("This is the scene/viewport panel");
+
+        ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+        viewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+
+        // Resize and render your viewport as before
+        Renderer::GetAPI()->ResizeViewport((int)viewportSize.x, (int)viewportSize.y);
+        SDL_SetRenderTarget(Renderer::GetSDLRenderer(), Renderer::GetAPI()->GetViewportTexture());
+        Renderer::Clear();
+        Application::Get().GetRenderingLayer()->OnRender();
+        SDL_SetRenderTarget(Renderer::GetSDLRenderer(), nullptr);
+
+        SDL_Texture *tex = Renderer::GetAPI()->GetViewportTexture();
+        ImGui::Image((void *)tex, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
+
         ImGui::End();
 
+        // --- Inspector panel ---
         ImGui::Begin("Inspector");
         ImGui::Text("Inspector panel");
         ImGui::End();
 
-        ImGui::End(); // End dockspace window
+        ImGui::End();
     }
 
     void ImGuiLayer::OnEvent(Event &e)
     {
         // CORE_INFO("Event: {} | WantCaptureMouse = {}", e.ToString(), ImGui::GetIO().WantCaptureMouse);
 
-        if (ImGui::GetIO().WantCaptureMouse &&
-            (e.GetEventType() == EventType::MouseButtonPressed ||
-             e.GetEventType() == EventType::MouseButtonReleased ||
-             e.GetEventType() == EventType::MouseMoved))
+        if ((ImGui::GetIO().WantCaptureMouse &&
+             (e.GetEventType() == EventType::MouseButtonPressed ||
+              e.GetEventType() == EventType::MouseButtonReleased ||
+              e.GetEventType() == EventType::MouseMoved ||
+              e.GetEventType() == EventType::MouseScrolled)) ||
+            (ImGui::GetIO().WantCaptureKeyboard &&
+             (e.GetEventType() == EventType::KeyPressed ||
+              e.GetEventType() == EventType::KeyReleased ||
+              e.GetEventType() == EventType::KeyTyped)))
         {
             e.Handled = true;
-            // CORE_INFO("ImGui handled this mouse event");
         }
+
+        // if (ImGui::GetIO().WantCaptureKeyboard)
+        // {
+        //     if (viewportFocused)
+        //     {
+        //         e.Handled = false;
+        //     }
+        // }
     }
 
     void ImGuiLayer::OnSDLEvent(SDL_Event &e)

@@ -27,6 +27,7 @@ namespace SIMPEngine
 
 
         static Application &Get() { return *s_Instance; }
+        RenderingLayer* GetRenderingLayer() { return m_RenderingLayer; }
 
     private:
         Window m_Window;

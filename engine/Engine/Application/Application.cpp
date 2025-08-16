@@ -69,39 +69,23 @@ namespace SIMPEngine
             for (Layer *layer : m_LayerStack)
                 layer->OnUpdate(deltaTime);
 
-            
-            SDL_SetRenderDrawColor(m_Window.GetRenderer(),100,100,100,255);
+            SDL_SetRenderDrawColor(m_Window.GetRenderer(), 100, 100, 100, 255);
             SDL_RenderClear(m_Window.GetRenderer());
 
-            
             m_ImGuiLayer->Begin();
             for (Layer *layer : m_LayerStack)
-            layer->OnRender();
-            
+                layer->OnRender();
+
             m_ImGuiLayer->End();
 
-            
             Renderer::Present();
-            
         }
     }
 
     void Application::OnEvent(Event &e)
     {
 
-        if ((ImGui::GetIO().WantCaptureMouse &&
-             (e.GetEventType() == EventType::MouseButtonPressed ||
-              e.GetEventType() == EventType::MouseButtonReleased ||
-              e.GetEventType() == EventType::MouseMoved ||
-              e.GetEventType() == EventType::MouseScrolled)) ||
-            (ImGui::GetIO().WantCaptureKeyboard &&
-             (e.GetEventType() == EventType::KeyPressed ||
-              e.GetEventType() == EventType::KeyReleased ||
-              e.GetEventType() == EventType::KeyTyped)))
-        {
-            e.Handled = true;
-            return;
-        }
+        m_ImGuiLayer->OnEvent(e); // ImGui first
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
@@ -111,7 +95,6 @@ namespace SIMPEngine
         dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
                                              {
                                                  CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
-                                                 
                                                  Input::OnKeyPressed(ev.GetKeyCode());
                                                  return false; });
 
@@ -148,11 +131,14 @@ namespace SIMPEngine
                                                     CORE_INFO("{}", ev.ToString());
                                                     return false; });
 
-        for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
+        if (!e.Handled)
         {
-            (*--it)->OnEvent(e);
-            if (e.Handled)
-                break;
+            for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
+            {
+                (*--it)->OnEvent(e);
+                if (e.Handled)
+                    break;
+            }
         }
     }
 
