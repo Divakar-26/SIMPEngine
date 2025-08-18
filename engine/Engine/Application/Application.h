@@ -26,9 +26,10 @@ namespace SIMPEngine
 
         Window &GetWindow() { return m_Window; }
 
-
         static Application &Get() { return *s_Instance; }
         // RenderingLayer* GetRenderingLayer() { return m_RenderingLayer; }
+
+        ImGuiLayer *GetImGuiLayer() { return m_ImGuiLayer; }
 
     private:
         Window m_Window;
@@ -36,8 +37,7 @@ namespace SIMPEngine
 
         LayerStack m_LayerStack;
         ImGuiLayer *m_ImGuiLayer;
-        // RenderingLayer *m_RenderingLayer;
-        
+
         static Application *s_Instance;
     };
 

@@ -30,6 +30,7 @@ namespace SIMPEngine
 
         bool viewportFocused = false;
 
+        void SetBlockEvent(bool block) {m_BlockEvent = block;}
     private:
         bool showLogWindow = false; // toggle for log window
 
@@ -37,6 +38,8 @@ namespace SIMPEngine
         SDL_Renderer *m_Renderer = nullptr;
 
         SIMPEngine::Entity selectedEntity;
+
+        bool m_BlockEvent;
 
     };
 

@@ -3,6 +3,8 @@
 #include "Window.h"
 #include "Log.h"
 
+#include "Input/Input.h"
+
 #include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
 #include <backends/imgui_impl_sdlrenderer3.h>
@@ -63,18 +65,21 @@ namespace SIMPEngine
 
     void ImGuiLayer::OnEvent(Event &e)
     {
-        // Just let ImGui capture if it wants
-        if ((ImGui::GetIO().WantCaptureMouse &&
-             (e.GetEventType() == EventType::MouseButtonPressed ||
-              e.GetEventType() == EventType::MouseButtonReleased ||
-              e.GetEventType() == EventType::MouseMoved ||
-              e.GetEventType() == EventType::MouseScrolled)) ||
-            (ImGui::GetIO().WantCaptureKeyboard &&
-             (e.GetEventType() == EventType::KeyPressed ||
-              e.GetEventType() == EventType::KeyReleased ||
-              e.GetEventType() == EventType::KeyTyped)))
+
+        if (m_BlockEvent)
         {
-            e.Handled = true;
+            if ((ImGui::GetIO().WantCaptureMouse &&
+                 (e.GetEventType() == EventType::MouseButtonPressed ||
+                  e.GetEventType() == EventType::MouseButtonReleased ||
+                  e.GetEventType() == EventType::MouseMoved ||
+                  e.GetEventType() == EventType::MouseScrolled)) ||
+                (ImGui::GetIO().WantCaptureKeyboard &&
+                 (e.GetEventType() == EventType::KeyPressed ||
+                  e.GetEventType() == EventType::KeyReleased ||
+                  e.GetEventType() == EventType::KeyTyped)))
+            {
+                e.Handled = true;
+            }
         }
     }
 
@@ -84,8 +89,8 @@ namespace SIMPEngine
         ImGui::ShowDemoWindow();
     }
 
-    void ImGuiLayer::OnUpdate(TimeStep ts){
-
+    void ImGuiLayer::OnUpdate(TimeStep ts)
+    {
     }
 
     void ImGuiLayer::OnSDLEvent(SDL_Event &e)

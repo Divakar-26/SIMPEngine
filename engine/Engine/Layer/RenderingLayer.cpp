@@ -107,7 +107,6 @@ namespace SIMPEngine
 
     void RenderingLayer::OnEvent(Event &e)
     {
-        m_Camera.OnEvent(e);
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &ev)
                                                      { return false; });
@@ -118,7 +117,7 @@ namespace SIMPEngine
     int height = ev.GetHeight();
 
     Renderer::GetAPI()->ResizeViewport(width, height);
-    m_Camera.SetViewportSize(width, height);
+    // m_Camera.SetViewportSize(width, height);
 
     CORE_INFO("Viewport resized: {}x{}", width, height);
     return false;

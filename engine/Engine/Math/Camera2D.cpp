@@ -3,6 +3,7 @@
 #include "Events/KeyEvent.h"
 #include <SDL3/SDL_keycode.h>
 #include "Log.h"
+#include "Input/Input.h"
 
 namespace SIMPEngine
 {
@@ -44,42 +45,6 @@ namespace SIMPEngine
 
     void Camera2D::OnEvent(Event &e)
     {
-        EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent &ev)
-                                             {
-            HandleKeyPress(ev.GetKeyCode(), true);
-            return false; });
-        dispatcher.Dispatch<KeyReleasedEvent>([this](KeyReleasedEvent &ev)
-                                              {
-            HandleKeyPress(ev.GetKeyCode(), false);
-            return false; });
-    }
-
-    void Camera2D::HandleKeyPress(int key, bool pressed)
-    {
-        switch (key)
-        {
-        case SDLK_A:
-            m_MoveLeft = pressed;
-            break;
-        case SDLK_D:
-            m_MoveRight = pressed;
-            break;
-        case SDLK_W:
-            m_MoveUp = pressed;
-            break;
-        case SDLK_S:
-            m_MoveDown = pressed;
-            break;
-        case SDLK_Q:
-            m_ManualZoom -= pressed ? m_ZoomSpeed * 0.1f : 0;
-            break;
-        case SDLK_E:
-            m_ManualZoom += pressed ? m_ZoomSpeed * 0.1f : 0;
-            break;
-        default:
-            break;
-        }
     }
 
     void Camera2D::Update(float deltaTime)
@@ -87,16 +52,22 @@ namespace SIMPEngine
         m_Position += (m_TargetPosition - m_Position) * glm::clamp(m_SmoothFactor * deltaTime, 0.0f, 1.0f);
 
         glm::vec2 delta(0.0f);
-        if (m_MoveLeft)
+        if (Input::IsKeyPressed(SDLK_A))
             delta.x -= m_MoveSpeed * deltaTime;
-        if (m_MoveRight)
+        if (Input::IsKeyPressed(SDLK_D))
             delta.x += m_MoveSpeed * deltaTime;
-        if (m_MoveUp)
+        if (Input::IsKeyPressed(SDLK_W))
             delta.y -= m_MoveSpeed * deltaTime;
-        if (m_MoveDown)
+        if (Input::IsKeyPressed(SDLK_S))
             delta.y += m_MoveSpeed * deltaTime;
 
+        if (Input::IsKeyPressed(SDLK_Q))
+            m_ManualZoom -= m_ZoomSpeed * deltaTime;
+        if (Input::IsKeyPressed(SDLK_E))
+            m_ManualZoom += m_ZoomSpeed * deltaTime;
         Move(delta);
+
+        m_ManualZoom = glm::clamp(m_ManualZoom, 0.1f, 10.0f);
     }
 
     glm::mat4 Camera2D::GetViewMatrix() const

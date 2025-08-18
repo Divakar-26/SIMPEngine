@@ -31,6 +31,7 @@ namespace SIMPEngine
         Renderer::Init(std::make_unique<SDLRenderingAPI>(), m_Window.GetRenderer());
 
         m_ImGuiLayer = new ImGuiLayer();
+
         PushOverlay(m_ImGuiLayer);
 
         CORE_INFO("Entt version {}", ENTT_VERSION);
@@ -56,7 +57,7 @@ namespace SIMPEngine
             SDL_Event sdlEvent;
             while (SDL_PollEvent(&sdlEvent))
             {
-                if(m_ImGuiLayer)
+                if (m_ImGuiLayer)
                     m_ImGuiLayer->OnSDLEvent(sdlEvent);
                 SDLEventToEngine(sdlEvent);
             }
@@ -83,11 +84,12 @@ namespace SIMPEngine
         m_ImGuiLayer->OnEvent(e);
 
         EventDispatcher dispatcher(e);
+
         dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
                                               {
         m_Running = false;
         return true; });
-
+                
         dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
                                              {
                                                  CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
@@ -110,6 +112,7 @@ namespace SIMPEngine
 
         dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
                                                       {
+
                                                  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseButtonReleased(ev.GetMouseButton());
@@ -117,6 +120,7 @@ namespace SIMPEngine
 
         dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
                                              {
+
                                                 //  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseMoved(ev.GetX(), ev.GetY());
