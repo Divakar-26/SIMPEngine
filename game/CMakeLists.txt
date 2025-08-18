@@ -1,6 +1,8 @@
 # Create GameApp executable
 add_executable(GameApp
-    src/main.cpp
+    main.cpp
+    EditorLayer.cpp
+    Panels/ViewportPanel.cpp
 )
 
 # Link game with engine library

@@ -31,14 +31,9 @@ namespace SIMPEngine
         Renderer::Init(std::make_unique<SDLRenderingAPI>(), m_Window.GetRenderer());
 
         m_ImGuiLayer = new ImGuiLayer();
-        m_RenderingLayer = new RenderingLayer();
-
-        PushOverlay(m_RenderingLayer);
         PushOverlay(m_ImGuiLayer);
 
         CORE_INFO("Entt version {}", ENTT_VERSION);
-        entt::registry m_Registry;
-        CORE_ERROR("Registry is {}", typeid(m_Registry).name());
     }
 
     Application::~Application()
@@ -61,8 +56,8 @@ namespace SIMPEngine
             SDL_Event sdlEvent;
             while (SDL_PollEvent(&sdlEvent))
             {
-                // if(m_ImGuiLayer)
-                m_ImGuiLayer->OnSDLEvent(sdlEvent);
+                if(m_ImGuiLayer)
+                    m_ImGuiLayer->OnSDLEvent(sdlEvent);
                 SDLEventToEngine(sdlEvent);
             }
 
@@ -73,9 +68,9 @@ namespace SIMPEngine
             SDL_RenderClear(m_Window.GetRenderer());
 
             m_ImGuiLayer->Begin();
+
             for (Layer *layer : m_LayerStack)
                 layer->OnRender();
-
 
             m_ImGuiLayer->End();
 
@@ -85,8 +80,7 @@ namespace SIMPEngine
 
     void Application::OnEvent(Event &e)
     {
-
-        m_ImGuiLayer->OnEvent(e); // ImGui first
+        m_ImGuiLayer->OnEvent(e);
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
@@ -94,52 +88,44 @@ namespace SIMPEngine
         m_Running = false;
         return true; });
 
-        if (m_ImGuiLayer->viewportFocused)
-        {
-            dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
-                                                 {
+        dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
+                                             {
                                                  CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
                                                  Input::OnKeyPressed(ev.GetKeyCode());
                                                  return false; });
 
-            dispatcher.Dispatch<KeyReleasedEvent>([](KeyReleasedEvent &ev)
-                                                  {
+        dispatcher.Dispatch<KeyReleasedEvent>([](KeyReleasedEvent &ev)
+                                              {
                                                  CORE_INFO("{}", ev.ToString());
 
         Input::OnKeyReleased(ev.GetKeyCode());
         return false; });
 
-            dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &ev)
-                                                         {
+        dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &ev)
+                                                     {
                                                  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseButtonPressed(ev.GetMouseButton());
         return false; });
 
-            dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
-                                                          {
+        dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
+                                                      {
                                                  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseButtonReleased(ev.GetMouseButton());
         return false; });
 
-            dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
-                                                 {
+        dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
+                                             {
                                                 //  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseMoved(ev.GetX(), ev.GetY());
         return false; });
 
-            dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
-                                                    {
+        dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
+                                                {
                                                     CORE_INFO("{}", ev.ToString());
                                                     return false; });
-        }
-
-        else
-        {
-            Input::ResetAllKeys();
-        }
 
         if (!e.Handled)
         {

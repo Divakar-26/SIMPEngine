@@ -1,0 +1,17 @@
+#pragma once
+
+#include <imgui.h>
+#include "Rendering/Renderer.h"
+#include "Layer/RenderingLayer.h"
+
+class ViewportPanel
+{
+public:
+    ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer);
+
+    void OnRender();
+
+private:
+    SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
+    bool m_ViewportFocused = false;
+};

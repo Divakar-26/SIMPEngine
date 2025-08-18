@@ -37,6 +37,7 @@ namespace SIMPEngine
         SDL_Renderer *m_Renderer = nullptr;
 
         SIMPEngine::Entity selectedEntity;
+
     };
 
 }
