@@ -1,20 +1,9 @@
+#include"PCH.h"
+
 #include "Layer/RenderingLayer.h"
 
-#include "Events/MouseEvent.h"
-#include "Events/KeyEvent.h"
-#include "Events/ApplicationEvent.h"
-#include "Events/EventDispatcher.h"
-#include "Log.h"
-#include "Input/Input.h"
-#include <SDL3/SDL_keycode.h>
-
-#include "Rendering/TextureManager.h"
-#include "Rendering/Sprite.h"
-#include "Rendering/Animation.h"
-#include "Rendering/SpriteAtlas.h"
-#include "Scene/Entity.h"
-
-#include <iostream>
+#include"Scene/Scene.h"
+#include"Scene/Entity.h"
 
 float kl = 0.0f;
 

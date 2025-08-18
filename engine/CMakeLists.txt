@@ -66,3 +66,5 @@ target_link_libraries(Engine
     PUBLIC imgui
     PUBLIC SDL3_image::SDL3_image 
 )
+
+target_precompile_headers(Engine PRIVATE Engine/PCH.h)

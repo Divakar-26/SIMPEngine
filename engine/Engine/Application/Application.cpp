@@ -1,19 +1,6 @@
-#include "Application/Application.h"
-#include "Events/ApplicationEvent.h"
-#include "Events/EventDispatcher.h"
-#include "Events/KeyEvent.h"
-#include "Events/MouseEvent.h"
-#include <entt/entt.hpp>
+#include "PCH.h"
+#include "Application.h"
 
-#include "Log.h"
-
-#include "Rendering/SDLRenderingAPI.h"
-#include "Rendering/Renderer.h"
-#include "Input/Input.h"
-
-#include "Rendering/Texture.h"
-
-#include <iostream>
 
 namespace SIMPEngine
 {
