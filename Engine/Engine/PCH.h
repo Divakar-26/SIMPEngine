@@ -8,6 +8,7 @@
 #include "Log.h"
 #include "TimeStep.h"
 #include "Input/Input.h"
+#include "Input/SIMP_Keys.h"
 
 // ------Rendering-----------------
 #include "Rendering/TextureManager.h"

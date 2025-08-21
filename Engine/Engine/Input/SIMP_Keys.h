@@ -1,0 +1,124 @@
+#pragma once
+#include <SDL3/SDL.h>
+
+namespace SIMPEngine
+{
+    enum SIMP_Keys
+    {
+        // Key code for Key presses
+
+        SIMPK_W = SDLK_W,
+        SIMPK_A = SDLK_A,
+        SIMPK_S = SDLK_S,
+        SIMPK_D = SDLK_D,
+        SIMPK_Q = SDLK_Q,
+        SIMPK_E = SDLK_E,
+        SIMPK_F = SDLK_F,
+        SIMPK_G = SDLK_G,
+        SIMPK_R = SDLK_R,
+        SIMPK_T = SDLK_T,
+        SIMPK_Y = SDLK_Y,
+        SIMPK_U = SDLK_U,
+        SIMPK_I = SDLK_I,
+        SIMPK_O = SDLK_O,
+        SIMPK_P = SDLK_P,
+        SIMPK_Z = SDLK_Z,
+        SIMPK_X = SDLK_X,
+        SIMPK_C = SDLK_C,
+        SIMPK_V = SDLK_V,
+        SIMPK_B = SDLK_B,
+        SIMPK_N = SDLK_N,
+        SIMPK_M = SDLK_M,
+        SIMPK_L = SDLK_L,
+        SIMPK_H = SDLK_H,
+        SIMPK_J = SDLK_J,
+        SIMPK_K = SDLK_K,
+
+        // Number keys
+        SIMPK_0 = SDLK_0,
+        SIMPK_1 = SDLK_1,
+        SIMPK_2 = SDLK_2,
+        SIMPK_3 = SDLK_3,
+        SIMPK_4 = SDLK_4,
+        SIMPK_5 = SDLK_5,
+        SIMPK_6 = SDLK_6,
+        SIMPK_7 = SDLK_7,
+        SIMPK_8 = SDLK_8,
+        SIMPK_9 = SDLK_9,
+
+        // Special keys
+        
+        SIMPK_MINUS = SDLK_MINUS,
+        SIMPK_LEFTBRACKET = SDLK_LEFTBRACKET,
+        SIMPK_RIGHTBRACKET = SDLK_RIGHTBRACKET,
+        SIMPK_GREATER = SDLK_GREATER,
+        SIMPK_LESS = SDLK_LESS,
+        SIMPK_SPACE = SDLK_SPACE,
+        SIMPK_RETURN = SDLK_RETURN,
+        SIMPK_ESCAPE = SDLK_ESCAPE,
+        SIMPK_BACKSPACE = SDLK_BACKSPACE,
+        SIMPK_TAB = SDLK_TAB,
+        SIMPK_LEFT = SDLK_LEFT,
+        SIMPK_RIGHT = SDLK_RIGHT,
+        SIMPK_UP = SDLK_UP,
+        SIMPK_DOWN = SDLK_DOWN,
+        SIMPK_LCTRL = SDLK_LCTRL,
+        SIMPK_RCTRL = SDLK_RCTRL,
+        SIMPK_LSHIFT = SDLK_LSHIFT,
+        SIMPK_RSHIFT = SDLK_RSHIFT,
+        SIMPK_LALT = SDLK_LALT,
+        SIMPK_RALT = SDLK_RALT,
+        SIMPK_LGUI = SDLK_LGUI,
+        SIMPK_RGUI = SDLK_RGUI,
+        SIMPK_INSERT = SDLK_INSERT,
+        SIMPK_DELETE = SDLK_DELETE,
+        SIMPK_HOME = SDLK_HOME,
+        SIMPK_END = SDLK_END,
+        SIMPK_PAGEUP = SDLK_PAGEUP,
+        SIMPK_PAGEDOWN = SDLK_PAGEDOWN,
+        SIMPK_CAPSLOCK = SDLK_CAPSLOCK,
+        SIMPK_SCROLLLOCK = SDLK_SCROLLLOCK,
+        SIMPK_PRINTSCREEN = SDLK_PRINTSCREEN,
+        SIMPK_PAUSE = SDLK_PAUSE,
+        SIMPK_NUMLOCKCLEAR = SDLK_NUMLOCKCLEAR,
+        SIMPK_APPLICATION = SDLK_APPLICATION,
+        SIMPK_POWER = SDLK_POWER,
+        SIMPK_COOMMA = SDLK_COMMA,
+        SIMPL_PLUS = SDLK_PLUSMINUS,
+        SIMPK_SEMICOLON = SDLK_SEMICOLON,
+        SIMPK_PERIOD = SDLK_PERIOD,
+        SIMPK_APOSTROPHE = SDLK_APOSTROPHE,
+        SIMPK_LEFTBRACE = SDLK_LEFTBRACE,
+        SIMPK_RIGHTBRACE = SDLK_RIGHTBRACE,
+        SIMPK_SLASH = SDLK_SLASH,
+        SIMPK_BACKSLASH = SDLK_BACKSLASH,
+        SIMPK_EQUALS = SDLK_EQUALS,
+        SIMPK_GRAVE = SDLK_GRAVE,   
+        SIMPK_TILDE = SDLK_TILDE,
+        
+       
+
+        // Function keys
+        SIMPK_F1 = SDLK_F1,
+        SIMPK_F2 = SDLK_F2,
+        SIMPK_F3 = SDLK_F3,
+        SIMPK_F4 = SDLK_F4,
+        SIMPK_F5 = SDLK_F5,
+        SIMPK_F6 = SDLK_F6,
+        SIMPK_F7 = SDLK_F7,
+        SIMPK_F8 = SDLK_F8,
+        SIMPK_F9 = SDLK_F9,
+        SIMPK_F10 = SDLK_F10,
+        SIMPK_F11 = SDLK_F11,
+        SIMPK_F12 = SDLK_F12,
+
+        // mouse buttons
+        SIMPK_MOUSE_LEFT = SDL_BUTTON_LEFT,
+        SIMPK_MOUSE_RIGHT = SDL_BUTTON_RIGHT,
+        SIMPK_MOUSE_MIDDLE = SDL_BUTTON_MIDDLE,
+        SIMPK_MOUSE_X1 = SDL_BUTTON_X1,
+        SIMPK_MOUSE_X2 = SDL_BUTTON_X2,
+        
+
+    };
+}
