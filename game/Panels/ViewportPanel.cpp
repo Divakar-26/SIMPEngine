@@ -54,6 +54,19 @@ void ViewportPanel::OnRender()
     m_ViewportFocused = nowFocused;
     m_ViewportHovered = nowHovered;
 
+    ImVec2 avail = ImGui::GetContentRegionAvail();
+    int vw = (int)std::round(avail.x);
+    int vh = (int)std::round(avail.y);
+
+    static int lastW = -1, lastH = -1;
+    if (vw != lastW || vh != lastH)
+    {
+        SIMPEngine::Renderer::GetAPI()->ResizeViewport(vw, vh);
+        m_RenderingLayer->GetCamera().SetViewportSize((float)vw, (float)vh);
+        lastW = vw;
+        lastH = vh;
+    }
+
     SIMPEngine::Renderer::GetAPI()->ResizeViewport((int)viewportSize.x, (int)viewportSize.y);
     SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), SIMPEngine::Renderer::GetAPI()->GetViewportTexture());
 
