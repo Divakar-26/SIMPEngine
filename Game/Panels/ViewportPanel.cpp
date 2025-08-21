@@ -21,7 +21,6 @@ void ViewportPanel::OnRender()
 
     if(!nowFocused){
         SIMPEngine::Input::ResetAllKeys();
-        CORE_ERROR("OUT OF VIEWPORT");
     }
 
     m_ViewportFocused = nowFocused;

@@ -44,6 +44,15 @@ namespace SIMPEngine
 
         io.IniFilename = "../assets/ImGUIPanels/imgui.ini";
 
+        ImGuiStyle &style = ImGui::GetStyle();
+        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.129f, 0.149f, 0.180f, 1.0f); // RGBA
+        style.Colors[ImGuiCol_FrameBg] = ImVec4(0.129f, 0.149f, 0.180f, 1.0f);  // RGBA
+        style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+        style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+        style.FrameBorderSize = 1.0f; // default is 0.0f (no border)
+
+        style.Colors[ImGuiCol_Tab]                = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
+
         // Init backends
         ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
         ImGui_ImplSDLRenderer3_Init(m_Renderer);
@@ -93,7 +102,7 @@ namespace SIMPEngine
     void ImGuiLayer::OnRender()
     {
 
-        ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
     }
 
     void ImGuiLayer::OnUpdate(TimeStep ts)

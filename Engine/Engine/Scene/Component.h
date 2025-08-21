@@ -30,7 +30,7 @@ struct CollisionComponent
 
 struct SpriteComponent
 {
-    std::shared_ptr<SIMPEngine::Texture> texture;
+    std::shared_ptr<SIMPEngine::Texture> texture = nullptr;
     float width;
     float height;
 };

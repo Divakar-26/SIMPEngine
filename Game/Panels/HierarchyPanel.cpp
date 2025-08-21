@@ -1,21 +1,21 @@
 #include "HierarchyPanel.h"
 #include "Scene/Scene.h"
 
-entt::entity m_SelectedEntity;
+SIMPEngine::Entity m_SelectedEntity;
 
 template <typename T>
-void DrawComponent(entt::entity entity, SIMPEngine::Scene *scene, const char *name)
+void DrawComponent(SIMPEngine::Entity entity, const char *name)
 {
-    if (scene->GetRegistry().any_of<T>(entity))
+    if (entity.HasComponent<T>())
     {
-        bool open = ImGui::TreeNodeEx((void *)typeid(T).hash_code(),
-                                      ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth,
+        bool open = ImGui::TreeNodeEx((void *)(uint64_t)typeid(T).hash_code(),
+                                      ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth,
                                       "%s", name);
 
         if (ImGui::BeginPopupContextItem())
         {
             if (ImGui::MenuItem("Remove Component"))
-                scene->GetRegistry().remove<T>(entity);
+                entity.RemoveComponent<T>();
 
             ImGui::EndPopup();
         }
@@ -29,32 +29,120 @@ HierarchyPanel::HierarchyPanel(SIMPEngine::RenderingLayer *rl) : m_RenderingLaye
 
 void HierarchyPanel::OnRender()
 {
-    ImGui::Begin("Panel");
+    ImGui::Begin("Hierarchy");
     SIMPEngine::Scene &scene = m_RenderingLayer->GetScene();
 
-    scene.GetRegistry().view<TagComponent>().each([&](auto entity, auto &tag)
-                                                  {
-        ImGuiTreeNodeFlags flags =  ImGuiTreeNodeFlags_SpanAvailWidth;
+    if (ImGui::Button("+", ImVec2(40, 40)))
+    {
+        ImGui::OpenPopup("AddEntityPopup");
+    }
 
-        bool opened = ImGui::TreeNodeEx((void*)entity, flags, "%s", tag.Tag.c_str());
-        if(ImGui::IsItemClicked()){
-            m_SelectedEntity = entity;
+    if (ImGui::BeginPopupModal("AddEntityPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    {
+        // Input entity name
+        ImGui::InputText("Entity Name", m_EntityNameBuffer, sizeof(m_EntityNameBuffer));
+
+        ImGui::Separator();
+
+        // Component checkboxes
+        ImGui::Text("Select Components:");
+        ImGui::Checkbox("Sprite", &m_AddSprite);
+        ImGui::Checkbox("Camera", &m_AddCamera);
+        ImGui::Checkbox("Velocity", &m_AddVelocity);
+        ImGui::Checkbox("Collision", &m_AddCollision);
+
+        ImGui::Separator();
+
+        // Buttons
+        if (ImGui::Button("Add"))
+        {
+            auto &registry = m_RenderingLayer->GetScene().GetRegistry();
+
+            SIMPEngine::Entity entity = scene.CreateEntity(m_EntityNameBuffer);
+
+            if (m_AddVelocity)
+                entity.AddComponent<VelocityComponent>();
+            if (m_AddSprite)
+                entity.AddComponent<SpriteComponent>(nullptr, 0.0f, 0.0f);
+            if (m_AddCamera)
+                entity.AddComponent<CameraComponent>();
+            if (m_AddCollision)
+                entity.AddComponent<CollisionComponent>();
+
+            m_AddVelocity = m_AddSprite = m_AddCamera = m_AddCollision = false;
+            strcpy(m_EntityNameBuffer, "New Entity");
+
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel"))
+        {
+            ImGui::CloseCurrentPopup();
         }
 
-        if(opened){
-            ShowComponents(m_SelectedEntity, &scene);
-            ImGui::TreePop();
-        } });
+        ImGui::EndPopup();
+    }
+
+    scene.GetRegistry().view<TagComponent>().each([&](auto handle, auto &tag)
+                                                  {
+    SIMPEngine::Entity entity(handle, &scene);
+
+    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+    bool opened = ImGui::TreeNodeEx((void*)(uint64_t)handle, flags, "%s", tag.Tag.c_str());
+
+    if (ImGui::IsItemClicked())
+        m_SelectedEntity = entity;
+              
+    if (ImGui::BeginPopupContextItem())
+    {
+        if (ImGui::BeginMenu("Add Component"))
+        {
+            if (!entity.HasComponent<TransformComponent>() && ImGui::MenuItem("Transform"))
+                entity.AddComponent<TransformComponent>();
+
+            if (!entity.HasComponent<SpriteComponent>() && ImGui::MenuItem("Sprite"))
+                entity.AddComponent<SpriteComponent>(nullptr, 0.0f, 0.0f);
+
+            if (!entity.HasComponent<VelocityComponent>() && ImGui::MenuItem("Velocity"))
+                entity.AddComponent<VelocityComponent>();
+
+            if (!entity.HasComponent<RenderComponent>() && ImGui::MenuItem("Render"))
+                entity.AddComponent<RenderComponent>();
+
+            if (!entity.HasComponent<CameraComponent>() && ImGui::MenuItem("Camera"))
+                entity.AddComponent<CameraComponent>();
+
+            if (!entity.HasComponent<CollisionComponent>() && ImGui::MenuItem("Collision"))
+                entity.AddComponent<CollisionComponent>();
+
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::MenuItem("Delete Entity"))
+        {
+            scene.GetRegistry().destroy(handle);
+            if (m_SelectedEntity.GetHandle() == handle)
+                m_SelectedEntity = {};
+        }
+
+        ImGui::EndPopup();
+    }
+
+    if (opened)
+    {
+        ShowComponents(entity);
+        ImGui::TreePop();
+    } });
 
     ImGui::End();
 }
 
-void HierarchyPanel::ShowComponents(entt::entity entity, SIMPEngine::Scene *scene)
+void HierarchyPanel::ShowComponents(SIMPEngine::Entity entity)
 {
-    DrawComponent<TransformComponent>(entity, scene, "Transform");
-    DrawComponent<SpriteComponent>(entity, scene, "Sprite");
-    DrawComponent<VelocityComponent>(entity, scene, "Velocity");
-    DrawComponent<RenderComponent>(entity, scene, "Render");
-    DrawComponent<CameraComponent>(entity, scene, "Camera Entity");
-    DrawComponent<CollisionComponent>(entity, scene, "Collision Box");
+    DrawComponent<TransformComponent>(entity, "Transform");
+    DrawComponent<SpriteComponent>(entity, "Sprite");
+    DrawComponent<VelocityComponent>(entity, "Velocity");
+    DrawComponent<RenderComponent>(entity, "Render");
+    DrawComponent<CameraComponent>(entity, "Camera Entity");
+    DrawComponent<CollisionComponent>(entity, "Collision Box");
 }

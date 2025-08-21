@@ -41,7 +41,7 @@ namespace SIMPEngine
         Entity entity(handle, this);
 
         entity.AddComponent<TransformComponent>(0.0f, 0.0f, 0.0f);
-
+        entity.AddComponent<TagComponent>(name.empty() ? "Unnamed Entity" : name);
         return entity;
     }
 
@@ -106,6 +106,8 @@ namespace SIMPEngine
 
             transform.x += velocity.vx * deltaTime;
             transform.y += velocity.vy * deltaTime;
+
+            CORE_ERROR("HELLO FOUND");
         }
 
         // Example simple collision check between entities with CollisionComponent
@@ -129,6 +131,8 @@ namespace SIMPEngine
                 {
                     // CORE_INFO("Collision detected between entities!");
                 }
+
+                CORE_ERROR("HELLO FOUND");
             }
         }
     }
@@ -182,7 +186,8 @@ namespace SIMPEngine
             auto &transform = spriteView.get<TransformComponent>(entity);
             auto &spriteComp = spriteView.get<SpriteComponent>(entity);
 
-            Renderer::DrawTexture(spriteComp.texture->GetSDLTexture(), transform.x, transform.y, spriteComp.width, spriteComp.height, SDL_Color{255, 255, 255, 255}, transform.rotation);
+            if(spriteComp.texture)
+                Renderer::DrawTexture(spriteComp.texture->GetSDLTexture(), transform.x, transform.y, spriteComp.width, spriteComp.height, SDL_Color{255, 255, 255, 255}, transform.rotation);
         }
 
         // auto view = m_Registry.view<TransformComponent, RenderComponent>();
@@ -207,7 +212,8 @@ namespace SIMPEngine
 
     Camera2D &Scene::GetActiveCamera()
     {
-        if(useMainCamera) return m_MainCamera;
+        if (useMainCamera)
+            return m_MainCamera;
         auto view = m_Registry.view<CameraComponent>();
         for (auto entity : view)
         {
@@ -217,7 +223,6 @@ namespace SIMPEngine
                 return camComp.Camera;
             }
         }
-
     }
 
 }
