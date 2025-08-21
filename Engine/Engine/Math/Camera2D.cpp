@@ -4,6 +4,7 @@
 #include <SDL3/SDL_keycode.h>
 #include "Log.h"
 #include "Input/Input.h"
+#include "Input/SIMP_Keys.h"
 
 namespace SIMPEngine
 {
@@ -53,18 +54,18 @@ namespace SIMPEngine
         m_Position += (m_TargetPosition - m_Position) * glm::clamp(m_SmoothFactor * deltaTime, 0.0f, 1.0f);
 
         glm::vec2 delta(0.0f);
-        if (Input::IsKeyPressed(SDLK_A))
+        if (Input::IsKeyPressed(SIMPK_A))
             delta.x -= m_MoveSpeed * deltaTime;
-        if (Input::IsKeyPressed(SDLK_D))
+        if (Input::IsKeyPressed(SIMPK_D))
             delta.x += m_MoveSpeed * deltaTime;
-        if (Input::IsKeyPressed(SDLK_W))
+        if (Input::IsKeyPressed(SIMPK_W))
             delta.y -= m_MoveSpeed * deltaTime;
-        if (Input::IsKeyPressed(SDLK_S))
+        if (Input::IsKeyPressed(SIMPK_S))
             delta.y += m_MoveSpeed * deltaTime;
 
-        if (Input::IsKeyPressed(SDLK_Q))
+        if (Input::IsKeyPressed(SIMPK_Q))
             m_ManualZoom -= m_ZoomSpeed * deltaTime;
-        if (Input::IsKeyPressed(SDLK_E))
+        if (Input::IsKeyPressed(SIMPK_E))
             m_ManualZoom += m_ZoomSpeed * deltaTime;
         Move(delta);
 

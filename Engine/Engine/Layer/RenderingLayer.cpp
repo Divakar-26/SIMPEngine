@@ -54,23 +54,23 @@ namespace SIMPEngine
         if(m_Scene.GetRegistry().any_of<VelocityComponent>(m_Scene.GetEntityByName("RedBox"))){
 
             int sprint;
-            if(Input::IsKeyPressed(SDLK_LSHIFT)){
+            if(Input::IsKeyPressed(SIMPK_LSHIFT)){
                 sprint = 1000.0f;
             }
-            if(!Input::IsKeyPressed(SDLK_LSHIFT)){
+            if(!Input::IsKeyPressed(SIMPK_LSHIFT)){
                 sprint = 0.0f;
             }
     
-            if (Input::IsKeyPressed(SDLK_UP))
+            if (Input::IsKeyPressed(SIMPK_UP))
                 vel.vy = -500.0f + -sprint;
-            else if (Input::IsKeyPressed(SDLK_DOWN))
+            else if (Input::IsKeyPressed(SIMPK_DOWN))
                 vel.vy = 500.0f + sprint;
             else
                 vel.vy = 0.0f;
     
-            if (Input::IsKeyPressed(SDLK_LEFT))
+            if (Input::IsKeyPressed(SIMPK_LEFT))
                 vel.vx = -500.0f + -sprint;
-            else if (Input::IsKeyPressed(SDLK_RIGHT))
+            else if (Input::IsKeyPressed(SIMPK_RIGHT))
                 vel.vx = 500.0f + sprint;
             else
                 vel.vx = 0.0f;
