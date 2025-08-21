@@ -40,7 +40,7 @@ namespace SIMPEngine
         entt::entity handle = m_Registry.create();
         Entity entity(handle, this);
 
-        entity.AddComponent<TransformComponent>(0.0f, 0.0f, 0.0f);
+        entity.AddComponent<TransformComponent>(100.0f, 0.0f, 0.0f);
         entity.AddComponent<TagComponent>(name.empty() ? "Unnamed Entity" : name);
         return entity;
     }
@@ -190,13 +190,13 @@ namespace SIMPEngine
                 Renderer::DrawTexture(spriteComp.texture->GetSDLTexture(), transform.x, transform.y, spriteComp.width, spriteComp.height, SDL_Color{255, 255, 255, 255}, transform.rotation);
         }
 
-        // auto view = m_Registry.view<TransformComponent, RenderComponent>();
-        // for (auto entity : view)
-        // {
-        //     auto &transform = view.get<TransformComponent>(entity);
-        //     auto &render = view.get<RenderComponent>(entity);
-        //     Renderer::DrawQuad(transform.x, transform.y, render.width * transform.scaleX, render.height * transform.scaleY, render.color);
-        // }
+        auto view = m_Registry.view<TransformComponent, RenderComponent>();
+        for (auto entity : view)
+        {
+            auto &transform = view.get<TransformComponent>(entity);
+            auto &render = view.get<RenderComponent>(entity);
+            Renderer::DrawQuad(transform.x, transform.y, render.width * transform.scaleX, render.height * transform.scaleY, render.color);
+        }
     }
 
     bool Scene::HasActiveCamera()

@@ -53,7 +53,6 @@ namespace SIMPEngine
 
         // if(m_Scene.GetRegistry().any_of<VelocityComponent>(m_Scene.GetEntityByName("RedBox"))){
 
-<<<<<<< HEAD
         //     int sprint;
         //     if(Input::IsKeyPressed(SDLK_LSHIFT)){
         //         sprint = 1000.0f;
@@ -76,30 +75,6 @@ namespace SIMPEngine
         //     else
         //         vel.vx = 0.0f;
         // }
-=======
-            int sprint;
-            if(Input::IsKeyPressed(SIMPK_LSHIFT)){
-                sprint = 1000.0f;
-            }
-            if(!Input::IsKeyPressed(SIMPK_LSHIFT)){
-                sprint = 0.0f;
-            }
-    
-            if (Input::IsKeyPressed(SIMPK_UP))
-                vel.vy = -500.0f + -sprint;
-            else if (Input::IsKeyPressed(SIMPK_DOWN))
-                vel.vy = 500.0f + sprint;
-            else
-                vel.vy = 0.0f;
-    
-            if (Input::IsKeyPressed(SIMPK_LEFT))
-                vel.vx = -500.0f + -sprint;
-            else if (Input::IsKeyPressed(SIMPK_RIGHT))
-                vel.vx = 500.0f + sprint;
-            else
-                vel.vx = 0.0f;
-        }
->>>>>>> 368bd093a476245327f7a028fb67d51791a0419a
 
         kl += ts.GetSeconds() * 90.0f;
     }
@@ -110,6 +85,7 @@ namespace SIMPEngine
         Renderer::DrawQuad(0, 0, 200, 150, SDL_Color{255, 134, 244, 255});
 
         // auto cointex = TextureManager::Get().GetTexture("coin");
+        
         // SDL_FRect rect;
         // rect.x = 0;
         // rect.y = 0;

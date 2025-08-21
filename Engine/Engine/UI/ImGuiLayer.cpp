@@ -53,6 +53,9 @@ namespace SIMPEngine
 
         style.Colors[ImGuiCol_Tab]                = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
 
+
+        io.Fonts->AddFontFromFileTTF("../assets/JetBrainsMonoNerdFont-Regular.ttf", 18.0f);
+
         // Init backends
         ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
         ImGui_ImplSDLRenderer3_Init(m_Renderer);
