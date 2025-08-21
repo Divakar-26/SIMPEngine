@@ -44,12 +44,15 @@ void EditorLayer::OnRender()
     ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
     if (opt_fullscreen)
         ImGui::PopStyleVar(2);
-
-    // Dockspace
-    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-    ImGui::End();   
-
+        
+        // Dockspace
+        
+        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+        ImGui::End();   
+        
+    
+    m_ViewportPanel.OnRender();
     ShowLogs();
 
     m_HieararchyPanel.OnRender();
@@ -58,7 +61,6 @@ void EditorLayer::OnRender()
     ImGui::Text("Selected entity properties...");
     ImGui::End();
 
-    m_ViewportPanel.OnRender();
 }
 
 void EditorLayer::ShowLogs()

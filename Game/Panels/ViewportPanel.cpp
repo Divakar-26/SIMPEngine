@@ -19,6 +19,11 @@ void ViewportPanel::OnRender()
 
     SIMPEngine::Application::Get().GetImGuiLayer()->SetBlockEvent(!(nowFocused));
 
+    if(!nowFocused){
+        SIMPEngine::Input::ResetAllKeys();
+        CORE_ERROR("OUT OF VIEWPORT");
+    }
+
     m_ViewportFocused = nowFocused;
     m_ViewportHovered = nowHovered;
 

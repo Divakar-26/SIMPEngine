@@ -3,6 +3,28 @@
 
 entt::entity m_SelectedEntity;
 
+template <typename T>
+void DrawComponent(entt::entity entity, SIMPEngine::Scene *scene, const char *name)
+{
+    if (scene->GetRegistry().any_of<T>(entity))
+    {
+        bool open = ImGui::TreeNodeEx((void *)typeid(T).hash_code(),
+                                      ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth,
+                                      "%s", name);
+
+        if (ImGui::BeginPopupContextItem())
+        {
+            if (ImGui::MenuItem("Remove Component"))
+                scene->GetRegistry().remove<T>(entity);
+
+            ImGui::EndPopup();
+        }
+
+        if (open)
+            ImGui::TreePop();
+    }
+}
+
 HierarchyPanel::HierarchyPanel(SIMPEngine::RenderingLayer *rl) : m_RenderingLayer(rl) {}
 
 void HierarchyPanel::OnRender()
@@ -29,52 +51,10 @@ void HierarchyPanel::OnRender()
 
 void HierarchyPanel::ShowComponents(entt::entity entity, SIMPEngine::Scene *scene)
 {
-
-    if (scene->GetRegistry().any_of<TransformComponent>(entity))
-    {
-        if (ImGui::TreeNodeEx((void *)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth, "Transform"))
-        {
-            ImGui::TreePop();
-        }
-    }
-
-    if (scene->GetRegistry().any_of<SpriteComponent>(entity))
-    {
-        if (ImGui::TreeNodeEx((void *)typeid(SpriteComponent).hash_code(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth, "Sprite"))
-        {
-            ImGui::TreePop();
-        }
-    }
-
-    if (scene->GetRegistry().any_of<VelocityComponent>(entity))
-    {
-        if (ImGui::TreeNodeEx((void *)typeid(VelocityComponent).hash_code(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth, "Velocity"))
-        {
-            ImGui::TreePop();
-        }
-    }
-
-    if (scene->GetRegistry().any_of<RenderComponent>(entity))
-    {
-        if (ImGui::TreeNodeEx((void *)typeid(RenderComponent).hash_code(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth, "Render"))
-        {
-            ImGui::TreePop();
-        }
-    }
-
-    if (scene->GetRegistry().any_of<CameraComponent>(entity))
-    {
-        if (ImGui::TreeNodeEx((void *)typeid(CameraComponent).hash_code(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth, "Camera Entity"))
-        {
-            ImGui::TreePop();
-        }
-    }
-
-    if (scene->GetRegistry().any_of<CollisionComponent>(entity))
-    {
-        if (ImGui::TreeNodeEx((void *)typeid(CollisionComponent).hash_code(), ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_SpanAvailWidth, "Collision Box"))
-        {
-            ImGui::TreePop();
-        }
-    }
+    DrawComponent<TransformComponent>(entity, scene, "Transform");
+    DrawComponent<SpriteComponent>(entity, scene, "Sprite");
+    DrawComponent<VelocityComponent>(entity, scene, "Velocity");
+    DrawComponent<RenderComponent>(entity, scene, "Render");
+    DrawComponent<CameraComponent>(entity, scene, "Camera Entity");
+    DrawComponent<CollisionComponent>(entity, scene, "Collision Box");
 }

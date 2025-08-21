@@ -16,4 +16,5 @@ public:
 
 private:
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
+    
 };
