@@ -13,7 +13,10 @@ namespace SIMPEngine
         void ShutDown();
         void OnUpdate();
 
+        //return the window for others to use like appplication
         SDL_Window *GetNativeWindow() { return m_Window; }
+
+        //same as GetNativeWindow
         SDL_Renderer *GetRenderer() { return m_Renderer; }
 
     private:

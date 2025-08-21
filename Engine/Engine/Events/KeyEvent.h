@@ -3,6 +3,7 @@
 
 namespace SIMPEngine
 {
+    //make a parent class KeyEvent which will hold the keycode 
     class KeyEvent : public Event
     {
     public:
@@ -13,15 +14,20 @@ namespace SIMPEngine
         int m_KeyCode;
     };
 
+    // inherit it from KeyEvent
     class KeyPressedEvent : public KeyEvent
     {
     public:
+
+        //repeat represent if the key is repeating or not
         KeyPressedEvent(int keycode, bool repeat) : KeyEvent(keycode), m_Repeat(repeat) {}
+
 
         static EventType StaticType() { return EventType::KeyPressed; }
         EventType GetEventType() const override { return StaticType(); }
         const char *GetName() const override { return "KeyPressed"; }
-
+        
+        // for the logger
         std::string ToString() const override
         {
             return std::string(GetName()) + ": " + std::to_string(m_KeyCode) +

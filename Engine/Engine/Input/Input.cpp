@@ -3,6 +3,7 @@
 
 namespace SIMPEngine
 {
+    
     std::unordered_set<int> Input::s_KeysPressed;
     std::unordered_set<int> Input::s_MouseButtonsPressed;
     int Input::s_MouseX = 0;

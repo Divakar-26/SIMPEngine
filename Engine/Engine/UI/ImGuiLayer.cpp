@@ -42,7 +42,7 @@ namespace SIMPEngine
         float oldScale = io.FontGlobalScale;
         io.FontGlobalScale = 2.0f;
 
-        io.IniFilename = "imgui.ini";
+        io.IniFilename = "../assets/ImGUIPanels/imgui.ini";
 
         // Init backends
         ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
@@ -93,7 +93,7 @@ namespace SIMPEngine
     void ImGuiLayer::OnRender()
     {
 
-        ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
     }
 
     void ImGuiLayer::OnUpdate(TimeStep ts)

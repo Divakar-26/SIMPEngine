@@ -13,5 +13,5 @@ add_subdirectory(vendor/glm EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/SDL_image EXCLUDE_FROM_ALL)
 
 # Add engine and game subprojects
-add_subdirectory(engine)
-add_subdirectory(game)
+add_subdirectory(Engine)
+add_subdirectory(Game)
