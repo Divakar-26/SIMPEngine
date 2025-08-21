@@ -51,17 +51,25 @@ namespace SIMPEngine
 
         auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<VelocityComponent>();
 
+        int sprint;
+        if(Input::IsKeyPressed(SDLK_LSHIFT)){
+            sprint = 1000.0f;
+        }
+        if(!Input::IsKeyPressed(SDLK_LSHIFT)){
+            sprint = 0.0f;
+        }
+
         if (Input::IsKeyPressed(SDLK_UP))
-            vel.vy = -100.0f;
+            vel.vy = -500.0f + -sprint;
         else if (Input::IsKeyPressed(SDLK_DOWN))
-            vel.vy = 100.0f;
+            vel.vy = 500.0f + sprint;
         else
             vel.vy = 0.0f;
 
         if (Input::IsKeyPressed(SDLK_LEFT))
-            vel.vx = -100.0f;
+            vel.vx = -500.0f + -sprint;
         else if (Input::IsKeyPressed(SDLK_RIGHT))
-            vel.vx = 100.0f;
+            vel.vx = 500.0f + sprint;
         else
             vel.vx = 0.0f;
 

@@ -19,38 +19,6 @@ void ViewportPanel::OnRender()
 
     SIMPEngine::Application::Get().GetImGuiLayer()->SetBlockEvent(!(nowFocused));
 
-    if (!(nowFocused))
-    {
-        SIMPEngine::Input().ResetAllKeys();
-        CORE_INFO("OUT OF WINDOE");
-    }
-
-    if (nowFocused)
-    {
-
-        if (SIMPEngine::Input().IsMouseButtonPressed(SDL_BUTTON_LEFT))
-        {
-            ImVec2 windowPos = ImGui::GetWindowPos();
-            ImVec2 contentPos = ImGui::GetCursorScreenPos(); // top-left of content region
-            auto [mouseX, mouseY] = SIMPEngine::Input::GetMousePosition();
-
-            // relative to viewport content
-            float relX = mouseX - contentPos.x;
-            float relY = mouseY - contentPos.y;
-
-            auto [viewportWidth, viewportHeight] = m_RenderingLayer->GetViewportSize();
-
-            glm::vec2 camPos = m_RenderingLayer->GetCamera().GetPosition();
-            float camZoom = m_RenderingLayer->GetCamera().GetZoom();
-
-            // world coordinates
-            float worldX = camPos.x + (relX - viewportWidth / 2.0f) / camZoom;
-            float worldY = camPos.y + (relY - viewportHeight / 2.0f) / camZoom;
-
-            CORE_INFO("Mouse in world coords: {} {}", worldX, worldY);
-        }
-    }
-
     m_ViewportFocused = nowFocused;
     m_ViewportHovered = nowHovered;
 

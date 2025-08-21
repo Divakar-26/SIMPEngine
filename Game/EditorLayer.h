@@ -2,6 +2,7 @@
 #include "Layer/Layer.h"
 #include "TimeStep.h"
 #include "Panels/ViewportPanel.h"
+#include "Panels/HierarchyPanel.h"
 #include "Layer/RenderingLayer.h"
 
 class EditorLayer : public SIMPEngine::Layer
@@ -19,5 +20,6 @@ public:
     
 private:
     ViewportPanel m_ViewportPanel;
+    HierarchyPanel m_HieararchyPanel;
     bool showLogs = false;
 };

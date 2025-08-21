@@ -93,7 +93,7 @@ namespace SIMPEngine
     void ImGuiLayer::OnRender()
     {
 
-        // ImGui::ShowDemoWindow();
+        ImGui::ShowDemoWindow();
     }
 
     void ImGuiLayer::OnUpdate(TimeStep ts)

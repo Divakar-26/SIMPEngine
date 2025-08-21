@@ -4,7 +4,7 @@
 #include "ImGuiSink.h"
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer)
+    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer)
 {
 }
 
@@ -52,9 +52,7 @@ void EditorLayer::OnRender()
 
     ShowLogs();
 
-    ImGui::Begin("Hierarchy");
-    ImGui::Text("Entities will be listed here...");
-    ImGui::End();
+    m_HieararchyPanel.OnRender();
 
     ImGui::Begin("Inspector");
     ImGui::Text("Selected entity properties...");
