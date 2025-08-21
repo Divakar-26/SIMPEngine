@@ -2,6 +2,7 @@
 
 #include "Layer/Layer.h"
 #include "Rendering/Renderer.h"
+#include "Rendering/Animation.h"
 #include "Events/Event.h"
 #include "TimeStep.h"
 #include <SDL3/SDL_pixels.h>
@@ -27,23 +28,21 @@ namespace SIMPEngine
         void OnRender() override;
         void OnEvent(Event &e) override;
 
-        Camera2D &GetCamera() { return m_Camera; }
-        const Camera2D &GetCamera() const { return m_Camera; }
+        Camera2D &GetCamera() { return m_Scene.GetActiveCamera(); }
 
         Scene &GetScene() { return m_Scene; }
         const Scene &GetScene() const { return m_Scene; }
 
         using SceneCommand = std::function<void(Scene &)>;
 
-        void QueueCommand(const SceneCommand &command)
-        {
-            m_CommandQueue.push(command);
-        }
+
+        std::pair<int, int> GetViewportSize() { return m_Scene.GetMainCamera().GetViewportSize(); }
+
 
     private:
-        Camera2D m_Camera;
         Scene m_Scene;
 
         std::queue<SceneCommand> m_CommandQueue;
+        Animation *anim = nullptr;
     };
 }

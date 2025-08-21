@@ -32,6 +32,7 @@ namespace SIMPEngine
 
         void ResizeViewport(int width, int height);
 
+
     private:
         inline SDL_FRect WorldToScreen(float x, float y, float w, float h) const;
 

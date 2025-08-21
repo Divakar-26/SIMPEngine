@@ -22,6 +22,7 @@ namespace SIMPEngine
     void Camera2D::SetPosition(const glm::vec2 &position)
     {
         m_Position = position;
+        m_TargetPosition = position;
         m_Dirty = true;
     }
 
@@ -68,6 +69,8 @@ namespace SIMPEngine
         Move(delta);
 
         m_ManualZoom = glm::clamp(m_ManualZoom, 0.1f, 10.0f);
+
+        // CORE_ERROR("{} {} {}", m_Position.x , m_Position.y, m_ManualZoom);
     }
 
     glm::mat4 Camera2D::GetViewMatrix() const

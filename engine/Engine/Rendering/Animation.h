@@ -9,7 +9,7 @@
 namespace SIMPEngine{
     class Animation{
         public:
-            Animation(std::shared_ptr<Texture> texture, const std::vector<Sprite>& frames, float frameDuration, bool loop = true);
+            Animation(const std::vector<Sprite>& frames, float frameDuration, bool loop = true);
 
             void Update(float deltaTime);
 

@@ -1,12 +1,8 @@
 #pragma once
 
 #include <entt/entt.hpp>
-#include "Components/TransformComponent.h"
-#include "Components/SpriteComponent.h"
-#include "Components/VelocityComponent.h"
-#include "Components/CollisionComponent.h"
-#include "Components/TagComponent.h"
-
+#include "Component.h"
+#include "Math/Camera2D.h"
 #include <string>
 
 namespace SIMPEngine
@@ -35,8 +31,18 @@ namespace SIMPEngine
         }
         const std::string &GetName() const { return m_Name; }
 
+        Camera2D &GetMainCamera() { return m_MainCamera; }
+        void SetMainCamera(const Camera2D &camera) { m_MainCamera = camera; }
+
+        bool HasActiveCamera();
+        Camera2D &GetActiveCamera();
+
     private:
         std::string m_Name;
         entt::registry m_Registry;
+
+        Camera2D m_MainCamera;
+        bool useMainCamera = true;
+
     };
 }

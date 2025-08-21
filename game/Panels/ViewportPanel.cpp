@@ -13,11 +13,9 @@ void ViewportPanel::OnRender()
 
     ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 
-
     bool prevActive = (m_ViewportFocused && m_ViewportHovered);
     bool nowFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
     bool nowHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
-
 
     SIMPEngine::Application::Get().GetImGuiLayer()->SetBlockEvent(!(nowFocused));
 
@@ -27,9 +25,34 @@ void ViewportPanel::OnRender()
         CORE_INFO("OUT OF WINDOE");
     }
 
+    if (nowFocused)
+    {
+
+        if (SIMPEngine::Input().IsMouseButtonPressed(SDL_BUTTON_LEFT))
+        {
+            ImVec2 windowPos = ImGui::GetWindowPos();
+            ImVec2 contentPos = ImGui::GetCursorScreenPos(); // top-left of content region
+            auto [mouseX, mouseY] = SIMPEngine::Input::GetMousePosition();
+
+            // relative to viewport content
+            float relX = mouseX - contentPos.x;
+            float relY = mouseY - contentPos.y;
+
+            auto [viewportWidth, viewportHeight] = m_RenderingLayer->GetViewportSize();
+
+            glm::vec2 camPos = m_RenderingLayer->GetCamera().GetPosition();
+            float camZoom = m_RenderingLayer->GetCamera().GetZoom();
+
+            // world coordinates
+            float worldX = camPos.x + (relX - viewportWidth / 2.0f) / camZoom;
+            float worldY = camPos.y + (relY - viewportHeight / 2.0f) / camZoom;
+
+            CORE_INFO("Mouse in world coords: {} {}", worldX, worldY);
+        }
+    }
+
     m_ViewportFocused = nowFocused;
     m_ViewportHovered = nowHovered;
-
 
     SIMPEngine::Renderer::GetAPI()->ResizeViewport((int)viewportSize.x, (int)viewportSize.y);
     SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), SIMPEngine::Renderer::GetAPI()->GetViewportTexture());

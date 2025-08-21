@@ -3,6 +3,7 @@
 #include "../Rendering/TextureManager.h"
 #include "../Rendering/Renderer.h"
 #include "Log.h"
+#include "Input/Input.h"
 #include <entt/entt.hpp>
 #include <iostream>
 
@@ -39,7 +40,6 @@ namespace SIMPEngine
         entt::entity handle = m_Registry.create();
         Entity entity(handle, this);
 
-        // Optionally, add default components here
         entity.AddComponent<TransformComponent>(0.0f, 0.0f, 0.0f);
 
         return entity;
@@ -54,11 +54,42 @@ namespace SIMPEngine
             if (tag.Tag == name)
                 return Entity(e, this);
         }
-        return Entity{}; // empty entity if not found
+        return Entity{};
     }
 
     void Scene::OnUpdate(float deltaTime)
     {
+        static bool cWasDown = false;
+        bool cIsDown = Input::IsKeyPressed(SDLK_C);
+
+        if (cIsDown && !cWasDown)
+        {
+            useMainCamera = !useMainCamera;
+            CORE_INFO("Camera toggled. Now using: {}", useMainCamera ? "MainCamera" : "EntityCamera");
+        }
+        cWasDown = cIsDown;
+
+        if (useMainCamera)
+        {
+            m_MainCamera.Update(deltaTime);
+        }
+        else
+        {
+            auto cameraView = m_Registry.view<CameraComponent, TransformComponent>();
+            for (auto entity : cameraView)
+            {
+                auto &camComp = cameraView.get<CameraComponent>(entity);
+                auto &transform = cameraView.get<TransformComponent>(entity);
+
+                if (camComp.primary)
+                {
+                    camComp.Camera.SetPosition({transform.x, transform.y});
+                    camComp.Camera.Update(deltaTime);
+                    break;
+                }
+            }
+        }
+
         // For testing: move all entities right slowly
         // auto view = m_Registry.view<TransformComponent>();
         // for (auto entity : view)
@@ -104,30 +135,89 @@ namespace SIMPEngine
 
     void Scene::OnRender()
     {
-        auto collidable = m_Registry.view<TransformComponent, CollisionComponent>();
-        for (auto entity : collidable)
+        Camera2D *activeCamera = nullptr;
+
+        if (useMainCamera)
         {
-            auto &transform = collidable.get<TransformComponent>(entity);
-            auto &collision = collidable.get<CollisionComponent>(entity);
-            
-            SDL_FRect rect = collision.GetBoundsWorld(transform);
-            
-            // Optional: offset to camera if needed
-            // rect.x -= cameraX;
-            // rect.y -= cameraY;
-            
-            // Draw outline
-            Renderer::DrawQuad(rect.x - 2.0f, rect.y - 2.0f, rect.w * transform.scaleX + 4.0f, rect.h * transform.scaleY + 4.0f, SDL_Color{255,255,0,255});
+            activeCamera = &m_MainCamera;
         }
-        
-        auto view = m_Registry.view<TransformComponent, RenderComponent>();
+        else
+        {
+            auto cameraView = m_Registry.view<CameraComponent>();
+            for (auto entity : cameraView)
+            {
+                auto &camComp = cameraView.get<CameraComponent>(entity);
+                if (camComp.primary)
+                {
+                    activeCamera = &camComp.Camera;
+                    break;
+                }
+            }
+        }
+
+        if (activeCamera)
+        {
+            Renderer::SetViewMatrix(activeCamera->GetViewMatrix());
+        }
+
+        // auto collidable = m_Registry.view<TransformComponent, CollisionComponent>();
+        // for (auto entity : collidable)
+        // {
+        //     auto &transform = collidable.get<TransformComponent>(entity);
+        //     auto &collision = collidable.get<CollisionComponent>(entity);
+
+        //     SDL_FRect rect = collision.GetBoundsWorld(transform);
+
+        //     // Optional: offset to camera if needed
+        //     // rect.x -= cameraX;
+        //     // rect.y -= cameraY;
+
+        //     // Draw outline
+        //     Renderer::DrawQuad(rect.x - 2.0f, rect.y - 2.0f, rect.w * transform.scaleX + 4.0f, rect.h * transform.scaleY + 4.0f, SDL_Color{255, 255, 0, 255});
+        // }
+
+        auto spriteView = m_Registry.view<TransformComponent, SpriteComponent>();
+        for (auto entity : spriteView)
+        {
+            auto &transform = spriteView.get<TransformComponent>(entity);
+            auto &spriteComp = spriteView.get<SpriteComponent>(entity);
+
+            Renderer::DrawTexture(spriteComp.texture->GetSDLTexture(), transform.x, transform.y, spriteComp.width, spriteComp.height, SDL_Color{255, 255, 255, 255}, transform.rotation);
+        }
+
+        // auto view = m_Registry.view<TransformComponent, RenderComponent>();
+        // for (auto entity : view)
+        // {
+        //     auto &transform = view.get<TransformComponent>(entity);
+        //     auto &render = view.get<RenderComponent>(entity);
+        //     Renderer::DrawQuad(transform.x, transform.y, render.width * transform.scaleX, render.height * transform.scaleY, render.color);
+        // }
+    }
+
+    bool Scene::HasActiveCamera()
+    {
+        for (auto entity : m_Registry.view<CameraComponent, TransformComponent>())
+        {
+            auto &cameraComp = m_Registry.get<CameraComponent>(entity);
+            if (cameraComp.primary)
+                return true;
+        }
+        return false;
+    }
+
+    Camera2D &Scene::GetActiveCamera()
+    {
+        auto view = m_Registry.view<CameraComponent>();
         for (auto entity : view)
         {
-            auto &transform = view.get<TransformComponent>(entity);
-            auto &render = view.get<RenderComponent>(entity);
-
-
-            Renderer::DrawQuad(transform.x  , transform.y , render.width * transform.scaleX, render.height * transform.scaleY, render.color);
+            auto &camComp = view.get<CameraComponent>(entity);
+            if (camComp.primary)
+            {
+                return camComp.Camera;
+            }
         }
+
+        return m_MainCamera;
     }
+
 }

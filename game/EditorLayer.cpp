@@ -1,24 +1,23 @@
 #include "EditorLayer.h"
 #include "imgui.h"
+#include "Log.h"
+#include "ImGuiSink.h"
 
-EditorLayer::EditorLayer(SIMPEngine::RenderingLayer* renderingLayer)
+EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     : Layer("EditorLayer"), m_ViewportPanel(renderingLayer)
 {
 }
 
 void EditorLayer::OnAttach()
 {
-
 }
 
 void EditorLayer::OnDetach()
 {
-
 }
 
 void EditorLayer::OnUpdate(class SIMPEngine::TimeStep ts)
 {
-
 }
 
 void EditorLayer::OnRender()
@@ -49,7 +48,9 @@ void EditorLayer::OnRender()
     // Dockspace
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-    ImGui::End();
+    ImGui::End();   
+
+    ShowLogs();
 
     ImGui::Begin("Hierarchy");
     ImGui::Text("Entities will be listed here...");
@@ -60,4 +61,46 @@ void EditorLayer::OnRender()
     ImGui::End();
 
     m_ViewportPanel.OnRender();
+}
+
+void EditorLayer::ShowLogs()
+{
+    if (ImGui::BeginMainMenuBar())
+
+    {
+        if (ImGui::BeginMenu("View"))
+
+        {
+            if (ImGui::MenuItem("Log", nullptr, &showLogs))
+            {
+            }
+
+            ImGui::EndMenu();
+        }
+        ImGui::EndMainMenuBar();
+    }
+    if (showLogs)
+    {
+
+        ImGui::Begin("Log", &showLogs);
+
+        auto sink = SIMPEngine::Log::GetImGuiSink();
+        if (sink)
+        {
+            for (auto &line : sink->Logs)
+
+            {
+                ImVec4 color;
+                if (line.find("[error]") != std::string::npos)
+                    color = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+                else if (line.find("[info]") != std::string::npos)
+                    color = ImVec4(1.0f, 1.0f, 0.0f, 1.0f);
+                else
+                    color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+                ImGui::TextColored(color, "%s", line.c_str());
+            }
+            ImGui::SetScrollHereY(1.0f);
+        }
+        ImGui::End();
+    }
 }

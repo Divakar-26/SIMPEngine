@@ -2,7 +2,7 @@
 
 namespace SIMPEngine
 {
-    Animation::Animation(std::shared_ptr<Texture> texture, const std::vector<Sprite> &frames, float frameDuration, bool loop) : m_Texture(texture), m_Frames(frames), m_FrameDuration(frameDuration), m_Loop(loop), m_Finished(false), m_ElapsedTime(0.0f), m_CurrentFrame(0) {}
+    Animation::Animation(const std::vector<Sprite> &frames, float frameDuration, bool loop) :  m_Frames(frames), m_FrameDuration(frameDuration), m_Loop(loop), m_Finished(false), m_ElapsedTime(0.0f), m_CurrentFrame(0) {}
 
     void Animation::Update(float deltaTime)
     {

@@ -42,6 +42,8 @@ namespace SIMPEngine
         float oldScale = io.FontGlobalScale;
         io.FontGlobalScale = 2.0f;
 
+        io.IniFilename = "imgui.ini";
+
         // Init backends
         ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
         ImGui_ImplSDLRenderer3_Init(m_Renderer);

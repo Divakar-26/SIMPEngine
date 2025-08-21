@@ -1,9 +1,9 @@
-#include"PCH.h"
+#include "PCH.h"
 
 #include "Layer/RenderingLayer.h"
 
-#include"Scene/Scene.h"
-#include"Scene/Entity.h"
+#include "Scene/Scene.h"
+#include "Scene/Entity.h"
 
 float kl = 0.0f;
 
@@ -15,11 +15,15 @@ namespace SIMPEngine
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 
+        auto myTexture = TextureManager::Get().GetTexture("man"); // this should be a std::shared_ptr<Texture>
+
         Entity entity1 = m_Scene.CreateEntity("RedBox");
-        entity1.AddComponent<RenderComponent>(100.0f, 100.0f, SDL_Color{255, 0, 0, 255});
         entity1.GetComponent<TransformComponent>().x = 500.0f;
         entity1.GetComponent<TransformComponent>().y = 500.0f;
         entity1.AddComponent<TagComponent>("RedBox");
+        entity1.AddComponent<SpriteComponent>(myTexture, 100.0f, 100.0f);
+        auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(0.0f, 0.0f));
+        cam.primary = true;
 
         auto &col = entity1.AddComponent<CollisionComponent>();
         col.width = 100.0f;
@@ -28,16 +32,6 @@ namespace SIMPEngine
         auto &vel = entity1.AddComponent<VelocityComponent>();
         vel.vx = 0.0f;
         vel.vy = 0.0f;
-
-        Entity entity2 = m_Scene.CreateEntity("BlueBox");
-        entity2.AddComponent<RenderComponent>(100.0f, 100.0f, SDL_Color{0, 0, 255, 255});
-        entity2.GetComponent<TransformComponent>().x = 700.0f;
-        entity2.GetComponent<TransformComponent>().y = 700.0f;
-        entity2.AddComponent<TagComponent>("BlueBox");
-
-        auto &col2 = entity2.AddComponent<CollisionComponent>();
-        col2.width = 100.0f;
-        col2.height = 100.0f;
     }
 
     void RenderingLayer::OnDetach()
@@ -55,8 +49,6 @@ namespace SIMPEngine
 
         m_Scene.OnUpdate(ts.GetSeconds());
 
-        m_Camera.Update(ts.GetSeconds());
-
         auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<VelocityComponent>();
 
         if (Input::IsKeyPressed(SDLK_UP))
@@ -73,24 +65,23 @@ namespace SIMPEngine
         else
             vel.vx = 0.0f;
 
-        Renderer::SetViewMatrix(m_Camera.GetViewMatrix());
-
         kl += ts.GetSeconds() * 90.0f;
     }
 
     void RenderingLayer::OnRender()
     {
         m_Scene.OnRender();
-
         Renderer::DrawQuad(0, 0, 200, 150, SDL_Color{255, 134, 244, 255});
 
-        auto cointex = TextureManager::Get().GetTexture("coin");
-        SDL_FRect rect;
-        rect.x = 0;
-        rect.y = 0;
-        rect.w = 16;
-        rect.h = 16;
-        Renderer::DrawTexture(cointex->GetSDLTexture(), 100 + kl, 100, 100, 100, SDL_Color{255, 255, 255, 255}, 45.0f, &rect);
+        // auto cointex = TextureManager::Get().GetTexture("coin");
+        // SDL_FRect rect;
+        // rect.x = 0;
+        // rect.y = 0;
+        // rect.w = 16;
+        // rect.h = 16;
+
+        // Renderer::DrawTexture(cointex->GetSDLTexture(), 100, 100, 100, 100, SDL_Color{255, 255, 255, 255}, 45.0f, &rect);
+
         Renderer::Flush();
     }
 

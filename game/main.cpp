@@ -12,7 +12,6 @@ public:
     MyGame()
     {
         // Custom game initialization
-
         SIMPEngine::RenderingLayer * m_RenderingLayer = new SIMPEngine::RenderingLayer();
         EditorLayer * m_EditorLayer = new EditorLayer(m_RenderingLayer);
 

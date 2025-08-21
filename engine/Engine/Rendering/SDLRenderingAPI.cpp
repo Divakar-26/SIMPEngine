@@ -17,6 +17,7 @@ namespace SIMPEngine
         m_Renderer = sdlRenderer;
         TextureManager::Get().LoadTexture("circle", "../assets/circle.png", m_Renderer);
         TextureManager::Get().LoadTexture("coin", "../assets/coin.png", m_Renderer);
+        TextureManager::Get().LoadTexture("man", "../assets/man.png", m_Renderer);
     }
 
     void SDLRenderingAPI::SetClearColor(float r, float g, float b, float a)

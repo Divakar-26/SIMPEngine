@@ -15,7 +15,9 @@ public:
     void OnUpdate(class SIMPEngine::TimeStep ts) override;
     void OnRender() override;
 
+    void ShowLogs();
+    
 private:
     ViewportPanel m_ViewportPanel;
-
+    bool showLogs = false;
 };
