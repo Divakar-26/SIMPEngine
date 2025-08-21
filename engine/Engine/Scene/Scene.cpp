@@ -207,6 +207,7 @@ namespace SIMPEngine
 
     Camera2D &Scene::GetActiveCamera()
     {
+        if(useMainCamera) return m_MainCamera;
         auto view = m_Registry.view<CameraComponent>();
         for (auto entity : view)
         {
@@ -217,7 +218,6 @@ namespace SIMPEngine
             }
         }
 
-        return m_MainCamera;
     }
 
 }

@@ -28,7 +28,7 @@ namespace SIMPEngine
         glm::mat4 GetViewMatrix() const;
 
         void SetViewportSize(float width, float height);
-        std::pair<int, int> GetViewportSize() {return {m_ViewportWidth, m_ViewportHeight};}
+        std::pair<int, int> GetViewportSize() { return {m_ViewportWidth, m_ViewportHeight}; }
 
     private:
         glm::vec2 m_Position;
@@ -55,7 +55,7 @@ namespace SIMPEngine
         int m_ViewportWidth = 0;
         int m_ViewportHeight = 0;
 
-        float m_TargetWidth = 1280.0f; 
+        float m_TargetWidth = 1280.0f;
         float m_TargetHeight = 720.0f;
     };
 }
