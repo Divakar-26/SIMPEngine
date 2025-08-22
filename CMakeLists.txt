@@ -14,4 +14,5 @@ add_subdirectory(vendor/SDL_image EXCLUDE_FROM_ALL)
 
 # Add engine and game subprojects
 add_subdirectory(Engine)
+add_subdirectory(Editor)
 add_subdirectory(Game)
