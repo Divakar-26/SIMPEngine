@@ -18,6 +18,7 @@ namespace SIMPEngine
         void Clear() override;
         void DrawQuad(float x, float y, float width, float height, SDL_Color color) override;
         void DrawCircle(float x, float y, float r, SDL_Color color) override;
+        void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color) override;
         void Present() override;
         void SetViewMatrix(const glm::mat4 &view) override;
 
@@ -32,13 +33,7 @@ namespace SIMPEngine
 
         void ResizeViewport(int width, int height);
 
-
     private:
-        inline SDL_FRect WorldToScreen(float x, float y, float w, float h) const;
-
-        SDL_Renderer *m_Renderer = nullptr;
-        SDL_Color m_ClearColor{0, 0, 0, 255};
-
         struct ViewState
         {
             glm::mat4 matrix;
@@ -46,12 +41,6 @@ namespace SIMPEngine
             float zoomY;
             bool isUniformZoom;
         };
-
-        ViewState m_ViewState;
-        glm::vec2 TransformPosition(float x, float y) const;
-        glm::vec2 TransformSize(float w, float h) const;
-
-        Texture circleTexture;
 
         struct BatchedTexture
         {
@@ -62,14 +51,25 @@ namespace SIMPEngine
             const SDL_FRect *srcRect;
         };
 
-        std::vector<BatchedTexture> m_TextureBatch;
-        SDL_Texture *m_CurrentTexture = nullptr;
-
         struct BatchedQuad
         {
             SDL_FRect rect;
             SDL_Color color;
         };
+
+        inline SDL_FRect WorldToScreen(float x, float y, float w, float h) const;
+
+        SDL_Renderer *m_Renderer = nullptr;
+        SDL_Color m_ClearColor{0, 0, 0, 255};
+        ViewState m_ViewState;
+        glm::vec2 TransformPosition(float x, float y) const;
+        glm::vec2 TransformSize(float w, float h) const;
+
+        Texture circleTexture;
+
+        std::vector<BatchedTexture> m_TextureBatch;
+        SDL_Texture *m_CurrentTexture = nullptr;
+
         std::vector<BatchedQuad> m_QuadBatch;
 
         void FlushTextureBatch();

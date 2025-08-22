@@ -60,14 +60,14 @@ namespace SIMPEngine
         //     if(!Input::IsKeyPressed(SDLK_LSHIFT)){
         //         sprint = 0.0f;
         //     }
-    
+
         //     if (Input::IsKeyPressed(SDLK_UP))
         //         vel.vy = -500.0f + -sprint;
         //     else if (Input::IsKeyPressed(SDLK_DOWN))
         //         vel.vy = 500.0f + sprint;
         //     else
         //         vel.vy = 0.0f;
-    
+
         //     if (Input::IsKeyPressed(SDLK_LEFT))
         //         vel.vx = -500.0f + -sprint;
         //     else if (Input::IsKeyPressed(SDLK_RIGHT))
@@ -85,7 +85,7 @@ namespace SIMPEngine
         Renderer::DrawQuad(0, 0, 200, 150, SDL_Color{255, 134, 244, 255});
 
         // auto cointex = TextureManager::Get().GetTexture("coin");
-        
+
         // SDL_FRect rect;
         // rect.x = 0;
         // rect.y = 0;

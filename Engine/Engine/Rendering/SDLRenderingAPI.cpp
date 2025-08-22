@@ -118,6 +118,17 @@ namespace SIMPEngine
         DrawTexture(circleTexture->GetSDLTexture(), cx, cy, radius, radius, {0, 255, 255, 255}, 0);
     }
 
+    void SDLRenderingAPI::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
+    {
+        // Transform positions according to camera/view
+        glm::vec2 p1 = TransformPosition(x1, y1);
+        glm::vec2 p2 = TransformPosition(x2, y2);
+
+        // We can use SDL_RenderDrawLineF directly
+        SDL_SetRenderDrawColor(m_Renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderLine(m_Renderer, p1.x, p1.y, p2.x, p2.y);
+    }
+
     void SDLRenderingAPI::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h,
                                       SDL_Color tint, float rotation, const SDL_FRect *srcRect)
     {

@@ -15,7 +15,9 @@ namespace SIMPEngine
         s_Instance = this;
         m_Window.Init("My Game", 1024, 720);
 
-        Renderer::Init(std::make_unique<SDLRenderingAPI>(), m_Window.GetRenderer());
+        int w, h;
+        SDL_GetWindowSize(m_Window.GetNativeWindow(), &w, &h);
+        Renderer::Init(std::make_unique<SDLRenderingAPI>(), m_Window.GetRenderer(), w, h);
 
         m_ImGuiLayer = new ImGuiLayer();
 

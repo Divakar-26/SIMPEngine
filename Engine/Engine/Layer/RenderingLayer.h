@@ -35,7 +35,6 @@ namespace SIMPEngine
 
         using SceneCommand = std::function<void(Scene &)>;
 
-
         std::pair<int, int> GetViewportSize() { return m_Scene.GetMainCamera().GetViewportSize(); }
 
 
