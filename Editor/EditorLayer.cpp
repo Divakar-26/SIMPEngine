@@ -12,6 +12,8 @@ void EditorLayer::OnAttach()
 {
     ImGuiStyle &style = ImGui::GetStyle();
     style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
+
+    m_ViewportPanel.OnAttach();
 }
 
 void EditorLayer::OnDetach()
@@ -54,6 +56,7 @@ void EditorLayer::OnRender()
     ImGui::End();
 
     m_ViewportPanel.OnRender();
+
     ShowLogs();
 
     m_HieararchyPanel.OnRender();

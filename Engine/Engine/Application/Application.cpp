@@ -13,7 +13,7 @@ namespace SIMPEngine
             // You can handle this better, maybe throw or assert
         }
         s_Instance = this;
-        m_Window.Init("My Game", 1024, 720);
+        m_Window.Init("My Game", 1920, 1080);
 
         int w, h;
         SDL_GetWindowSize(m_Window.GetNativeWindow(), &w, &h);

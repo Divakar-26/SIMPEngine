@@ -83,6 +83,8 @@ namespace SIMPEngine
             Renderer::SetViewMatrix(activeCamera->GetViewMatrix());
         }
 
+
+
         RenderSprites();
         RenderQuad();
     }

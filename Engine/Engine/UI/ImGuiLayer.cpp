@@ -37,10 +37,10 @@ namespace SIMPEngine
 
         ImGui::StyleColorsDark();
 
-        io.FontGlobalScale = 0.6f; // main UI
+        io.FontGlobalScale = 0.2f; // main UI
 
         float oldScale = io.FontGlobalScale;
-        io.FontGlobalScale = 2.0f;
+        io.FontGlobalScale = 1.0f;
 
         io.IniFilename = "../assets/ImGUIPanels/imgui.ini";
 

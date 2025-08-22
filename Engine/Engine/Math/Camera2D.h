@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Events/Event.h"
-
+#include "Rendering/Renderer.h"
 namespace SIMPEngine
 {
     class Camera2D
@@ -55,7 +55,7 @@ namespace SIMPEngine
         int m_ViewportWidth = 0;
         int m_ViewportHeight = 0;
 
-        float m_TargetWidth = 1280.0f;
-        float m_TargetHeight = 720.0f;
+        float m_TargetWidth = Renderer::m_WindowWidth;
+        float m_TargetHeight = Renderer::m_WindowHeight;
     };
 }

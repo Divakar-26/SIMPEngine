@@ -11,6 +11,7 @@ class ViewportPanel
 public:
     ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer);
 
+    void OnAttach();
     void OnRender();
 
 private:
