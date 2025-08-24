@@ -83,8 +83,6 @@ namespace SIMPEngine
             Renderer::SetViewMatrix(activeCamera->GetViewMatrix());
         }
 
-
-
         RenderSprites();
         RenderQuad();
     }
@@ -102,8 +100,6 @@ namespace SIMPEngine
 
     Camera2D &Scene::GetActiveCamera()
     {
-        if (useMainCamera)
-            return m_MainCamera;
         auto view = m_Registry.view<CameraComponent>();
         for (auto entity : view)
         {
@@ -113,32 +109,29 @@ namespace SIMPEngine
                 return camComp.Camera;
             }
         }
+
+        return m_MainCamera;
     }
 
     void Scene::UpdateCamera(float dt)
     {
+        auto cameraView = m_Registry.view<CameraComponent, TransformComponent>();
+        for (auto entity : cameraView)
+        {
+            auto &camComp = cameraView.get<CameraComponent>(entity);
+            auto &transform = cameraView.get<TransformComponent>(entity);
 
-        if (useMainCamera)
-        {
-            m_MainCamera.Update(dt);
-        }
-        else
-        {
-            auto cameraView = m_Registry.view<CameraComponent, TransformComponent>();
-            for (auto entity : cameraView)
+            if (camComp.primary)
             {
-                auto &camComp = cameraView.get<CameraComponent>(entity);
-                auto &transform = cameraView.get<TransformComponent>(entity);
-
-                if (camComp.primary)
-                {
-                    camComp.Camera.SetPosition({transform.x, transform.y});
-                    camComp.Camera.Update(dt);
-                    break;
-                }
+                camComp.Camera.SetPosition({transform.x, transform.y});
+                camComp.Camera.Update(dt);
+                break;
             }
         }
+
+        m_MainCamera.Update(dt);
     }
+
     void Scene::UpdateEntities(float dt)
     {
         auto view = m_Registry.view<TransformComponent, VelocityComponent>();
@@ -205,16 +198,18 @@ namespace SIMPEngine
 
     Camera2D *Scene::GetActiveCameraPtr()
     {
-        if (useMainCamera)
-            return &m_MainCamera;
-
+        Camera2D *activeCamera = nullptr;
         auto view = m_Registry.view<CameraComponent>();
         for (auto entity : view)
         {
             auto &camComp = view.get<CameraComponent>(entity);
             if (camComp.primary)
-                return &camComp.Camera;
+            {
+                activeCamera = &camComp.Camera;
+                break;
+            }
         }
-        return nullptr;
+        return activeCamera ? activeCamera : &m_MainCamera;
     }
+
 }

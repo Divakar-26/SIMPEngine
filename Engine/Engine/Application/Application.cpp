@@ -55,8 +55,8 @@ namespace SIMPEngine
             for (Layer *layer : m_LayerStack)
                 layer->OnUpdate(deltaTime);
 
-            SDL_SetRenderDrawColor(m_Window.GetRenderer(), 100, 100, 100, 255);
-            SDL_RenderClear(m_Window.GetRenderer());
+            Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
+            Renderer::Clear();
 
             m_ImGuiLayer->Begin();
 

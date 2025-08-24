@@ -43,7 +43,7 @@ struct TagComponent
 struct RenderComponent
 {
     float width, height;
-    SDL_Color color;
+    SDL_Color color = {255,255,255,255};
 };
 
 struct VelocityComponent

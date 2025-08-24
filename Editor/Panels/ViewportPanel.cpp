@@ -86,8 +86,8 @@ void ViewportPanel::OriginLines()
 {
     float rightEdge = 100000.0f;
     float bottomEdge = 100000.0f;
-    SDL_Color axisColorX = {255, 0, 0, 255};
-    SDL_Color axisColorY = {0, 255, 0, 255};
+    SDL_Color axisColorX = {255, 0, 0, 100};
+    SDL_Color axisColorY = {0, 255, 0, 100};
 
     SIMPEngine::Renderer::DrawLine(-rightEdge, 0.0f, rightEdge, 0.0f, axisColorX);   // X axis
     SIMPEngine::Renderer::DrawLine(0.0f, -bottomEdge, 0.0f, bottomEdge, axisColorY); // Y axis

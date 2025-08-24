@@ -1,5 +1,6 @@
 #include "InspectorPanel.h"
 #include <imgui.h>
+#include "Log.h"
 
 template <typename T, typename UIFunc>
 static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc uiFunc)
@@ -19,7 +20,7 @@ static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc ui
                 ImGui::EndPopup();
             }
 
-            uiFunc(component); 
+            uiFunc(component);
             ImGui::TreePop();
         }
     }
@@ -45,7 +46,6 @@ void InspectorPanel::OnRender()
 
         ImGui::Separator();
 
-
         DrawComponent<TransformComponent>("Transform", m_SelectedEntity, [](auto &tc)
                                           {
     ImGui::DragFloat("X", &tc.x, 0.1f);
@@ -55,41 +55,48 @@ void InspectorPanel::OnRender()
     ImGui::DragFloat("ScaleY", &tc.scaleY, 0.1f, 0.01f, 100.0f); });
 
         DrawComponent<RenderComponent>("Render", m_SelectedEntity, [](auto &sc)
-                                       {
-    float color[4] = {
-        sc.color.r / 255.0f,
-        sc.color.g / 255.0f,
-        sc.color.b / 255.0f,
-        sc.color.a / 255.0f
-    };
+                                               {
+        float color[4] = {
+            static_cast<float>(sc.color.r) / 255.0f,
+            static_cast<float>(sc.color.g) / 255.0f,
+            static_cast<float>(sc.color.b) / 255.0f,
+            static_cast<float>(sc.color.a) / 255.0f
+        };
 
-    if (ImGui::ColorEdit4("Color", color))
-    {
+            CORE_INFO("Float alpha: {}", color[3]);
 
-        sc.color.r = static_cast<int>(color[0] * 256.0f);
-        sc.color.g = static_cast<int>(color[1] * 256.0f);
-        sc.color.b = static_cast<int>(color[2] * 256.0f);
-        sc.color.a = static_cast<int>(color[3] * 256.0f);
-    }
+
+        if (ImGui::ColorEdit4("Color", color))
+        {
+            sc.color.r = (Uint8)(color[0] * 255.0f);
+            sc.color.g = (Uint8)(color[1] * 255.0f);
+            sc.color.b = (Uint8)(color[2] * 255.0f);
+            sc.color.a = (Uint8)(color[3] * 255.0f);
+        
+            CORE_INFO("Updated SDL_Color: r={} g={} b={} a={}", 
+                      (int)sc.color.r, (int)sc.color.g, (int)sc.color.b, (int)sc.color.a);
+        }
+
 
     // sc.color = SDL_Color{255,0,0,255};
 
     ImGui::DragFloat("Width", &sc.width, 0.1f);
     ImGui::DragFloat("Height", &sc.height, 0.1f); });
 
-        // DrawComponent<VelocityComponent>("Velocity", m_SelectedEntity, [](auto &vc)
-        //                                  { ImGui::DragFloat2("Velocity", &vc.velocity.x, 0.1f); });
+        DrawComponent<VelocityComponent>("Velocity", m_SelectedEntity, [](auto &vc)
+                                         { ImGui::DragFloat("Velocity X", &vc.vx, 0.1f); 
+                                            ImGui::DragFloat("Velocity Y", &vc.vy, 0.1f);
+                                        });
 
         DrawComponent<CameraComponent>("Camera", m_SelectedEntity, [](auto &cc)
                                        {
                                            ImGui::Checkbox("Primary", &cc.primary);
-                                           // You can also expose zoom, etc. if Camera2D supports it
                                        });
 
-        // DrawComponent<CollisionComponent>("Collision", m_SelectedEntity, [](auto &col)
-        //                                   {
-        //     ImGui::DragFloat2("Size", &col.size.x, 0.1f);
-        //     ImGui::DragFloat2("Offset", &col.offset.x, 0.1f); });
+        DrawComponent<CollisionComponent>("Collision", m_SelectedEntity, [](auto &col)
+                                          {
+            ImGui::DragFloat2("Size", &col.width, 0.1f);
+            ImGui::DragFloat2("Offset", &col.width, 0.1f); });
     }
 
     ImGui::End();

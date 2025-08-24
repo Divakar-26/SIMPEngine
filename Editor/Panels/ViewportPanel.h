@@ -15,7 +15,7 @@ public:
 
     void RenderViewportBorder();
     void OriginLines();
-    bool iSFocusedAndHovered() {return m_ViewportFocused && m_ViewportHovered;}
+    bool iSFocusedAndHovered() {return m_ViewportFocused;}
 
 private:
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
