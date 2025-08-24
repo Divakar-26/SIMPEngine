@@ -33,8 +33,18 @@ namespace SIMPEngine
         glm::vec2 WorldToScreen(const glm::vec2 &worldPos) const;
 
         glm::vec2 ScreenToWorld(const glm::vec2 &screenPos) const;
-        
+
         void GetVisibleWorldBounds(float &left, float &right, float &top, float &bottom) const;
+
+        glm::mat4 GetProjectionMatrix() const
+        {
+            float w = (float)m_ViewportWidth;
+            float h = (float)m_ViewportHeight;
+            float halfW = w * 0.5f / m_ManualZoom;
+            float halfH = h * 0.5f / m_ManualZoom;
+
+            return glm::ortho(-halfW, halfW, -halfH, halfH, -1.0f, 1.0f);
+        }
 
     private:
         glm::vec2 m_Position;

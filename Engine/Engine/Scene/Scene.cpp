@@ -40,7 +40,7 @@ namespace SIMPEngine
         entt::entity handle = m_Registry.create();
         Entity entity(handle, this);
 
-        entity.AddComponent<TransformComponent>(100.0f, 0.0f, 0.0f);
+        entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(name.empty() ? "Unnamed Entity" : name);
         return entity;
     }
@@ -123,7 +123,7 @@ namespace SIMPEngine
 
             if (camComp.primary)
             {
-                camComp.Camera.SetPosition({transform.x, transform.y});
+                camComp.Camera.SetPosition({transform.position.x, transform.position.y});
                 camComp.Camera.Update(dt);
                 break;
             }
@@ -140,8 +140,8 @@ namespace SIMPEngine
             auto &transform = view.get<TransformComponent>(entity);
             auto &velocity = view.get<VelocityComponent>(entity);
 
-            transform.x += velocity.vx * dt;
-            transform.y += velocity.vy * dt;
+            transform.position.x += velocity.vx * dt;
+            transform.position.y += velocity.vy * dt;
         }
     }
     void Scene::CheckCollision(float dt)
@@ -151,7 +151,7 @@ namespace SIMPEngine
         {
             auto &aTransform = collidable.get<TransformComponent>(entityA);
             auto &aCollision = collidable.get<CollisionComponent>(entityA);
-            SDL_FRect aRect = aCollision.GetBounds(aTransform.x, aTransform.y);
+            SDL_FRect aRect = aCollision.GetBounds(aTransform.position.x, aTransform.position.y);
             
             for (auto entityB : collidable)
             {
@@ -160,7 +160,7 @@ namespace SIMPEngine
                 
                 auto &bTransform = collidable.get<TransformComponent>(entityB);
                 auto &bCollision = collidable.get<CollisionComponent>(entityB);
-                SDL_FRect bRect = bCollision.GetBounds(bTransform.x, bTransform.y);
+                SDL_FRect bRect = bCollision.GetBounds(bTransform.position.x, bTransform.position.y);
                 
                 if (SDL_HasRectIntersectionFloat(&aRect, &bRect))
                 {
@@ -180,7 +180,7 @@ namespace SIMPEngine
             auto &spriteComp = spriteView.get<SpriteComponent>(entity);
 
             if (spriteComp.texture)
-                Renderer::DrawTexture(spriteComp.texture->GetSDLTexture(), transform.x, transform.y, spriteComp.width, spriteComp.height, SDL_Color{255, 255, 255, 255}, transform.rotation);
+                Renderer::DrawTexture(spriteComp.texture->GetSDLTexture(), transform.position.x, transform.position.y, spriteComp.width, spriteComp.height, SDL_Color{255, 255, 255, 255}, transform.rotation);
         }
     }
     void Scene::RenderQuad()
@@ -190,7 +190,7 @@ namespace SIMPEngine
         {
             auto &transform = view.get<TransformComponent>(entity);
             auto &render = view.get<RenderComponent>(entity);
-            Renderer::DrawQuad(transform.x, transform.y, render.width * transform.scaleX, render.height * transform.scaleY, render.color);
+            Renderer::DrawQuad(transform.position.x, transform.position.y, render.width * transform.scale.x, render.height * transform.scale.y, render.color);
         }
     }
 

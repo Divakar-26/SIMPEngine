@@ -4,6 +4,7 @@
 #include "Log.h"
 
 #include "Input/Input.h"
+#include <ImGuizmo.h>
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
@@ -74,6 +75,7 @@ namespace SIMPEngine
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
+        ImGuizmo::BeginFrame();
     }
 
     void ImGuiLayer::End()

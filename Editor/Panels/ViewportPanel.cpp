@@ -2,21 +2,25 @@
 #include "Log.h"
 #include "Input/Input.h"
 #include "Rendering/Renderer.h"
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer* renderingLayer)
+ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer)
     : m_RenderingLayer(renderingLayer)
-{}
+{
+}
 
 void ViewportPanel::OnAttach()
 {
-    auto& cam = m_RenderingLayer->GetCamera();
+    auto &cam = m_RenderingLayer->GetCamera();
     int w = SIMPEngine::Renderer::m_WindowWidth;
     int h = SIMPEngine::Renderer::m_WindowHeight;
-    cam.SetPosition({ w / 2.0f, h / 2.0f });
+    cam.SetPosition({w / 2.0f, h / 2.0f});
     cam.SetZoom(0.60f);
 }
 
-void ViewportPanel::OnRender()
+void ViewportPanel::OnRender(SIMPEngine::Entity &m_SelectedEntity)
 {
     ImGui::Begin("Scene");
 
@@ -24,7 +28,6 @@ void ViewportPanel::OnRender()
     UpdateFocusState();
 
     ResizeViewportIfNeeded(viewportSize);
-
 
     SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), SIMPEngine::Renderer::GetAPI()->GetViewportTexture());
     m_RenderingLayer->GetCamera().SetViewportSize(viewportSize.x, viewportSize.y);
@@ -37,9 +40,10 @@ void ViewportPanel::OnRender()
     SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), nullptr);
 
     // Display framebuffer
-    SDL_Texture* tex = SIMPEngine::Renderer::GetAPI()->GetViewportTexture();
-    ImGui::Image((void*)tex, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
+    SDL_Texture *tex = SIMPEngine::Renderer::GetAPI()->GetViewportTexture();
+    ImGui::Image((void *)tex, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
 
+    RenderGizmos(m_SelectedEntity);
     DrawMouseWorldPosition();
     ImGui::End();
 }
@@ -58,7 +62,7 @@ void ViewportPanel::UpdateFocusState()
     m_ViewportHovered = nowHovered;
 }
 
-void ViewportPanel::ResizeViewportIfNeeded(const ImVec2& viewportSize)
+void ViewportPanel::ResizeViewportIfNeeded(const ImVec2 &viewportSize)
 {
     static int lastW = -1, lastH = -1;
     int vw = (int)std::round(viewportSize.x);
@@ -81,14 +85,14 @@ void ViewportPanel::DrawMouseWorldPosition()
     ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
 
     glm::vec2 worldPos = m_RenderingLayer->GetCamera().ScreenToWorld(
-        { mousePos.x - (windowPos.x + contentMin.x), mousePos.y - (windowPos.y + contentMin.y) });
+        {mousePos.x - (windowPos.x + contentMin.x), mousePos.y - (windowPos.y + contentMin.y)});
 
     char posText[64];
     snprintf(posText, sizeof(posText), "X: %.2f Y: %.2f", worldPos.x, worldPos.y);
 
     ImVec2 textSize = ImGui::CalcTextSize(posText);
-    ImVec2 textPos = { windowPos.x + contentMax.x - textSize.x - 10,
-                       windowPos.y + contentMax.y - textSize.y - 10 };
+    ImVec2 textPos = {windowPos.x + contentMax.x - textSize.x - 10,
+                      windowPos.y + contentMax.y - textSize.y - 10};
 
     ImGui::GetForegroundDrawList()->AddText(textPos, IM_COL32(255, 255, 255, 255), posText);
 }
@@ -101,6 +105,62 @@ void ViewportPanel::RenderViewportBorder()
 void ViewportPanel::OriginLines()
 {
     constexpr float kEdge = 100000.0f;
-    SIMPEngine::Renderer::DrawLine(-kEdge, 0.0f, kEdge, 0.0f, {255, 0, 0, 200});   // X axis
-    SIMPEngine::Renderer::DrawLine(0.0f, -kEdge, 0.0f, kEdge, {0, 255, 0, 200});   // Y axis
+    SIMPEngine::Renderer::DrawLine(-kEdge, 0.0f, kEdge, 0.0f, {255, 0, 0, 200}); // X axis
+    SIMPEngine::Renderer::DrawLine(0.0f, -kEdge, 0.0f, kEdge, {0, 255, 0, 200}); // Y axis
+}
+
+void ViewportPanel::RenderGizmos(SIMPEngine::Entity &selectedEntity)
+{
+    if (!selectedEntity || !selectedEntity.HasComponent<TransformComponent>())
+        return;
+
+    auto &transform = selectedEntity.GetComponent<TransformComponent>();
+    auto &cam = m_RenderingLayer->GetCamera();
+
+    ImGuizmo::SetOrthographic(true); 
+    ImGuizmo::SetDrawlist();
+    
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
+    ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
+
+    ImVec2 rectMin = {windowPos.x + contentMin.x, windowPos.y + contentMin.y};
+    ImVec2 rectMax = {windowPos.x + contentMax.x, windowPos.y + contentMax.y};
+
+    ImGuizmo::SetRect(rectMin.x, rectMin.y, rectMax.x - rectMin.x, rectMax.y - rectMin.y);
+
+    glm::mat4 viewMatrix = cam.GetViewMatrix();
+    glm::mat4 projectionMatrix = glm::ortho(
+        0.0f, (float)cam.GetViewportSize().first,
+        (float)cam.GetViewportSize().second, 0.0f,
+        -1.0f, 1.0f);
+
+    glm::mat4 entityMatrix = transform.GetTransform();
+
+    static ImGuizmo::OPERATION currentOp = ImGuizmo::TRANSLATE;
+    if (ImGui::IsKeyPressed(ImGuiKey_W))
+        currentOp = ImGuizmo::TRANSLATE;
+    if (ImGui::IsKeyPressed(ImGuiKey_E))
+        currentOp = ImGuizmo::ROTATE;
+    if (ImGui::IsKeyPressed(ImGuiKey_R))
+        currentOp = ImGuizmo::SCALE;
+
+    //draw gizmo
+    ImGuizmo::Manipulate(
+        glm::value_ptr(viewMatrix), glm::value_ptr(projectionMatrix),
+        currentOp, ImGuizmo::WORLD, glm::value_ptr(entityMatrix));
+
+    if (ImGuizmo::IsUsing())
+    {
+        glm::vec3 translation, rotation, scale, skew;
+        glm::vec4 perspective;
+        glm::quat orientation;
+
+        glm::decompose(entityMatrix, scale, orientation, translation, skew, perspective);
+        glm::vec3 euler = glm::eulerAngles(orientation);
+
+        transform.position = {translation.x, translation.y};
+        transform.rotation = glm::degrees(euler.z);
+        transform.scale = {scale.x, scale.y};
+    }
 }

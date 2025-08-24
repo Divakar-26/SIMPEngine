@@ -48,11 +48,11 @@ void InspectorPanel::OnRender()
 
         DrawComponent<TransformComponent>("Transform", m_SelectedEntity, [](auto &tc)
                                           {
-    ImGui::DragFloat("X", &tc.x, 0.1f);
-    ImGui::DragFloat("Y", &tc.y, 0.1f);
+    ImGui::DragFloat("X", &tc.position.x, 0.1f);
+    ImGui::DragFloat("Y", &tc.position.y, 0.1f);
     ImGui::DragFloat("Rotation", &tc.rotation, 0.1f);
-    ImGui::DragFloat("ScaleX", &tc.scaleX, 0.1f, 0.01f, 100.0f);
-    ImGui::DragFloat("ScaleY", &tc.scaleY, 0.1f, 0.01f, 100.0f); });
+    ImGui::DragFloat("ScaleX", &tc.scale.x, 0.1f, 0.01f, 100.0f);
+    ImGui::DragFloat("ScaleY", &tc.scale.y, 0.1f, 0.01f, 100.0f); });
 
         DrawComponent<RenderComponent>("Render", m_SelectedEntity, [](auto &sc)
                                                {

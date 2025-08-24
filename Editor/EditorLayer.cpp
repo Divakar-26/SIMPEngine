@@ -66,7 +66,8 @@ void EditorLayer::OnRender()
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     ImGui::End();
 
-    m_ViewportPanel.OnRender();
+    auto it = m_HieararchyPanel.GetSelectedEntity();
+    m_ViewportPanel.OnRender(it);
 
     ShowLogs();
 

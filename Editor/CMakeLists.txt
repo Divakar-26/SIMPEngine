@@ -12,6 +12,11 @@ target_include_directories(Editor PUBLIC
     ${CMAKE_SOURCE_DIR}/Engine 
 )
 
+target_sources(imgui PRIVATE
+    ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo/ImGuizmo.cpp
+)
+
+
 target_link_libraries(Editor
     PUBLIC Engine
     PUBLIC imgui

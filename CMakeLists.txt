@@ -23,17 +23,21 @@ add_subdirectory(vendor/glm EXCLUDE_FROM_ALL)
 # ImGui wrapper (manual CMake target)
 add_library(imgui STATIC
     vendor/imgui/imgui.cpp
-    vendor/imgui/imgui_draw.cpp
+    vendor/imgui/imgui_draw.cpp             
     vendor/imgui/imgui_tables.cpp
     vendor/imgui/imgui_widgets.cpp
     vendor/imgui/imgui_demo.cpp
     vendor/imgui/backends/imgui_impl_sdl3.cpp
     vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp
+
+
+    vendor/ImGuizmo/ImGuizmo.cpp
 )
 
 target_include_directories(imgui PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/imgui
     ${CMAKE_SOURCE_DIR}/vendor/imgui/backends
+    ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo
 )
 
 target_link_libraries(imgui PUBLIC SDL3::SDL3 spdlog)

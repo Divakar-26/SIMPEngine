@@ -3,6 +3,9 @@
 #include "Rendering/Renderer.h"
 #include "Layer/RenderingLayer.h"
 #include "Application/Application.h"
+#include <ImGuizmo.h>
+#include "Scene/Scene.h"
+
 
 class ViewportPanel
 {
@@ -10,7 +13,7 @@ public:
     ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer);
 
     void OnAttach();
-    void OnRender();
+    void OnRender(SIMPEngine::Entity &m_SelectedEntity);
 
     void RenderViewportBorder();
     void OriginLines();
@@ -18,6 +21,8 @@ public:
     void DrawMouseWorldPosition();
     void ResizeViewportIfNeeded(const ImVec2& viewportSize);
     void UpdateFocusState();
+
+    void RenderGizmos(SIMPEngine::Entity &selectedEntity);
 private:
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
 

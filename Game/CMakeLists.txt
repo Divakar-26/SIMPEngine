@@ -9,7 +9,7 @@ add_executable(GameApp
 option(NO_EDITOR "Build Game Without Editor" OFF)
 if(NOT NO_EDITOR)
     target_link_libraries(GameApp
-    PRIVATE Engine Editor imgui
+    PRIVATE Engine Editor imgui 
     )
 else()
     target_link_libraries(GameApp
