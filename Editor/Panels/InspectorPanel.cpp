@@ -63,8 +63,6 @@ void InspectorPanel::OnRender()
             static_cast<float>(sc.color.a) / 255.0f
         };
 
-            CORE_INFO("Float alpha: {}", color[3]);
-
 
         if (ImGui::ColorEdit4("Color", color))
         {
@@ -73,8 +71,6 @@ void InspectorPanel::OnRender()
             sc.color.b = (Uint8)(color[2] * 255.0f);
             sc.color.a = (Uint8)(color[3] * 255.0f);
         
-            CORE_INFO("Updated SDL_Color: r={} g={} b={} a={}", 
-                      (int)sc.color.r, (int)sc.color.g, (int)sc.color.b, (int)sc.color.a);
         }
 
 

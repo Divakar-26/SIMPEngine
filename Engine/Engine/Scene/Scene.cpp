@@ -142,8 +142,6 @@ namespace SIMPEngine
 
             transform.x += velocity.vx * dt;
             transform.y += velocity.vy * dt;
-
-            CORE_ERROR("HELLO FOUND");
         }
     }
     void Scene::CheckCollision(float dt)
@@ -154,16 +152,16 @@ namespace SIMPEngine
             auto &aTransform = collidable.get<TransformComponent>(entityA);
             auto &aCollision = collidable.get<CollisionComponent>(entityA);
             SDL_FRect aRect = aCollision.GetBounds(aTransform.x, aTransform.y);
-
+            
             for (auto entityB : collidable)
             {
                 if (entityA == entityB)
-                    continue;
-
+                continue;
+                
                 auto &bTransform = collidable.get<TransformComponent>(entityB);
                 auto &bCollision = collidable.get<CollisionComponent>(entityB);
                 SDL_FRect bRect = bCollision.GetBounds(bTransform.x, bTransform.y);
-
+                
                 if (SDL_HasRectIntersectionFloat(&aRect, &bRect))
                 {
                     // CORE_INFO("Collision detected between entities!");

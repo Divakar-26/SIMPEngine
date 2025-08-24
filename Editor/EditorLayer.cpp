@@ -75,6 +75,7 @@ void EditorLayer::OnRender()
     m_InspectorPanel.SetSelectedEntity(m_HieararchyPanel.GetSelectedEntity());
     m_InspectorPanel.OnRender();
 
+
     ImGui::ShowDemoWindow();
 }
 

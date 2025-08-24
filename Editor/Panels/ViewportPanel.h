@@ -4,7 +4,6 @@
 #include "Layer/RenderingLayer.h"
 #include "Application/Application.h"
 
-
 class ViewportPanel
 {
 public:
@@ -15,8 +14,10 @@ public:
 
     void RenderViewportBorder();
     void OriginLines();
-    bool iSFocusedAndHovered() {return m_ViewportFocused;}
-
+    bool iSFocusedAndHovered() { return m_ViewportFocused; }
+    void DrawMouseWorldPosition();
+    void ResizeViewportIfNeeded(const ImVec2& viewportSize);
+    void UpdateFocusState();
 private:
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
 

@@ -3,19 +3,17 @@
 #include "Input/Input.h"
 #include "Rendering/Renderer.h"
 
-ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer)
-{
-    m_RenderingLayer = renderingLayer;
-}
+ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer* renderingLayer)
+    : m_RenderingLayer(renderingLayer)
+{}
 
 void ViewportPanel::OnAttach()
 {
-    auto &cam = m_RenderingLayer->GetCamera();
-    auto it = cam.GetViewportSize();
+    auto& cam = m_RenderingLayer->GetCamera();
     int w = SIMPEngine::Renderer::m_WindowWidth;
     int h = SIMPEngine::Renderer::m_WindowHeight;
-    cam.SetPosition(glm::vec2{w / 2, h / 2});
-    cam.SetZoom(0.60);
+    cam.SetPosition({ w / 2.0f, h / 2.0f });
+    cam.SetZoom(0.60f);
 }
 
 void ViewportPanel::OnRender()
@@ -23,26 +21,49 @@ void ViewportPanel::OnRender()
     ImGui::Begin("Scene");
 
     ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+    UpdateFocusState();
 
-    bool prevActive = (m_ViewportFocused && m_ViewportHovered);
+    ResizeViewportIfNeeded(viewportSize);
+
+
+    SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), SIMPEngine::Renderer::GetAPI()->GetViewportTexture());
+    m_RenderingLayer->GetCamera().SetViewportSize(viewportSize.x, viewportSize.y);
+    SIMPEngine::Renderer::Clear();
+
+    RenderViewportBorder();
+    OriginLines();
+    m_RenderingLayer->OnRender();
+
+    SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), nullptr);
+
+    // Display framebuffer
+    SDL_Texture* tex = SIMPEngine::Renderer::GetAPI()->GetViewportTexture();
+    ImGui::Image((void*)tex, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
+
+    DrawMouseWorldPosition();
+    ImGui::End();
+}
+
+void ViewportPanel::UpdateFocusState()
+{
     bool nowFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
     bool nowHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
 
-    SIMPEngine::Application::Get().GetImGuiLayer()->SetBlockEvent(!(nowFocused));
+    SIMPEngine::Application::Get().GetImGuiLayer()->SetBlockEvent(!nowFocused);
 
     if (!nowFocused)
-    {
         SIMPEngine::Input::ResetAllKeys();
-    }
 
     m_ViewportFocused = nowFocused;
     m_ViewportHovered = nowHovered;
+}
 
-    ImVec2 avail = ImGui::GetContentRegionAvail();
-    int vw = (int)std::round(avail.x);
-    int vh = (int)std::round(avail.y);
-
+void ViewportPanel::ResizeViewportIfNeeded(const ImVec2& viewportSize)
+{
     static int lastW = -1, lastH = -1;
+    int vw = (int)std::round(viewportSize.x);
+    int vh = (int)std::round(viewportSize.y);
+
     if (vw != lastW || vh != lastH)
     {
         SIMPEngine::Renderer::GetAPI()->ResizeViewport(vw, vh);
@@ -50,45 +71,36 @@ void ViewportPanel::OnRender()
         lastW = vw;
         lastH = vh;
     }
+}
 
-    SIMPEngine::Renderer::GetAPI()->ResizeViewport((int)viewportSize.x, (int)viewportSize.y);
-    SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), SIMPEngine::Renderer::GetAPI()->GetViewportTexture());
+void ViewportPanel::DrawMouseWorldPosition()
+{
+    ImVec2 mousePos = ImGui::GetMousePos();
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
+    ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
 
-    // Update camera viewport
-    m_RenderingLayer->GetCamera().SetViewportSize(viewportSize.x, viewportSize.y);
+    glm::vec2 worldPos = m_RenderingLayer->GetCamera().ScreenToWorld(
+        { mousePos.x - (windowPos.x + contentMin.x), mousePos.y - (windowPos.y + contentMin.y) });
 
-    // Render scene
-    SIMPEngine::Renderer::Clear();
+    char posText[64];
+    snprintf(posText, sizeof(posText), "X: %.2f Y: %.2f", worldPos.x, worldPos.y);
 
-    // rendering lines
+    ImVec2 textSize = ImGui::CalcTextSize(posText);
+    ImVec2 textPos = { windowPos.x + contentMax.x - textSize.x - 10,
+                       windowPos.y + contentMax.y - textSize.y - 10 };
 
-    RenderViewportBorder();
-    OriginLines();
-
-    m_RenderingLayer->OnRender();
-    SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), nullptr);
-
-    // Show framebuffer in ImGui
-    SDL_Texture *tex = SIMPEngine::Renderer::GetAPI()->GetViewportTexture();
-    ImGui::Image((void *)tex, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
-
-    auto c = m_RenderingLayer->GetCamera();
-
-    ImGui::End();
+    ImGui::GetForegroundDrawList()->AddText(textPos, IM_COL32(255, 255, 255, 255), posText);
 }
 
 void ViewportPanel::RenderViewportBorder()
 {
-    SIMPEngine::Renderer::DrawQuad(0, 0, SIMPEngine::Renderer::m_WindowWidth, SIMPEngine::Renderer::m_WindowHeight, SDL_Color{255, 255, 255, 255}, false);
+    SIMPEngine::Renderer::DrawQuad(0, 0, SIMPEngine::Renderer::m_WindowWidth, SIMPEngine::Renderer::m_WindowHeight, {255, 255, 255, 255}, false);
 }
 
 void ViewportPanel::OriginLines()
 {
-    float rightEdge = 100000.0f;
-    float bottomEdge = 100000.0f;
-    SDL_Color axisColorX = {255, 0, 0, 100};
-    SDL_Color axisColorY = {0, 255, 0, 100};
-
-    SIMPEngine::Renderer::DrawLine(-rightEdge, 0.0f, rightEdge, 0.0f, axisColorX);   // X axis
-    SIMPEngine::Renderer::DrawLine(0.0f, -bottomEdge, 0.0f, bottomEdge, axisColorY); // Y axis
+    constexpr float kEdge = 100000.0f;
+    SIMPEngine::Renderer::DrawLine(-kEdge, 0.0f, kEdge, 0.0f, {255, 0, 0, 200});   // X axis
+    SIMPEngine::Renderer::DrawLine(0.0f, -kEdge, 0.0f, kEdge, {0, 255, 0, 200});   // Y axis
 }

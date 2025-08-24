@@ -136,6 +136,8 @@ void HierarchyPanel::OnRender()
     } });
 
     ImGui::End();
+
+    
 }
 
 void HierarchyPanel::ShowComponents(SIMPEngine::Entity entity)
