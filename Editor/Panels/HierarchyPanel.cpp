@@ -1,8 +1,6 @@
 #include "HierarchyPanel.h"
 #include "Scene/Scene.h"
 
-SIMPEngine::Entity m_SelectedEntity;
-
 template <typename T>
 void DrawComponent(SIMPEngine::Entity entity, const char *name)
 {
@@ -50,6 +48,7 @@ void HierarchyPanel::OnRender()
         ImGui::Checkbox("Camera", &m_AddCamera);
         ImGui::Checkbox("Velocity", &m_AddVelocity);
         ImGui::Checkbox("Collision", &m_AddCollision);
+        ImGui::Checkbox("Render", &m_AddRender);
 
         ImGui::Separator();
 
@@ -65,9 +64,11 @@ void HierarchyPanel::OnRender()
             if (m_AddSprite)
                 entity.AddComponent<SpriteComponent>(nullptr, 0.0f, 0.0f);
             if (m_AddCamera)
-                entity.AddComponent<CameraComponent>();
+                entity.AddComponent<CameraComponent>(1.0f, glm::vec2(0.0f,0.0f));
             if (m_AddCollision)
                 entity.AddComponent<CollisionComponent>();
+            if(m_AddRender)
+                entity.AddComponent<RenderComponent>();
 
             m_AddVelocity = m_AddSprite = m_AddCamera = m_AddCollision = false;
             strcpy(m_EntityNameBuffer, "New Entity");

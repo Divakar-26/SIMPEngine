@@ -72,9 +72,8 @@ void EditorLayer::OnRender()
 
     m_HieararchyPanel.OnRender();
 
-    ImGui::Begin("Inspector");
-    ImGui::Text("Selected entity properties...");
-    ImGui::End();
+    m_InspectorPanel.SetSelectedEntity(m_HieararchyPanel.GetSelectedEntity());
+    m_InspectorPanel.OnRender();
 
     ImGui::ShowDemoWindow();
 }

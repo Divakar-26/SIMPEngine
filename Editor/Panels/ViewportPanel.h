@@ -1,5 +1,4 @@
 #pragma once
-
 #include <imgui.h>
 #include "Rendering/Renderer.h"
 #include "Layer/RenderingLayer.h"
