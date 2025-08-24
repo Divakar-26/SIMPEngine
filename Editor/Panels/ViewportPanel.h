@@ -14,6 +14,10 @@ public:
     void OnAttach();
     void OnRender();
 
+    void RenderViewportBorder();
+    void OriginLines();
+    bool iSFocusedAndHovered() {return m_ViewportFocused && m_ViewportHovered;}
+
 private:
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
 

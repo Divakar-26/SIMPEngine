@@ -20,8 +20,9 @@ public:
         #ifndef NO_EDITOR
             EditorLayer * m_EditorLayer = new EditorLayer(m_RenderingLayer);
             PushOverlay(m_EditorLayer);
+        #else
+            PushOverlay(m_RenderingLayer);
         #endif
-        PushOverlay(m_RenderingLayer);
     }
 };
 

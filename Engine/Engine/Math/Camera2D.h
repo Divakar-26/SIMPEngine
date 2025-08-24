@@ -30,6 +30,12 @@ namespace SIMPEngine
         void SetViewportSize(float width, float height);
         std::pair<int, int> GetViewportSize() { return {m_ViewportWidth, m_ViewportHeight}; }
 
+        glm::vec2 WorldToScreen(const glm::vec2 &worldPos) const;
+
+        glm::vec2 ScreenToWorld(const glm::vec2 &screenPos) const;
+        
+        void GetVisibleWorldBounds(float &left, float &right, float &top, float &bottom) const;
+
     private:
         glm::vec2 m_Position;
         float m_BaseZoom = 1.0f;   // zoom to fit scene

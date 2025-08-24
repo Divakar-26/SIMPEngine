@@ -8,7 +8,6 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # === Third-party libraries (vendor builds) ===
 add_subdirectory(vendor/SDL EXCLUDE_FROM_ALL)
 
-
 # OS-specific options
 if(WIN32)
     set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)

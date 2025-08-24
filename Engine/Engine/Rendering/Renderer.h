@@ -18,7 +18,7 @@ namespace SIMPEngine
 
         static void SetClearColor(float r, float g, float b, float a);
         static void Clear();
-        static void DrawQuad(float x, float y, float width, float height, SDL_Color color);
+        static void DrawQuad(float x, float y, float width, float height,  SDL_Color color, bool fill = true);
         static void DrawCircle(float x, float y, float r, SDL_Color color);
         static void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color);
         static void Present();

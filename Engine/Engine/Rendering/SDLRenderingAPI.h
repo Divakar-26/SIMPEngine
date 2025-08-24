@@ -16,7 +16,7 @@ namespace SIMPEngine
         void Init(SDL_Renderer *sdlRenderer) override;
         void SetClearColor(float r, float g, float b, float a) override;
         void Clear() override;
-        void DrawQuad(float x, float y, float width, float height, SDL_Color color) override;
+        void DrawQuad(float x, float y, float width, float height,  SDL_Color color, bool fill = true) override;
         void DrawCircle(float x, float y, float r, SDL_Color color) override;
         void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color) override;
         void Present() override;
@@ -55,6 +55,7 @@ namespace SIMPEngine
         {
             SDL_FRect rect;
             SDL_Color color;
+            bool isFill;
         };
 
         inline SDL_FRect WorldToScreen(float x, float y, float w, float h) const;

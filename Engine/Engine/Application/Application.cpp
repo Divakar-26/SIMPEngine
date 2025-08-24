@@ -1,7 +1,6 @@
 #include "PCH.h"
 #include "Application.h"
 
-
 namespace SIMPEngine
 {
     Application *Application::s_Instance = nullptr;
@@ -34,6 +33,8 @@ namespace SIMPEngine
 
     void Application::Run()
     {
+        Input::ResetAllKeys();
+
         uint64_t lastFrameTime = SDL_GetPerformanceCounter();
         const double freq = (double)SDL_GetPerformanceFrequency();
 
@@ -78,7 +79,7 @@ namespace SIMPEngine
                                               {
         m_Running = false;
         return true; });
-                
+
         dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
                                              {
                                                  CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());

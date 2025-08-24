@@ -4,29 +4,40 @@
 #include "ImGuiSink.h"
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer)
-{
+    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer){
+        this->m_RenderingLayer = renderingLayer;
 }
 
 void EditorLayer::OnAttach()
-{
+{   
     ImGuiStyle &style = ImGui::GetStyle();
     style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
 
     m_ViewportPanel.OnAttach();
+
+    m_RenderingLayer->OnAttach();
 }
 
 void EditorLayer::OnDetach()
 {
+    m_RenderingLayer->OnDetach();
 }
 
 void EditorLayer::OnUpdate(class SIMPEngine::TimeStep ts)
 {
+    if(m_ViewportPanel.iSFocusedAndHovered())
+        m_RenderingLayer->OnUpdate(ts.GetSeconds());
+}
+void EditorLayer::OnEvent(SIMPEngine::Event & e){
+    m_RenderingLayer->OnEvent(e);
 }
 
 void EditorLayer::OnRender()
 {
     // Create Dockspace
+
+    m_RenderingLayer->OnRender();
+
     static bool dockspaceOpen = true;
     static bool opt_fullscreen = true;
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;

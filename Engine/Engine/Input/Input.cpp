@@ -56,5 +56,6 @@ namespace SIMPEngine
     void Input::ResetAllKeys()
     {
         s_KeysPressed.clear();
+
     }
 } // namespace SIMPEngine
