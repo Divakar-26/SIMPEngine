@@ -52,7 +52,6 @@ void HierarchyPanel::OnRender()
 
         ImGui::Separator();
 
-        // Buttons
         if (ImGui::Button("Add"))
         {
             auto &registry = m_RenderingLayer->GetScene().GetRegistry();
@@ -64,10 +63,10 @@ void HierarchyPanel::OnRender()
             if (m_AddSprite)
                 entity.AddComponent<SpriteComponent>(nullptr, 0.0f, 0.0f);
             if (m_AddCamera)
-                entity.AddComponent<CameraComponent>(1.0f, glm::vec2(0.0f,0.0f));
+                entity.AddComponent<CameraComponent>(1.0f, glm::vec2(0.0f, 0.0f));
             if (m_AddCollision)
                 entity.AddComponent<CollisionComponent>();
-            if(m_AddRender)
+            if (m_AddRender)
                 entity.AddComponent<RenderComponent>();
 
             m_AddVelocity = m_AddSprite = m_AddCamera = m_AddCollision = false;
@@ -136,8 +135,6 @@ void HierarchyPanel::OnRender()
     } });
 
     ImGui::End();
-
-    
 }
 
 void HierarchyPanel::ShowComponents(SIMPEngine::Entity entity)

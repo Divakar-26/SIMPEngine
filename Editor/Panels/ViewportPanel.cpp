@@ -18,6 +18,8 @@ void ViewportPanel::OnAttach()
     int h = SIMPEngine::Renderer::m_WindowHeight;
     cam.SetPosition({w / 2.0f, h / 2.0f});
     cam.SetZoom(0.60f);
+
+    m_Context = &m_RenderingLayer->GetScene();
 }
 
 void ViewportPanel::OnRender(SIMPEngine::Entity &m_SelectedEntity)
@@ -43,6 +45,9 @@ void ViewportPanel::OnRender(SIMPEngine::Entity &m_SelectedEntity)
     SDL_Texture *tex = SIMPEngine::Renderer::GetAPI()->GetViewportTexture();
     ImGui::Image((void *)tex, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
 
+    SelectEntites();
+    if (m_SelectedEntites)
+        m_SelectedEntity = m_SelectedEntites;
     RenderGizmos(m_SelectedEntity);
     DrawMouseWorldPosition();
     ImGui::End();
@@ -117,9 +122,9 @@ void ViewportPanel::RenderGizmos(SIMPEngine::Entity &selectedEntity)
     auto &transform = selectedEntity.GetComponent<TransformComponent>();
     auto &cam = m_RenderingLayer->GetCamera();
 
-    ImGuizmo::SetOrthographic(true); 
+    ImGuizmo::SetOrthographic(true);
     ImGuizmo::SetDrawlist();
-    
+
     ImVec2 windowPos = ImGui::GetWindowPos();
     ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
     ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
@@ -145,7 +150,7 @@ void ViewportPanel::RenderGizmos(SIMPEngine::Entity &selectedEntity)
     if (ImGui::IsKeyPressed(ImGuiKey_R))
         currentOp = ImGuizmo::SCALE;
 
-    //draw gizmo
+    // draw gizmo
     ImGuizmo::Manipulate(
         glm::value_ptr(viewMatrix), glm::value_ptr(projectionMatrix),
         currentOp, ImGuizmo::WORLD, glm::value_ptr(entityMatrix));
@@ -163,4 +168,46 @@ void ViewportPanel::RenderGizmos(SIMPEngine::Entity &selectedEntity)
         transform.rotation = glm::degrees(euler.z);
         transform.scale = {scale.x, scale.y};
     }
+}
+
+void ViewportPanel::SelectEntites()
+{
+    if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
+        return;
+
+    if (!m_ViewportHovered || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        return;
+
+    ImVec2 mouse = ImGui::GetMousePos();
+    ImVec2 windowPos = ImGui::GetWindowPos();
+    ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
+
+    glm::vec2 localMouse = {
+        mouse.x - (windowPos.x + contentMin.x),
+        mouse.y - (windowPos.y + contentMin.y)};
+
+    glm::vec2 worldMouse = m_RenderingLayer->GetCamera().ScreenToWorld(localMouse);
+    CORE_INFO("MOUSE PRESSED _________ {} {}", worldMouse.x, worldMouse.y);
+
+    auto view = m_Context->GetRegistry().view<TransformComponent, RenderComponent>();
+    for (auto entity : view)
+    {
+        auto &transform = view.get<TransformComponent>(entity);
+        auto &sprite = view.get<RenderComponent>(entity);
+
+        float left = transform.position.x;
+        float right = transform.position.x + sprite.width * transform.scale.x;
+        float top = transform.position.y;
+        float bottom = transform.position.y + sprite.height * transform.scale.y;
+
+        if (worldMouse.x >= left && worldMouse.x <= right &&
+            worldMouse.y >= top && worldMouse.y <= bottom)
+        {
+            m_SelectedEntites = SIMPEngine::Entity{entity, m_Context};
+            CORE_INFO("Selected entity ID: {}");
+            return;
+        }
+    }
+
+    m_SelectedEntites = {};
 }

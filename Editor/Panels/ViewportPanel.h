@@ -23,9 +23,14 @@ public:
     void UpdateFocusState();
 
     void RenderGizmos(SIMPEngine::Entity &selectedEntity);
+
+    void SelectEntites();
+
+
 private:
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
-
+    SIMPEngine::Scene * m_Context= nullptr;
+    SIMPEngine::Entity m_SelectedEntites;
     bool m_ViewportFocused = false;
     bool m_ViewportHovered = false;
 };
