@@ -25,6 +25,8 @@ namespace SIMPEngine
         Entity CreateEntity(const std::string &name = "");
         Entity GetEntityByName(const std::string &name);
 
+        void DrawGrid(Camera2D &camera, float cellSize = 32.0f);
+
         entt::registry &GetRegistry()
         {
             return m_Registry;
@@ -37,12 +39,22 @@ namespace SIMPEngine
         bool HasActiveCamera();
         Camera2D &GetActiveCamera();
 
+        //helper functions
+        void UpdateCamera(float dt);
+        void UpdateEntities(float dt);
+        void CheckCollision(float dt);
+
+        void RenderQuad();
+        void RenderSprites();
+
+        Camera2D *GetActiveCameraPtr();
+
+
     private:
         std::string m_Name;
         entt::registry m_Registry;
 
         Camera2D m_MainCamera;
         bool useMainCamera = true;
-
     };
 }

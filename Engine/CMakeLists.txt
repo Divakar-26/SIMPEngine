@@ -1,70 +1,36 @@
-cmake_minimum_required(VERSION 3.15)
-project(SIMPEngine)
-
-# Find SDL3 and spdlog (make sure you have SDL3 package config)
-find_package(SDL3 REQUIRED)
-find_package(SDL3_image REQUIRED)
-find_package(spdlog REQUIRED)
-
-# ImGui library (assuming vendor/imgui is at project root)
-add_library(imgui
-    ${CMAKE_SOURCE_DIR}/vendor/imgui/imgui.cpp
-    ${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_draw.cpp
-    ${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_tables.cpp
-    ${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_widgets.cpp
-    ${CMAKE_SOURCE_DIR}/vendor/imgui/imgui_demo.cpp
-    ${CMAKE_SOURCE_DIR}/vendor/imgui/backends/imgui_impl_sdl3.cpp
-    ${CMAKE_SOURCE_DIR}/vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp
+add_library(Engine STATIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Window.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/Application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Log.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/UI/ImGuiLayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Renderer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SDLRenderingAPI.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/RenderingAPI.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Animation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SpriteAtlas.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Sprite.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Texture.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/TextureManager.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Layer/RenderingLayer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Input/Input.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Math/Camera2D.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Scene.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneManager.cpp
 )
 
-target_include_directories(imgui PUBLIC
-    ${CMAKE_SOURCE_DIR}/vendor/imgui
-    ${CMAKE_SOURCE_DIR}/vendor/imgui/backends
-)
-
-target_link_libraries(imgui
-    PUBLIC SDL3::SDL3
-    PUBLIC spdlog::spdlog
-)
-
-# Engine library
-add_library(Engine SHARED
-    Engine/Window.cpp
-    Engine/Application/Application.cpp
-    Engine/Log.cpp
-    Engine/UI/ImGuiLayer.cpp
-    Engine/Rendering/Renderer.cpp
-    Engine/Rendering/SDLRenderingAPI.cpp
-    Engine/Rendering/RenderingAPI.cpp
-    Engine/Rendering/Animation.cpp
-    Engine/Rendering/SpriteAtlas.cpp
-    Engine/Rendering/Sprite.cpp
-    Engine/Rendering/Texture.cpp
-    Engine/Rendering/TextureManager.cpp
-    Engine/Layer/RenderingLayer.cpp
-    Engine/Input/Input.cpp
-    Engine/Math/Camera2D.cpp
-    Engine/Scene/Scene.cpp
-    Engine/Scene/SceneManager.cpp
-
-)
 
 target_include_directories(Engine
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine
-)
-
-set_target_properties(Engine PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-target_include_directories(Engine PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../vendor/entt/src
-)
-
-
-target_link_libraries(Engine
-    PUBLIC SDL3::SDL3
-    PUBLIC spdlog::spdlog
-    PUBLIC imgui
-    PUBLIC SDL3_image::SDL3_image 
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine    # D:/SIMPEngine/Engine/Engine
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/entt/src
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm
 )
 
 target_precompile_headers(Engine PRIVATE Engine/PCH.h)
+
+target_link_libraries(Engine
+    PUBLIC SDL3::SDL3
+    PUBLIC SDL3_image::SDL3_image
+    PUBLIC spdlog
+    PUBLIC imgui
+)

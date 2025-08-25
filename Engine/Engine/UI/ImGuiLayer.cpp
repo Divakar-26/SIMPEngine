@@ -4,6 +4,7 @@
 #include "Log.h"
 
 #include "Input/Input.h"
+#include <ImGuizmo.h>
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
@@ -37,12 +38,24 @@ namespace SIMPEngine
 
         ImGui::StyleColorsDark();
 
-        io.FontGlobalScale = 0.6f; // main UI
+        io.FontGlobalScale = 0.2f; // main UI
 
         float oldScale = io.FontGlobalScale;
-        io.FontGlobalScale = 2.0f;
+        io.FontGlobalScale = 1.0f;
 
         io.IniFilename = "../assets/ImGUIPanels/imgui.ini";
+
+        ImGuiStyle &style = ImGui::GetStyle();
+        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.129f, 0.149f, 0.180f, 1.0f); // RGBA
+        style.Colors[ImGuiCol_FrameBg] = ImVec4(0.129f, 0.149f, 0.180f, 1.0f);  // RGBA
+        style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
+        style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
+        style.FrameBorderSize = 1.0f; // default is 0.0f (no border)
+
+        style.Colors[ImGuiCol_Tab]                = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
+
+
+        io.Fonts->AddFontFromFileTTF("../assets/JetBrainsMonoNerdFont-Regular.ttf", 18.0f);
 
         // Init backends
         ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
@@ -62,6 +75,7 @@ namespace SIMPEngine
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
+        ImGuizmo::BeginFrame();
     }
 
     void ImGuiLayer::End()
@@ -93,7 +107,7 @@ namespace SIMPEngine
     void ImGuiLayer::OnRender()
     {
 
-        ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
     }
 
     void ImGuiLayer::OnUpdate(TimeStep ts)

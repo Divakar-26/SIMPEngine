@@ -4,25 +4,40 @@
 #include "ImGuiSink.h"
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer)
-{
+    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer){
+        this->m_RenderingLayer = renderingLayer;
 }
 
 void EditorLayer::OnAttach()
-{
+{   
+    ImGuiStyle &style = ImGui::GetStyle();
+    style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
+
+    m_ViewportPanel.OnAttach();
+
+    m_RenderingLayer->OnAttach();
 }
 
 void EditorLayer::OnDetach()
 {
+    m_RenderingLayer->OnDetach();
 }
 
 void EditorLayer::OnUpdate(class SIMPEngine::TimeStep ts)
 {
+    if(m_ViewportPanel.iSFocusedAndHovered())
+        m_RenderingLayer->OnUpdate(ts.GetSeconds());
+}
+void EditorLayer::OnEvent(SIMPEngine::Event & e){
+    m_RenderingLayer->OnEvent(e);
 }
 
 void EditorLayer::OnRender()
 {
     // Create Dockspace
+
+    m_RenderingLayer->OnRender();
+
     static bool dockspaceOpen = true;
     static bool opt_fullscreen = true;
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
@@ -44,23 +59,25 @@ void EditorLayer::OnRender()
     ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
     if (opt_fullscreen)
         ImGui::PopStyleVar(2);
-        
-        // Dockspace
-        
-        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-        ImGui::End();   
-        
-    
-    m_ViewportPanel.OnRender();
+
+    // Dockspace
+
+    ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+    ImGui::End();
+
+    auto it = m_HieararchyPanel.GetSelectedEntity();
+    m_ViewportPanel.OnRender(it);
+
     ShowLogs();
 
     m_HieararchyPanel.OnRender();
 
-    ImGui::Begin("Inspector");
-    ImGui::Text("Selected entity properties...");
-    ImGui::End();
+    m_InspectorPanel.SetSelectedEntity(m_HieararchyPanel.GetSelectedEntity());
+    m_InspectorPanel.OnRender();
 
+
+    ImGui::ShowDemoWindow();
 }
 
 void EditorLayer::ShowLogs()

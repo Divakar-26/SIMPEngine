@@ -4,7 +4,10 @@
 #include "Layer/LayerStack.h"
 #include "UI/ImGuiLayer.h"
 #include "Layer/RenderingLayer.h"
+
+#ifndef NO_EDITOR
 #include "EditorLayer.h"
+#endif
 
 class MyGame : public SIMPEngine::Application
 {
@@ -13,10 +16,13 @@ public:
     {
         // Custom game initialization
         SIMPEngine::RenderingLayer * m_RenderingLayer = new SIMPEngine::RenderingLayer();
-        EditorLayer * m_EditorLayer = new EditorLayer(m_RenderingLayer);
-
-        PushOverlay(m_EditorLayer);
-        PushOverlay(m_RenderingLayer);
+        
+        #ifndef NO_EDITOR
+            EditorLayer * m_EditorLayer = new EditorLayer(m_RenderingLayer);
+            PushOverlay(m_EditorLayer);
+        #else
+            PushOverlay(m_RenderingLayer);
+        #endif
     }
 };
 

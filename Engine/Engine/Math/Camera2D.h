@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include "Events/Event.h"
-
+#include "Rendering/Renderer.h"
 namespace SIMPEngine
 {
     class Camera2D
@@ -30,6 +30,22 @@ namespace SIMPEngine
         void SetViewportSize(float width, float height);
         std::pair<int, int> GetViewportSize() { return {m_ViewportWidth, m_ViewportHeight}; }
 
+        glm::vec2 WorldToScreen(const glm::vec2 &worldPos) const;
+
+        glm::vec2 ScreenToWorld(const glm::vec2 &screenPos) const;
+
+        void GetVisibleWorldBounds(float &left, float &right, float &top, float &bottom) const;
+
+        glm::mat4 GetProjectionMatrix() const
+        {
+            float w = (float)m_ViewportWidth;
+            float h = (float)m_ViewportHeight;
+            float halfW = w * 0.5f / m_ManualZoom;
+            float halfH = h * 0.5f / m_ManualZoom;
+
+            return glm::ortho(-halfW, halfW, -halfH, halfH, -1.0f, 1.0f);
+        }
+
     private:
         glm::vec2 m_Position;
         float m_BaseZoom = 1.0f;   // zoom to fit scene
@@ -55,7 +71,7 @@ namespace SIMPEngine
         int m_ViewportWidth = 0;
         int m_ViewportHeight = 0;
 
-        float m_TargetWidth = 1280.0f;
-        float m_TargetHeight = 720.0f;
+        float m_TargetWidth = Renderer::m_WindowWidth;
+        float m_TargetHeight = Renderer::m_WindowHeight;
     };
 }

@@ -4,6 +4,7 @@
 #include <SDL3/SDL_keycode.h>
 #include "Log.h"
 #include "Input/Input.h"
+#include "Input/SIMP_Keys.h"
 
 namespace SIMPEngine
 {
@@ -51,20 +52,20 @@ namespace SIMPEngine
     void Camera2D::Update(float deltaTime)
     {
         m_Position += (m_TargetPosition - m_Position) * glm::clamp(m_SmoothFactor * deltaTime, 0.0f, 1.0f);
-
+        
         glm::vec2 delta(0.0f);
-        if (Input::IsKeyPressed(SDLK_A))
+        if (Input::IsKeyPressed(SIMPK_A))
             delta.x -= m_MoveSpeed * deltaTime;
-        if (Input::IsKeyPressed(SDLK_D))
+        if (Input::IsKeyPressed(SIMPK_D))
             delta.x += m_MoveSpeed * deltaTime;
-        if (Input::IsKeyPressed(SDLK_W))
+        if (Input::IsKeyPressed(SIMPK_W))
             delta.y -= m_MoveSpeed * deltaTime;
-        if (Input::IsKeyPressed(SDLK_S))
+        if (Input::IsKeyPressed(SIMPK_S))
             delta.y += m_MoveSpeed * deltaTime;
 
-        if (Input::IsKeyPressed(SDLK_Q))
+        if (Input::IsKeyPressed(SIMPK_Q))
             m_ManualZoom -= m_ZoomSpeed * deltaTime;
-        if (Input::IsKeyPressed(SDLK_E))
+        if (Input::IsKeyPressed(SIMPK_E))
             m_ManualZoom += m_ZoomSpeed * deltaTime;
         Move(delta);
 
@@ -111,4 +112,27 @@ namespace SIMPEngine
         RecalculateViewMatrix();
     }
 
+    glm::vec2 Camera2D::WorldToScreen(const glm::vec2 &worldPos) const
+    {
+        glm::vec4 screenPos = m_ViewMatrix * glm::vec4(worldPos, 0.0f, 1.0f);
+        return glm::vec2(screenPos.x, screenPos.y);
+    }
+
+    glm::vec2 Camera2D::ScreenToWorld(const glm::vec2 &screenPos) const
+    {
+        glm::mat4 inverseView = glm::inverse(m_ViewMatrix);
+        glm::vec4 worldPos = inverseView * glm::vec4(screenPos, 0.0f, 1.0f);
+        return glm::vec2(worldPos.x, worldPos.y);
+    }
+
+    void Camera2D::GetVisibleWorldBounds(float &left, float &right, float &top, float &bottom) const
+    {
+        glm::vec2 bottomLeft = ScreenToWorld(glm::vec2(0, m_ViewportHeight));
+        glm::vec2 topRight = ScreenToWorld(glm::vec2(m_ViewportWidth, 0));
+
+        left = bottomLeft.x;
+        right = topRight.x;
+        top = topRight.y;
+        bottom = bottomLeft.y;
+    }
 }

@@ -15,23 +15,23 @@ namespace SIMPEngine
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 
-        auto myTexture = TextureManager::Get().GetTexture("man"); // this should be a std::shared_ptr<Texture>
+        auto myTexture = TextureManager::Get().GetTexture("man");
 
-        Entity entity1 = m_Scene.CreateEntity("RedBox");
-        entity1.GetComponent<TransformComponent>().x = 500.0f;
-        entity1.GetComponent<TransformComponent>().y = 500.0f;
-        entity1.AddComponent<TagComponent>("RedBox");
-        entity1.AddComponent<SpriteComponent>(myTexture, 100.0f, 100.0f);
-        auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(0.0f, 0.0f));
-        cam.primary = true;
+        // Entity entity1 = m_Scene.CreateEntity("RedBox");
+        // entity1.GetComponent<TransformComponent>().x = 500.0f;
+        // entity1.GetComponent<TransformComponent>().y = 500.0f;
+        // entity1.AddComponent<TagComponent>("RedBox");
+        // entity1.AddComponent<SpriteComponent>(myTexture, 100.0f, 100.0f);
+        // auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(0.0f, 0.0f));
+        // cam.primary = true;
 
-        auto &col = entity1.AddComponent<CollisionComponent>();
-        col.width = 100.0f;
-        col.height = 100.0f;
+        // auto &col = entity1.AddComponent<CollisionComponent>();
+        // col.width = 100.0f;
+        // col.height = 100.0f;
 
-        auto &vel = entity1.AddComponent<VelocityComponent>();
-        vel.vx = 0.0f;
-        vel.vy = 0.0f;
+        // auto &vel = entity1.AddComponent<VelocityComponent>();
+        // vel.vx = 0.0f;
+        // vel.vy = 0.0f;
     }
 
     void RenderingLayer::OnDetach()
@@ -49,32 +49,32 @@ namespace SIMPEngine
 
         m_Scene.OnUpdate(ts.GetSeconds());
 
-        auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<VelocityComponent>();
+        // auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<VelocityComponent>();
 
-        if(m_Scene.GetRegistry().any_of<VelocityComponent>(m_Scene.GetEntityByName("RedBox"))){
+        // if(m_Scene.GetRegistry().any_of<VelocityComponent>(m_Scene.GetEntityByName("RedBox"))){
 
-            int sprint;
-            if(Input::IsKeyPressed(SDLK_LSHIFT)){
-                sprint = 1000.0f;
-            }
-            if(!Input::IsKeyPressed(SDLK_LSHIFT)){
-                sprint = 0.0f;
-            }
-    
-            if (Input::IsKeyPressed(SDLK_UP))
-                vel.vy = -500.0f + -sprint;
-            else if (Input::IsKeyPressed(SDLK_DOWN))
-                vel.vy = 500.0f + sprint;
-            else
-                vel.vy = 0.0f;
-    
-            if (Input::IsKeyPressed(SDLK_LEFT))
-                vel.vx = -500.0f + -sprint;
-            else if (Input::IsKeyPressed(SDLK_RIGHT))
-                vel.vx = 500.0f + sprint;
-            else
-                vel.vx = 0.0f;
-        }
+        //     int sprint;
+        //     if(Input::IsKeyPressed(SDLK_LSHIFT)){
+        //         sprint = 1000.0f;
+        //     }
+        //     if(!Input::IsKeyPressed(SDLK_LSHIFT)){
+        //         sprint = 0.0f;
+        //     }
+
+        //     if (Input::IsKeyPressed(SDLK_UP))
+        //         vel.vy = -500.0f + -sprint;
+        //     else if (Input::IsKeyPressed(SDLK_DOWN))
+        //         vel.vy = 500.0f + sprint;
+        //     else
+        //         vel.vy = 0.0f;
+
+        //     if (Input::IsKeyPressed(SDLK_LEFT))
+        //         vel.vx = -500.0f + -sprint;
+        //     else if (Input::IsKeyPressed(SDLK_RIGHT))
+        //         vel.vx = 500.0f + sprint;
+        //     else
+        //         vel.vx = 0.0f;
+        // }
 
         kl += ts.GetSeconds() * 90.0f;
     }
@@ -82,9 +82,9 @@ namespace SIMPEngine
     void RenderingLayer::OnRender()
     {
         m_Scene.OnRender();
-        Renderer::DrawQuad(0, 0, 200, 150, SDL_Color{255, 134, 244, 255});
 
         // auto cointex = TextureManager::Get().GetTexture("coin");
+
         // SDL_FRect rect;
         // rect.x = 0;
         // rect.y = 0;

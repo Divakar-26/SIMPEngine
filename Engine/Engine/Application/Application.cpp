@@ -1,7 +1,6 @@
 #include "PCH.h"
 #include "Application.h"
 
-
 namespace SIMPEngine
 {
     Application *Application::s_Instance = nullptr;
@@ -13,9 +12,11 @@ namespace SIMPEngine
             // You can handle this better, maybe throw or assert
         }
         s_Instance = this;
-        m_Window.Init("My Game", 1024, 720);
+        m_Window.Init("My Game", 1920, 1080);
 
-        Renderer::Init(std::make_unique<SDLRenderingAPI>(), m_Window.GetRenderer());
+        int w, h;
+        SDL_GetWindowSize(m_Window.GetNativeWindow(), &w, &h);
+        Renderer::Init(std::make_unique<SDLRenderingAPI>(), m_Window.GetRenderer(), w, h);
 
         m_ImGuiLayer = new ImGuiLayer();
 
@@ -32,6 +33,8 @@ namespace SIMPEngine
 
     void Application::Run()
     {
+        Input::ResetAllKeys();
+
         uint64_t lastFrameTime = SDL_GetPerformanceCounter();
         const double freq = (double)SDL_GetPerformanceFrequency();
 
@@ -52,8 +55,8 @@ namespace SIMPEngine
             for (Layer *layer : m_LayerStack)
                 layer->OnUpdate(deltaTime);
 
-            SDL_SetRenderDrawColor(m_Window.GetRenderer(), 100, 100, 100, 255);
-            SDL_RenderClear(m_Window.GetRenderer());
+            Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
+            Renderer::Clear();
 
             m_ImGuiLayer->Begin();
 
@@ -76,7 +79,7 @@ namespace SIMPEngine
                                               {
         m_Running = false;
         return true; });
-                
+
         dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
                                              {
                                                  CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());

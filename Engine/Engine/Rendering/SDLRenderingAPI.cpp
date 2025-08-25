@@ -35,7 +35,7 @@ namespace SIMPEngine
         SDL_RenderClear(m_Renderer);
     }
 
-    void SDLRenderingAPI::DrawQuad(float x, float y, float w, float h, SDL_Color color)
+    void SDLRenderingAPI::DrawQuad(float x, float y, float w, float h,  SDL_Color color, bool fill)
     {
         glm::vec2 pos = TransformPosition(x, y);
         float tx = pos.x;
@@ -46,52 +46,70 @@ namespace SIMPEngine
         float th = size.y;
 
         m_QuadBatch.push_back({SDL_FRect{tx, ty, tw, th},
-                               color});
+                               color, fill});
 
         if (m_QuadBatch.size() >= 1000)
             FlushQuadBatch();
     }
 
-    void SDLRenderingAPI::FlushQuadBatch()
+void SDLRenderingAPI::FlushQuadBatch()
+{
+    if (m_QuadBatch.empty())
+        return;
+
+    std::vector<SDL_Vertex> vertices;
+    std::vector<int> indices;
+    vertices.reserve(m_QuadBatch.size() * 4);
+    indices.reserve(m_QuadBatch.size() * 6);
+
+    for (size_t i = 0; i < m_QuadBatch.size(); ++i)
     {
-        if (m_QuadBatch.empty())
-            return;
+        const auto &quad = m_QuadBatch[i];
 
-        std::vector<SDL_Vertex> vertices;
-        std::vector<int> indices;
-        vertices.reserve(m_QuadBatch.size() * 4);
-        indices.reserve(m_QuadBatch.size() * 6);
-
-        for (size_t i = 0; i < m_QuadBatch.size(); ++i)
+        if (quad.isFill)
         {
-            const auto &quad = m_QuadBatch[i];
-            size_t base_index = i * 4;
+            size_t base_index = vertices.size();
 
-            // Convert SDL_Color (0-255) to SDL_FColor (0.0f - 1.0f)
             SDL_FColor fc = {
                 quad.color.r / 255.0f,
                 quad.color.g / 255.0f,
                 quad.color.b / 255.0f,
                 quad.color.a / 255.0f};
 
-            // Add 4 vertices for the quad
-            vertices.insert(vertices.end(), {{{quad.rect.x, quad.rect.y}, fc, {0.0f, 0.0f}},
-                                             {{quad.rect.x + quad.rect.w, quad.rect.y}, fc, {0.0f, 0.0f}},
-                                             {{quad.rect.x + quad.rect.w, quad.rect.y + quad.rect.h}, fc, {0.0f, 0.0f}},
-                                             {{quad.rect.x, quad.rect.y + quad.rect.h}, fc, {0.0f, 0.0f}}});
+            // Four vertices
+            SDL_Vertex v0{{quad.rect.x, quad.rect.y}, fc, {0, 0}};
+            SDL_Vertex v1{{quad.rect.x + quad.rect.w, quad.rect.y}, fc, {0, 0}};
+            SDL_Vertex v2{{quad.rect.x + quad.rect.w, quad.rect.y + quad.rect.h}, fc, {0, 0}};
+            SDL_Vertex v3{{quad.rect.x, quad.rect.y + quad.rect.h}, fc, {0, 0}};
 
-            // Add 6 indices for the two triangles
-            indices.insert(indices.end(), {(int)base_index, (int)base_index + 1, (int)base_index + 2,
-                                           (int)base_index, (int)base_index + 2, (int)base_index + 3});
+            vertices.insert(vertices.end(), {v0, v1, v2, v3});
+
+            indices.insert(indices.end(), {
+                (int)base_index, (int)base_index + 1, (int)base_index + 2,
+                (int)base_index, (int)base_index + 2, (int)base_index + 3});
         }
+        else
+        {
+            // Hollow -> draw immediately
+            SDL_SetRenderDrawColor(m_Renderer,
+                                   quad.color.r,
+                                   quad.color.g,
+                                   quad.color.b,
+                                   quad.color.a);
+            SDL_RenderRect(m_Renderer, &quad.rect);
+        }
+    }
 
-        // Render all quads in the batch
+    if (!vertices.empty())
+    {
         SDL_RenderGeometry(m_Renderer, nullptr,
                            vertices.data(), (int)vertices.size(),
                            indices.data(), (int)indices.size());
-
-        m_QuadBatch.clear();
     }
+
+    m_QuadBatch.clear();
+}
+
 
     void SDLRenderingAPI::Present()
     {
@@ -116,6 +134,17 @@ namespace SIMPEngine
     {
         auto circleTexture = TextureManager::Get().GetTexture("circle");
         DrawTexture(circleTexture->GetSDLTexture(), cx, cy, radius, radius, {0, 255, 255, 255}, 0);
+    }
+
+    void SDLRenderingAPI::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
+    {
+        // Transform positions according to camera/view
+        glm::vec2 p1 = TransformPosition(x1, y1);
+        glm::vec2 p2 = TransformPosition(x2, y2);
+
+        // We can use SDL_RenderDrawLineF directly
+        SDL_SetRenderDrawColor(m_Renderer, color.r, color.g, color.b, color.a);
+        SDL_RenderLine(m_Renderer, p1.x, p1.y, p2.x, p2.y);
     }
 
     void SDLRenderingAPI::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h,
