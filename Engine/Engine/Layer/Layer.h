@@ -24,14 +24,25 @@ namespace SIMPEngine{
 
         //all the functions are virtual so that it can be defined as per the layer
 
-        
+        //runs only once when the layer is attached
         virtual void OnAttach() {}
+
+        //you know the drill
         virtual void OnDetach() {}
+
+        //update the whole layer, entites, ui, state etc
         virtual void OnUpdate(class TimeStep ts) {}
+
+        //renders the layer data
         virtual void OnRender() {}
+
+        //handle event 
         virtual void OnEvent(Event &e) {}
+
+        //handle SDL events, only used by ImGui.
         virtual void OnSDLEvent(SDL_Event &e) {}
 
+        //get the layer name for debugging
         const std::string & GetName() const {return m_DebugName;}
 
         
