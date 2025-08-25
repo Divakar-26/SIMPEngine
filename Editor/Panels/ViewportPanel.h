@@ -24,7 +24,7 @@ public:
 
     void RenderGizmos(SIMPEngine::Entity &selectedEntity);
 
-    void SelectEntites();
+    void SelectEntites(SIMPEngine::Entity &m_SelectedEntity);
 
 
 private:

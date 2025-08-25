@@ -67,13 +67,12 @@ void EditorLayer::OnRender()
     ImGui::End();
 
     auto it = m_HieararchyPanel.GetSelectedEntity();
-    m_ViewportPanel.OnRender(it);
+    m_ViewportPanel.OnRender(*it);
 
     ShowLogs();
 
     m_HieararchyPanel.OnRender();
-
-    m_InspectorPanel.SetSelectedEntity(m_HieararchyPanel.GetSelectedEntity());
+    m_InspectorPanel.SetSelectedEntity(*it);
     m_InspectorPanel.OnRender();
 
 

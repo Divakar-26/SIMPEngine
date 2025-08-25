@@ -2,9 +2,16 @@
 #include "Log.h"
 #include "Input/Input.h"
 #include "Rendering/Renderer.h"
+#include "Input/SIMP_Keys.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+ImVec2 mousePos;
+ImVec2 windowPos;
+ImVec2 contentMin;
+ImVec2 contentMax;
 
 ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer)
     : m_RenderingLayer(renderingLayer)
@@ -45,10 +52,15 @@ void ViewportPanel::OnRender(SIMPEngine::Entity &m_SelectedEntity)
     SDL_Texture *tex = SIMPEngine::Renderer::GetAPI()->GetViewportTexture();
     ImGui::Image((void *)tex, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
 
-    SelectEntites();
-    if (m_SelectedEntites)
-        m_SelectedEntity = m_SelectedEntites;
+    // for the calculation of world corrdinates
+    mousePos = ImGui::GetMousePos();
+    windowPos = ImGui::GetWindowPos();
+    contentMin = ImGui::GetWindowContentRegionMin();
+    contentMax = ImGui::GetWindowContentRegionMax();
+
+    SelectEntites(m_SelectedEntity);
     RenderGizmos(m_SelectedEntity);
+
     DrawMouseWorldPosition();
     ImGui::End();
 }
@@ -84,10 +96,6 @@ void ViewportPanel::ResizeViewportIfNeeded(const ImVec2 &viewportSize)
 
 void ViewportPanel::DrawMouseWorldPosition()
 {
-    ImVec2 mousePos = ImGui::GetMousePos();
-    ImVec2 windowPos = ImGui::GetWindowPos();
-    ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
-    ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
 
     glm::vec2 worldPos = m_RenderingLayer->GetCamera().ScreenToWorld(
         {mousePos.x - (windowPos.x + contentMin.x), mousePos.y - (windowPos.y + contentMin.y)});
@@ -125,10 +133,6 @@ void ViewportPanel::RenderGizmos(SIMPEngine::Entity &selectedEntity)
     ImGuizmo::SetOrthographic(true);
     ImGuizmo::SetDrawlist();
 
-    ImVec2 windowPos = ImGui::GetWindowPos();
-    ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
-    ImVec2 contentMax = ImGui::GetWindowContentRegionMax();
-
     ImVec2 rectMin = {windowPos.x + contentMin.x, windowPos.y + contentMin.y};
     ImVec2 rectMax = {windowPos.x + contentMax.x, windowPos.y + contentMax.y};
 
@@ -143,11 +147,11 @@ void ViewportPanel::RenderGizmos(SIMPEngine::Entity &selectedEntity)
     glm::mat4 entityMatrix = transform.GetTransform();
 
     static ImGuizmo::OPERATION currentOp = ImGuizmo::TRANSLATE;
-    if (ImGui::IsKeyPressed(ImGuiKey_W))
+    if (SIMPEngine::Input::IsKeyPressed(SIMPEngine::SIMPK_M))
         currentOp = ImGuizmo::TRANSLATE;
-    if (ImGui::IsKeyPressed(ImGuiKey_E))
+    if (SIMPEngine::Input::IsKeyPressed(SIMPEngine::SIMPK_N))
         currentOp = ImGuizmo::ROTATE;
-    if (ImGui::IsKeyPressed(ImGuiKey_R))
+    if (SIMPEngine::Input::IsKeyPressed(SIMPEngine::SIMPK_B))
         currentOp = ImGuizmo::SCALE;
 
     // draw gizmo
@@ -170,7 +174,7 @@ void ViewportPanel::RenderGizmos(SIMPEngine::Entity &selectedEntity)
     }
 }
 
-void ViewportPanel::SelectEntites()
+void ViewportPanel::SelectEntites(SIMPEngine::Entity &m_SelectedEntity)
 {
     if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
         return;
@@ -178,13 +182,10 @@ void ViewportPanel::SelectEntites()
     if (!m_ViewportHovered || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         return;
 
-    ImVec2 mouse = ImGui::GetMousePos();
-    ImVec2 windowPos = ImGui::GetWindowPos();
-    ImVec2 contentMin = ImGui::GetWindowContentRegionMin();
 
     glm::vec2 localMouse = {
-        mouse.x - (windowPos.x + contentMin.x),
-        mouse.y - (windowPos.y + contentMin.y)};
+        mousePos.x - (windowPos.x + contentMin.x),
+        mousePos.y - (windowPos.y + contentMin.y)};
 
     glm::vec2 worldMouse = m_RenderingLayer->GetCamera().ScreenToWorld(localMouse);
     CORE_INFO("MOUSE PRESSED _________ {} {}", worldMouse.x, worldMouse.y);
@@ -203,11 +204,12 @@ void ViewportPanel::SelectEntites()
         if (worldMouse.x >= left && worldMouse.x <= right &&
             worldMouse.y >= top && worldMouse.y <= bottom)
         {
-            m_SelectedEntites = SIMPEngine::Entity{entity, m_Context};
+            m_SelectedEntity = SIMPEngine::Entity{entity, m_Context};
             CORE_INFO("Selected entity ID: {}");
             return;
         }
     }
 
-    m_SelectedEntites = {};
+    m_SelectedEntity = {};
+
 }

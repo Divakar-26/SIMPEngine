@@ -13,7 +13,7 @@ public:
 
     void OnRender();
     void ShowComponents(SIMPEngine::Entity entity);
-    SIMPEngine::Entity GetSelectedEntity() {return m_SelectedEntity;}
+    SIMPEngine::Entity * GetSelectedEntity() {return &m_SelectedEntity;}
 
 private:
     SIMPEngine::Entity m_SelectedEntity;

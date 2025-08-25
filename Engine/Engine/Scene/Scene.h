@@ -5,6 +5,10 @@
 #include "Math/Camera2D.h"
 #include <string>
 
+#include "Systems/MovementSystem.h"
+#include "Systems/CollisionSystem.h"
+#include "Systems/CameraSystem.h"
+
 namespace SIMPEngine
 {
     class Entity;
@@ -25,7 +29,6 @@ namespace SIMPEngine
         Entity CreateEntity(const std::string &name = "");
         Entity GetEntityByName(const std::string &name);
 
-        void DrawGrid(Camera2D &camera, float cellSize = 32.0f);
 
         entt::registry &GetRegistry()
         {
@@ -33,28 +36,25 @@ namespace SIMPEngine
         }
         const std::string &GetName() const { return m_Name; }
 
-        Camera2D &GetMainCamera() { return m_MainCamera; }
-        void SetMainCamera(const Camera2D &camera) { m_MainCamera = camera; }
+        Camera2D &GetMainCamera() { return cameraSystem.GetMainCamera(); }
 
-        bool HasActiveCamera();
-        Camera2D &GetActiveCamera();
+        Camera2D &GetActiveCamera(){
+            return cameraSystem.GetActiveCamera(m_Registry);
+        }
 
         //helper functions
-        void UpdateCamera(float dt);
-        void UpdateEntities(float dt);
-        void CheckCollision(float dt);
 
         void RenderQuad();
         void RenderSprites();
-
-        Camera2D *GetActiveCameraPtr();
 
 
     private:
         std::string m_Name;
         entt::registry m_Registry;
+        
+        MovementSystem movementSystem;
+        CollisionSystem collisionSystem;
+        CameraSystem cameraSystem;
 
-        Camera2D m_MainCamera;
-        bool useMainCamera = true;
     };
 }
