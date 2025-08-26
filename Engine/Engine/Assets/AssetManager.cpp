@@ -13,15 +13,22 @@ void AssetManager::Init(const std::string& rootAssetsDir, const std::string& reg
     FileSystem::CreateDirectories(rootAssetsDir);
     m_Registry.Load(registryPath);
 }
+
 void AssetManager::Shutdown(){ m_Registry.Save(m_RegistryPath); m_Cache.clear(); }
 
-AssetHandle AssetManager::ImportIfNeeded(const std::string& vpath, AssetType type){
+AssetHandle AssetManager::ImportIfNeeded(const std::string& vpath, AssetType type) {
     auto real = VFS::Resolve(vpath);
-    if(!real) return 0;
+    if (!real) return 0;
+
+    // Registry keeps both paths
     auto handle = m_Registry.GetOrCreateForVirtualPath(vpath, type, *real);
+
+    CORE_INFO("Importing asset vpath={} real={}", vpath, *real);
+
     m_Registry.Save(m_RegistryPath);
     return handle;
 }
+
 void* AssetManager::Get(AssetHandle handle){
     if(!handle) return nullptr;
     auto it = m_Cache.find(handle);

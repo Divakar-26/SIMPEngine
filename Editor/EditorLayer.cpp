@@ -10,13 +10,13 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     this->m_RenderingLayer = renderingLayer;
 
     m_AssetManager = std::make_unique<SIMPEngine::AssetManager>();
-    m_AssetManager->Init("assets", "./assets/registry.asset"); // root path and registry path
+    m_AssetManager->Init("assets", "assets/registry.asset"); // root path and registry path
 
     // Then initialize ContentBrowserPanel
-    m_ContentBrowser = std::make_unique<ContentBrowserPanel>("assets", m_AssetManager.get());
+    m_ContentBrowser = std::make_unique<ContentBrowserPanel>("assets://", m_AssetManager.get());
 
     // Make sure the assets directory exists
-    SIMPEngine::FileSystem::CreateDirectories("./assets");
+    SIMPEngine::FileSystem::CreateDirectories("assets");
 }
 
 void EditorLayer::OnAttach()

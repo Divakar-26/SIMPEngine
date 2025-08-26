@@ -12,7 +12,7 @@ namespace SIMPEngine
         for (unsigned char c : p)
         {
             h ^= c;
-            h *= 109951162821ull;
+            h *= 1099511628211ull;
         }
         return h ? h : 1;
     }
