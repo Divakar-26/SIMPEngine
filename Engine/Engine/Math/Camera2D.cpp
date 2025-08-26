@@ -2,7 +2,7 @@
 #include "Events/EventDispatcher.h"
 #include "Events/KeyEvent.h"
 #include <SDL3/SDL_keycode.h>
-#include "Log.h"
+#include "Core/Log.h"
 #include "Input/Input.h"
 #include "Input/SIMP_Keys.h"
 

@@ -1,5 +1,5 @@
 #include "TextureManager.h"
-#include "Log.h"
+#include "Core/Log.h"
 
 namespace SIMPEngine {
 

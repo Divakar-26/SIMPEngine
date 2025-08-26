@@ -1,5 +1,5 @@
 #include "Input/Input.h"
-#include "Log.h"
+#include "Core/Log.h"
 
 //this is Input class which will be used for our actual game, this prevent us to call dispatcher everytime. so we can just execute or trigger something based on this class but the events will be delived to this class via our event system
 namespace SIMPEngine

@@ -1,6 +1,6 @@
 #include "EditorLayer.h"
 #include "imgui.h"
-#include "Log.h"
+#include "Core/Log.h"
 #include "ImGuiSink.h"
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)

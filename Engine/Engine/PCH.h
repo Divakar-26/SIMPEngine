@@ -5,8 +5,8 @@
 #include "Events/MouseEvent.h"
 
 // -----utils-----
-#include "Log.h"
-#include "TimeStep.h"
+#include "Core/Log.h"
+#include "Core/TimeStep.h"
 #include "Input/Input.h"
 #include "Input/SIMP_Keys.h"
 

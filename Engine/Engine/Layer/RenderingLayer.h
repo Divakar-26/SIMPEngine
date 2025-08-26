@@ -4,7 +4,7 @@
 #include "Rendering/Renderer.h"
 #include "Rendering/Animation.h"
 #include "Events/Event.h"
-#include "TimeStep.h"
+#include "Core/TimeStep.h"
 #include <SDL3/SDL_pixels.h>
 
 #include "Math/Camera2D.h"

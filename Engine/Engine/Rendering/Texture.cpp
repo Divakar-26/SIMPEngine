@@ -2,7 +2,7 @@
 #include<SDL3_image/SDL_image.h>
 #include<iostream>
 
-#include"Log.h"
+#include"Core/Log.h"
 
 namespace SIMPEngine{
 
