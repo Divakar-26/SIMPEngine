@@ -94,6 +94,7 @@
         "set": "cpp",
         "unordered_set": "cpp",
         "ranges": "cpp",
-        "shared_mutex": "cpp"
+        "shared_mutex": "cpp",
+        "filesystem": "cpp"
     }
 }

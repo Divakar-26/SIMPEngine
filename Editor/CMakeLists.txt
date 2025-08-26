@@ -4,6 +4,7 @@ add_library(Editor STATIC
     Panels/HierarchyPanel.cpp
     Panels/ViewportPanel.cpp
     Panels/InspectorPanel.cpp
+    Panels/ContentBrowserPanel.cpp
 )
 
 target_include_directories(Editor PUBLIC

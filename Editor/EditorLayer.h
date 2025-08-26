@@ -5,7 +5,10 @@
 #include "Panels/HierarchyPanel.h"
 #include "Layer/RenderingLayer.h"
 #include "Panels/InspectorPanel.h"
+#include "Panels/ContentBrowserPanel.h"
 #include "Events/Event.h"
+
+#include "Assets/AssetManager.h"
 
 class EditorLayer : public SIMPEngine::Layer
 {
@@ -24,7 +27,11 @@ public:
 private:
     ViewportPanel m_ViewportPanel;
     HierarchyPanel m_HieararchyPanel;
-    InspectorPanel m_InspectorPanel; 
+    InspectorPanel m_InspectorPanel;
     SIMPEngine::RenderingLayer *m_RenderingLayer;
+
+    std::unique_ptr<ContentBrowserPanel> m_ContentBrowser;
+    std::unique_ptr<SIMPEngine::AssetManager> m_AssetManager;
+
     bool showLogs = false;
 };

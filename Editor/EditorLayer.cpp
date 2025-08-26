@@ -2,14 +2,25 @@
 #include "imgui.h"
 #include "Core/Log.h"
 #include "ImGuiSink.h"
+#include "Core/FileSystem.h"
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer){
-        this->m_RenderingLayer = renderingLayer;
+    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer)
+{
+    this->m_RenderingLayer = renderingLayer;
+
+    m_AssetManager = std::make_unique<SIMPEngine::AssetManager>();
+    m_AssetManager->Init("assets", "./assets/registry.asset"); // root path and registry path
+
+    // Then initialize ContentBrowserPanel
+    m_ContentBrowser = std::make_unique<ContentBrowserPanel>("assets", m_AssetManager.get());
+
+    // Make sure the assets directory exists
+    SIMPEngine::FileSystem::CreateDirectories("./assets");
 }
 
 void EditorLayer::OnAttach()
-{   
+{
     ImGuiStyle &style = ImGui::GetStyle();
     style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
 
@@ -25,10 +36,11 @@ void EditorLayer::OnDetach()
 
 void EditorLayer::OnUpdate(class SIMPEngine::TimeStep ts)
 {
-    if(m_ViewportPanel.iSFocusedAndHovered())
+    if (m_ViewportPanel.iSFocusedAndHovered())
         m_RenderingLayer->OnUpdate(ts.GetSeconds());
 }
-void EditorLayer::OnEvent(SIMPEngine::Event & e){
+void EditorLayer::OnEvent(SIMPEngine::Event &e)
+{
     m_RenderingLayer->OnEvent(e);
 }
 
@@ -74,7 +86,7 @@ void EditorLayer::OnRender()
     m_HieararchyPanel.OnRender();
     m_InspectorPanel.SetSelectedEntity(*it);
     m_InspectorPanel.OnRender();
-
+    m_ContentBrowser->OnImGuiRender();
 
     ImGui::ShowDemoWindow();
 }
