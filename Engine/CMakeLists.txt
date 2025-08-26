@@ -1,7 +1,9 @@
 add_library(Engine STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Window.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/Application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Log.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/FileSystem.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/VFS.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/Application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/UI/ImGuiLayer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Renderer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SDLRenderingAPI.cpp

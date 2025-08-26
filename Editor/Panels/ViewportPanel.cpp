@@ -188,7 +188,6 @@ void ViewportPanel::SelectEntites(SIMPEngine::Entity &m_SelectedEntity)
         mousePos.y - (windowPos.y + contentMin.y)};
 
     glm::vec2 worldMouse = m_RenderingLayer->GetCamera().ScreenToWorld(localMouse);
-    CORE_INFO("MOUSE PRESSED _________ {} {}", worldMouse.x, worldMouse.y);
 
     auto view = m_Context->GetRegistry().view<TransformComponent, RenderComponent>();
     for (auto entity : view)
@@ -205,7 +204,7 @@ void ViewportPanel::SelectEntites(SIMPEngine::Entity &m_SelectedEntity)
             worldMouse.y >= top && worldMouse.y <= bottom)
         {
             m_SelectedEntity = SIMPEngine::Entity{entity, m_Context};
-            CORE_INFO("Selected entity ID: {}");
+            // CORE_INFO("Selected entity ID: {}");
             return;
         }
     }
