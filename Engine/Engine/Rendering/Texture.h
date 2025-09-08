@@ -10,10 +10,15 @@ namespace SIMPEngine
         Texture();
         ~Texture();
 
+        //loading texture from a image file(png, jpg etc)
         bool LoadFromFile(SDL_Renderer * renderer, const char * path);
+        // destorys the texture
         void Destroy();
 
+        //return the texture
         SDL_Texture * GetSDLTexture() const {return m_Texture;}
+
+        //return the width and height
         int GetWidth() const {return m_Width;}
         int GetHeight() const {return m_Height;}
 

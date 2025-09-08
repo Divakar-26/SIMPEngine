@@ -90,33 +90,64 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
     ImGui::PushID(vpath.c_str());
     ImGui::BeginGroup();
 
-    // Always use folder icon (for now)
+    // Always use folder icon for now
     SIMPEngine::Texture &icon = m_FolderIcon;
 
     if (icon.GetSDLTexture())
     {
-        // draw image button with folder texture
+        // Image button with transparent background
         if (ImGui::ImageButton(
-                "folder",
-                (ImTextureID)m_FolderIcon.GetSDLTexture(), // SDL_Texture*
-                ImVec2(72, 72), ImVec2(0, 0), ImVec2(1, 1),
-                ImVec4(0, 0, 0, 0),  // bg_col = transparent
-                ImVec4(1, 1, 1, 1))) // tint_col = normal))                // size
+                "entry_icon",
+                (ImTextureID)icon.GetSDLTexture(),
+                ImVec2(72, 72),
+                ImVec2(0, 0), ImVec2(1, 1),
+                ImVec4(0, 0, 0, 0), 
+                ImVec4(1, 1, 1, 1))) 
         {
+            // Click logic
             if (isDir)
+            {
                 m_CurrentDir = vpath;
+                CORE_INFO("Changed directory to: {}", vpath);
+            }
+            else
+            {
+                CORE_INFO("Clicked file: {}", vpath);
+            }
+        }
+
+        // Drag & Drop
+        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+        {
+            if (!isDir)
+            {
+                SIMPEngine::AssetType type = SIMPEngine::AssetType::Unknown;
+                auto ext = std::filesystem::u8path(*real).extension().string();
+                if (ext == ".png" || ext == ".jpg")
+                    type = SIMPEngine::AssetType::Texture2D;
+                if (ext == ".scene")
+                    type = SIMPEngine::AssetType::Scene;
+
+                auto handle = m_AM->ImportIfNeeded(vpath, type);
+                ImGui::SetDragDropPayload("ASSET_HANDLE", &handle, sizeof(handle));
+            }
+            ImGui::TextUnformatted(name.c_str());
+            ImGui::EndDragDropSource();
         }
     }
     else
     {
-        // fallback if texture failed
         ImGui::Button("📁", ImVec2(72, 72));
     }
 
+
     ImGui::TextWrapped("%s", name.c_str());
+
     ImGui::EndGroup();
     ImGui::PopID();
 }
+
+
 
 SIMPEngine::Texture *LoadTextureFromVirtual(const std::string &vpath)
 {

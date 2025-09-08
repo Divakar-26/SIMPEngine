@@ -6,6 +6,7 @@
 
 namespace SIMPEngine{
 
+
     Texture::Texture(): m_Texture(nullptr), m_Width(0), m_Height(0){}
 
     Texture::~Texture(){
