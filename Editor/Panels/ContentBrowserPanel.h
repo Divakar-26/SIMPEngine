@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <string>
 #include <filesystem>
+#include <unordered_map>
 #include "Rendering/Texture.h"
 #include "Rendering/Renderer.h"
 #include "Core/VFS.h"
@@ -13,7 +14,7 @@ class ContentBrowserPanel
 {
 public:
     ContentBrowserPanel(const std::string &rootVirtual, SIMPEngine::AssetManager *am)
-        : m_AM(am), m_Root(rootVirtual), m_CurrentDir(rootVirtual)
+        : m_AM(am), m_Root(rootVirtual), m_CurrentDir(rootVirtual), m_TextureCache()
     {
         std::string s = "assets://folder.png";
         auto it = SIMPEngine::VFS::Resolve(s);
@@ -21,16 +22,18 @@ public:
         {
             m_FolderIcon.LoadFromFile(
                 SIMPEngine::Renderer::GetSDLRenderer(),
-                it->c_str() // ✅ unwrap optional
-            );
+                it->c_str());
         }
-        else
+        std::string s2 = "assets://file.png";
+        auto it2 = SIMPEngine::VFS::Resolve(s2);
+        if (it2)
         {
-            // handle error gracefully
-            // CORE_ERROR("Failed to resolve {}", s);
+            m_FileIcon.LoadFromFile(SIMPEngine::Renderer::GetSDLRenderer(), it2->c_str());
         }
     }
     void OnImGuiRender();
+
+    SIMPEngine::Texture &GetIconFor(const std::string &vpath, bool isDir);
 
 private:
     SIMPEngine::AssetManager *m_AM;
@@ -44,4 +47,7 @@ private:
 
     SIMPEngine::Texture m_FolderIcon;
     SIMPEngine::Texture m_FileIcon;
+
+    std::unordered_map<std::string, SIMPEngine::Texture> m_TextureCache;
+    
 };

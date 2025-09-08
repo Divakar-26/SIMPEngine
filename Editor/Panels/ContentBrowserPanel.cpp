@@ -91,8 +91,7 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
     ImGui::BeginGroup();
 
     // Always use folder icon for now
-    SIMPEngine::Texture &icon = m_FolderIcon;
-
+    SIMPEngine::Texture &icon = GetIconFor(vpath, isDir);
     if (icon.GetSDLTexture())
     {
         // Image button with transparent background
@@ -168,4 +167,40 @@ SIMPEngine::Texture *LoadTextureFromVirtual(const std::string &vpath)
     // }
 
     // return m_AssetManager->Get<SIMPEngine::Texture2D>(handle);
+}
+
+
+SIMPEngine::Texture & ContentBrowserPanel::GetIconFor(const std::string & vpath, bool isDir){
+    if(isDir){
+        return m_FolderIcon;
+    }
+
+    auto real = SIMPEngine::VFS::Resolve(vpath);
+    if(!real){
+        CORE_ERROR("PATH COULD NOT BE RESOLVED");
+        return m_FileIcon;
+    }
+
+    std::string ext = std::filesystem::u8path(*real).extension().string();
+    // CORE_ERROR("{}", ext);
+    if(ext == ".png" || ext == ".jpg" || ext == ".jpeg"){
+        auto it = m_TextureCache.find(*real);
+        if(it != m_TextureCache.end()){
+            return it->second;
+        }
+
+        SIMPEngine::Texture tex;
+        if(tex.LoadFromFile(SIMPEngine::Renderer::GetSDLRenderer(), real->c_str())){
+            auto & inserted = m_TextureCache[*real];
+            inserted = std::move(tex);
+            return inserted;
+        }
+        if(!tex.GetSDLTexture()){
+            CORE_ERROR("{} file could not be loaded", ext);
+        }
+        
+        
+    }
+
+    return m_FileIcon;
 }
