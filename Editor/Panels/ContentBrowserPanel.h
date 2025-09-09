@@ -34,6 +34,7 @@ public:
     void OnImGuiRender();
 
     SIMPEngine::Texture &GetIconFor(const std::string &vpath, bool isDir);
+    void LoadTexture(const std::string &vpath, bool isDir);
 
 private:
     SIMPEngine::AssetManager *m_AM;
@@ -47,7 +48,9 @@ private:
 
     SIMPEngine::Texture m_FolderIcon;
     SIMPEngine::Texture m_FileIcon;
+    SIMPEngine::Texture m_oneImage;
 
     std::unordered_map<std::string, SIMPEngine::Texture> m_TextureCache;
-    
+    std::unordered_map<std::string, SIMPEngine::Texture> m_Textures;
+
 };

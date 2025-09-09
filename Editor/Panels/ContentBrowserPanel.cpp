@@ -3,7 +3,6 @@
 #include "Core/VFS.h"
 #include "Core/FileSystem.h"
 #include "Core/Log.h"
-
 #include "Assets/AssetManager.h"
 #include "Assets/Asset.h"
 
@@ -92,16 +91,18 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
 
     // Always use folder icon for now
     SIMPEngine::Texture &icon = GetIconFor(vpath, isDir);
+    // SIMPEngine::Texture &icon = m_TextureCache["/home/divakar/Desktop/SDLGameEngine/build/assets/folder.png"];
+
     if (icon.GetSDLTexture())
     {
         // Image button with transparent background
         if (ImGui::ImageButton(
-                "entry_icon",
+                vpath.c_str(),
                 (ImTextureID)icon.GetSDLTexture(),
                 ImVec2(72, 72),
                 ImVec2(0, 0), ImVec2(1, 1),
-                ImVec4(0, 0, 0, 0), 
-                ImVec4(1, 1, 1, 1))) 
+                ImVec4(0, 0, 0, 0),
+                ImVec4(1, 1, 1, 1)))
         {
             // Click logic
             if (isDir)
@@ -139,14 +140,11 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
         ImGui::Button("📁", ImVec2(72, 72));
     }
 
-
     ImGui::TextWrapped("%s", name.c_str());
 
     ImGui::EndGroup();
     ImGui::PopID();
 }
-
-
 
 SIMPEngine::Texture *LoadTextureFromVirtual(const std::string &vpath)
 {
@@ -169,37 +167,44 @@ SIMPEngine::Texture *LoadTextureFromVirtual(const std::string &vpath)
     // return m_AssetManager->Get<SIMPEngine::Texture2D>(handle);
 }
 
-
-SIMPEngine::Texture & ContentBrowserPanel::GetIconFor(const std::string & vpath, bool isDir){
-    if(isDir){
+SIMPEngine::Texture &ContentBrowserPanel::GetIconFor(const std::string &vpath, bool isDir)
+{
+    if (isDir)
+    {
         return m_FolderIcon;
     }
 
     auto real = SIMPEngine::VFS::Resolve(vpath);
-    if(!real){
+    if (!real)
+    {
         CORE_ERROR("PATH COULD NOT BE RESOLVED");
         return m_FileIcon;
     }
 
     std::string ext = std::filesystem::u8path(*real).extension().string();
-    // CORE_ERROR("{}", ext);
-    if(ext == ".png" || ext == ".jpg" || ext == ".jpeg"){
+    if (ext == ".png" || ext == ".jpg" || ext == ".jpeg")
+    {
+        CORE_ERROR("Trying to load: {}", *real);
         auto it = m_TextureCache.find(*real);
-        if(it != m_TextureCache.end()){
+        if (it != m_TextureCache.end())
+        {
+            CORE_ERROR("Found in cache");
             return it->second;
         }
 
-        SIMPEngine::Texture tex;
-        if(tex.LoadFromFile(SIMPEngine::Renderer::GetSDLRenderer(), real->c_str())){
-            auto & inserted = m_TextureCache[*real];
-            inserted = std::move(tex);
-            return inserted;
+        CORE_ERROR("Loading new texture");
+        m_TextureCache[*real] = SIMPEngine::Texture();
+        if (m_TextureCache[*real].LoadFromFile(SIMPEngine::Renderer::GetSDLRenderer(), real->c_str()))
+        {
+            CORE_ERROR("Successfully loaded texture");
+            return m_TextureCache[*real];
         }
-        if(!tex.GetSDLTexture()){
-            CORE_ERROR("{} file could not be loaded", ext);
+        else
+        {
+            CORE_ERROR("COULD NOT LOAD TEXTURE: {}", *real);
+            m_TextureCache.erase(*real);
+            return m_FileIcon;
         }
-        
-        
     }
 
     return m_FileIcon;
