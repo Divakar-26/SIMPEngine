@@ -26,6 +26,35 @@ void ContentBrowserPanel::OnImGuiRender()
 
     // right grid
     ImGui::BeginChild("##grid", ImVec2(0, 0), true);
+
+    // make this droppable
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+        {
+            const char *srcVPath = (const char *)payload->Data;
+            auto srcReal = SIMPEngine::VFS::Resolve(srcVPath);
+            auto dstReal = SIMPEngine::VFS::Resolve(m_CurrentDir);
+
+            if (srcReal && dstReal)
+            {
+                std::filesystem::path srcPath = *srcReal;
+                std::filesystem::path dstPath = *dstReal / srcPath.filename();
+
+                try
+                {
+                    std::filesystem::rename(srcPath, dstPath);
+                    CORE_INFO("Moved to current directory: {} -> {}", srcPath.string(), dstPath.string());
+                }
+                catch (std::exception &e)
+                {
+                    CORE_ERROR("Move failed: {}", e.what());
+                }
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
     auto real = SIMPEngine::VFS::Resolve(m_CurrentDir);
     if (real)
     {
@@ -147,9 +176,36 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
         {
             // Only use CONTENT_BROWSER_ITEM payload for both files and folders
             ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", vpath.c_str(), vpath.size() + 1);
-            
+
             ImGui::TextUnformatted(name.c_str());
             ImGui::EndDragDropSource();
+        }
+
+        if (isDir && ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+            {
+                const char *srcVPath = (const char *)payload->Data;
+                auto srcReal = SIMPEngine::VFS::Resolve(srcVPath);
+                auto dstReal = SIMPEngine::VFS::Resolve(vpath);
+
+                if (srcReal && dstReal)
+                {
+                    std::filesystem::path srcPath = *srcReal;
+                    std::filesystem::path dstPath = *dstReal / srcPath.filename();
+
+                    try
+                    {
+                        std::filesystem::rename(srcPath, dstPath);
+                        CORE_INFO("Moved to folder: {} -> {}", srcPath.string(), dstPath.string());
+                    }
+                    catch (std::exception &e)
+                    {
+                        CORE_ERROR("Move failed: {}", e.what());
+                    }
+                }
+            }
+            ImGui::EndDragDropTarget();
         }
     }
     else
