@@ -53,15 +53,71 @@ void ContentBrowserPanel::DrawDirectory(const std::string &vdir)
     auto real = SIMPEngine::VFS::Resolve(vdir);
     if (!real)
         return;
+
     auto label = std::filesystem::u8path(*real).filename().string();
     if (label.empty())
         label = vdir;
 
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
     bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
+
     if (ImGui::IsItemClicked())
     {
         m_CurrentDir = vdir;
+    }
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+        {
+            const char *srcVPath = (const char *)payload->Data;
+            auto srcReal = SIMPEngine::VFS::Resolve(srcVPath);
+            auto dstReal = SIMPEngine::VFS::Resolve(vdir);
+            if (srcReal && dstReal)
+            {
+                std::filesystem::path srcPath = *srcReal;
+                std::filesystem::path dstPath = *dstReal / srcPath.filename();
+
+                try
+                {
+                    if (std::filesystem::is_directory(srcPath))
+                    {
+                        std::filesystem::rename(srcPath, dstPath); 
+                    }
+                    else
+                    {
+                        std::filesystem::rename(srcPath, dstPath); 
+                    }
+                    CORE_INFO("Moved: {} -> {}", srcPath.string(), dstPath.string());
+                }
+                catch (std::exception &e)
+                {
+                    CORE_ERROR("Move failed: {}", e.what());
+                }
+            }
+        }
+
+        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("EXTERNAL_FILE"))
+        {
+            const char *droppedPath = (const char *)payload->Data;
+            auto dstReal = SIMPEngine::VFS::Resolve(vdir);
+            if (dstReal)
+            {
+                std::filesystem::path srcPath = droppedPath;
+                std::filesystem::path dstPath = *dstReal / srcPath.filename();
+                try
+                {
+                    std::filesystem::copy(srcPath, dstPath, std::filesystem::copy_options::overwrite_existing);
+                    CORE_INFO("Imported file: {} -> {}", srcPath.string(), dstPath.string());
+                }
+                catch (std::exception &e)
+                {
+                    CORE_ERROR("Import failed: {}", e.what());
+                }
+            }
+        }
+
+        ImGui::EndDragDropTarget();
     }
 
     if (opened)
@@ -89,13 +145,10 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
     ImGui::PushID(vpath.c_str());
     ImGui::BeginGroup();
 
-    // Always use folder icon for now
     SIMPEngine::Texture &icon = GetIconFor(vpath, isDir);
-    // SIMPEngine::Texture &icon = m_TextureCache["/home/divakar/Desktop/SDLGameEngine/build/assets/folder.png"];
 
     if (icon.GetSDLTexture())
     {
-        // Image button with transparent background
         if (ImGui::ImageButton(
                 vpath.c_str(),
                 (ImTextureID)icon.GetSDLTexture(),
@@ -104,7 +157,6 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
                 ImVec4(0, 0, 0, 0),
                 ImVec4(1, 1, 1, 1)))
         {
-            // Click logic
             if (isDir)
             {
                 m_CurrentDir = vpath;
@@ -116,9 +168,9 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
             }
         }
 
-        // Drag & Drop
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
         {
+            ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", vpath.c_str(), vpath.size() + 1);
             if (!isDir)
             {
                 SIMPEngine::AssetType type = SIMPEngine::AssetType::Unknown;
@@ -127,7 +179,6 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
                     type = SIMPEngine::AssetType::Texture2D;
                 if (ext == ".scene")
                     type = SIMPEngine::AssetType::Scene;
-
                 auto handle = m_AM->ImportIfNeeded(vpath, type);
                 ImGui::SetDragDropPayload("ASSET_HANDLE", &handle, sizeof(handle));
             }
@@ -167,6 +218,7 @@ SIMPEngine::Texture *LoadTextureFromVirtual(const std::string &vpath)
     // return m_AssetManager->Get<SIMPEngine::Texture2D>(handle);
 }
 
+// TODO -> Make this load scaled down image, not the full one.
 SIMPEngine::Texture &ContentBrowserPanel::GetIconFor(const std::string &vpath, bool isDir)
 {
     if (isDir)
@@ -184,19 +236,19 @@ SIMPEngine::Texture &ContentBrowserPanel::GetIconFor(const std::string &vpath, b
     std::string ext = std::filesystem::u8path(*real).extension().string();
     if (ext == ".png" || ext == ".jpg" || ext == ".jpeg")
     {
-        CORE_ERROR("Trying to load: {}", *real);
+        // CORE_INFO("Trying to load: {}", *real);
         auto it = m_TextureCache.find(*real);
         if (it != m_TextureCache.end())
         {
-            CORE_ERROR("Found in cache");
+            // CORE_ERROR("Found in cache");
             return it->second;
         }
 
-        CORE_ERROR("Loading new texture");
+        // CORE_INFO("Loading new texture");
         m_TextureCache[*real] = SIMPEngine::Texture();
         if (m_TextureCache[*real].LoadFromFile(SIMPEngine::Renderer::GetSDLRenderer(), real->c_str()))
         {
-            CORE_ERROR("Successfully loaded texture");
+            // CORE_INFO("Successfully loaded texture");
             return m_TextureCache[*real];
         }
         else
