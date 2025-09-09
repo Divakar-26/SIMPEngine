@@ -36,6 +36,7 @@ public:
     SIMPEngine::Texture &GetIconFor(const std::string &vpath, bool isDir);
     void LoadTexture(const std::string &vpath, bool isDir);
 
+
 private:
     SIMPEngine::AssetManager *m_AM;
     std::string m_Root;
@@ -52,5 +53,6 @@ private:
 
     std::unordered_map<std::string, SIMPEngine::Texture> m_TextureCache;
     std::unordered_map<std::string, SIMPEngine::Texture> m_Textures;
-
 };
+
+

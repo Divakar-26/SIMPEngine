@@ -73,6 +73,7 @@ void ContentBrowserPanel::DrawDirectory(const std::string &vdir)
             const char *srcVPath = (const char *)payload->Data;
             auto srcReal = SIMPEngine::VFS::Resolve(srcVPath);
             auto dstReal = SIMPEngine::VFS::Resolve(vdir);
+
             if (srcReal && dstReal)
             {
                 std::filesystem::path srcPath = *srcReal;
@@ -80,39 +81,13 @@ void ContentBrowserPanel::DrawDirectory(const std::string &vdir)
 
                 try
                 {
-                    if (std::filesystem::is_directory(srcPath))
-                    {
-                        std::filesystem::rename(srcPath, dstPath); 
-                    }
-                    else
-                    {
-                        std::filesystem::rename(srcPath, dstPath); 
-                    }
+                    // This works for both files and folders
+                    std::filesystem::rename(srcPath, dstPath);
                     CORE_INFO("Moved: {} -> {}", srcPath.string(), dstPath.string());
                 }
                 catch (std::exception &e)
                 {
                     CORE_ERROR("Move failed: {}", e.what());
-                }
-            }
-        }
-
-        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("EXTERNAL_FILE"))
-        {
-            const char *droppedPath = (const char *)payload->Data;
-            auto dstReal = SIMPEngine::VFS::Resolve(vdir);
-            if (dstReal)
-            {
-                std::filesystem::path srcPath = droppedPath;
-                std::filesystem::path dstPath = *dstReal / srcPath.filename();
-                try
-                {
-                    std::filesystem::copy(srcPath, dstPath, std::filesystem::copy_options::overwrite_existing);
-                    CORE_INFO("Imported file: {} -> {}", srcPath.string(), dstPath.string());
-                }
-                catch (std::exception &e)
-                {
-                    CORE_ERROR("Import failed: {}", e.what());
                 }
             }
         }
@@ -170,18 +145,9 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
 
         if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
         {
+            // Only use CONTENT_BROWSER_ITEM payload for both files and folders
             ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", vpath.c_str(), vpath.size() + 1);
-            if (!isDir)
-            {
-                SIMPEngine::AssetType type = SIMPEngine::AssetType::Unknown;
-                auto ext = std::filesystem::u8path(*real).extension().string();
-                if (ext == ".png" || ext == ".jpg")
-                    type = SIMPEngine::AssetType::Texture2D;
-                if (ext == ".scene")
-                    type = SIMPEngine::AssetType::Scene;
-                auto handle = m_AM->ImportIfNeeded(vpath, type);
-                ImGui::SetDragDropPayload("ASSET_HANDLE", &handle, sizeof(handle));
-            }
+            
             ImGui::TextUnformatted(name.c_str());
             ImGui::EndDragDropSource();
         }
