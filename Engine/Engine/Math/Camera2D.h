@@ -73,5 +73,8 @@ namespace SIMPEngine
 
         float m_TargetWidth = Renderer::m_WindowWidth;
         float m_TargetHeight = Renderer::m_WindowHeight;
+
+        glm::vec2 m_LastMousePos{0.0f};
+        bool m_Panning = false;
     };
 }

@@ -14,7 +14,7 @@ namespace SIMPEngine
                                                                 m_Rotation(0.0f),
                                                                 m_SmoothFactor(10.0f),
                                                                 m_MoveSpeed(200.0f),
-                                                                m_ZoomSpeed(5.0f),
+                                                                m_ZoomSpeed(15.0f),
                                                                 m_Dirty(true),
                                                                 m_ViewMatrix(1.0f)
     {
@@ -64,11 +64,34 @@ namespace SIMPEngine
             delta.y += m_MoveSpeed * deltaTime;
 
         int wheelDelta = Input::GetMouseWheel();
-        if (wheelDelta > 0) 
-            m_ManualZoom += m_ZoomSpeed * deltaTime * wheelDelta;
-        else if (wheelDelta < 0) 
-            m_ManualZoom -= m_ZoomSpeed * deltaTime * -wheelDelta;
+        if (wheelDelta > 0)
+            m_ManualZoom += 0.1f * wheelDelta;
+        else if (wheelDelta < 0)
+            m_ManualZoom -= 0.1f * -wheelDelta;
         Move(delta);
+
+        // --- Middle Mouse Panning ---
+        if (Input::IsMouseButtonPressed(SIMPK_MOUSE_MIDDLE))
+        {
+            glm::vec2 mousePos(Input::GetMousePosition().first, Input::GetMousePosition().second);
+
+            if (!m_Panning)
+            {
+                m_Panning = true;
+                m_LastMousePos = mousePos;
+            }
+
+            glm::vec2 delta = mousePos - m_LastMousePos;
+            m_LastMousePos = mousePos;
+
+            delta /= m_ManualZoom;
+
+            Move(-delta);
+        }
+        else
+        {
+            m_Panning = false;
+        }
 
         m_ManualZoom = glm::clamp(m_ManualZoom, 0.1f, 10.0f);
 
