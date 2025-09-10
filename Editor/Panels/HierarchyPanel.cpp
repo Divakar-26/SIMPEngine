@@ -73,6 +73,7 @@ void HierarchyPanel::OnRender()
             m_AddVelocity = m_AddSprite = m_AddCamera = m_AddCollision = false;
             strcpy(m_EntityNameBuffer, "New Entity");
 
+            // for script
             // auto & script = entity.AddComponent<ScriptComponent>();
             // script.Bind<PlayerController>();
 
