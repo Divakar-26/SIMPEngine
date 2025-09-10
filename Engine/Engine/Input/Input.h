@@ -22,6 +22,9 @@ namespace SIMPEngine{
             static void OnMouseButtonPressed(int button);
             static void OnMouseButtonReleased(int button);
             static void OnMouseMoved(int x, int y);
+            static void OnMouseWheel(int y);
+            static int GetMouseWheel(); 
+
 
             // a helper function to clear the keys and mouse Inputs
             static void ResetAllKeys();
@@ -31,5 +34,6 @@ namespace SIMPEngine{
             static std::unordered_set<int> s_KeysPressed;
             static std::unordered_set<int> s_MouseButtonsPressed;
             static int s_MouseX, s_MouseY;
+            static int s_MouseWheel;
     };
 }

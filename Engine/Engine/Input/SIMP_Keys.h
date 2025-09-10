@@ -91,10 +91,8 @@ namespace SIMPEngine
         SIMPK_SLASH = SDLK_SLASH,
         SIMPK_BACKSLASH = SDLK_BACKSLASH,
         SIMPK_EQUALS = SDLK_EQUALS,
-        SIMPK_GRAVE = SDLK_GRAVE,   
+        SIMPK_GRAVE = SDLK_GRAVE,
         SIMPK_TILDE = SDLK_TILDE,
-        
-       
 
         // Function keys
         SIMPK_F1 = SDLK_F1,
@@ -110,14 +108,14 @@ namespace SIMPEngine
         SIMPK_F11 = SDLK_F11,
         SIMPK_F12 = SDLK_F12,
 
-
         // mouse buttons
         SIMPK_MOUSE_LEFT = SDL_BUTTON_LEFT,
         SIMPK_MOUSE_RIGHT = SDL_BUTTON_RIGHT,
         SIMPK_MOUSE_MIDDLE = SDL_BUTTON_MIDDLE,
         SIMPK_MOUSE_X1 = SDL_BUTTON_X1,
         SIMPK_MOUSE_X2 = SDL_BUTTON_X2,
-        
+        SIMPK_MOUSE_WHEEL_UP = -1001,
+        SIMPK_MOUSE_WHEEL_DOWN = -1002,
 
     };
 }

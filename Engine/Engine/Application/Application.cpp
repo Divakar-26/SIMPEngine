@@ -52,6 +52,7 @@ namespace SIMPEngine
                 SDLEventToEngine(sdlEvent);
             }
 
+
             for (Layer *layer : m_LayerStack)
                 layer->OnUpdate(deltaTime);
 
@@ -118,8 +119,9 @@ namespace SIMPEngine
 
         dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
                                                 {
-                                                    CORE_INFO("{}", ev.ToString());
-                                                    return false; });
+    CORE_INFO("Mouse wheel delta: {}", ev.GetYOffset());
+    Input::OnMouseWheel(ev.GetYOffset());
+    return false; });
 
         if (!e.Handled)
         {

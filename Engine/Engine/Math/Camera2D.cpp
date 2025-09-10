@@ -14,7 +14,7 @@ namespace SIMPEngine
                                                                 m_Rotation(0.0f),
                                                                 m_SmoothFactor(10.0f),
                                                                 m_MoveSpeed(200.0f),
-                                                                m_ZoomSpeed(1.0f),
+                                                                m_ZoomSpeed(5.0f),
                                                                 m_Dirty(true),
                                                                 m_ViewMatrix(1.0f)
     {
@@ -52,7 +52,7 @@ namespace SIMPEngine
     void Camera2D::Update(float deltaTime)
     {
         m_Position += (m_TargetPosition - m_Position) * glm::clamp(m_SmoothFactor * deltaTime, 0.0f, 1.0f);
-        
+
         glm::vec2 delta(0.0f);
         if (Input::IsKeyPressed(SIMPK_A))
             delta.x -= m_MoveSpeed * deltaTime;
@@ -63,10 +63,11 @@ namespace SIMPEngine
         if (Input::IsKeyPressed(SIMPK_S))
             delta.y += m_MoveSpeed * deltaTime;
 
-        if (Input::IsKeyPressed(SIMPK_Q))
-            m_ManualZoom -= m_ZoomSpeed * deltaTime;
-        if (Input::IsKeyPressed(SIMPK_E))
-            m_ManualZoom += m_ZoomSpeed * deltaTime;
+        int wheelDelta = Input::GetMouseWheel();
+        if (wheelDelta > 0) 
+            m_ManualZoom += m_ZoomSpeed * deltaTime * wheelDelta;
+        else if (wheelDelta < 0) 
+            m_ManualZoom -= m_ZoomSpeed * deltaTime * -wheelDelta;
         Move(delta);
 
         m_ManualZoom = glm::clamp(m_ManualZoom, 0.1f, 10.0f);
