@@ -4,7 +4,6 @@
 #include "Component.h"
 #include "Math/Camera2D.h"
 #include <string>
-
 #include "Systems/MovementSystem.h"
 #include "Systems/CollisionSystem.h"
 #include "Systems/CameraSystem.h"
@@ -12,7 +11,6 @@
 namespace SIMPEngine
 {
     class Entity;
-
     class Scene
     {
     public:
@@ -29,7 +27,6 @@ namespace SIMPEngine
         Entity CreateEntity(const std::string &name = "");
         Entity GetEntityByName(const std::string &name);
 
-
         entt::registry &GetRegistry()
         {
             return m_Registry;
@@ -38,23 +35,21 @@ namespace SIMPEngine
 
         Camera2D &GetMainCamera() { return cameraSystem.GetMainCamera(); }
 
-        Camera2D &GetActiveCamera(){
+        Camera2D &GetActiveCamera()
+        {
             return cameraSystem.GetActiveCamera(m_Registry);
         }
 
-        //helper functions
-
+        // helper functions
         void RenderQuad();
         void RenderSprites();
-
 
     private:
         std::string m_Name;
         entt::registry m_Registry;
-        
+
         MovementSystem movementSystem;
         CollisionSystem collisionSystem;
         CameraSystem cameraSystem;
-
     };
 }

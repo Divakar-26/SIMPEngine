@@ -22,6 +22,7 @@ add_library(Engine STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Math/Camera2D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Scene.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneManager.cpp
+    # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/ScriptableEntity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/CameraSystem.cpp
 )
 

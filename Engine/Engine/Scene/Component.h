@@ -6,6 +6,8 @@
 #include <memory>
 #include <string>
 
+namespace SIMPEngine { class ScriptableEntity; }
+
 struct TransformComponent
 {
     glm::vec2 position{0.0f, 0.0f};
@@ -66,4 +68,19 @@ struct CameraComponent
 
     CameraComponent(float zoom = 1.0f, glm::vec2 position = {0.0f, 0.0f})
         : Camera(zoom, position), primary(false) {}
+};
+
+struct ScriptComponent
+{
+    SIMPEngine::ScriptableEntity* Instance = nullptr;
+
+    std::function<SIMPEngine::ScriptableEntity*()> InstantiateScript;
+    std::function<void(ScriptComponent*)> DestroyScript;
+
+    template<typename T>
+    void Bind()
+    {
+        InstantiateScript = []() { return new T(); };
+        DestroyScript = [](ScriptComponent* sc) { delete sc->Instance; sc->Instance = nullptr; };
+    }
 };

@@ -1,5 +1,6 @@
 #include "HierarchyPanel.h"
 #include "Scene/Scene.h"
+#include "PlayerController.h"
 
 template <typename T>
 void DrawComponent(SIMPEngine::Entity entity, const char *name)
@@ -71,6 +72,9 @@ void HierarchyPanel::OnRender()
 
             m_AddVelocity = m_AddSprite = m_AddCamera = m_AddCollision = false;
             strcpy(m_EntityNameBuffer, "New Entity");
+
+            // auto & script = entity.AddComponent<ScriptComponent>();
+            // script.Bind<PlayerController>();
 
             ImGui::CloseCurrentPopup();
         }

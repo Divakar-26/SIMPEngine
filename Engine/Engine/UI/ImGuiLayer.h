@@ -37,9 +37,9 @@ namespace SIMPEngine
         SDL_Window *m_Window = nullptr;
         SDL_Renderer *m_Renderer = nullptr;
 
-        SIMPEngine::Entity selectedEntity;
+        SIMPEngine::Entity  selectedEntity;
 
-        bool m_BlockEvent;
+        bool m_BlockEvent;              
 
     };
 

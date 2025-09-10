@@ -4,6 +4,7 @@
 #include "../Rendering/Renderer.h"
 #include "Core/Log.h"
 #include "Input/Input.h"
+#include "Scene/ScriptableEntity.h"
 #include <entt/entt.hpp>
 #include <iostream>
 
@@ -26,7 +27,6 @@ namespace SIMPEngine
         // auto &transform = player.AddComponent<TransformComponent>();
         // transform.x = 100.0f;
         // transform.y = 200.0f;
-
         // auto &sprite = player.AddComponent<SpriteComponent>();
         // // sprite.texture = TextureManager::Get().LoadTexture("coin", "../assets/coin.png", Renderer::GetSDLRenderer());
         // sprite.width = 100.0f;
@@ -64,6 +64,21 @@ namespace SIMPEngine
 
         movementSystem.Update(m_Registry, deltaTime);
         collisionSystem.Update(m_Registry, deltaTime);
+
+        auto view = m_Registry.view<ScriptComponent>();
+        for (auto entityHandle : view)
+        {
+            auto &sc = view.get<ScriptComponent>(entityHandle);
+
+            if (!sc.Instance)
+            {
+                sc.Instance = sc.InstantiateScript();
+                sc.Instance->m_Entity = Entity(entityHandle, this);
+                sc.Instance->OnCreate();
+            }
+
+            sc.Instance->OnUpdate(deltaTime);
+        }
     }
 
     void Scene::OnRender()
