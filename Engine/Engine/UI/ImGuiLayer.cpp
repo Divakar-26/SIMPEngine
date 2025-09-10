@@ -52,11 +52,18 @@ namespace SIMPEngine
         style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
         style.FrameBorderSize = 1.0f; // default is 0.0f (no border)
 
-        style.Colors[ImGuiCol_Tab]                = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
+        style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
 
-
+        
         io.Fonts->AddFontFromFileTTF("../assets/JetBrainsMonoNerdFont-Regular.ttf", 18.0f);
 
+        ImFontConfig config;
+        config.MergeMode = true;
+        config.PixelSnapH = true;
+
+        static const ImWchar icon_ranges[] = {0xE000, 0xF8FF, 0};
+        io.Fonts->AddFontFromFileTTF("../assets/custom_font.ttf", 18.0f, &config, icon_ranges);
+        
         // Init backends
         ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
         ImGui_ImplSDLRenderer3_Init(m_Renderer);

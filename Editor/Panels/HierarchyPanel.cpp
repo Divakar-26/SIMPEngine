@@ -1,6 +1,7 @@
 #include "HierarchyPanel.h"
 #include "Scene/Scene.h"
 #include "PlayerController.h"
+#include "../icons.h"
 
 template <typename T>
 void DrawComponent(SIMPEngine::Entity entity, const char *name)
@@ -28,7 +29,7 @@ HierarchyPanel::HierarchyPanel(SIMPEngine::RenderingLayer *rl) : m_RenderingLaye
 
 void HierarchyPanel::OnRender()
 {
-    ImGui::Begin("Hierarchy");
+    ImGui::Begin(ICON_FOLDER "Hierarchy");
     SIMPEngine::Scene &scene = m_RenderingLayer->GetScene();
 
     if (ImGui::Button("+", ImVec2(40, 40)))
