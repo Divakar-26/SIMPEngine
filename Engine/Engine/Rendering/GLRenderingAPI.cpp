@@ -1,6 +1,7 @@
-// GLRenderingAPI.cpp
 #include "GLRenderingAPI.h"
+#include "Shader.h"
 #include <glad/glad.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 namespace SIMPEngine
@@ -8,11 +9,15 @@ namespace SIMPEngine
     static const char *vertexSrc = R"(
         #version 330 core
         layout (location = 0) in vec3 aPos;
+
+        uniform mat4 uMVP;
         uniform vec4 uColor;
+
         out vec4 fragColor;
+
         void main()
         {
-            gl_Position = vec4(aPos, 1.0);
+            gl_Position = uMVP * vec4(aPos, 1.0);
             fragColor = uColor;
         }
     )";
@@ -28,10 +33,8 @@ namespace SIMPEngine
     )";
 
     GLRenderingAPI::GLRenderingAPI() {}
-
     GLRenderingAPI::~GLRenderingAPI()
     {
-        glDeleteProgram(m_ShaderProgram);
         glDeleteVertexArrays(1, &m_VAO);
         glDeleteBuffers(1, &m_VBO);
         glDeleteBuffers(1, &m_EBO);
@@ -41,21 +44,18 @@ namespace SIMPEngine
     {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
-        glViewport(0, 0, 1920, 1080);
+        glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
 
-        CreateShaders();
+        m_Shader = std::make_unique<Shader>(vertexSrc, fragmentSrc);
 
-        // Quad vertices (NDC space, will update in DrawQuad)
         float vertices[12] = {
-            -0.5f, 0.5f, 0.0f, // top-left
-            0.5f, 0.5f, 0.0f,  // top-right
-            0.5f, -0.5f, 0.0f, // bottom-right
-            -0.5f, -0.5f, 0.0f // bottom-left
+            0.0f, 0.0f, 0.0f, // top-left
+            1.0f, 0.0f, 0.0f, // top-right
+            1.0f, 1.0f, 0.0f, // bottom-right
+            0.0f, 1.0f, 0.0f  // bottom-left
         };
 
-        unsigned int indices[6] = {
-            0, 1, 2,
-            2, 3, 0};
+        unsigned int indices[6] = {0,1,2, 2,3,0};
 
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers(1, &m_VBO);
@@ -69,10 +69,25 @@ namespace SIMPEngine
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
 
         glBindVertexArray(0);
+
+        SetProjection(m_ViewportWidth, m_ViewportHeight);
+    }
+
+    void GLRenderingAPI::SetProjection(float width, float height)
+    {
+        m_Projection = glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
+    }
+
+    void GLRenderingAPI::ResizeViewport(int width, int height)
+    {
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+        glViewport(0, 0, width, height);
+        SetProjection(width, height);
     }
 
     void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)
@@ -89,75 +104,33 @@ namespace SIMPEngine
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
-    void GLRenderingAPI::Present()
-    {
-        // SDL_GL_SwapWindow(window) outside
-    }
+    void GLRenderingAPI::Present() {}
 
     void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill)
     {
-        float viewportWidth = 1920.0f;
-        float viewportHeight = 1080.0f;
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f));
+        model = glm::scale(model, glm::vec3(width, height, 1.0f));
 
-        float ndcX = (x / viewportWidth) * 2.0f - 1.0f;
-        float ndcY = 1.0f - (y / viewportHeight) * 2.0f;
-        float ndcWidth = (width / viewportWidth) * 2.0f;
-        float ndcHeight = (height / viewportHeight) * 2.0f;
+        glm::mat4 view = (m_Camera) ? m_Camera->GetViewMatrix() : m_ViewMatrix;
+        glm::mat4 mvp = m_Projection * view * model;
 
-        float vertices[] = {
-            ndcX, ndcY, 0.0f,
-            ndcX + ndcWidth, ndcY, 0.0f,
-            ndcX + ndcWidth, ndcY - ndcHeight, 0.0f,
-            ndcX, ndcY - ndcHeight, 0.0f};
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
-        glUseProgram(m_ShaderProgram);
-        int colorLoc = glGetUniformLocation(m_ShaderProgram, "uColor");
-        glUniform4f(colorLoc,
-                    color.r / 255.0f,
-                    color.g / 255.0f,
-                    color.b / 255.0f,
-                    color.a / 255.0f);
+        m_Shader->Bind();
+        m_Shader->SetUniformMat4("uMVP", mvp);
+        m_Shader->SetUniform4f("uColor",
+                                color.r/255.0f,
+                                color.g/255.0f,
+                                color.b/255.0f,
+                                color.a/255.0f);
 
         glBindVertexArray(m_VAO);
-        if (fill)
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        else
-            glDrawArrays(GL_LINE_LOOP, 0, 4);
-
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
-        glUseProgram(0);
+
+        m_Shader->Unbind();
     }
 
-    void GLRenderingAPI::CreateShaders()
+    void GLRenderingAPI::SetViewMatrix(const glm::mat4 &view)
     {
-        unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertex, 1, &vertexSrc, NULL);
-        glCompileShader(vertex);
-
-        unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragment, 1, &fragmentSrc, NULL);
-        glCompileShader(fragment);
-
-        m_ShaderProgram = glCreateProgram();
-        glAttachShader(m_ShaderProgram, vertex);
-        glAttachShader(m_ShaderProgram, fragment);
-        glLinkProgram(m_ShaderProgram);
-
-        glDeleteShader(vertex);
-        glDeleteShader(fragment);
-
-        int success;
-        char infoLog[512];
-        glGetProgramiv(m_ShaderProgram, GL_LINK_STATUS, &success);
-        if (!success)
-        {
-            glGetProgramInfoLog(m_ShaderProgram, 512, NULL, infoLog);
-            std::cerr << "Shader Linking Failed: " << infoLog << std::endl;
-        }
+        m_ViewMatrix = view;
     }
-
-
 }

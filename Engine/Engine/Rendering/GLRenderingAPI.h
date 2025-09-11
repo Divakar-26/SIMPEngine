@@ -1,9 +1,10 @@
-// GLRenderingAPI.h
 #pragma once
 #include "RenderingAPI.h"
 #include <glm/glm.hpp>
 #include <SDL3/SDL.h>
 #include <memory>
+#include "Shader.h"
+#include "Math/Camera2D.h"
 
 namespace SIMPEngine
 {
@@ -20,27 +21,35 @@ namespace SIMPEngine
 
         void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill = true) override;
 
-        // Empty stubs
         void DrawCircle(float, float, float, SDL_Color) override {}
         void DrawLine(float, float, float, float, SDL_Color) override {}
-        void SetViewMatrix(const glm::mat4 &) override {}
         void DrawTexture(SDL_Texture *, float, float, float, float, SDL_Color, float, const SDL_FRect *) override {}
         std::shared_ptr<Texture> CreateTexture(const char *) override { return nullptr; }
         void Flush() override {}
         SDL_Renderer *GetSDLRenderer() override { return nullptr; }
-        void ResizeViewport(int, int) override {}
+        void ResizeViewport(int, int) override;
 
-        // In GLRenderingAPI.h
         unsigned int GetViewportTexture() override { return 0; }
         void BeginFrame() override {}
         void EndFrame() override {}
 
+        // Camera
+        void SetCamera(Camera2D *camera) { m_Camera = camera; }
+        void SetProjection(float width, float height);
+
+        void SetViewMatrix(const glm::mat4 &view) override;
+
     private:
         float m_ClearColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
-        unsigned int m_ShaderProgram = 0;
         unsigned int m_VAO = 0, m_VBO = 0, m_EBO = 0;
+        std::unique_ptr<Shader> m_Shader;
 
-        void CreateShaders();
+        glm::mat4 m_Projection = glm::mat4(1.0f);
+        glm::mat4 m_ViewMatrix = glm::mat4(1.0f);
+        Camera2D *m_Camera = nullptr;
+
+        int m_ViewportWidth = 1920;
+        int m_ViewportHeight = 1080;
     };
 }

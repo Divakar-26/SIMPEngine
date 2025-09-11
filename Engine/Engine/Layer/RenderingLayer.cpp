@@ -97,8 +97,23 @@ namespace SIMPEngine
         // anim->Draw(500,500,300,300,SDL_Color{255,255,255,255});
 
         // auto cointex = TextureManager::Get().GetTexture("coin");
-        Renderer::DrawQuad(0, 0, 200, 200, SDL_Color{0, 255, 0, 0});
-        Renderer::DrawQuad(100, 0, 200, 200, SDL_Color{255, 255, 0, 0});
+        Renderer::DrawQuad(0,0,100,100,SDL_Color{255,0,0,0});
+        for (int i = 0; i < 50; i++)
+        {
+            int x = 0; // 10 quads per row
+            int y = 0; // new row after 10 quads
+            int w = 100;
+            int h = 100;
+
+            SDL_Color color = {
+                (Uint8)(rand() % 256), // random R
+                (Uint8)(rand() % 256), // random G
+                (Uint8)(rand() % 256), // random B
+                255                    // alpha
+            };
+
+            Renderer::DrawQuad(x, y, w, h, color);
+        }
 
         // SDL_FRect rect;
         // rect.x = 0;
