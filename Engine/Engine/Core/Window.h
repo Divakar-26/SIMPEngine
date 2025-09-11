@@ -20,10 +20,12 @@ namespace SIMPEngine
 
         //same as GetNativeWindow
         SDL_Renderer *GetRenderer() { return m_Renderer; }
+        SDL_GLContext GetGLContetext(){return m_GLContext;}
 
     private:
         bool m_Initialized = false;
         SDL_Window *m_Window = nullptr;
         SDL_Renderer *m_Renderer = nullptr;
+        SDL_GLContext m_GLContext = nullptr;
     };
 }
