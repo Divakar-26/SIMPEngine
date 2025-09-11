@@ -33,12 +33,11 @@ namespace SIMPEngine
         // vel.vx = 0.0f;
         // vel.vy = 0.0f;
 
-
         // std::vector<Sprite> frames;
         // auto it = TextureManager::Get().GetTexture("coin");
 
         // for(int i = 0; i < 12; i++){
-            
+
         //     frames.emplace_back(Sprite(it, SDL_FRect{(float)(i * 16.0f), 0.0f, 16.0f, 16.0f }));
         // }
 
@@ -98,6 +97,8 @@ namespace SIMPEngine
         // anim->Draw(500,500,300,300,SDL_Color{255,255,255,255});
 
         // auto cointex = TextureManager::Get().GetTexture("coin");
+        Renderer::DrawQuad(0, 0, 200, 200, SDL_Color{0, 255, 0, 0});
+        Renderer::DrawQuad(100, 0, 200, 200, SDL_Color{255, 255, 0, 0});
 
         // SDL_FRect rect;
         // rect.x = 0;

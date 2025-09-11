@@ -15,14 +15,14 @@ public:
     MyGame()
     {
         // // Custom game initialization
-        // SIMPEngine::RenderingLayer * m_RenderingLayer = new SIMPEngine::RenderingLayer();
+        SIMPEngine::RenderingLayer * m_RenderingLayer = new SIMPEngine::RenderingLayer();
         
         // #ifndef NO_EDITOR
         //     EditorLayer * m_EditorLayer = new EditorLayer(m_RenderingLayer);
         //     PushOverlay(m_EditorLayer);
         // #else
-        //     PushOverlay(m_RenderingLayer);
         // #endif
+        PushOverlay(m_RenderingLayer); 
     }
 };
 

@@ -38,21 +38,24 @@ void ViewportPanel::OnRender(SIMPEngine::Entity &m_SelectedEntity)
 
     ResizeViewportIfNeeded(viewportSize);
 
-    SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), SIMPEngine::Renderer::GetAPI()->GetViewportTexture());
+    // 🔹 Bind OpenGL framebuffer before rendering
+    auto api = SIMPEngine::Renderer::GetAPI();
+    api->BeginFrame();
     m_RenderingLayer->GetCamera().SetViewportSize(viewportSize.x, viewportSize.y);
-    SIMPEngine::Renderer::Clear();
 
+    SIMPEngine::Renderer::Clear();
     RenderViewportBorder();
     OriginLines();
     m_RenderingLayer->OnRender();
 
-    SDL_SetRenderTarget(SIMPEngine::Renderer::GetSDLRenderer(), nullptr);
+    // 🔹 Unbind framebuffer
+    api->EndFrame();
 
-    // Display framebuffer
-    SDL_Texture *tex = SIMPEngine::Renderer::GetAPI()->GetViewportTexture();
-    ImGui::Image((void *)tex, viewportSize, ImVec2(0, 0), ImVec2(1, 1));
+    // 🔹 Show OpenGL texture in ImGui
+    ImTextureID texID = (ImTextureID)(intptr_t)api->GetViewportTexture();
+    ImGui::Image(texID, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
 
-    // for the calculation of world corrdinates
+    // Keep mouse/world position etc.
     mousePos = ImGui::GetMousePos();
     windowPos = ImGui::GetWindowPos();
     contentMin = ImGui::GetWindowContentRegionMin();
@@ -64,6 +67,7 @@ void ViewportPanel::OnRender(SIMPEngine::Entity &m_SelectedEntity)
     DrawMouseWorldPosition();
     ImGui::End();
 }
+
 
 void ViewportPanel::UpdateFocusState()
 {

@@ -35,7 +35,7 @@ namespace SIMPEngine
 
     void Renderer::DrawQuad(float x, float y, float width, float height,  SDL_Color color, bool fill)
     {
-        // s_RenderingAPI->DrawQuad(x, y, width, height, color, fill);
+        s_RenderingAPI->DrawQuad(x, y, width, height, color, fill);
     }
 
     void Renderer::DrawCircle(float x, float y, float r, SDL_Color color)

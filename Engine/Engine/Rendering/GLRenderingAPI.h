@@ -1,15 +1,17 @@
+// GLRenderingAPI.h
 #pragma once
 #include "RenderingAPI.h"
 #include <glm/glm.hpp>
 #include <SDL3/SDL.h>
+#include <memory>
+
 namespace SIMPEngine
 {
-
     class GLRenderingAPI : public RenderingAPI
     {
     public:
         GLRenderingAPI();
-        virtual ~GLRenderingAPI() = default;
+        virtual ~GLRenderingAPI();
 
         void Init() override;
         void SetClearColor(float r, float g, float b, float a) override;
@@ -17,19 +19,28 @@ namespace SIMPEngine
         void Present() override;
 
         void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill = true) override;
-        void DrawCircle(float x, float y, float r, SDL_Color color) override;
-        void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color) override;
-        void SetViewMatrix(const glm::mat4 &view) override;
-        void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect *srcRect = nullptr) override;
-        std::shared_ptr<Texture> CreateTexture(const char *path) override;
 
-        void Flush() override;
+        // Empty stubs
+        void DrawCircle(float, float, float, SDL_Color) override {}
+        void DrawLine(float, float, float, float, SDL_Color) override {}
+        void SetViewMatrix(const glm::mat4 &) override {}
+        void DrawTexture(SDL_Texture *, float, float, float, float, SDL_Color, float, const SDL_FRect *) override {}
+        std::shared_ptr<Texture> CreateTexture(const char *) override { return nullptr; }
+        void Flush() override {}
+        SDL_Renderer *GetSDLRenderer() override { return nullptr; }
+        void ResizeViewport(int, int) override {}
 
-        SDL_Renderer *GetSDLRenderer() override;
-        void ResizeViewport(int width, int height) override;
+        // In GLRenderingAPI.h
+        unsigned int GetViewportTexture() override { return 0; }
+        void BeginFrame() override {}
+        void EndFrame() override {}
 
     private:
-        float m_ClearColor[4] = {1.0f, 0.0f, 0.0f, 1.0f};
-    };
+        float m_ClearColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
-};
+        unsigned int m_ShaderProgram = 0;
+        unsigned int m_VAO = 0, m_VBO = 0, m_EBO = 0;
+
+        void CreateShaders();
+    };
+}
