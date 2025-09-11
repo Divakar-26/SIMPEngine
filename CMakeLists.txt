@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SIMPEngine LANGUAGES CXX)
+project(SIMPEngine LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,15 +30,24 @@ add_library(imgui STATIC
     vendor/imgui/backends/imgui_impl_sdl3.cpp
     vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp
 
-
     vendor/ImGuizmo/ImGuizmo.cpp
 )
+
 
 target_include_directories(imgui PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/imgui
     ${CMAKE_SOURCE_DIR}/vendor/imgui/backends
     ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo
 )
+
+# glad
+add_library(glad STATIC vendor/glad/src/glad.c)
+
+target_include_directories(glad PUBLIC
+    ${CMAKE_SOURCE_DIR}/vendor/glad/include
+)
+
+set_target_properties(glad PROPERTIES LINKER_LANGUAGE C)
 
 target_link_libraries(imgui PUBLIC SDL3::SDL3 spdlog)
 

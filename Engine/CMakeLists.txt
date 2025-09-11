@@ -1,3 +1,4 @@
+
 add_library(Engine STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Window.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Log.cpp
@@ -24,15 +25,15 @@ add_library(Engine STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneManager.cpp
     # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/ScriptableEntity.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/CameraSystem.cpp
+    # ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c
 )
-
 
 target_include_directories(Engine
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine    # D:/SIMPEngine/Engine/Engine
     PUBLIC ${CMAKE_SOURCE_DIR}/vendor/entt/src
     PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm
-    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad/include
 )
 
 target_precompile_headers(Engine PRIVATE Engine/PCH.h)
@@ -42,4 +43,5 @@ target_link_libraries(Engine
     PUBLIC SDL3_image::SDL3_image
     PUBLIC spdlog
     PUBLIC imgui
+    PUBLIC glad
 )
