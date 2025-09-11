@@ -32,6 +32,7 @@ target_include_directories(Engine
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine    # D:/SIMPEngine/Engine/Engine
     PUBLIC ${CMAKE_SOURCE_DIR}/vendor/entt/src
     PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad
 )
 
 target_precompile_headers(Engine PRIVATE Engine/PCH.h)

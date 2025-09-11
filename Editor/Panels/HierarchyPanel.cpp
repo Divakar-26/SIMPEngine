@@ -14,7 +14,7 @@ void DrawComponent(SIMPEngine::Entity entity, const char *name)
 
         if (ImGui::BeginPopupContextItem())
         {
-            if (ImGui::MenuItem("Remove Component"))
+            if (ImGui::MenuItem(ICON_DELETE_LEFT " Remove Component"))
                 entity.RemoveComponent<T>();
 
             ImGui::EndPopup();
@@ -81,7 +81,7 @@ void HierarchyPanel::OnRender()
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Cancel"))
+        if (ImGui::Button(ICON_MULTIPLY "Cancel"))
         {
             ImGui::CloseCurrentPopup();
         }
@@ -93,8 +93,9 @@ void HierarchyPanel::OnRender()
                                                   {
     SIMPEngine::Entity entity(handle, &scene);
 
+    std::string nameWithIcon = std::string(ICON_CUBE) + " " + tag.Tag;
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-    bool opened = ImGui::TreeNodeEx((void*)(uint64_t)handle, flags, "%s", tag.Tag.c_str());
+    bool opened = ImGui::TreeNodeEx((void*)(uint64_t)handle, flags, "%s", nameWithIcon.c_str());
 
     if (ImGui::IsItemClicked())
         m_SelectedEntity = entity;
@@ -145,10 +146,9 @@ void HierarchyPanel::OnRender()
 
 void HierarchyPanel::ShowComponents(SIMPEngine::Entity entity)
 {
-    DrawComponent<TransformComponent>(entity, "Transform");
-    DrawComponent<SpriteComponent>(entity, "Sprite");
-    DrawComponent<VelocityComponent>(entity, "Velocity");
-    DrawComponent<RenderComponent>(entity, "Render");
-    DrawComponent<CameraComponent>(entity, "Camera Entity");
-    DrawComponent<CollisionComponent>(entity, "Collision Box");
+    DrawComponent<TransformComponent>(entity,ICON_ARROWS " Transform");
+    DrawComponent<SpriteComponent>(entity, ICON_PHOTO_FILM " Render");
+    DrawComponent<CameraComponent>(entity, ICON_CAMERA " Camera Entity");
+    DrawComponent<CollisionComponent>(entity, ICON_CAR_CRASH " Collision Box");
 }
+ 

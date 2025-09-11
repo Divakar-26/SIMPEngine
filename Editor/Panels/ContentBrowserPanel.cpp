@@ -5,6 +5,7 @@
 #include "Core/Log.h"
 #include "Assets/AssetManager.h"
 #include "Assets/Asset.h"
+#include "../icons.h"
 
 std::string ContentBrowserPanel::ToVirtualChild(const std::string &parent, const std::string &filename)
 {
@@ -83,11 +84,12 @@ void ContentBrowserPanel::DrawDirectory(const std::string &vdir)
     if (!real)
         return;
 
-    auto label = std::filesystem::u8path(*real).filename().string();
+    std::string label = std::string(ICON_CAMERA) + std::filesystem::u8path(*real).filename().string();
     if (label.empty())
         label = vdir;
-
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
+
+    // Pass c_str() to ImGui
     bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
 
     if (ImGui::IsItemClicked())

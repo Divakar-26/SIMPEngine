@@ -61,8 +61,8 @@ namespace SIMPEngine
         config.MergeMode = true;
         config.PixelSnapH = true;
 
-        static const ImWchar icon_ranges[] = {0xE000, 0xF8FF, 0};
-        io.Fonts->AddFontFromFileTTF("../assets/custom_font.ttf", 18.0f, &config, icon_ranges);
+        static const ImWchar icon_ranges[] = {0xE000, 0xE7BF, 0};
+        io.Fonts->AddFontFromFileTTF("../assets/myicons.ttf", 18.0f, &config, icon_ranges);
         
         // Init backends
         ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
