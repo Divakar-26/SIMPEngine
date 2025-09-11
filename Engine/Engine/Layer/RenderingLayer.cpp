@@ -94,7 +94,7 @@ namespace SIMPEngine
 
     void RenderingLayer::OnRender()
     {
-        m_Scene.OnRender();
+        // m_Scene.OnRender();
         // anim->Draw(500,500,300,300,SDL_Color{255,255,255,255});
 
         // auto cointex = TextureManager::Get().GetTexture("coin");

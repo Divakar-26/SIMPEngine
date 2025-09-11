@@ -1,6 +1,7 @@
 #include "PCH.h"
 #include "Application.h"
 #include "Core/FileSystem.h"
+
 namespace SIMPEngine
 {
     Application *Application::s_Instance = nullptr;
@@ -16,7 +17,7 @@ namespace SIMPEngine
 
         int w, h;
         SDL_GetWindowSize(m_Window.GetNativeWindow(), &w, &h);
-        Renderer::Init(std::make_unique<SDLRenderingAPI>(), m_Window.GetRenderer(), w, h);
+        Renderer::Init(std::make_unique<GLRenderingAPI>(), w, h);
 
         m_ImGuiLayer = new ImGuiLayer();
 
@@ -56,7 +57,7 @@ namespace SIMPEngine
             for (Layer *layer : m_LayerStack)
                 layer->OnUpdate(deltaTime);
 
-            Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
+            Renderer::SetClearColor(1.0, 0.0f, 0.0f, 1.0f);
             Renderer::Clear();
 
             m_ImGuiLayer->Begin();
@@ -66,7 +67,8 @@ namespace SIMPEngine
 
             m_ImGuiLayer->End();
 
-            Renderer::Present();
+            // Renderer::Present();
+            SDL_GL_SwapWindow(m_Window.GetNativeWindow());
         }
     }
 

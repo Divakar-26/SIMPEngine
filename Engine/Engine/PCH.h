@@ -15,7 +15,8 @@
 #include "Rendering/Sprite.h"
 #include "Rendering/Animation.h"
 #include "Rendering/SpriteAtlas.h"
-#include "Rendering/SDLRenderingAPI.h"
+// #include "Rendering/SDLRenderingAPI.h"
+#include "Rendering/GLRenderingAPI.h"
 
 #include <iostream>
 #include <functional>

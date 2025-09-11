@@ -14,7 +14,7 @@ namespace SIMPEngine
     public:
         virtual ~RenderingAPI();
 
-        virtual void Init(SDL_Renderer *sdlRenderer) = 0;
+        virtual void Init() = 0;
         virtual void SetClearColor(float r, float g, float b, float a) = 0;
         virtual void Clear() = 0;
         virtual void DrawQuad(float x, float y, float width, float height,  SDL_Color color, bool fill) = 0;

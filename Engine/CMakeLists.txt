@@ -11,7 +11,7 @@ add_library(Engine STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/Application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/UI/ImGuiLayer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Renderer.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SDLRenderingAPI.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/GLRenderingAPI.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/RenderingAPI.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Animation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SpriteAtlas.cpp

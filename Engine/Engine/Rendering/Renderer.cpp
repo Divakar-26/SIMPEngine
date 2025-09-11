@@ -15,10 +15,10 @@ namespace SIMPEngine
         return s_RenderingAPI.get();
     }
 
-    void Renderer::Init(std::unique_ptr<RenderingAPI> api, SDL_Renderer *sdlRenderer, int w, int h)
+    void Renderer::Init(std::unique_ptr<RenderingAPI> api, int w, int h)
     {   
         s_RenderingAPI = std::move(api);
-        s_RenderingAPI->Init(sdlRenderer);
+        s_RenderingAPI->Init();
         m_WindowWidth = w;
         m_WindowHeight = h;
     }
@@ -35,12 +35,12 @@ namespace SIMPEngine
 
     void Renderer::DrawQuad(float x, float y, float width, float height,  SDL_Color color, bool fill)
     {
-        s_RenderingAPI->DrawQuad(x, y, width, height, color, fill);
+        // s_RenderingAPI->DrawQuad(x, y, width, height, color, fill);
     }
 
     void Renderer::DrawCircle(float x, float y, float r, SDL_Color color)
     {
-        s_RenderingAPI->DrawCircle(x, y, r, color);
+        // s_RenderingAPI->DrawCircle(x, y, r, color);
     }
 
     void Renderer::Present()
@@ -50,37 +50,37 @@ namespace SIMPEngine
 
     void Renderer::Flush()
     {
-        s_RenderingAPI->Flush();
+        // s_RenderingAPI->Flush();
     }
 
     void Renderer::SetViewMatrix(const glm::mat4 &view)
     {
-        s_ViewMatrix = view;
-        if (s_RenderingAPI)
-            s_RenderingAPI->SetViewMatrix(view);
+        // s_ViewMatrix = view;
+        // if (s_RenderingAPI)
+        //     s_RenderingAPI->SetViewMatrix(view);
     }
 
     const glm::mat4 &Renderer::GetViewMatrix()
     {
-        return s_ViewMatrix;
+        // return s_ViewMatrix;
     }
 
     void Renderer::DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect *srcRect)
     {
-        s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation, srcRect);
+        // s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation, srcRect);
     }
 
     std::shared_ptr<Texture> Renderer::CreateTexture(const char *path)
     {
-        return s_RenderingAPI->CreateTexture(path);
+        // return s_RenderingAPI->CreateTexture(path);
     }
 
     SDL_Renderer *Renderer::GetSDLRenderer()
     {
-        return s_RenderingAPI->GetSDLRenderer();
+        // return s_RenderingAPI->GetSDLRenderer();
     }
 
     void Renderer::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color){
-        s_RenderingAPI->DrawLine(x1, y1, x2, y2, color);
+        // s_RenderingAPI->DrawLine(x1, y1, x2, y2, color);
     }
 }

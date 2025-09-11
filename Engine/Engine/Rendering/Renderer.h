@@ -11,7 +11,7 @@ namespace SIMPEngine
     class Renderer
     {
     public:
-        static void Init(std::unique_ptr<RenderingAPI> api, SDL_Renderer *sdlRenderer, int w, int h);
+        static void Init(std::unique_ptr<RenderingAPI> api, int w, int h);
 
         // Renderer.h
         static RenderingAPI *GetAPI(); // add this
