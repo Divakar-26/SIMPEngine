@@ -46,6 +46,18 @@ namespace SIMPEngine
             return glm::ortho(-halfW, halfW, -halfH, halfH, -1.0f, 1.0f);
         }
 
+        void SetCentered(bool centered) { isCentered = centered; }
+        bool IsCentered() const { return isCentered; }
+
+        void FocusOn(const glm::vec2 &position)
+        {
+            m_Position = position;
+            m_TargetPosition = position;
+            m_Dirty = true;
+        }
+
+        bool isCentered = false;
+
     private:
         glm::vec2 m_Position;
         float m_BaseZoom = 1.0f;   // zoom to fit scene

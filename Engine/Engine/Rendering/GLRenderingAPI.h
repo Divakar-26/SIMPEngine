@@ -4,7 +4,6 @@
 #include <SDL3/SDL.h>
 #include <memory>
 #include "Shader.h"
-#include "Math/Camera2D.h"
 
 namespace SIMPEngine
 {
@@ -20,7 +19,6 @@ namespace SIMPEngine
         void Present() override;
 
         void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill = true) override;
-
         void DrawCircle(float, float, float, SDL_Color) override {}
         void DrawLine(float, float, float, float, SDL_Color) override {}
         void DrawTexture(SDL_Texture *, float, float, float, float, SDL_Color, float, const SDL_FRect *) override {}
@@ -29,15 +27,15 @@ namespace SIMPEngine
         SDL_Renderer *GetSDLRenderer() override { return nullptr; }
         void ResizeViewport(int, int) override;
 
-        unsigned int GetViewportTexture() override { return 0; }
-        void BeginFrame() override {}
-        void EndFrame() override {}
-
-        // Camera
-        void SetCamera(Camera2D *camera) { m_Camera = camera; }
         void SetProjection(float width, float height);
-
         void SetViewMatrix(const glm::mat4 &view) override;
+
+        unsigned int GetViewportTexture() override;
+
+        void BeginFrame() override;
+
+
+        void EndFrame() override;
 
     private:
         float m_ClearColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
@@ -47,9 +45,11 @@ namespace SIMPEngine
 
         glm::mat4 m_Projection = glm::mat4(1.0f);
         glm::mat4 m_ViewMatrix = glm::mat4(1.0f);
-        Camera2D *m_Camera = nullptr;
 
         int m_ViewportWidth = 1920;
         int m_ViewportHeight = 1080;
+
+        glm::vec2 TransformPosition(float x, float y) const;
+        glm::vec2 TransformSize(float w, float h) const;
     };
 }

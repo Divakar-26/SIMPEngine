@@ -112,14 +112,21 @@ namespace SIMPEngine
         float halfHeight = m_ViewportHeight / 2.0f;
 
         glm::mat4 transform(1.0f);
-
-        transform = glm::translate(transform, glm::vec3(halfWidth, halfHeight, 0.0f));
-
-        transform = glm::scale(transform, glm::vec3(totalZoom, totalZoom, 1.0f));
-
-        transform = glm::translate(transform, glm::vec3(-m_Position.x, -m_Position.y, 0.0f));
-
-        transform = glm::rotate(transform, glm::radians(-m_Rotation), glm::vec3(0, 0, 1));
+        if (!isCentered)
+        {
+            // Origin = top-left
+            transform = glm::translate(transform, glm::vec3(halfWidth, halfHeight, 0.0f));
+            transform = glm::scale(transform, glm::vec3(totalZoom, totalZoom, 1.0f));
+            transform = glm::translate(transform, glm::vec3(-m_Position.x, -m_Position.y, 0.0f));
+            transform = glm::rotate(transform, glm::radians(-m_Rotation), glm::vec3(0, 0, 1));
+        }
+        else
+        {
+            // Origin = center
+            transform = glm::translate(transform, glm::vec3(-m_Position.x, -m_Position.y, 0.0f));
+            transform = glm::rotate(transform, glm::radians(-m_Rotation), glm::vec3(0, 0, 1));
+            transform = glm::scale(transform, glm::vec3(totalZoom, totalZoom, 1.0f));
+        }
 
         m_ViewMatrix = transform;
     }
@@ -132,6 +139,8 @@ namespace SIMPEngine
         float zoomX = width / m_TargetWidth;
         float zoomY = height / m_TargetHeight;
         m_BaseZoom = std::min(zoomX, zoomY);
+
+        CORE_INFO("{} {} is the viewport size", width, height);
 
         RecalculateViewMatrix();
     }

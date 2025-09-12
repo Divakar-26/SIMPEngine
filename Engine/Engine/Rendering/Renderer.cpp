@@ -55,9 +55,9 @@ namespace SIMPEngine
 
     void Renderer::SetViewMatrix(const glm::mat4 &view)
     {
-        // s_ViewMatrix = view;
-        // if (s_RenderingAPI)
-        //     s_RenderingAPI->SetViewMatrix(view);
+        s_ViewMatrix = view;
+        if (s_RenderingAPI)
+            s_RenderingAPI->SetViewMatrix(view);
     }
 
     const glm::mat4 &Renderer::GetViewMatrix()

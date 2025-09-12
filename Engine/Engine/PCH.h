@@ -11,12 +11,12 @@
 #include "Input/SIMP_Keys.h"
 
 // ------Rendering-----------------
+#include "Rendering/GLRenderingAPI.h"
 #include "Rendering/TextureManager.h"
 #include "Rendering/Sprite.h"
 #include "Rendering/Animation.h"
 #include "Rendering/SpriteAtlas.h"
 // #include "Rendering/SDLRenderingAPI.h"
-#include "Rendering/GLRenderingAPI.h"
 
 #include <iostream>
 #include <functional>

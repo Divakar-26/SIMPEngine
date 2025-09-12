@@ -37,9 +37,16 @@ namespace SIMPEngine
         glUniform4f(GetUniformLocation(name), v0, v1, v2, v3);
     }
 
-    void Shader::SetUniformMat4(const std::string &name, const glm::mat4 &matrix)
+    void Shader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
     {
-        glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, glm::value_ptr(matrix));
+        GLint location = glGetUniformLocation(m_ID, name.c_str());
+        if (location == -1)
+        {
+            // Optional: log once so it doesn’t spam
+            // CORE_WARN("Uniform {} not found in shader", name);
+            return;
+        }
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
     unsigned int Shader::CompileShader(unsigned int type, const std::string& source)

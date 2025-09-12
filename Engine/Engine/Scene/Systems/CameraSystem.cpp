@@ -1,4 +1,5 @@
 #include "CameraSystem.h"
+#include "Core/Log.h"
 
 namespace SIMPEngine
 {
@@ -12,13 +13,15 @@ namespace SIMPEngine
             auto &transform = cameraView.get<TransformComponent>(entity);
 
             if (camComp.primary)
-            {
-                camComp.Camera.SetPosition({transform.position.x, transform.position.y});
+            {   
+                auto w = camComp.Camera.GetViewportSize();
+                CORE_INFO("{} {}", w.first, w.second );
+                camComp.Camera.SetPosition({transform.position.x , transform.position.y});
                 camComp.Camera.Update(dt);
                 break;
             }
         }
-
+        
         m_MainCamera.Update(dt);
     }
 

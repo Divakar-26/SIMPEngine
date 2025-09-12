@@ -17,13 +17,19 @@ namespace SIMPEngine
 
         // auto myTexture = TextureManager::Get().GetTexture("man");
 
-        // Entity entity1 = m_Scene.CreateEntity("RedBox");
-        // entity1.GetComponent<TransformComponent>().position.x = 500.0f;
-        // entity1.GetComponent<TransformComponent>().position.y = 500.0f;
-        // entity1.AddComponent<TagComponent>("RedBox");
+        Entity entity1 = m_Scene.CreateEntity("RedBox");
+        entity1.GetComponent<TransformComponent>().position.x = 500.0f;
+        entity1.GetComponent<TransformComponent>().position.y = 500.0f;
+        entity1.AddComponent<TagComponent>("RedBox");
         // entity1.AddComponent<SpriteComponent>(myTexture, 100.0f, 100.0f);
-        // auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(0.0f, 0.0f));
-        // // cam.primary = true;
+
+        auto &render = entity1.AddComponent<RenderComponent>();
+        render.width = 100;
+        render.height = 100;
+        render.color = SDL_Color{0, 255, 0, 0};
+
+        auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(-1.0f, 1.0f));
+        cam.primary = false;
 
         // auto &col = entity1.AddComponent<CollisionComponent>();
         // col.width = 100.0f;
@@ -60,7 +66,8 @@ namespace SIMPEngine
 
         m_Scene.OnUpdate(ts.GetSeconds());
 
-        // auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<VelocityComponent>();
+        auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>();
+        vel.position.x += 50 * ts.GetSeconds();
 
         // if(m_Scene.GetRegistry().any_of<VelocityComponent>(m_Scene.GetEntityByName("RedBox"))){
 
@@ -93,27 +100,12 @@ namespace SIMPEngine
 
     void RenderingLayer::OnRender()
     {
-        // m_Scene.OnRender();
+        m_Scene.OnRender();
         // anim->Draw(500,500,300,300,SDL_Color{255,255,255,255});
 
         // auto cointex = TextureManager::Get().GetTexture("coin");
-        Renderer::DrawQuad(0,0,100,100,SDL_Color{255,0,0,0});
-        for (int i = 0; i < 50; i++)
-        {
-            int x = 0; // 10 quads per row
-            int y = 0; // new row after 10 quads
-            int w = 100;
-            int h = 100;
-
-            SDL_Color color = {
-                (Uint8)(rand() % 256), // random R
-                (Uint8)(rand() % 256), // random G
-                (Uint8)(rand() % 256), // random B
-                255                    // alpha
-            };
-
-            Renderer::DrawQuad(x, y, w, h, color);
-        }
+        Renderer::DrawQuad(0, 0, 100, 100, SDL_Color{255, 0, 0, 0});
+        Renderer::DrawQuad(500, 0, 100, 100, SDL_Color{0, 0, 0, 0});
 
         // SDL_FRect rect;
         // rect.x = 0;
@@ -138,6 +130,7 @@ namespace SIMPEngine
     int height = ev.GetHeight();
 
     Renderer::GetAPI()->ResizeViewport(width, height);
+    m_Scene.GetActiveCamera().SetViewportSize(width, height);
     // m_Camera.SetViewportSize(width, height);
 
     CORE_INFO("Viewport resized: {}x{}", width, height);
