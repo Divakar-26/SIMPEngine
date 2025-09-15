@@ -21,12 +21,11 @@ public:
     void DrawMouseWorldPosition();
     void ResizeViewportIfNeeded(const ImVec2& viewportSize);
     void UpdateFocusState();
-
     void RenderGizmos(SIMPEngine::Entity &selectedEntity);
-
     void SelectEntites(SIMPEngine::Entity &m_SelectedEntity);
 
 
+    bool DrawCircleHandle(const glm::vec2 &center, float radius, glm::vec2 &outDelta);
 private:
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
     SIMPEngine::Scene * m_Context= nullptr;

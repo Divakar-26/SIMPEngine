@@ -10,6 +10,7 @@ add_library(Editor STATIC
 target_include_directories(Editor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Panels
+    # ${CMAKE_CURRENT_SOURCE_DIR}/icons
     ${CMAKE_SOURCE_DIR}/Engine 
 )
 

@@ -253,3 +253,41 @@ void ViewportPanel::SelectEntites(SIMPEngine::Entity &m_SelectedEntity)
 
     m_SelectedEntity = {};
 }
+
+bool ViewportPanel::DrawCircleHandle(const glm::vec2 &worldPos, float radius, glm::vec2 &outDelta)
+{
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    glm::vec2 screenPos = worldPos;
+    screenPos.x += windowPos.x + contentMin.x;
+    screenPos.y += windowPos.y + contentMin.y;
+
+    // Draw circle
+    drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), radius, IM_COL32(0, 255, 0, 255), 32, 2.0f);
+
+    // Convert ImGui mouse pos to glm::vec2
+    glm::vec2 mouseScreen = { mousePos.x, mousePos.y };
+
+    glm::vec2 diff = mouseScreen - screenPos; // now both are glm::vec2
+    float dist = glm::length(diff);
+
+    static bool dragging = false;
+    static glm::vec2 dragStart;
+
+    if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && dist <= radius)
+    {
+        if (!dragging)
+        {
+            dragging = true;
+            dragStart = mouseScreen;
+        }
+        outDelta = mouseScreen - dragStart;
+        dragStart = mouseScreen;
+        return true;
+    }
+    else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+    {
+        dragging = false;
+    }
+
+    return false;
+}
