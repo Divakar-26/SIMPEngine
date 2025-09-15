@@ -22,7 +22,7 @@ namespace SIMPEngine
         virtual void Present() = 0;
         virtual void SetViewMatrix(const glm::mat4 &view) = 0;
 
-        virtual void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect *srcRect = nullptr) = 0;
+        virtual void DrawTexture(GLuint, float x, float y, float w, float h, SDL_Color tint, float rotation) = 0;
 
         virtual std::shared_ptr<Texture> CreateTexture(const char *path) = 0;
 

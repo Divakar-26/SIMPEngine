@@ -33,6 +33,10 @@ add_library(imgui STATIC
     vendor/ImGuizmo/ImGuizmo.cpp
 )
 
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE
+    ${CMAKE_SOURCE_DIR}/vendor/stb
+)
 
 target_include_directories(imgui PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/imgui

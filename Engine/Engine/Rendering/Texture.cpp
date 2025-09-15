@@ -1,50 +1,57 @@
-#include"Texture.h"
-#include<SDL3_image/SDL_image.h>
-#include<iostream>
+#include "Texture.h"
+#include "Core/Log.h"
+#include <iostream>
 
-#include"Core/Log.h"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
-namespace SIMPEngine{
+namespace SIMPEngine
+{
 
+    Texture::Texture() {}
 
-    Texture::Texture(): m_Texture(nullptr), m_Width(0), m_Height(0){}
-
-    Texture::~Texture(){
+    Texture::~Texture()
+    {
         Destroy();
     }
 
-    bool Texture::LoadFromFile(SDL_Renderer * renderer, const char * path){
+    bool Texture::LoadFromFile(const char *path)
+    {
         Destroy();
 
-        SDL_Surface * surface = IMG_Load(path);
-        if(!surface){
-            CORE_ERROR("Surface Could not be made! {}", SDL_GetError());
+        int channel;
+        unsigned char *data = stbi_load(path, &m_Width, &m_Height, &channel, 0);
+        if (!data)
+        {
+            CORE_ERROR("Failed to load image : {}", path);
             return false;
         }
 
-        m_Width = surface->w;
-        m_Height = surface->h;
-        m_Texture = SDL_CreateTextureFromSurface(renderer, surface);
-        if(!m_Texture){
-            CORE_ERROR("Texture coudl not be made using Surface");
-            return false;
-        }
+        GLenum format = (channel == 4) ? GL_RGBA : GL_RGB;
+        glGenTextures(1, &m_TextureID);
+        glBindTexture(GL_TEXTURE_2D, m_TextureID);
 
-        SDL_DestroySurface(surface);
+        glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
 
-        SDL_SetTextureBlendMode(m_Texture, SDL_BLENDMODE_BLEND);
+
+        //setting up the properties of the texture, like wrapping and filtering
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        stbi_image_free(data);
         return true;
     }
 
-    void Texture::Destroy(){
-        if(m_Texture){
-
-            SDL_DestroyTexture(m_Texture);
-            m_Texture = nullptr;
+    void Texture::Destroy()
+    {
+        if(m_TextureID){
+            glDeleteTextures(1, &m_TextureID);
+            m_TextureID = 0;
             m_Width = m_Height = 0;
         }
-
     }
 
 }
-

@@ -4,7 +4,7 @@
 
 namespace SIMPEngine
 {
-    Shader::Shader(const std::string& vertexSrc, const std::string& fragmentSrc)
+    Shader::Shader(const std::string &vertexSrc, const std::string &fragmentSrc)
     {
         unsigned int vertex = CompileShader(GL_VERTEX_SHADER, vertexSrc);
         unsigned int fragment = CompileShader(GL_FRAGMENT_SHADER, fragmentSrc);
@@ -32,12 +32,19 @@ namespace SIMPEngine
     void Shader::Bind() const { glUseProgram(m_ID); }
     void Shader::Unbind() const { glUseProgram(0); }
 
-    void Shader::SetUniform4f(const std::string& name, float v0, float v1, float v2, float v3)
+    void Shader::SetUniform4f(const std::string &name, float v0, float v1, float v2, float v3)
     {
         glUniform4f(GetUniformLocation(name), v0, v1, v2, v3);
     }
 
-    void Shader::SetUniformMat4(const std::string& name, const glm::mat4& matrix)
+    void Shader::SetUniform1i(const std::string &name, int value)
+    {
+        GLint location = GetUniformLocation(name);
+        if (location != -1)
+            glUniform1i(location, value);
+    }
+
+    void Shader::SetUniformMat4(const std::string &name, const glm::mat4 &matrix)
     {
         GLint location = glGetUniformLocation(m_ID, name.c_str());
         if (location == -1)
@@ -49,10 +56,10 @@ namespace SIMPEngine
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
-    unsigned int Shader::CompileShader(unsigned int type, const std::string& source)
+    unsigned int Shader::CompileShader(unsigned int type, const std::string &source)
     {
         unsigned int shader = glCreateShader(type);
-        const char* src = source.c_str();
+        const char *src = source.c_str();
         glShaderSource(shader, 1, &src, nullptr);
         glCompileShader(shader);
 

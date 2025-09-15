@@ -27,6 +27,7 @@ namespace SIMPEngine
         m_SourceRect = {0, 0, 0, 0};
     }
 
+    
     void Sprite::Draw(float x, float y, float width, float height,
                       SDL_Color tint, float rotation) const
     {

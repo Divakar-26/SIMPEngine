@@ -5,7 +5,7 @@
 #include <memory>
 #include "Shader.h"
 
-namespace SIMPEngine
+namespace SIMPEngine 
 {
     class GLRenderingAPI : public RenderingAPI
     {
@@ -21,7 +21,7 @@ namespace SIMPEngine
         void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill = true) override;
         void DrawCircle(float, float, float, SDL_Color) override {}
         void DrawLine(float, float, float, float, SDL_Color) override {}
-        void DrawTexture(SDL_Texture *, float, float, float, float, SDL_Color, float, const SDL_FRect *) override {}
+        void DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation) override ;
         std::shared_ptr<Texture> CreateTexture(const char *) override { return nullptr; }
         void Flush() override {}
         SDL_Renderer *GetSDLRenderer() override { return nullptr; }

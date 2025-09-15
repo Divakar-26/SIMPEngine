@@ -153,67 +153,67 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
 
     SIMPEngine::Texture &icon = GetIconFor(vpath, isDir);
 
-    if (icon.GetSDLTexture())
-    {
-        if (ImGui::ImageButton(
-                vpath.c_str(),
-                (ImTextureID)icon.GetSDLTexture(),
-                ImVec2(72, 72),
-                ImVec2(0, 0), ImVec2(1, 1),
-                ImVec4(0, 0, 0, 0),
-                ImVec4(1, 1, 1, 1)))
-        {
-            if (isDir)
-            {
-                m_CurrentDir = vpath;
-                CORE_INFO("Changed directory to: {}", vpath);
-            }
-            else
-            {
-                CORE_INFO("Clicked file: {}", vpath);
-            }
-        }
+    // if (icon.GetSDLTexture())
+    // {
+    //     if (ImGui::ImageButton(
+    //             vpath.c_str(),
+    //             (ImTextureID)icon.GetSDLTexture(),
+    //             ImVec2(72, 72),
+    //             ImVec2(0, 0), ImVec2(1, 1),
+    //             ImVec4(0, 0, 0, 0),
+    //             ImVec4(1, 1, 1, 1)))
+    //     {
+    //         if (isDir)
+    //         {
+    //             m_CurrentDir = vpath;
+    //             CORE_INFO("Changed directory to: {}", vpath);
+    //         }
+    //         else
+    //         {
+    //             CORE_INFO("Clicked file: {}", vpath);
+    //         }
+    //     }
 
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-        {
-            // Only use CONTENT_BROWSER_ITEM payload for both files and folders
-            ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", vpath.c_str(), vpath.size() + 1);
+    //     if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+    //     {
+    //         // Only use CONTENT_BROWSER_ITEM payload for both files and folders
+    //         ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", vpath.c_str(), vpath.size() + 1);
 
-            ImGui::TextUnformatted(name.c_str());
-            ImGui::EndDragDropSource();
-        }
+    //         ImGui::TextUnformatted(name.c_str());
+    //         ImGui::EndDragDropSource();
+    //     }
 
-        if (isDir && ImGui::BeginDragDropTarget())
-        {
-            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-            {
-                const char *srcVPath = (const char *)payload->Data;
-                auto srcReal = SIMPEngine::VFS::Resolve(srcVPath);
-                auto dstReal = SIMPEngine::VFS::Resolve(vpath);
+    //     if (isDir && ImGui::BeginDragDropTarget())
+    //     {
+    //         if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+    //         {
+    //             const char *srcVPath = (const char *)payload->Data;
+    //             auto srcReal = SIMPEngine::VFS::Resolve(srcVPath);
+    //             auto dstReal = SIMPEngine::VFS::Resolve(vpath);
 
-                if (srcReal && dstReal)
-                {
-                    std::filesystem::path srcPath = *srcReal;
-                    std::filesystem::path dstPath = *dstReal / srcPath.filename();
+    //             if (srcReal && dstReal)
+    //             {
+    //                 std::filesystem::path srcPath = *srcReal;
+    //                 std::filesystem::path dstPath = *dstReal / srcPath.filename();
 
-                    try
-                    {
-                        std::filesystem::rename(srcPath, dstPath);
-                        CORE_INFO("Moved to folder: {} -> {}", srcPath.string(), dstPath.string());
-                    }
-                    catch (std::exception &e)
-                    {
-                        CORE_ERROR("Move failed: {}", e.what());
-                    }
-                }
-            }
-            ImGui::EndDragDropTarget();
-        }
-    }
-    else
-    {
-        ImGui::Button("📁", ImVec2(72, 72));
-    }
+    //                 try
+    //                 {
+    //                     std::filesystem::rename(srcPath, dstPath);
+    //                     CORE_INFO("Moved to folder: {} -> {}", srcPath.string(), dstPath.string());
+    //                 }
+    //                 catch (std::exception &e)
+    //                 {
+    //                     CORE_ERROR("Move failed: {}", e.what());
+    //                 }
+    //             }
+    //         }
+    //         ImGui::EndDragDropTarget();
+    //     }
+    // }
+    // else
+    // {
+    //     ImGui::Button("📁", ImVec2(72, 72));
+    // }
 
     ImGui::TextWrapped("%s", name.c_str());
 
@@ -270,7 +270,7 @@ SIMPEngine::Texture &ContentBrowserPanel::GetIconFor(const std::string &vpath, b
 
         // CORE_INFO("Loading new texture");
         m_TextureCache[*real] = SIMPEngine::Texture();
-        if (m_TextureCache[*real].LoadFromFile(SIMPEngine::Renderer::GetSDLRenderer(), real->c_str()))
+        if (m_TextureCache[*real].LoadFromFile(real->c_str()))
         {
             // CORE_INFO("Successfully loaded texture");
             return m_TextureCache[*real];

@@ -21,14 +21,13 @@ public:
         if (it.has_value())
         {
             m_FolderIcon.LoadFromFile(
-                SIMPEngine::Renderer::GetSDLRenderer(),
                 it->c_str());
         }
         std::string s2 = "assets://file.png";
         auto it2 = SIMPEngine::VFS::Resolve(s2);
         if (it2)
         {
-            m_FileIcon.LoadFromFile(SIMPEngine::Renderer::GetSDLRenderer(), it2->c_str());
+            m_FileIcon.LoadFromFile(it2->c_str());
         }
     }
     void OnImGuiRender();

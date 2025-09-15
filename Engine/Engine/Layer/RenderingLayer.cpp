@@ -112,8 +112,10 @@ namespace SIMPEngine
         // rect.y = 0;
         // rect.w = 16;
         // rect.h = 16;
-
-        // Renderer::DrawTexture(cointex->GetSDLTexture(), 100, 100, 100, 100, SDL_Color{255, 255, 255, 255}, 45.0f, &rect);
+        Texture tex;
+        tex.LoadFromFile("../assets/man.png");
+        Renderer::DrawTexture(tex.GetID(), 100, 100, tex.GetWidth(), tex.GetHeight(),
+                              SDL_Color{255, 255, 255, 255}, 45.0f);
 
         Renderer::Flush();
     }
@@ -130,7 +132,7 @@ namespace SIMPEngine
     int height = ev.GetHeight();
 
     Renderer::GetAPI()->ResizeViewport(width, height);
-    m_Scene.GetActiveCamera().SetViewportSize(width, height);
+    // m_Scene.GetActiveCamera().SetViewportSize(width, height);
     // m_Camera.SetViewportSize(width, height);
 
     CORE_INFO("Viewport resized: {}x{}", width, height);

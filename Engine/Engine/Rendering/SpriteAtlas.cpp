@@ -11,7 +11,7 @@ namespace SIMPEngine
             CORE_ERROR("Failed to load texture for atlas: {}", texturePath);
             return false;
         }
-        SDL_SetTextureScaleMode(m_Texture->GetSDLTexture(), SDL_SCALEMODE_NEAREST);
+        // SDL_SetTextureScaleMode(m_Texture->GetSDLTexture(), SDL_SCALEMODE_NEAREST);
         return true;
     }
 

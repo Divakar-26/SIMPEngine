@@ -9,6 +9,7 @@ namespace SIMPEngine
         auto cameraView = registry.view<CameraComponent, TransformComponent>();
         for (auto entity : cameraView)
         {
+            
             auto &camComp = cameraView.get<CameraComponent>(entity);
             auto &transform = cameraView.get<TransformComponent>(entity);
 

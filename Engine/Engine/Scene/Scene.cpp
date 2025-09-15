@@ -98,8 +98,8 @@ namespace SIMPEngine
             auto &transform = spriteView.get<TransformComponent>(entity);
             auto &spriteComp = spriteView.get<SpriteComponent>(entity);
 
-            if (spriteComp.texture)
-                Renderer::DrawTexture(spriteComp.texture->GetSDLTexture(), transform.position.x, transform.position.y, spriteComp.width, spriteComp.height, SDL_Color{255, 255, 255, 255}, transform.rotation);
+            // if (spriteComp.texture)
+            //     Renderer::DrawTexture(spriteComp.texture->GetSDLTexture(), transform.position.x, transform.position.y, spriteComp.width, spriteComp.height, SDL_Color{255, 255, 255, 255}, transform.rotation);
         }
     }
 

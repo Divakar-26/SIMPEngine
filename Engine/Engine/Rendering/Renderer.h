@@ -26,7 +26,7 @@ namespace SIMPEngine
         static void SetViewMatrix(const glm::mat4 &view);
         static const glm::mat4 &GetViewMatrix();
 
-        static void DrawTexture(SDL_Texture *texture, float x, float y, float w, float h, SDL_Color tint, float rotation, const SDL_FRect *srcRect = nullptr);
+        static void DrawTexture(GLuint texture, float x, float y, float w, float h, SDL_Color tint, float rotation);
         static std::shared_ptr<Texture> CreateTexture(const char *path);
 
         static void Flush();
