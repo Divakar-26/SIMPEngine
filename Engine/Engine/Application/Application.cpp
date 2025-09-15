@@ -57,7 +57,7 @@ namespace SIMPEngine
             for (Layer *layer : m_LayerStack)
                 layer->OnUpdate(deltaTime);
 
-            Renderer::SetClearColor(0.5, 0.0f, 0.0f, 1.0f);
+            Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
             Renderer::Clear();
 
             m_ImGuiLayer->Begin();

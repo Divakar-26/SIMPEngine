@@ -54,40 +54,43 @@ void InspectorPanel::OnRender()
     ImGui::DragFloat("ScaleX", &tc.scale.x, 0.1f, 0.01f, 100.0f);
     ImGui::DragFloat("ScaleY", &tc.scale.y, 0.1f, 0.01f, 100.0f); });
 
-        DrawComponent<RenderComponent>("Render", m_SelectedEntity, [](auto &sc)
-                                               {
-        float color[4] = {
-            static_cast<float>(sc.color.r) / 255.0f,
-            static_cast<float>(sc.color.g) / 255.0f,
-            static_cast<float>(sc.color.b) / 255.0f,
-            static_cast<float>(sc.color.a) / 255.0f
-        };
+        DrawComponent<RenderComponent>("Render", m_SelectedEntity, [&](auto &rc)
+                                       {
+    float color[4] = {
+        static_cast<float>(rc.color.r) / 255.0f,
+        static_cast<float>(rc.color.g) / 255.0f,
+        static_cast<float>(rc.color.b) / 255.0f,
+        static_cast<float>(rc.color.a) / 255.0f
+    };
 
+    if (ImGui::ColorEdit4("Color", color))
+    {
+        rc.color.r = (Uint8)(color[0] * 255.0f);
+        rc.color.g = (Uint8)(color[1] * 255.0f);
+        rc.color.b = (Uint8)(color[2] * 255.0f);
+        rc.color.a = (Uint8)(color[3] * 255.0f);
+    }
 
-        if (ImGui::ColorEdit4("Color", color))
+    bool widthChanged = ImGui::DragFloat("Width", &rc.width, 0.1f);
+    bool heightChanged = ImGui::DragFloat("Height", &rc.height, 0.1f);
+
+    if (widthChanged || heightChanged)
+    {
+        // Use m_SelectedEntity directly (captured in lambda)
+        if (m_SelectedEntity.HasComponent<SpriteComponent>())
         {
-            sc.color.r = (Uint8)(color[0] * 255.0f);
-            sc.color.g = (Uint8)(color[1] * 255.0f);
-            sc.color.b = (Uint8)(color[2] * 255.0f);
-            sc.color.a = (Uint8)(color[3] * 255.0f);
-        
+            auto &sprite = m_SelectedEntity.GetComponent<SpriteComponent>();
+            sprite.width = rc.width;
+            sprite.height = rc.height;
         }
-
-
-    // sc.color = SDL_Color{255,0,0,255};
-
-    ImGui::DragFloat("Width", &sc.width, 0.1f);
-    ImGui::DragFloat("Height", &sc.height, 0.1f); });
+    } });
 
         DrawComponent<VelocityComponent>("Velocity", m_SelectedEntity, [](auto &vc)
                                          { ImGui::DragFloat("Velocity X", &vc.vx, 0.1f); 
-                                            ImGui::DragFloat("Velocity Y", &vc.vy, 0.1f);
-                                        });
+                                            ImGui::DragFloat("Velocity Y", &vc.vy, 0.1f); });
 
         DrawComponent<CameraComponent>("Camera", m_SelectedEntity, [](auto &cc)
-                                       {
-                                           ImGui::Checkbox("Primary", &cc.primary);
-                                       });
+                                       { ImGui::Checkbox("Primary", &cc.primary); });
 
         DrawComponent<CollisionComponent>("Collision", m_SelectedEntity, [](auto &col)
                                           {

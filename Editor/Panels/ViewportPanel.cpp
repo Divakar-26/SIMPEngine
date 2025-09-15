@@ -3,6 +3,8 @@
 #include "Input/Input.h"
 #include "Rendering/Renderer.h"
 #include "Input/SIMP_Keys.h"
+#include "Core/VFS.h"
+#include "Scene/Component.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
@@ -66,9 +68,45 @@ void ViewportPanel::OnRender(SIMPEngine::Entity &m_SelectedEntity)
 
     DrawMouseWorldPosition();
 
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+        {
+            const char *srcVPath = (const char *)payload->Data;
+            auto textureRealPath = SIMPEngine::VFS::Resolve(srcVPath);
+
+            if (textureRealPath && m_SelectedEntity.HasComponent<SpriteComponent>())
+            {
+                auto &sprite = m_SelectedEntity.GetComponent<SpriteComponent>();
+                sprite.texture = std::make_shared<SIMPEngine::Texture>();
+
+                if (sprite.texture->LoadFromFile(textureRealPath->c_str()))
+                {
+                    if (m_SelectedEntity.HasComponent<RenderComponent>())
+                    {
+                        auto &render = m_SelectedEntity.GetComponent<RenderComponent>();
+                        sprite.width = render.width;
+                        sprite.height = render.height;
+                    }
+                    else
+                    {
+                        sprite.width = sprite.texture->GetWidth();
+                        sprite.height = sprite.texture->GetHeight();
+                    }
+
+                    CORE_INFO("Updated sprite texture for entity: {}", srcVPath);
+                }
+                else
+                {
+                    CORE_ERROR("Failed to load texture: {}", *textureRealPath);
+                }
+            }
+        }
+        ImGui::EndDragDropTarget();
+    }
+
     ImGui::End();
 }
-
 
 void ViewportPanel::UpdateFocusState()
 {
@@ -187,7 +225,6 @@ void ViewportPanel::SelectEntites(SIMPEngine::Entity &m_SelectedEntity)
     if (!m_ViewportHovered || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         return;
 
-
     glm::vec2 localMouse = {
         mousePos.x - (windowPos.x + contentMin.x),
         mousePos.y - (windowPos.y + contentMin.y)};
@@ -215,5 +252,4 @@ void ViewportPanel::SelectEntites(SIMPEngine::Entity &m_SelectedEntity)
     }
 
     m_SelectedEntity = {};
-
 }

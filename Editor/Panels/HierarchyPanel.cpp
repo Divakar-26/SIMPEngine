@@ -147,8 +147,9 @@ void HierarchyPanel::OnRender()
 void HierarchyPanel::ShowComponents(SIMPEngine::Entity entity)
 {
     DrawComponent<TransformComponent>(entity,ICON_ARROWS " Transform");
-    DrawComponent<SpriteComponent>(entity, ICON_PHOTO_FILM " Render");
+    DrawComponent<RenderComponent>(entity, ICON_PHOTO_FILM " Render");
     DrawComponent<CameraComponent>(entity, ICON_CAMERA " Camera Entity");
     DrawComponent<CollisionComponent>(entity, ICON_CAR_CRASH " Collision Box");
+    DrawComponent<SpriteComponent>(entity, ICON_FACE_SMILE " Sprite");
 }
  
