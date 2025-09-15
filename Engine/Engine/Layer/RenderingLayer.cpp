@@ -23,13 +23,22 @@ namespace SIMPEngine
         entity1.AddComponent<TagComponent>("RedBox");
         // entity1.AddComponent<SpriteComponent>(myTexture, 100.0f, 100.0f);
 
-        auto &render = entity1.AddComponent<RenderComponent>();
-        render.width = 100;
-        render.height = 100;
-        render.color = SDL_Color{0, 255, 0, 0};
+        // auto &render = entity1.AddComponent<RenderComponent>();
+        // render.width = 100;
+        // render.height = 100;
+        // render.color = SDL_Color{0, 255, 0, 255};
 
         auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(-1.0f, 1.0f));
         cam.primary = false;
+
+
+        auto texture = std::make_shared<SIMPEngine::Texture>();
+        texture->LoadFromFile("../assets/man.png");
+
+        auto &sprite = entity1.AddComponent<SpriteComponent>();
+        sprite.texture = texture;
+        sprite.width = 400;
+        sprite.height = 400;
 
         // auto &col = entity1.AddComponent<CollisionComponent>();
         // col.width = 100.0f;

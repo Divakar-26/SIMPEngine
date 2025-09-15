@@ -27,7 +27,7 @@ namespace SIMPEngine
         m_SourceRect = {0, 0, 0, 0};
     }
 
-    
+
     void Sprite::Draw(float x, float y, float width, float height,
                       SDL_Color tint, float rotation) const
     {
@@ -37,7 +37,7 @@ namespace SIMPEngine
             return;
         }
 
-        SDL_Texture* sdlTex = m_Texture->GetSDLTexture();
+        GLuint sdlTex = m_Texture->GetID();
         if (!sdlTex)
         {
             CORE_ERROR("Texture is invalid (SDL_Texture is null)!");
@@ -46,7 +46,7 @@ namespace SIMPEngine
 
         if (m_HasSourceRect)
         {
-            Renderer::DrawTexture(sdlTex, x, y, width, height, tint, rotation, &m_SourceRect);
+            Renderer::DrawTexture(sdlTex, x, y, width, height, tint, rotation);
         }
         else
         {
