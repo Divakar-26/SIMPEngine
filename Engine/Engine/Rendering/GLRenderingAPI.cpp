@@ -44,9 +44,12 @@ namespace SIMPEngine
     GLRenderingAPI::GLRenderingAPI() {}
     GLRenderingAPI::~GLRenderingAPI()
     {
-        if (m_VAO) glDeleteVertexArrays(1, &m_VAO);
-        if (m_VBO) glDeleteBuffers(1, &m_VBO);
-        if (m_EBO) glDeleteBuffers(1, &m_EBO);
+        if (m_VAO)
+            glDeleteVertexArrays(1, &m_VAO);
+        if (m_VBO)
+            glDeleteBuffers(1, &m_VBO);
+        if (m_EBO)
+            glDeleteBuffers(1, &m_EBO);
     }
 
     void GLRenderingAPI::Init()
@@ -60,10 +63,10 @@ namespace SIMPEngine
         // positions (x,y,z) + texcoords (u,v)
         float vertices[] = {
             // pos            // tex
-            0.0f, 0.0f, 0.0f,  0.0f, 0.0f, // top-left
-            1.0f, 0.0f, 0.0f,  1.0f, 0.0f, // top-right
-            1.0f, 1.0f, 0.0f,  1.0f, 1.0f, // bottom-right
-            0.0f, 1.0f, 0.0f,  0.0f, 1.0f  // bottom-left
+            0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // top-left
+            1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
+            1.0f, 1.0f, 0.0f, 1.0f, 1.0f, // bottom-right
+            0.0f, 1.0f, 0.0f, 0.0f, 1.0f  // bottom-left
         };
 
         unsigned int indices[6] = {0, 1, 2, 2, 3, 0};
@@ -81,14 +84,17 @@ namespace SIMPEngine
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
         // position attribute (location = 0)
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
         glEnableVertexAttribArray(0);
 
         // texcoord attribute (location = 1)
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
 
         glBindVertexArray(0);
+
+        // glEnable(GL_BLEND);
+        // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         SetProjection(m_ViewportWidth, m_ViewportHeight);
     }

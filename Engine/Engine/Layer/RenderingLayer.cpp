@@ -104,8 +104,8 @@ namespace SIMPEngine
         // anim->Draw(500,500,300,300,SDL_Color{255,255,255,255});
 
         // auto cointex = TextureManager::Get().GetTexture("coin");
-        Renderer::DrawQuad(0, 0, 100, 100, SDL_Color{255, 0, 0, 0});
-        Renderer::DrawQuad(500, 0, 100, 100, SDL_Color{0, 0, 0, 0});
+        Renderer::DrawQuad(0, 0, 100, 100, SDL_Color{255, 0, 0, 255});
+        Renderer::DrawQuad(500, 0, 100, 100, SDL_Color{0, 0, 0, 255});
 
         // SDL_FRect rect;
         // rect.x = 0;
@@ -114,8 +114,8 @@ namespace SIMPEngine
         // rect.h = 16;
         Texture tex;
         tex.LoadFromFile("../assets/man.png");
-        Renderer::DrawTexture(tex.GetID(), 100, 100, tex.GetWidth(), tex.GetHeight(),
-                              SDL_Color{255, 255, 255, 255}, 45.0f);
+        Renderer::DrawTexture(tex.GetID(), 100, 100, tex.GetWidth() + 100, tex.GetHeight() + 100,
+                              SDL_Color{255, 255, 255, 255}, 0.0f);
 
         Renderer::Flush();
     }
