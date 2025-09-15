@@ -122,7 +122,7 @@ namespace SIMPEngine
         // rect.w = 16;
         // rect.h = 16;
         Texture tex;
-        tex.LoadFromFile("../assets/man.png");
+        tex.LoadFromFile("assets/man.png");
         Renderer::DrawTexture(tex.GetID(), 100, 100, tex.GetWidth() + 100, tex.GetHeight() + 100,
                               SDL_Color{255, 255, 255, 255}, 0.0f);
 
