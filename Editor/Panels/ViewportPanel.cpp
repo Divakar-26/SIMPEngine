@@ -65,6 +65,7 @@ void ViewportPanel::OnRender(SIMPEngine::Entity &m_SelectedEntity)
     RenderGizmos(m_SelectedEntity);
 
     DrawMouseWorldPosition();
+
     ImGui::End();
 }
 

@@ -37,6 +37,16 @@ namespace SIMPEngine
         glUniform4f(GetUniformLocation(name), v0, v1, v2, v3);
     }
 
+    void Shader::SetMat4(const std::string &name, const glm::mat4 &matrix)
+    {
+        GLint location = glGetUniformLocation(m_ID, name.c_str());
+        if (location == -1)
+        {
+            return;
+        }
+        glUniformMatrix4fv(location, 1, GL_FALSE, &matrix[0][0]);
+    }
+
     void Shader::SetUniform1i(const std::string &name, int value)
     {
         GLint location = GetUniformLocation(name);

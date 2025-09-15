@@ -61,10 +61,10 @@ namespace SIMPEngine
         // positions (x,y,z) + texcoords (u,v)
         float vertices[] = {
             // pos            // tex
-            0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // top-left
-            1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // top-right
-            1.0f, 1.0f, 0.0f, 1.0f, 1.0f, // bottom-right
-            0.0f, 1.0f, 0.0f, 0.0f, 1.0f  // bottom-left
+            0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // top-left
+            1.0f, 1.0f, 0.0f, 1.0f, 1.0f, // top-right
+            1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom-right
+            0.0f, 0.0f, 0.0f, 0.0f, 0.0f  // bottom-left
         };
 
         unsigned int indices[6] = {0, 1, 2, 2, 3, 0};
@@ -95,13 +95,59 @@ namespace SIMPEngine
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         SetProjection(m_ViewportWidth, m_ViewportHeight);
+
+        InitFramebuffer(m_ViewportWidth, m_ViewportHeight);
+        SetProjection(m_ViewportWidth, m_ViewportHeight);
+    }
+
+    void GLRenderingAPI::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
+    {
+        m_Shader->Bind();
+        float vertices[] = {
+            x1,
+            y1,
+            color.r / 255.0f,
+            color.g / 255.0f,
+            color.b / 255.0f,
+            color.a / 255.0f,
+            x2,
+            y2,
+            color.r / 255.0f,
+            color.g / 255.0f,
+            color.b / 255.0f,
+            color.a / 255.0f,
+        };
+
+        GLuint lineVAO, lineVBO;
+        glGenVertexArrays(1, &lineVAO);
+        glGenBuffers(1, &lineVBO);
+
+        glBindVertexArray(lineVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+        glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(2 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+        m_Shader->SetMat4("uProjection", m_Projection);
+        m_Shader->SetMat4("uView", m_ViewMatrix);
+
+        glDrawArrays(GL_LINES, 0, 2);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+
+        glDeleteBuffers(1, &lineVBO);
+        glDeleteVertexArrays(1, &lineVAO);
     }
 
     void GLRenderingAPI::SetProjection(float width, float height)
     {
         m_Projection = glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
     }
-
 
     void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)
     {
@@ -134,8 +180,10 @@ namespace SIMPEngine
         glm::vec2 pos = {x, y};
         glm::vec2 size = {width, height};
 
+        // Model matrix (translate + scale)
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(pos, 0.0f));
         model = glm::scale(model, glm::vec3(size, 1.0f));
+
         glm::mat4 mvp = m_Projection * m_ViewMatrix * model;
 
         m_Shader->Bind();
@@ -148,9 +196,19 @@ namespace SIMPEngine
         m_Shader->SetUniform1i("uUseTexture", 0);
 
         glBindVertexArray(m_VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
 
+        if (fill)
+        {
+            // Filled quad (2 triangles)
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        }
+        else
+        {
+            // Hollow quad (no diagonal lines)
+            glDrawArrays(GL_LINE_LOOP, 0, 4);
+        }
+
+        glBindVertexArray(0);
         m_Shader->Unbind();
     }
 
@@ -195,7 +253,6 @@ namespace SIMPEngine
         m_ViewMatrix = view;
     }
 
-
     void GLRenderingAPI::BeginFrame()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
@@ -205,7 +262,7 @@ namespace SIMPEngine
 
     void GLRenderingAPI::EndFrame()
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     void GLRenderingAPI::InitFramebuffer(int width, int height)
@@ -220,7 +277,6 @@ namespace SIMPEngine
         glGenFramebuffers(1, &m_Framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
 
-        // color texture
         glGenTextures(1, &m_ColorAttachment);
         glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
@@ -230,7 +286,6 @@ namespace SIMPEngine
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                GL_TEXTURE_2D, m_ColorAttachment, 0);
 
-        // depth/stencil
         glGenRenderbuffers(1, &m_RBO);
         glBindRenderbuffer(GL_RENDERBUFFER, m_RBO);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);

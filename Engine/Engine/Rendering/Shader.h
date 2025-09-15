@@ -16,7 +16,7 @@ namespace SIMPEngine
         void SetUniform1i(const std::string &name, int value); // <-- NEW
         void SetUniform4f(const std::string &name, float v0, float v1, float v2, float v3);
         void SetUniformMat4(const std::string &name, const glm::mat4 &matrix);
-
+        void SetMat4(const std::string &name, const glm::mat4 &matrix);
         unsigned int GetID() const { return m_ID; }
 
     private:

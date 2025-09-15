@@ -3,7 +3,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace SIMPEngine
-{   
+{
     int Renderer::m_WindowHeight = 0;
     int Renderer::m_WindowWidth = 0;
 
@@ -16,11 +16,12 @@ namespace SIMPEngine
     }
 
     void Renderer::Init(std::unique_ptr<RenderingAPI> api, int w, int h)
-    {   
+    {
         s_RenderingAPI = std::move(api);
-        s_RenderingAPI->Init();
         m_WindowWidth = w;
         m_WindowHeight = h;
+        s_RenderingAPI->ResizeViewport(w, h);
+        s_RenderingAPI->Init();
     }
 
     void Renderer::SetClearColor(float r, float g, float b, float a)
@@ -33,7 +34,7 @@ namespace SIMPEngine
         s_RenderingAPI->Clear();
     }
 
-    void Renderer::DrawQuad(float x, float y, float width, float height,  SDL_Color color, bool fill)
+    void Renderer::DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill)
     {
         s_RenderingAPI->DrawQuad(x, y, width, height, color, fill);
     }
@@ -80,7 +81,8 @@ namespace SIMPEngine
         // return s_RenderingAPI->GetSDLRenderer();
     }
 
-    void Renderer::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color){
-        // s_RenderingAPI->DrawLine(x1, y1, x2, y2, color);
+    void Renderer::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
+    {
+        s_RenderingAPI->DrawLine(x1, y1, x2, y2, color);
     }
 }
