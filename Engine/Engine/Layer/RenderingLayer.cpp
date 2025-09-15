@@ -17,28 +17,28 @@ namespace SIMPEngine
 
         // auto myTexture = TextureManager::Get().GetTexture("man");
 
-        Entity entity1 = m_Scene.CreateEntity("RedBox");
-        entity1.GetComponent<TransformComponent>().position.x = 500.0f;
-        entity1.GetComponent<TransformComponent>().position.y = 500.0f;
-        entity1.AddComponent<TagComponent>("RedBox");
-        // entity1.AddComponent<SpriteComponent>(myTexture, 100.0f, 100.0f);
+        // Entity entity1 = m_Scene.CreateEntity("RedBox");
+        // entity1.GetComponent<TransformComponent>().position.x = 500.0f;
+        // entity1.GetComponent<TransformComponent>().position.y = 500.0f;
+        // entity1.AddComponent<TagComponent>("RedBox");
+        // // entity1.AddComponent<SpriteComponent>(myTexture, 100.0f, 100.0f);
 
-        // auto &render = entity1.AddComponent<RenderComponent>();
-        // render.width = 100;
-        // render.height = 100;
-        // render.color = SDL_Color{0, 255, 0, 255};
+        // // auto &render = entity1.AddComponent<RenderComponent>();
+        // // render.width = 100;
+        // // render.height = 100;
+        // // render.color = SDL_Color{0, 255, 0, 255};
 
-        auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(-1.0f, 1.0f));
-        cam.primary = false;
+        // auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(-1.0f, 1.0f));
+        // cam.primary = false;
 
 
-        auto texture = std::make_shared<SIMPEngine::Texture>();
-        texture->LoadFromFile("../assets/man.png");
+        // auto texture = std::make_shared<SIMPEngine::Texture>();
+        // texture->LoadFromFile("../assets/man.png");
 
-        auto &sprite = entity1.AddComponent<SpriteComponent>();
-        sprite.texture = texture;
-        sprite.width = 400;
-        sprite.height = 400;
+        // auto &sprite = entity1.AddComponent<SpriteComponent>();
+        // sprite.texture = texture;
+        // sprite.width = 400;
+        // sprite.height = 400;
 
         // auto &col = entity1.AddComponent<CollisionComponent>();
         // col.width = 100.0f;
@@ -75,8 +75,8 @@ namespace SIMPEngine
 
         m_Scene.OnUpdate(ts.GetSeconds());
 
-        auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>();
-        vel.position.x += 50 * ts.GetSeconds();
+        // auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>();
+        // vel.position.x += 50 * ts.GetSeconds();
 
         // if(m_Scene.GetRegistry().any_of<VelocityComponent>(m_Scene.GetEntityByName("RedBox"))){
 
@@ -110,21 +110,21 @@ namespace SIMPEngine
     void RenderingLayer::OnRender()
     {
         m_Scene.OnRender();
-        // anim->Draw(500,500,300,300,SDL_Color{255,255,255,255});
+        // // anim->Draw(500,500,300,300,SDL_Color{255,255,255,255});
 
-        // auto cointex = TextureManager::Get().GetTexture("coin");
-        Renderer::DrawQuad(0, 0, 100, 100, SDL_Color{255, 0, 0, 255});
-        Renderer::DrawQuad(500, 0, 100, 100, SDL_Color{0, 0, 0, 255});
+        // // auto cointex = TextureManager::Get().GetTexture("coin");
+        // Renderer::DrawQuad(0, 0, 100, 100, SDL_Color{255, 0, 0, 255});
+        // Renderer::DrawQuad(500, 0, 100, 100, SDL_Color{0, 0, 0, 255});
 
-        // SDL_FRect rect;
-        // rect.x = 0;
-        // rect.y = 0;
-        // rect.w = 16;
-        // rect.h = 16;
-        Texture tex;
-        tex.LoadFromFile("assets/man.png");
-        Renderer::DrawTexture(tex.GetID(), 100, 100, tex.GetWidth() + 100, tex.GetHeight() + 100,
-                              SDL_Color{255, 255, 255, 255}, 0.0f);
+        // // SDL_FRect rect;
+        // // rect.x = 0;
+        // // rect.y = 0;
+        // // rect.w = 16;
+        // // rect.h = 16;
+        // Texture tex;
+        // tex.LoadFromFile("assets/man.png");
+        // Renderer::DrawTexture(tex.GetID(), 100, 100, tex.GetWidth() + 100, tex.GetHeight() + 100,
+        //                       SDL_Color{255, 255, 255, 255}, 0.0f);
 
         Renderer::Flush();
     }
