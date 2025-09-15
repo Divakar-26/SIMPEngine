@@ -3,10 +3,10 @@
 
 namespace SIMPEngine
 {
-    bool SpriteAtlas::Load(SDL_Renderer *renderer, const std::string &texturePath)
+    bool SpriteAtlas::Load(const std::string &texturePath)
     {
         m_Texture = std::make_shared<Texture>();
-        if (!m_Texture->LoadFromFile(renderer, texturePath.c_str()))
+        if (!m_Texture->LoadFromFile(texturePath.c_str()))
         {
             CORE_ERROR("Failed to load texture for atlas: {}", texturePath);
             return false;

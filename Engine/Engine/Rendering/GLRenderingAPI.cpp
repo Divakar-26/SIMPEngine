@@ -5,7 +5,6 @@
 
 namespace SIMPEngine
 {
-    // Vertex shader now passes texcoords and supports toggling texture usage
     static const char *vertexSrc = R"(
         #version 330 core
         layout (location = 0) in vec3 aPos;
@@ -21,7 +20,6 @@ namespace SIMPEngine
         }
     )";
 
-    // Fragment shader samples texture only when uUseTexture == 1
     static const char *fragmentSrc = R"(
         #version 330 core
         in vec2 TexCoord;
@@ -104,13 +102,6 @@ namespace SIMPEngine
         m_Projection = glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
     }
 
-    void GLRenderingAPI::ResizeViewport(int width, int height)
-    {
-        m_ViewportWidth = width;
-        m_ViewportHeight = height;
-        glViewport(0, 0, width, height);
-        SetProjection(width, height);
-    }
 
     void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)
     {
@@ -140,7 +131,6 @@ namespace SIMPEngine
 
     void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill)
     {
-        // No texture: set uUseTexture = false
         glm::vec2 pos = {x, y};
         glm::vec2 size = {width, height};
 
@@ -164,14 +154,11 @@ namespace SIMPEngine
         m_Shader->Unbind();
     }
 
-    // Implemented DrawTexture using texture id and rotation (degrees).
-    // rotation: clockwise degrees (but glm::rotate uses radians counter-clockwise, so we convert)
+    // TODO -> make this use src rect
     void GLRenderingAPI::DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation)
     {
-        // Build model matrix: translate -> rotate around center -> scale
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f));
 
-        // move origin to center, rotate, move back
         model = glm::translate(model, glm::vec3(width * 0.5f, height * 0.5f, 0.0f));
         model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
         model = glm::translate(model, glm::vec3(-width * 0.5f, -height * 0.5f, 0.0f));
@@ -188,10 +175,8 @@ namespace SIMPEngine
                                color.b / 255.0f,
                                color.a / 255.0f);
 
-        // Tell shader to use texture
         m_Shader->SetUniform1i("uUseTexture", 1);
 
-        // Bind the texture to unit 0
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture);
         m_Shader->SetUniform1i("uTexture", 0);
@@ -200,7 +185,6 @@ namespace SIMPEngine
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
 
-        // Unbind texture for cleanliness
         glBindTexture(GL_TEXTURE_2D, 0);
 
         m_Shader->Unbind();
@@ -211,18 +195,65 @@ namespace SIMPEngine
         m_ViewMatrix = view;
     }
 
-    unsigned int GLRenderingAPI::GetViewportTexture()
-    {
-        return 0;
-    }
 
     void GLRenderingAPI::BeginFrame()
     {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
+        glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
         Clear();
     }
 
     void GLRenderingAPI::EndFrame()
     {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
+    }
+
+    void GLRenderingAPI::InitFramebuffer(int width, int height)
+    {
+        if (m_Framebuffer)
+        {
+            glDeleteFramebuffers(1, &m_Framebuffer);
+            glDeleteTextures(1, &m_ColorAttachment);
+            glDeleteRenderbuffers(1, &m_RBO);
+        }
+
+        glGenFramebuffers(1, &m_Framebuffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
+
+        // color texture
+        glGenTextures(1, &m_ColorAttachment);
+        glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+                     0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                               GL_TEXTURE_2D, m_ColorAttachment, 0);
+
+        // depth/stencil
+        glGenRenderbuffers(1, &m_RBO);
+        glBindRenderbuffer(GL_RENDERBUFFER, m_RBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                                  GL_RENDERBUFFER, m_RBO);
+
+        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+            std::cerr << "Framebuffer is not complete!" << std::endl;
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    void GLRenderingAPI::ResizeViewport(int width, int height)
+    {
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+        InitFramebuffer(width, height);
+        SetProjection(width, height);
+    }
+
+    unsigned int GLRenderingAPI::GetViewportTexture()
+    {
+        return m_ColorAttachment;
     }
 
 } // namespace SIMPEngine

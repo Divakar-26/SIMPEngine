@@ -8,7 +8,7 @@
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
-#include <backends/imgui_impl_sdlrenderer3.h>
+#include <backends/imgui_impl_opengl3.h>
 
 namespace SIMPEngine
 {
@@ -54,7 +54,6 @@ namespace SIMPEngine
 
         style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
 
-        
         io.Fonts->AddFontFromFileTTF("../assets/JetBrainsMonoNerdFont-Regular.ttf", 18.0f);
 
         ImFontConfig config;
@@ -63,23 +62,23 @@ namespace SIMPEngine
 
         static const ImWchar icon_ranges[] = {0xE000, 0xE7BF, 0};
         io.Fonts->AddFontFromFileTTF("../assets/myicons.ttf", 18.0f, &config, icon_ranges);
-        
+
         // Init backends
-        ImGui_ImplSDL3_InitForSDLRenderer(m_Window, m_Renderer);
-        ImGui_ImplSDLRenderer3_Init(m_Renderer);
+        ImGui_ImplSDL3_InitForOpenGL(m_Window, SDL_GL_GetCurrentContext());
+        ImGui_ImplOpenGL3_Init("#version 330 core");
     }
 
     void ImGuiLayer::OnDetach()
     {
         CORE_INFO("ImGuiLayer Detached");
-        ImGui_ImplSDLRenderer3_Shutdown();
+        ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplSDL3_Shutdown();
         ImGui::DestroyContext();
     }
 
     void ImGuiLayer::Begin()
     {
-        ImGui_ImplSDLRenderer3_NewFrame();
+        ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
         ImGuizmo::BeginFrame();
@@ -88,7 +87,7 @@ namespace SIMPEngine
     void ImGuiLayer::End()
     {
         ImGui::Render();
-        ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), m_Renderer);
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }
 
     void ImGuiLayer::OnEvent(Event &e)

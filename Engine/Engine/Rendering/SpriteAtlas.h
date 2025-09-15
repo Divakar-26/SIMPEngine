@@ -21,7 +21,7 @@ namespace SIMPEngine
     public:
         SpriteAtlas() = default;
 
-        bool Load(SDL_Renderer *renderer, const std::string &texturePath);
+        bool Load(const std::string &texturePath);
 
         void AddFrame(const std::string &name, const SDL_FRect &rect);
         Sprite GetSprite(const std::string &name) const;
