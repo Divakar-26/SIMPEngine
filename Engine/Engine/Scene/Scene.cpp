@@ -81,13 +81,13 @@ namespace SIMPEngine
         }
     }
 
+    // TODO -> Z INDEX SYSTEM
     void Scene::OnRender()
     {
-
-        // call camera render
+        
         cameraSystem.OnRender(m_Registry);
-        RenderSprites();
         RenderQuad();
+        RenderSprites();
     }
 
     void Scene::RenderSprites()
@@ -101,7 +101,7 @@ namespace SIMPEngine
             if (spriteComp.texture)
             {
                 Renderer::DrawTexture(
-                    spriteComp.texture->GetID(), // OpenGL texture ID
+                    spriteComp.texture->GetID(), 
                     transform.position.x,
                     transform.position.y,
                     spriteComp.width,
@@ -115,11 +115,25 @@ namespace SIMPEngine
     void Scene::RenderQuad()
     {
         auto view = m_Registry.view<TransformComponent, RenderComponent>();
+
         for (auto entity : view)
         {
+            if (m_Registry.any_of<SpriteComponent>(entity))
+            {
+                auto &sprite = m_Registry.get<SpriteComponent>(entity);
+                if (sprite.texture && sprite.texture->GetID() != 0)
+                    continue;
+            }
+
             auto &transform = view.get<TransformComponent>(entity);
             auto &render = view.get<RenderComponent>(entity);
-            Renderer::DrawQuad(transform.position.x, transform.position.y, render.width * transform.scale.x, render.height * transform.scale.y, render.color);
+
+            Renderer::DrawQuad(
+                transform.position.x,
+                transform.position.y,
+                render.width * transform.scale.x,
+                render.height * transform.scale.y,
+                render.color);
         }
     }
 
