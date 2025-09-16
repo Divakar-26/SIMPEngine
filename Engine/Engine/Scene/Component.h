@@ -6,12 +6,15 @@
 #include <memory>
 #include <string>
 
-namespace SIMPEngine { class ScriptableEntity; }
+namespace SIMPEngine
+{
+    class ScriptableEntity;
+}
 
 struct TransformComponent
 {
     glm::vec2 position{0.0f, 0.0f};
-    float rotation = 0.0f; 
+    float rotation = 0.0f;
     glm::vec2 scale{1.0f, 1.0f};
 
     glm::mat4 GetTransform() const
@@ -72,15 +75,18 @@ struct CameraComponent
 
 struct ScriptComponent
 {
-    SIMPEngine::ScriptableEntity* Instance = nullptr;
+    SIMPEngine::ScriptableEntity *Instance = nullptr;
 
-    std::function<SIMPEngine::ScriptableEntity*()> InstantiateScript;
-    std::function<void(ScriptComponent*)> DestroyScript;
+    std::function<SIMPEngine::ScriptableEntity *()> InstantiateScript;
+    std::function<void(ScriptComponent *)> DestroyScript;
 
-    template<typename T>
+    template <typename T>
     void Bind()
     {
-        InstantiateScript = []() { return new T(); };
-        DestroyScript = [](ScriptComponent* sc) { delete sc->Instance; sc->Instance = nullptr; };
+        InstantiateScript = []()
+        { return new T(); };
+        DestroyScript = [](ScriptComponent *sc)
+        { delete sc->Instance; sc->Instance = nullptr; };
     }
 };
+

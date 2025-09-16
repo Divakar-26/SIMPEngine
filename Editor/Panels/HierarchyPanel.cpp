@@ -122,6 +122,8 @@ void HierarchyPanel::OnRender()
             if (!entity.HasComponent<CollisionComponent>() && ImGui::MenuItem("Collision"))
                 entity.AddComponent<CollisionComponent>();
 
+
+
             ImGui::EndMenu();
         }
 
@@ -150,6 +152,6 @@ void HierarchyPanel::ShowComponents(SIMPEngine::Entity entity)
     DrawComponent<RenderComponent>(entity, ICON_PHOTO_FILM " Render");
     DrawComponent<CameraComponent>(entity, ICON_CAMERA " Camera Entity");
     DrawComponent<CollisionComponent>(entity, ICON_CAR_CRASH " Collision Box");
-    DrawComponent<SpriteComponent>(entity, ICON_FACE_SMILE " Sprite");
+    DrawComponent<SpriteComponent>(entity, ICON_FACE_SMILE "  Sprite");
 }
  

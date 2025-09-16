@@ -5,7 +5,7 @@
 #include "Core/FileSystem.h"
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer)
+    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer), serializer(&renderingLayer->GetScene())
 {
     this->m_RenderingLayer = renderingLayer;
 
@@ -107,9 +107,23 @@ void EditorLayer::ShowLogs()
         }
         ImGui::EndMainMenuBar();
     }
+    if (ImGui::BeginMenu("File"))
+    {
+        if (ImGui::MenuItem("Save Scene"))
+        {
+            serializer.Serialize("assets/scene.simpscene");
+        }
+
+        if (ImGui::MenuItem("Load Scene"))
+        {
+            serializer.Deserialize("assets/scene.simpscene");
+        }
+
+        ImGui::EndMenu();
+    }
+
     if (showLogs)
     {
-
         ImGui::Begin("Log", &showLogs);
 
         auto sink = SIMPEngine::Log::GetImGuiSink();

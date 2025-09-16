@@ -59,6 +59,7 @@ namespace SIMPEngine
 
     void Scene::OnUpdate(float deltaTime)
     {
+        
 
         cameraSystem.OnUpdate(m_Registry, deltaTime);
 
@@ -84,7 +85,7 @@ namespace SIMPEngine
     // TODO -> Z INDEX SYSTEM
     void Scene::OnRender()
     {
-        
+
         cameraSystem.OnRender(m_Registry);
         RenderQuad();
         RenderSprites();
@@ -101,7 +102,7 @@ namespace SIMPEngine
             if (spriteComp.texture)
             {
                 Renderer::DrawTexture(
-                    spriteComp.texture->GetID(), 
+                    spriteComp.texture->GetID(),
                     transform.position.x,
                     transform.position.y,
                     spriteComp.width * transform.scale.x,

@@ -32,6 +32,7 @@ namespace SIMPEngine
             return m_Registry;
         }
         const std::string &GetName() const { return m_Name; }
+        void SetName(std::string name) { m_Name = name; }
 
         Camera2D &GetMainCamera() { return cameraSystem.GetMainCamera(); }
 

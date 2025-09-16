@@ -26,6 +26,7 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneManager.cpp
         # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/ScriptableEntity.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/CameraSystem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneSerializer.cpp
         # ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c
     )
 
@@ -35,9 +36,12 @@
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/entt/src
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad/include
+        PUBLIC ${CMAKE_SOURCE_DIR}/vendor/yaml-cpp/include
     )
 
     target_precompile_headers(Engine PRIVATE Engine/PCH.h)
+
+
 
     target_link_libraries(Engine
         PUBLIC SDL3::SDL3
@@ -46,4 +50,5 @@
         PUBLIC imgui
         PUBLIC glad
         PUBLIC stb
+        PUBLIC yaml-cpp
     )

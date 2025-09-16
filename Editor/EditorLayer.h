@@ -7,8 +7,9 @@
 #include "Panels/InspectorPanel.h"
 #include "Panels/ContentBrowserPanel.h"
 #include "Events/Event.h"
-
 #include "Assets/AssetManager.h"
+
+#include "Scene/SceneSerializer.h"
 
 class EditorLayer : public SIMPEngine::Layer
 {
@@ -32,6 +33,8 @@ private:
 
     std::unique_ptr<ContentBrowserPanel> m_ContentBrowser;
     std::unique_ptr<SIMPEngine::AssetManager> m_AssetManager;
+
+    SIMPEngine::SceneSerializer serializer;
 
     bool showLogs = false;
 };
