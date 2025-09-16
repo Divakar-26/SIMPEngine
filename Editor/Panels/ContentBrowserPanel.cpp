@@ -17,7 +17,6 @@ std::string ContentBrowserPanel::ToVirtualChild(const std::string &parent, const
 void ContentBrowserPanel::OnImGuiRender()
 {
     ImGui::Begin("Content Browser");
-    CORE_INFO("BROWSER RENDERING");
     // left tree
     ImGui::BeginChild("##tree", ImVec2(220, 0), true);
     DrawDirectory(m_Root);

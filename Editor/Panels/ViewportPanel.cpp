@@ -76,41 +76,43 @@ void ViewportPanel::OnRender(SIMPEngine::Entity &selectedEntity)
 
     DrawMouseWorldPosition();
 
-    if (ImGui::BeginDragDropTarget())
-    {
-        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+    if(selectedEntity){
+        if (ImGui::BeginDragDropTarget())
         {
-            const char *srcVPath = (const char *)payload->Data;
-            auto textureRealPath = SIMPEngine::VFS::Resolve(srcVPath);
-
-            if (textureRealPath && m_SelectedEntity.HasComponent<SpriteComponent>())
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
             {
-                auto &sprite = m_SelectedEntity.GetComponent<SpriteComponent>();
-                sprite.texture = std::make_shared<SIMPEngine::Texture>();
-
-                if (sprite.texture->LoadFromFile(textureRealPath->c_str()))
+                const char *srcVPath = (const char *)payload->Data;
+                auto textureRealPath = SIMPEngine::VFS::Resolve(srcVPath);
+    
+                if (textureRealPath && m_SelectedEntity.HasComponent<SpriteComponent>())
                 {
-                    if (m_SelectedEntity.HasComponent<RenderComponent>())
+                    auto &sprite = m_SelectedEntity.GetComponent<SpriteComponent>();
+                    sprite.texture = std::make_shared<SIMPEngine::Texture>();
+    
+                    if (sprite.texture->LoadFromFile(textureRealPath->c_str()))
                     {
-                        auto &render = m_SelectedEntity.GetComponent<RenderComponent>();
-                        sprite.width = render.width;
-                        sprite.height = render.height;
+                        if (m_SelectedEntity.HasComponent<RenderComponent>())
+                        {
+                            auto &render = m_SelectedEntity.GetComponent<RenderComponent>();
+                            sprite.width = render.width;
+                            sprite.height = render.height;
+                        }
+                        else
+                        {
+                            sprite.width = sprite.texture->GetWidth();
+                            sprite.height = sprite.texture->GetHeight();
+                        }
+    
+                        CORE_INFO("Updated sprite texture for entity: {}", srcVPath);
                     }
                     else
                     {
-                        sprite.width = sprite.texture->GetWidth();
-                        sprite.height = sprite.texture->GetHeight();
+                        CORE_ERROR("Failed to load texture: {}", *textureRealPath);
                     }
-
-                    CORE_INFO("Updated sprite texture for entity: {}", srcVPath);
-                }
-                else
-                {
-                    CORE_ERROR("Failed to load texture: {}", *textureRealPath);
                 }
             }
+            ImGui::EndDragDropTarget();
         }
-        ImGui::EndDragDropTarget();
     }
 
     ImGui::End();
@@ -301,6 +303,16 @@ void ViewportPanel::DrawSingleGizmo(const glm::vec2 &worldPos, GizmoHandle handl
     
     glm::vec2 screenPos = WorldToScreen(worldPos);
     
+    // Check if the gizmo is within the viewport bounds
+    ImVec2 viewportMin = {windowPos.x + contentMin.x, windowPos.y + contentMin.y};
+    ImVec2 viewportMax = {windowPos.x + contentMax.x, windowPos.y + contentMax.y};
+    
+    if (screenPos.x < viewportMin.x || screenPos.x > viewportMax.x ||
+        screenPos.y < viewportMin.y || screenPos.y > viewportMax.y)
+    {
+        return; // Skip drawing if outside viewport
+    }
+    
     glm::vec2 mouseScreen = { mousePos.x, mousePos.y };
     float dist = glm::distance(mouseScreen, screenPos);
     
@@ -446,13 +458,13 @@ void ViewportPanel::SelectEntites(SIMPEngine::Entity &selectedEntity)
             worldMouse.y >= top && worldMouse.y <= bottom)
         {
             m_SelectedEntity = SIMPEngine::Entity{entity, m_Context};
-            selectedEntity = m_SelectedEntity; // Update the reference parameter
+            selectedEntity = m_SelectedEntity; 
             return;
         }
     }
 
     m_SelectedEntity = {};
-    selectedEntity = {}; // Update the reference parameter
+    selectedEntity = {}; 
 }
 
 bool ViewportPanel::IsClickingOnGizmo()
@@ -474,12 +486,26 @@ bool ViewportPanel::IsClickingOnGizmo()
         mousePos.x - (windowPos.x + contentMin.x),
         mousePos.y - (windowPos.y + contentMin.y)};
 
+    if (localMouse.x < 0 || localMouse.y < 0 || 
+        localMouse.x > (contentMax.x - contentMin.x) || 
+        localMouse.y > (contentMax.y - contentMin.y))
+    {
+        return false; 
+    }
+
     glm::vec2 worldMouse = m_RenderingLayer->GetCamera().ScreenToWorld(localMouse);
 
     for (int i = 0; i < 4; i++)
     {
-        if (glm::distance(worldMouse, corners[i]) <= GIZMO_RADIUS * 2.0f) 
-            return true;
+        glm::vec2 screenCorner = WorldToScreen(corners[i]);
+        if (screenCorner.x >= (windowPos.x + contentMin.x) && 
+            screenCorner.x <= (windowPos.x + contentMax.x) &&
+            screenCorner.y >= (windowPos.y + contentMin.y) && 
+            screenCorner.y <= (windowPos.y + contentMax.y))
+        {
+            if (glm::distance(worldMouse, corners[i]) <= GIZMO_RADIUS * 2.0f) 
+                return true;
+        }
     }
 
     glm::vec2 topCenter = (corners[0] + corners[1]) * 0.5f;
@@ -490,8 +516,15 @@ bool ViewportPanel::IsClickingOnGizmo()
     glm::vec2 edgeCenters[] = {topCenter, bottomCenter, leftCenter, rightCenter};
     for (const auto &center : edgeCenters)
     {
-        if (glm::distance(worldMouse, center) <= GIZMO_RADIUS * 2.0f)
-            return true;
+        glm::vec2 screenCenter = WorldToScreen(center);
+        if (screenCenter.x >= (windowPos.x + contentMin.x) && 
+            screenCenter.x <= (windowPos.x + contentMax.x) &&
+            screenCenter.y >= (windowPos.y + contentMin.y) && 
+            screenCenter.y <= (windowPos.y + contentMax.y))
+        {
+            if (glm::distance(worldMouse, center) <= GIZMO_RADIUS * 2.0f)
+                return true;
+        }
     }
 
     return false;
