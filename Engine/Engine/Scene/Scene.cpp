@@ -104,8 +104,8 @@ namespace SIMPEngine
                     spriteComp.texture->GetID(), 
                     transform.position.x,
                     transform.position.y,
-                    spriteComp.width,
-                    spriteComp.height,
+                    spriteComp.width * transform.scale.x,
+                    spriteComp.height * transform.scale.y,
                     SDL_Color{255, 255, 255, 255},
                     transform.rotation);
             }

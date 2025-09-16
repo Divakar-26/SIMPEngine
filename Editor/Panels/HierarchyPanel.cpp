@@ -75,8 +75,8 @@ void HierarchyPanel::OnRender()
             strcpy(m_EntityNameBuffer, "New Entity");
 
             // for script
-            // auto & script = entity.AddComponent<ScriptComponent>();
-            // script.Bind<PlayerController>();
+            auto & script = entity.AddComponent<ScriptComponent>();
+            script.Bind<PlayerController>();
 
             ImGui::CloseCurrentPopup();
         }
