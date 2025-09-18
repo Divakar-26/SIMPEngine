@@ -86,7 +86,7 @@ void EditorLayer::OnRender()
     m_InspectorPanel.OnRender();
     m_ContentBrowser->OnImGuiRender();
 
-    ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
 }
 
 void EditorLayer::ShowLogs()
