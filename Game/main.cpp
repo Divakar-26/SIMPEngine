@@ -17,13 +17,9 @@ public:
     {
         
         auto sceneManager = std::make_shared<SIMPEngine::SceneManager>();
-
         auto scene1 = std::make_shared<SIMPEngine::Scene>("Level1");
-
         sceneManager->AddScene("Level1", scene1);
-
         sceneManager->SetActiveScene("Level1");
-
 
         SIMPEngine::RenderingLayer * m_RenderingLayer = new SIMPEngine::RenderingLayer(sceneManager);
         
@@ -43,7 +39,6 @@ SIMPEngine::Application *SIMPEngine::CreateApplication()
 
 int main()
 {
-
     SIMPEngine::Log::Init();
     CORE_INFO("Engine Starting up....");
     auto app = SIMPEngine::CreateApplication();

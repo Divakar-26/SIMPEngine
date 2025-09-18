@@ -44,6 +44,7 @@ namespace SIMPEngine
         // helper functions
         void RenderQuad();
         void RenderSprites();
+        void RenderColliders();
 
     private:
         std::string m_Name;

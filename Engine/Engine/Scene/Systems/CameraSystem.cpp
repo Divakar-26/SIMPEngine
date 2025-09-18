@@ -16,7 +16,6 @@ namespace SIMPEngine
             if (camComp.primary)
             {   
                 auto w = camComp.Camera.GetViewportSize();
-                CORE_INFO("{} {}", w.first, w.second );
                 camComp.Camera.SetPosition({transform.position.x , transform.position.y});
                 camComp.Camera.Update(dt);
                 break;

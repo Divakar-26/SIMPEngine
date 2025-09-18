@@ -36,6 +36,9 @@ namespace SIMPEngine
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
+        io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
+        io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
+
         ImGui::StyleColorsDark();
 
         io.FontGlobalScale = 0.2f; // main UI

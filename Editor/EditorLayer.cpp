@@ -44,47 +44,67 @@ void EditorLayer::OnEvent(SIMPEngine::Event &e)
 
 void EditorLayer::OnRender()
 {
-    // Create Dockspace
-
     m_RenderingLayer->OnRender();
 
+    // Setup fullscreen dockspace window
     static bool dockspaceOpen = true;
-    static bool opt_fullscreen = true;
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
+    
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-    if (opt_fullscreen)
-    {
-        const ImGuiViewport *viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->WorkPos);
-        ImGui::SetNextWindowSize(viewport->WorkSize);
-        ImGui::SetNextWindowViewport(viewport->ID);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
-                        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-    }
+    window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+    window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-    ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
-    if (opt_fullscreen)
-        ImGui::PopStyleVar(2);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    
+    // Create the main dockspace window
+    ImGui::Begin("DockSpaceWindow", &dockspaceOpen, window_flags);
+    ImGui::PopStyleVar(3);
 
-    // Dockspace
-
+    // Setup dockspace
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-    ImGui::End();
+    
+    // Render menu bar inside the dockspace window
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("File"))
+        {
+            if (ImGui::MenuItem("Save Scene"))
+                serializer.Serialize("assets/scene.simpscene");
+            if (ImGui::MenuItem("Load Scene"))
+                serializer.Deserialize("assets/scene.simpscene");
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("View"))
+        {
+            ImGui::MenuItem("Log", nullptr, &showLogs);
+            ImGui::EndMenu();
+        }
+        ImGui::EndMenuBar();
+    }
 
+    ImGui::End(); // End dockspace window
+
+    // Now render all panels as separate windows - they will dock automatically
     auto it = m_HieararchyPanel.GetSelectedEntity();
+    
+    // Render each panel as a separate window
     m_ViewportPanel.OnRender(*it);
-
-    ShowLogs();
-
     m_HieararchyPanel.OnRender();
     m_InspectorPanel.SetSelectedEntity(*it);
     m_InspectorPanel.OnRender();
     m_ContentBrowser->OnImGuiRender();
+    
+    if (showLogs)
+        ShowLogs();
 
     // ImGui::ShowDemoWindow();
 }

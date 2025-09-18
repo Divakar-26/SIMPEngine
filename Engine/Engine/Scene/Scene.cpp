@@ -59,7 +59,6 @@ namespace SIMPEngine
 
     void Scene::OnUpdate(float deltaTime)
     {
-        
 
         cameraSystem.OnUpdate(m_Registry, deltaTime);
 
@@ -89,6 +88,7 @@ namespace SIMPEngine
         cameraSystem.OnRender(m_Registry);
         RenderQuad();
         RenderSprites();
+        RenderColliders();
     }
 
     void Scene::RenderSprites()
@@ -135,6 +135,27 @@ namespace SIMPEngine
                 render.width * transform.scale.x,
                 render.height * transform.scale.y,
                 render.color);
+        }
+    }
+
+    void Scene::RenderColliders()
+    {
+        auto view = m_Registry.view<TransformComponent, CollisionComponent>();
+        for (auto entity : view)
+        {
+            auto &transform = view.get<TransformComponent>(entity);
+            auto &collider = view.get<CollisionComponent>(entity);
+
+            float x = transform.position.x;
+            float y = transform.position.y;
+            float w = collider.width * transform.scale.x;
+            float h = collider.height * transform.scale.y;
+
+            SDL_Color fillColor = {0, 0, 255, 100};
+            Renderer::DrawQuad(x, y, w, h, fillColor, true);
+
+            SDL_Color outlineColor = {173, 216, 230, 255};
+            Renderer::DrawQuad(x, y, w, h, outlineColor, false);
         }
     }
 
