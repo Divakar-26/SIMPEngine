@@ -95,6 +95,9 @@
         "unordered_set": "cpp",
         "ranges": "cpp",
         "shared_mutex": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "any": "cpp",
+        "forward_list": "cpp",
+        "valarray": "cpp"
     }
 }

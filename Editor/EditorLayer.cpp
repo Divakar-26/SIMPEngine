@@ -92,32 +92,25 @@ void EditorLayer::OnRender()
 void EditorLayer::ShowLogs()
 {
     if (ImGui::BeginMainMenuBar())
-
     {
-        if (ImGui::BeginMenu("View"))
-
+        if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("Log", nullptr, &showLogs))
-            {
-            }
+            if (ImGui::MenuItem("Save Scene"))
+                serializer.Serialize("assets/scene.simpscene");
+
+            if (ImGui::MenuItem("Load Scene"))
+                serializer.Deserialize("assets/scene.simpscene");
 
             ImGui::EndMenu();
         }
+
+        if (ImGui::BeginMenu("View"))
+        {
+            ImGui::MenuItem("Log", nullptr, &showLogs);
+            ImGui::EndMenu();
+        }
+
         ImGui::EndMainMenuBar();
-    }
-    if (ImGui::BeginMenu("File"))
-    {
-        if (ImGui::MenuItem("Save Scene"))
-        {
-            serializer.Serialize("assets/scene.simpscene");
-        }
-
-        if (ImGui::MenuItem("Load Scene"))
-        {
-            serializer.Deserialize("assets/scene.simpscene");
-        }
-
-        ImGui::EndMenu();
     }
 
     if (showLogs)

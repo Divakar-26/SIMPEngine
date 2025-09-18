@@ -31,7 +31,6 @@ namespace SIMPEngine
         // auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(-1.0f, 1.0f));
         // cam.primary = false;
 
-
         // auto texture = std::make_shared<SIMPEngine::Texture>();
         // texture->LoadFromFile("../assets/man.png");
 
@@ -66,14 +65,9 @@ namespace SIMPEngine
 
     void RenderingLayer::OnUpdate(class TimeStep ts)
     {
-        while (!m_CommandQueue.empty())
-        {
-            auto command = m_CommandQueue.front();
-            command(m_Scene);
-            m_CommandQueue.pop();
-        }
-
-        m_Scene.OnUpdate(ts.GetSeconds());
+        auto scene = m_SceneManager->GetActiveScene();
+        if (scene)
+            scene->OnUpdate(ts.GetSeconds());
 
         // auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>();
         // vel.position.x += 50 * ts.GetSeconds();
@@ -109,7 +103,9 @@ namespace SIMPEngine
 
     void RenderingLayer::OnRender()
     {
-        m_Scene.OnRender();
+        auto scene = m_SceneManager->GetActiveScene();
+        if (scene)
+            scene->OnRender();
         // // anim->Draw(500,500,300,300,SDL_Color{255,255,255,255});
 
         // // auto cointex = TextureManager::Get().GetTexture("coin");

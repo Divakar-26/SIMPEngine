@@ -4,6 +4,7 @@
 #include "Layer/LayerStack.h"
 #include "UI/ImGuiLayer.h"
 #include "Layer/RenderingLayer.h"
+#include "Scene/SceneManager.h"
 
 #ifndef NO_EDITOR
 #include "EditorLayer.h"
@@ -14,8 +15,17 @@ class MyGame : public SIMPEngine::Application
 public:
     MyGame()
     {
-        // // Custom game initialization
-        SIMPEngine::RenderingLayer * m_RenderingLayer = new SIMPEngine::RenderingLayer();
+        
+        auto sceneManager = std::make_shared<SIMPEngine::SceneManager>();
+
+        auto scene1 = std::make_shared<SIMPEngine::Scene>("Level1");
+
+        sceneManager->AddScene("Level1", scene1);
+
+        sceneManager->SetActiveScene("Level1");
+
+
+        SIMPEngine::RenderingLayer * m_RenderingLayer = new SIMPEngine::RenderingLayer(sceneManager);
         
         #ifndef NO_EDITOR
             EditorLayer * m_EditorLayer = new EditorLayer(m_RenderingLayer);
