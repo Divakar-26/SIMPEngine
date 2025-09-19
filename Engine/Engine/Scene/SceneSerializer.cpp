@@ -31,13 +31,19 @@ namespace SIMPEngine
             {
                 auto& sc = entity.GetComponent<SpriteComponent>();
                 out << YAML::Key << "Sprite" << YAML::Value << YAML::Flow
-                    << YAML::BeginSeq << sc.width << sc.height << YAML::EndSeq;
+                    << YAML::BeginSeq << sc.width << sc.height << sc.texture->GetPath() <<  YAML::EndSeq;
             }
 
             if(entity.HasComponent<RenderComponent>()){
                 auto & rc = entity.GetComponent<RenderComponent>();
                 out << YAML::Key << "Render" << YAML::Value << YAML::Flow
                     << YAML::BeginSeq << (int)rc.color.r << (int)rc.color.g << (int)rc.color.b << (int)rc.color.a << rc.width << rc.height << YAML::EndSeq;
+            }
+
+            if(entity.HasComponent<CollisionComponent>()){
+                auto & cc = entity.GetComponent<CollisionComponent>();
+                out << YAML::Key << "Collision" << YAML::Value << YAML::Flow 
+                    << YAML::BeginSeq << (int)cc.width << (int)cc.height << YAML::EndSeq;            
             }
 
             out << YAML::EndMap; });

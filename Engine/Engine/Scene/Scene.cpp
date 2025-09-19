@@ -157,7 +157,9 @@ namespace SIMPEngine
                 transform.position.y,
                 render.width * transform.scale.x,
                 render.height * transform.scale.y,
-                render.color);
+                render.color,
+                true,
+                zIndex);
         }
     }
 
@@ -189,10 +191,10 @@ namespace SIMPEngine
             float h = collider.height * transform.scale.y;
 
             SDL_Color fillColor = {0, 0, 255, 100};
-            Renderer::DrawQuad(x, y, w, h, fillColor, true);
+            Renderer::DrawQuad(x, y, w, h, fillColor, true, zIndex);
 
             SDL_Color outlineColor = {173, 216, 230, 255};
-            Renderer::DrawQuad(x, y, w, h, outlineColor, false);
+            Renderer::DrawQuad(x, y, w, h, outlineColor, false, zIndex);
         }
     }
 

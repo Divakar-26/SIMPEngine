@@ -22,6 +22,7 @@ namespace SIMPEngine
         // return the width and height
         int GetWidth() const { return m_Width; }
         int GetHeight() const { return m_Height; }
+        std::string GetPath() { return m_Path; }
 
         bool LoadFromMemory(unsigned char *data, size_t size);
         void UploadToGPU(unsigned char *pixels, int width, int height, int channels);
@@ -30,5 +31,7 @@ namespace SIMPEngine
         GLuint m_TextureID = 0;
         int m_Width;
         int m_Height;
+
+        std::string m_Path;
     };
 }
