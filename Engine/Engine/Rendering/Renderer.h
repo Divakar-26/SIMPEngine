@@ -18,7 +18,7 @@ namespace SIMPEngine
 
         static void SetClearColor(float r, float g, float b, float a);
         static void Clear();
-        static void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill = true);
+        static void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill = true, float zIndex = 0.0f);
         static void DrawCircle(float x, float y, float r, SDL_Color color);
         static void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color);
         static void Present();
@@ -26,7 +26,7 @@ namespace SIMPEngine
         static void SetViewMatrix(const glm::mat4 &view);
         static const glm::mat4 &GetViewMatrix();
 
-        static void DrawTexture(GLuint texture, float x, float y, float w, float h, SDL_Color tint, float rotation);
+        static void DrawTexture(GLuint texture, float x, float y, float w, float h, SDL_Color tint, float rotation, float zIndex);
         static std::shared_ptr<Texture> CreateTexture(const char *path);
 
         static void Flush();

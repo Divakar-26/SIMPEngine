@@ -1,0 +1,8 @@
+1. Scale down icons
+2. Set Texture aplha 
+3. Make collision component movable and editable
+4. Make collision component of diffrent size
+5. Make Z indexing (first)
+6. Draw gizmo below the popup 
+7. Dock space Gliching
+8. Hover problem

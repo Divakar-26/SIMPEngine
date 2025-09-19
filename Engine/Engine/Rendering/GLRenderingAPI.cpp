@@ -17,7 +17,7 @@ namespace SIMPEngine
         }
     )";
 
-    static const char *fragmentSrc = R"(
+    static const char *fragmentSrc = R"(    
         #version 330 core
         in vec2 TexCoord;
         out vec4 FragColor;
@@ -44,7 +44,7 @@ namespace SIMPEngine
 
     void GLRenderingAPI::Init()
     {
-        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
         m_Shader = std::make_unique<Shader>(vertexSrc, fragmentSrc);
@@ -123,9 +123,9 @@ namespace SIMPEngine
     glm::vec2 GLRenderingAPI::TransformPosition(float x, float y) const { return {x, y}; }
     glm::vec2 GLRenderingAPI::TransformSize(float w, float h) const { return {w, h}; }
 
-    void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill)
+    void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill, float zIndex)
     {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f));
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
         model = glm::scale(model, glm::vec3(width, height, 1.0f));
         glm::mat4 mvp = m_Projection * m_ViewMatrix * model;
         m_Shader->Bind();
@@ -139,13 +139,13 @@ namespace SIMPEngine
         m_Shader->Unbind();
     }
 
-    void GLRenderingAPI::DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation)
+    void GLRenderingAPI::DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex)
     {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
         if (!texture) return;
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, 0.0f));
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
         model = glm::translate(model, glm::vec3(width * 0.5f, height * 0.5f, 0.0f));
         model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
         model = glm::translate(model, glm::vec3(-width * 0.5f, -height * 0.5f, 0.0f));
@@ -186,12 +186,15 @@ namespace SIMPEngine
         }
         glGenFramebuffers(1, &m_Framebuffer);
         glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
+
         glGenTextures(1, &m_ColorAttachment);
         glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
+
+        
         glGenRenderbuffers(1, &m_RBO);
         glBindRenderbuffer(GL_RENDERBUFFER, m_RBO);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);

@@ -16,11 +16,12 @@ struct TransformComponent
     glm::vec2 position{0.0f, 0.0f};
     float rotation = 0.0f;
     glm::vec2 scale{1.0f, 1.0f};
+    float zIndex = 0.0f;
 
     glm::mat4 GetTransform() const
     {
         glm::mat4 transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(position, 0.0f));
+        transform = glm::translate(transform, glm::vec3(position, zIndex));
         transform = glm::rotate(transform, glm::radians(rotation), {0, 0, 1});
         transform = glm::scale(transform, glm::vec3(scale, 1.0f));
         return transform;

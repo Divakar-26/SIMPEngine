@@ -46,7 +46,6 @@ void EditorLayer::OnRender()
 {
     m_RenderingLayer->OnRender();
 
-    // Setup fullscreen dockspace window
     static bool dockspaceOpen = true;
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
@@ -64,15 +63,12 @@ void EditorLayer::OnRender()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     
-    // Create the main dockspace window
     ImGui::Begin("DockSpaceWindow", &dockspaceOpen, window_flags);
     ImGui::PopStyleVar(3);
 
-    // Setup dockspace
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     
-    // Render menu bar inside the dockspace window
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("File"))
@@ -91,12 +87,9 @@ void EditorLayer::OnRender()
         ImGui::EndMenuBar();
     }
 
-    ImGui::End(); // End dockspace window
-
-    // Now render all panels as separate windows - they will dock automatically
+    ImGui::End(); 
     auto it = m_HieararchyPanel.GetSelectedEntity();
     
-    // Render each panel as a separate window
     m_ViewportPanel.OnRender(*it);
     m_HieararchyPanel.OnRender();
     m_InspectorPanel.SetSelectedEntity(*it);

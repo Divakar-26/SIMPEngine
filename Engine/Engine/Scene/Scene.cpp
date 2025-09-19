@@ -93,11 +93,21 @@ namespace SIMPEngine
 
     void Scene::RenderSprites()
     {
+        std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
         auto spriteView = m_Registry.view<TransformComponent, SpriteComponent>();
         for (auto entity : spriteView)
         {
             auto &transform = spriteView.get<TransformComponent>(entity);
-            auto &spriteComp = spriteView.get<SpriteComponent>(entity);
+            entitiesWithZIndex.emplace_back(entity, transform.zIndex);
+        }
+
+        std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(), [](const auto &a, const auto &b)
+                  { return a.second < b.second; });
+
+        for (const auto &[entity, zIndex] : entitiesWithZIndex)
+        {
+            auto &transform = m_Registry.get<TransformComponent>(entity);
+            auto &spriteComp = m_Registry.get<SpriteComponent>(entity);
 
             if (spriteComp.texture)
             {
@@ -108,13 +118,14 @@ namespace SIMPEngine
                     spriteComp.width * transform.scale.x,
                     spriteComp.height * transform.scale.y,
                     SDL_Color{255, 255, 255, 255},
-                    transform.rotation);
+                    transform.rotation, zIndex);
             }
         }
     }
 
     void Scene::RenderQuad()
     {
+        std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
         auto view = m_Registry.view<TransformComponent, RenderComponent>();
 
         for (auto entity : view)
@@ -127,7 +138,19 @@ namespace SIMPEngine
             }
 
             auto &transform = view.get<TransformComponent>(entity);
-            auto &render = view.get<RenderComponent>(entity);
+            entitiesWithZIndex.emplace_back(entity, transform.zIndex);
+        }
+
+        std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(),
+                  [](const auto &a, const auto &b)
+                  {
+                      return a.second < b.second;
+                  });
+
+        for (const auto &[entity, zIndex] : entitiesWithZIndex)
+        {
+            auto &transform = m_Registry.get<TransformComponent>(entity);
+            auto &render = m_Registry.get<RenderComponent>(entity);
 
             Renderer::DrawQuad(
                 transform.position.x,
@@ -140,11 +163,25 @@ namespace SIMPEngine
 
     void Scene::RenderColliders()
     {
+        std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
+
         auto view = m_Registry.view<TransformComponent, CollisionComponent>();
         for (auto entity : view)
         {
             auto &transform = view.get<TransformComponent>(entity);
-            auto &collider = view.get<CollisionComponent>(entity);
+            entitiesWithZIndex.emplace_back(entity, transform.zIndex);
+        }
+
+        std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(),
+                  [](const auto &a, const auto &b)
+                  {
+                      return a.second < b.second;
+                  });
+
+        for (const auto &[entity, zIndex] : entitiesWithZIndex)
+        {
+            auto &transform = m_Registry.get<TransformComponent>(entity);
+            auto &collider = m_Registry.get<CollisionComponent>(entity);
 
             float x = transform.position.x;
             float y = transform.position.y;

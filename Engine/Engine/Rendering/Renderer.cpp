@@ -34,9 +34,9 @@ namespace SIMPEngine
         s_RenderingAPI->Clear();
     }
 
-    void Renderer::DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill)
+    void Renderer::DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill, float zIndex)
     {
-        s_RenderingAPI->DrawQuad(x, y, width, height, color, fill);
+        s_RenderingAPI->DrawQuad(x, y, width, height, color, fill,zIndex);
     }
 
     void Renderer::DrawCircle(float x, float y, float r, SDL_Color color)
@@ -66,9 +66,9 @@ namespace SIMPEngine
         // return s_ViewMatrix;
     }
 
-    void Renderer::DrawTexture(GLuint texture, float x, float y, float w, float h, SDL_Color tint, float rotation)
+    void Renderer::DrawTexture(GLuint texture, float x, float y, float w, float h, SDL_Color tint, float rotation, float zIndex)
     {
-        s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation);
+        s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation, zIndex);
     }
 
     std::shared_ptr<Texture> Renderer::CreateTexture(const char *path)

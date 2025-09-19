@@ -140,8 +140,6 @@ namespace SIMPEngine
         float zoomY = height / m_TargetHeight;
         m_BaseZoom = std::min(zoomX, zoomY);
 
-        CORE_INFO("{} {} is the viewport size", width, height);
-
         RecalculateViewMatrix();
     }
 

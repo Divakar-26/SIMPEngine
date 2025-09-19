@@ -18,10 +18,10 @@ namespace SIMPEngine
         void Clear() override;
         void Present() override;
 
-        void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill = true) override;
+        void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill = true, float zIndex = 0.0f) override;
         void DrawCircle(float, float, float, SDL_Color) override {}
         void DrawLine(float, float, float, float, SDL_Color) override;
-        void DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation) override;
+        void DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex) override;
         std::shared_ptr<Texture> CreateTexture(const char *) override { return nullptr; }
         void Flush() override {}
         SDL_Renderer *GetSDLRenderer() override { return nullptr; }
