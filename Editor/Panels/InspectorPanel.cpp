@@ -52,7 +52,8 @@ void InspectorPanel::OnRender()
     ImGui::DragFloat("Y", &tc.position.y, 0.1f);
     ImGui::DragFloat("Rotation", &tc.rotation, 0.1f);
     ImGui::DragFloat("ScaleX", &tc.scale.x, 0.1f, 0.01f, 100.0f);
-    ImGui::DragFloat("ScaleY", &tc.scale.y, 0.1f, 0.01f, 100.0f); });
+    ImGui::DragFloat("ScaleY", &tc.scale.y, 0.1f, 0.01f, 100.0f);
+    ImGui::DragFloat("Z-Index", &tc.zIndex,1.0f, 0.0f, 10.0f); });
 
         DrawComponent<RenderComponent>("Render", m_SelectedEntity, [&](auto &rc)
                                        {
@@ -96,7 +97,7 @@ void InspectorPanel::OnRender()
                                           {
             ImGui::DragFloat2("Size", &col.width, 0.1f);
             ImGui::DragFloat2("Offset", &col.width, 0.1f); });
-    }
+        }
 
     ImGui::End();
 }

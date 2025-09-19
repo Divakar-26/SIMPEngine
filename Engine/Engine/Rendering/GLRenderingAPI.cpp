@@ -67,9 +67,11 @@ namespace SIMPEngine
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
         glEnableVertexAttribArray(1);
+
         glBindVertexArray(0);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        
         SetProjection(m_ViewportWidth, m_ViewportHeight);
         InitFramebuffer(m_ViewportWidth, m_ViewportHeight);
         SetProjection(m_ViewportWidth, m_ViewportHeight);
@@ -101,7 +103,7 @@ namespace SIMPEngine
 
     void GLRenderingAPI::SetProjection(float width, float height)
     {
-        m_Projection = glm::ortho(0.0f, width, height, 0.0f, -1.0f, 1.0f);
+        m_Projection = glm::ortho(0.0f, width, height, 0.0f, -1000.0f, 1000.0f);
     }
 
     void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)
