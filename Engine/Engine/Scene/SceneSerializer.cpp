@@ -105,6 +105,7 @@ namespace SIMPEngine
                     auto &sc = entity.AddComponent<SpriteComponent>();
                     sc.width = sprite[0].as<float>();
                     sc.height = sprite[1].as<float>();
+                    // sc.texture->LoadFromFile(sprite[2].as<string>());
                 }
 
                 if (auto render = entityNode["Render"])

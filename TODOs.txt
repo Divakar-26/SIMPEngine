@@ -1,10 +1,12 @@
-1. Scale down icons -> to implement
-2. Set Texture aplha 
-3. Make collision component movable and editable
-4. Make collision component of diffrent size
-5. Make Z indexing (first)
-6. Draw gizmo below the popup 
-7. Dock space Gliching
-8. Hover problem
-9. Moving Entitied while camera is primary
+1.  Scale down icons -> to implement
+2.  Set Texture aplha 
+3.  Make collision component movable and editable
+4.  Make collision component of diffrent size
+5.  Make Z indexing (first)                                           -> DONE
+6.  Draw gizmo below the popup 
+7.  Dock space Gliching
+8.  Hover problem
+9.  Moving Entitied while camera is primary
 10. Overall viewport cleanup
+11. Collision size should NOT be dependent on render component
+12. Add gizmos in collision component

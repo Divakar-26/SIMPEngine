@@ -84,7 +84,6 @@ namespace SIMPEngine
     // TODO -> Z INDEX SYSTEM
     void Scene::OnRender()
     {
-
         cameraSystem.OnRender(m_Registry);
         RenderQuad();
         RenderSprites();
@@ -163,39 +162,49 @@ namespace SIMPEngine
         }
     }
 
-    void Scene::RenderColliders()
+void Scene::RenderColliders()
+{
+    std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
+
+    auto view = m_Registry.view<TransformComponent, CollisionComponent>();
+    for (auto entity : view)
     {
-        std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
-
-        auto view = m_Registry.view<TransformComponent, CollisionComponent>();
-        for (auto entity : view)
-        {
-            auto &transform = view.get<TransformComponent>(entity);
-            entitiesWithZIndex.emplace_back(entity, transform.zIndex);
-        }
-
-        std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(),
-                  [](const auto &a, const auto &b)
-                  {
-                      return a.second < b.second;
-                  });
-
-        for (const auto &[entity, zIndex] : entitiesWithZIndex)
-        {
-            auto &transform = m_Registry.get<TransformComponent>(entity);
-            auto &collider = m_Registry.get<CollisionComponent>(entity);
-
-            float x = transform.position.x;
-            float y = transform.position.y;
-            float w = collider.width * transform.scale.x;
-            float h = collider.height * transform.scale.y;
-
-            SDL_Color fillColor = {0, 0, 255, 100};
-            Renderer::DrawQuad(x + collider.offsetX, y + collider.offsetY, w, h, fillColor, true, zIndex + 1);
-
-            SDL_Color outlineColor = {173, 216, 230, 255};
-            Renderer::DrawQuad(x + collider.offsetX - 2, y + collider.offsetY - 2, w + 2, h + 2, outlineColor, false, zIndex + 1);
-        }
+        auto &transform = view.get<TransformComponent>(entity);
+        entitiesWithZIndex.emplace_back(entity, transform.zIndex);
     }
 
+    std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(),
+              [](const auto &a, const auto &b)
+              {
+                  return a.second < b.second;
+              });
+
+    for (const auto &[entity, zIndex] : entitiesWithZIndex)
+    {
+        auto &transform = m_Registry.get<TransformComponent>(entity);
+        auto &collider = m_Registry.get<CollisionComponent>(entity);
+
+        SDL_FRect bounds = collider.GetBoundsWorld(transform);
+        
+        if (!collider.enabled) continue;
+
+        SDL_Color fillColor = collider.isTrigger ? 
+            SDL_Color{255, 165, 0, 100} : 
+            SDL_Color{0, 0, 255, 100};    
+            
+        SDL_Color outlineColor = collider.isTrigger ? 
+            SDL_Color{255, 140, 0, 255} : 
+            SDL_Color{173, 216, 230, 255}; 
+
+        Renderer::DrawQuad(
+            bounds.x, bounds.y, 
+            bounds.w, bounds.h, 
+            fillColor, true, zIndex + 1);
+
+        Renderer::DrawQuad(
+            bounds.x - 2, bounds.y - 2, 
+            bounds.w + 4, bounds.h + 4, 
+            outlineColor, false, zIndex + 1);
+    }
+}
 }
