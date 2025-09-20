@@ -30,10 +30,11 @@ struct TransformComponent
 
 struct CollisionComponent
 {
-    float width, height;
+    float width = 0.0f, height = 0.0f;
+    float offsetX = 0.0f, offsetY = 0.0f;
     SDL_FRect GetBounds(float x, float y) const
     {
-        return SDL_FRect{x, y, width, height};
+        return SDL_FRect{x + offsetX, y + offsetY, width, height};
     }
     SDL_FRect GetBoundsWorld(const TransformComponent &transform) const
     {

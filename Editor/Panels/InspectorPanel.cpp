@@ -95,8 +95,11 @@ void InspectorPanel::OnRender()
 
         DrawComponent<CollisionComponent>("Collision", m_SelectedEntity, [](auto &col)
                                           {
-                ImGui::DragFloat("Width", &col.width, 0.1f);
-                ImGui::DragFloat("Height", &col.height, 0.1f); });
+                                              ImGui::DragFloat("Width", &col.width, 0.1f);
+                                              ImGui::DragFloat("Height", &col.height, 0.1f);
+                                              ImGui::DragFloat("Offset X", &col.offsetX, 0.1f);
+                                              ImGui::DragFloat("Offset Y", &col.offsetY, 0.1f);
+                                          });
     }
 
     ImGui::End();

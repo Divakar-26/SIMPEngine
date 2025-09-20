@@ -64,6 +64,11 @@ private:
                              RenderComponent &render,
                              const glm::vec2 corners[4],
                              GizmoHandle hoveredGizmo);
+    void HandleCollisionGizmoDragging(SIMPEngine::Entity &entity,
+                             TransformComponent &transform,
+                             CollisionComponent &collision,
+                             const glm::vec2 corners[4],
+                             GizmoHandle hoveredGizmo);
     glm::vec2 WorldToScreen(const glm::vec2 &worldPos);
     void RenderImGuizmo(SIMPEngine::Entity &selectedEntity, TransformComponent &transform);
     bool IsClickingOnGizmo();

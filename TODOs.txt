@@ -7,3 +7,4 @@
 7. Dock space Gliching
 8. Hover problem
 9. Moving Entitied while camera is primary
+10. Overall viewport cleanup

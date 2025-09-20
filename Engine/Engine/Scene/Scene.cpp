@@ -191,10 +191,10 @@ namespace SIMPEngine
             float h = collider.height * transform.scale.y;
 
             SDL_Color fillColor = {0, 0, 255, 100};
-            Renderer::DrawQuad(x, y, w, h, fillColor, true, zIndex);
+            Renderer::DrawQuad(x + collider.offsetX, y + collider.offsetY, w, h, fillColor, true, zIndex + 1);
 
             SDL_Color outlineColor = {173, 216, 230, 255};
-            Renderer::DrawQuad(x, y, w, h, outlineColor, false, zIndex);
+            Renderer::DrawQuad(x + collider.offsetX - 2, y + collider.offsetY - 2, w + 2, h + 2, outlineColor, false, zIndex + 1);
         }
     }
 
