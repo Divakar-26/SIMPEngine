@@ -16,7 +16,7 @@ namespace SIMPEngine
         KeyReleased, //When any keyboard key is released then this event will be fired
         KeyTyped, // For text input (maybe)
         MouseButtonPressed, // Self explanotary
-        MouseButtonReleased, // 
+        MouseButtonReleased, // Self explanotary
         MouseMoved, // if mouse is moved then this event will fired 
         MouseScrolled // you know the drill
     };

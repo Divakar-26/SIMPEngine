@@ -34,14 +34,10 @@ namespace SIMPEngine
         ImGuiIO &io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-        io.BackendFlags |= ImGuiBackendFlags_PlatformHasViewports;
-        io.BackendFlags |= ImGuiBackendFlags_RendererHasViewports;
 
         ImGui::StyleColorsDark();
 
-        io.FontGlobalScale = 0.2f; // main UI
+        io.FontGlobalScale = 0.2f;
 
         float oldScale = io.FontGlobalScale;
         io.FontGlobalScale = 1.0f;
@@ -89,8 +85,12 @@ namespace SIMPEngine
 
     void ImGuiLayer::End()
     {
+        ImGuiIO &io = ImGui::GetIO();
+
+        // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     }
 
     void ImGuiLayer::OnEvent(Event &e)

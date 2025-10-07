@@ -24,7 +24,7 @@ public:
     void OnRender() override;
 
     void ShowLogs();
-
+    
 private:
     ViewportPanel m_ViewportPanel;
     HierarchyPanel m_HieararchyPanel;

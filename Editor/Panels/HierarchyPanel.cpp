@@ -1,6 +1,5 @@
 #include "HierarchyPanel.h"
 #include "Scene/Scene.h"
-#include "PlayerController.h"
 #include "../icons.h"
 
 template <typename T>
@@ -75,8 +74,6 @@ void HierarchyPanel::OnRender()
             strcpy(m_EntityNameBuffer, "New Entity");
 
             // for script
-            auto & script = entity.AddComponent<ScriptComponent>();
-            script.Bind<PlayerController>();
 
             ImGui::CloseCurrentPopup();
         }
@@ -122,8 +119,6 @@ void HierarchyPanel::OnRender()
             if (!entity.HasComponent<CollisionComponent>() && ImGui::MenuItem("Collision"))
                 entity.AddComponent<CollisionComponent>();
 
-
-
             ImGui::EndMenu();
         }
 
@@ -132,6 +127,10 @@ void HierarchyPanel::OnRender()
             scene.GetRegistry().destroy(handle);
             if (m_SelectedEntity.GetHandle() == handle)
                 m_SelectedEntity = {};
+        }
+
+        if(ImGui::MenuItem("Add Script")){
+
         }
 
         ImGui::EndPopup();
@@ -148,10 +147,9 @@ void HierarchyPanel::OnRender()
 
 void HierarchyPanel::ShowComponents(SIMPEngine::Entity entity)
 {
-    DrawComponent<TransformComponent>(entity,ICON_ARROWS " Transform");
+    DrawComponent<TransformComponent>(entity, ICON_ARROWS " Transform");
     DrawComponent<RenderComponent>(entity, ICON_PHOTO_FILM " Render");
     DrawComponent<CameraComponent>(entity, ICON_CAMERA " Camera Entity");
     DrawComponent<CollisionComponent>(entity, ICON_CAR_CRASH " Collision Box");
     DrawComponent<SpriteComponent>(entity, ICON_FACE_SMILE "  Sprite");
 }
- 

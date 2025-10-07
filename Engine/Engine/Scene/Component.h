@@ -32,8 +32,6 @@ struct CollisionComponent
 {
     float width = 0.0f, height = 0.0f;
     float offsetX = 0.0f, offsetY = 0.0f;
-    bool isTrigger = false;
-    bool enabled = true;
     SDL_FRect GetBounds(float x, float y) const
     {
         return SDL_FRect{x + offsetX, y + offsetY, width, height};

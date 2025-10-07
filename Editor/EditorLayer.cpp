@@ -69,6 +69,7 @@ void EditorLayer::OnRender()
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     
+    // SINGLE menu bar - remove the duplicate from ShowLogs()
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("File"))
@@ -88,6 +89,8 @@ void EditorLayer::OnRender()
     }
 
     ImGui::End(); 
+    
+    // Render all panels
     auto it = m_HieararchyPanel.GetSelectedEntity();
     
     m_ViewportPanel.OnRender(*it);
@@ -97,35 +100,12 @@ void EditorLayer::OnRender()
     m_ContentBrowser->OnImGuiRender();
     
     if (showLogs)
-        ShowLogs();
-
-    // ImGui::ShowDemoWindow();
+        ShowLogs(); // This should ONLY show the log window, no menu bars
 }
 
 void EditorLayer::ShowLogs()
 {
-    if (ImGui::BeginMainMenuBar())
-    {
-        if (ImGui::BeginMenu("File"))
-        {
-            if (ImGui::MenuItem("Save Scene"))
-                serializer.Serialize("assets/scene.simpscene");
-
-            if (ImGui::MenuItem("Load Scene"))
-                serializer.Deserialize("assets/scene.simpscene");
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::BeginMenu("View"))
-        {
-            ImGui::MenuItem("Log", nullptr, &showLogs);
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMainMenuBar();
-    }
-
+    // REMOVE the menu bar from here - it's already in the main dock space
     if (showLogs)
     {
         ImGui::Begin("Log", &showLogs);
@@ -134,7 +114,6 @@ void EditorLayer::ShowLogs()
         if (sink)
         {
             for (auto &line : sink->Logs)
-
             {
                 ImVec4 color;
                 if (line.find("[error]") != std::string::npos)
@@ -145,7 +124,8 @@ void EditorLayer::ShowLogs()
                     color = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
                 ImGui::TextColored(color, "%s", line.c_str());
             }
-            ImGui::SetScrollHereY(1.0f);
+            if (ImGui::GetScrollMaxY() > 0)
+                ImGui::SetScrollHereY(1.0f);
         }
         ImGui::End();
     }

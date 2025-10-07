@@ -186,25 +186,19 @@ void Scene::RenderColliders()
 
         SDL_FRect bounds = collider.GetBoundsWorld(transform);
         
-        if (!collider.enabled) continue;
 
-        SDL_Color fillColor = collider.isTrigger ? 
-            SDL_Color{255, 165, 0, 100} : 
-            SDL_Color{0, 0, 255, 100};    
-            
-        SDL_Color outlineColor = collider.isTrigger ? 
-            SDL_Color{255, 140, 0, 255} : 
-            SDL_Color{173, 216, 230, 255}; 
+        SDL_Color fillColor = {200,85,90,200};
+        SDL_Color outlineColor = {68,85,90,200};
 
         Renderer::DrawQuad(
             bounds.x, bounds.y, 
             bounds.w, bounds.h, 
-            fillColor, true, zIndex + 1);
+            fillColor, true, zIndex+1);
 
         Renderer::DrawQuad(
             bounds.x - 2, bounds.y - 2, 
             bounds.w + 4, bounds.h + 4, 
-            outlineColor, false, zIndex + 1);
+            outlineColor, false, zIndex+1);
     }
 }
 }

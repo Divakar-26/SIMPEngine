@@ -8,5 +8,6 @@
 8.  Hover problem
 9.  Moving Entitied while camera is primary
 10. Overall viewport cleanup
-11. Collision size should NOT be dependent on render component
+11. Collision size should NOT be dependent on render component        -> DONE
 12. Add gizmos in collision component
+13. Add toggle to render collisios
