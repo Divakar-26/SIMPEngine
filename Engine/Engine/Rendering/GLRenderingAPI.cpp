@@ -52,10 +52,11 @@ namespace SIMPEngine
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
         m_Shader = std::make_unique<Shader>(vertexSrc, fragmentSrc);
         float vertices[] = {
-            0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
-            1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-            1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+            -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+            0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f};
+
         unsigned int indices[6] = {0, 1, 2, 2, 3, 0};
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers(1, &m_VBO);
@@ -156,11 +157,16 @@ namespace SIMPEngine
         glBlendEquation(GL_FUNC_ADD);
         if (!texture)
             return;
+        // glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
+        // model = glm::translate(model, glm::vec3(width * 0.5f, height * 0.5f, 0.0f));
+        // model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
+        // model = glm::translate(model, glm::vec3(-width * 0.5f, -height * 0.5f, 0.0f));
+        // model = glm::scale(model, glm::vec3(width, height, 1.0f));
+
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
-        model = glm::translate(model, glm::vec3(width * 0.5f, height * 0.5f, 0.0f));
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::translate(model, glm::vec3(-width * 0.5f, -height * 0.5f, 0.0f));
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0, 0, 1));
         model = glm::scale(model, glm::vec3(width, height, 1.0f));
+
         glm::mat4 mvp = m_Projection * m_ViewMatrix * model;
         m_Shader->Bind();
         m_Shader->SetUniformMat4("uMVP", mvp);
