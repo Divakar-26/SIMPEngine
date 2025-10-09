@@ -33,6 +33,24 @@ namespace SIMPEngine
         render.height = 100.0f;
         render.color = SDL_Color{255, 0, 0, 255};
 
+        auto &physics = e.AddComponent<PhysicsComponent>();
+
+        b2BodyDef bodyDef;
+        bodyDef.type = b2_dynamicBody;
+        bodyDef.position.Set(transform.position.x, transform.position.y);
+
+        physics.body = m_SceneManager->GetActiveScene()->physicsSystem.world.CreateBody(&bodyDef);
+
+        b2PolygonShape boxShape;
+        boxShape.SetAsBox(render.width / 2.0f, render.height / 2.0f); 
+
+        b2FixtureDef fixtureDef;
+        fixtureDef.shape = &boxShape;
+        fixtureDef.density = 1.0f; 
+        fixtureDef.friction = 0.3f;
+
+        physics.body->CreateFixture(&fixtureDef);
+
         auto &camera = e.AddComponent<CameraComponent>(1.0f, glm::vec2(w / 2.0f, h / 2.0f));
         camera.primary = false;
 

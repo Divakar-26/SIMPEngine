@@ -5,6 +5,7 @@
 #include "Math/Camera2D.h"
 #include <memory>
 #include <string>
+#include <box2d/box2d.h>
 
 namespace SIMPEngine
 {
@@ -90,4 +91,10 @@ struct ScriptComponent
         DestroyScript = [](ScriptComponent *sc)
         { delete sc->Instance; sc->Instance = nullptr; };
     }
+};
+
+struct PhysicsComponent
+{
+    b2Body* body = nullptr;   
+    bool dynamic = true;      
 };

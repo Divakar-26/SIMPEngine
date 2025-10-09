@@ -7,6 +7,7 @@
 #include "Systems/MovementSystem.h"
 #include "Systems/CollisionSystem.h"
 #include "Systems/CameraSystem.h"
+#include "Systems/PhysicsSystem.h"
 
 namespace SIMPEngine
 {
@@ -45,6 +46,7 @@ namespace SIMPEngine
         void RenderQuad();
         void RenderSprites();
         void RenderColliders();
+        PhysicsSystem physicsSystem;
 
     private:
         std::string m_Name;

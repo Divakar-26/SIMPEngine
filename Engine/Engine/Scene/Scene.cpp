@@ -61,7 +61,8 @@ namespace SIMPEngine
     {
 
         cameraSystem.OnUpdate(m_Registry, deltaTime);
-
+        
+        physicsSystem.Update(m_Registry, deltaTime);
         movementSystem.Update(m_Registry, deltaTime);
         collisionSystem.Update(m_Registry, deltaTime);
 

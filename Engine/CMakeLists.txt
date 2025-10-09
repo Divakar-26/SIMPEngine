@@ -37,6 +37,7 @@
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad/include
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/yaml-cpp/include
+        PUBLIC ${CMAKE_SOURCE_DIR}/vendor/box2d/include
     )
 
     target_precompile_headers(Engine PRIVATE Engine/PCH.h)
@@ -51,4 +52,5 @@
         PUBLIC glad
         PUBLIC stb
         PUBLIC yaml-cpp
+        PUBLIC box2d
     )
