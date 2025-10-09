@@ -21,8 +21,17 @@ constexpr ImU32 GIZMO_COLOR = IM_COL32(255, 255, 0, 255);
 constexpr ImU32 GIZMO_HOVER_COLOR = IM_COL32(255, 0, 0, 255);
 
 ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer)
-    : m_RenderingLayer(renderingLayer), m_ActiveGizmo(GizmoHandle::None), m_IsDraggingGizmo(false)
+    : m_RenderingLayer(renderingLayer)
 {
+
+    GizmoStyle style;
+    style.Radius = 8.0f;
+    style.HitRadius = 15.0f;
+    style.NormalColor = IM_COL32(255, 255, 0, 255);
+    style.HoverColor = IM_COL32(255, 0, 0, 255);
+    style.ActiveColor = IM_COL32(0, 255, 0, 255);
+    style.HoverRadiusMultiplier = 2.5f;
+    m_GizmoSystem.SetStyle(style);
 }
 
 void ViewportPanel::OnAttach()
@@ -68,7 +77,7 @@ void ViewportPanel::OnRender(SIMPEngine::Entity &selectedEntity)
     contentMin = ImGui::GetWindowContentRegionMin();
     contentMax = ImGui::GetWindowContentRegionMax();
 
-    SelectEntites(selectedEntity);
+    SelectEntities(selectedEntity);
 
     m_SelectedEntity = selectedEntity;
 
@@ -177,27 +186,120 @@ void ViewportPanel::OriginLines()
 
 void ViewportPanel::RenderGizmos(SIMPEngine::Entity &selectedEntity)
 {
-    if (!selectedEntity || !selectedEntity.HasComponent<TransformComponent>() ||
-        !selectedEntity.HasComponent<RenderComponent>())
+    if (!selectedEntity || !selectedEntity.HasComponent<TransformComponent>())
         return;
 
     auto &transform = selectedEntity.GetComponent<TransformComponent>();
-    auto &render = selectedEntity.GetComponent<RenderComponent>();
-
-    if (render.width == 0.0f && render.height == 0.0f)
-    {
-        RenderImGuizmo(selectedEntity, transform);
-        return;
-    }
 
     glm::vec2 corners[4];
-    CalculateEntityCorners(transform, render, corners);
+    bool hasRender = selectedEntity.HasComponent<RenderComponent>();
+    bool hasCollider = selectedEntity.HasComponent<CollisionComponent>();
 
-    GizmoHandle hoveredGizmo = DrawGizmoHandles(corners);
+    if (hasRender)
+    {
+        auto &render = selectedEntity.GetComponent<RenderComponent>();
+        CalculateEntityCorners(transform, render, corners);
+    }
+    else if (hasCollider)
+    {
+        auto &collider = selectedEntity.GetComponent<CollisionComponent>();
+        float x = transform.position.x + collider.offsetX;
+        float y = transform.position.y + collider.offsetY;
+        float w = collider.width;
+        float h = collider.height;
 
-    HandleGizmoDragging(selectedEntity, transform, render, corners, hoveredGizmo);
+        corners[0] = {x, y};
+        corners[1] = {x + w, y};
+        corners[2] = {x, y + h};
+        corners[3] = {x + w, y + h};
+    }
+    else
+    {
+        return; // Nothing to draw gizmo for
+    }
 
-    if (!m_IsDraggingGizmo)
+    auto worldToScreen = [this](const glm::vec2 &worldPos) -> glm::vec2
+    {
+        return this->WorldToScreen(worldPos);
+    };
+
+    GizmoHandle hoveredGizmo = m_GizmoSystem.DrawHandles(corners, worldToScreen);
+
+    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    {
+        if (hoveredGizmo != GizmoHandle::None)
+        {
+            m_GizmoSystem.OnMouseClick(true);
+            if (m_GizmoSystem.IsInteracting())
+            {
+                m_DragStartWorldPos = GetMouseWorldPos();
+                m_DragStartEntityPos = transform.position;
+                m_DragStartEntityScale = transform.scale;
+
+                if (selectedEntity.HasComponent<CollisionComponent>())
+                {
+                    auto &collider = selectedEntity.GetComponent<CollisionComponent>();
+                    m_DragStartColliderWidth = collider.width;
+                    m_DragStartColliderHeight = collider.height;
+                    m_DragStartColliderOffsetX = collider.offsetX;
+                    m_DragStartColliderOffsetY = collider.offsetY;
+                }
+
+                CORE_INFO("Started dragging gizmo: {}", (int)hoveredGizmo);
+            }
+        }
+    }
+
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+    {
+        if (m_GizmoSystem.IsDragging())
+        {
+            CORE_INFO("Stopped dragging gizmo");
+        }
+        m_GizmoSystem.OnMouseRelease();
+    }
+
+    if (m_GizmoSystem.IsDragging())
+    {
+        glm::vec2 mouseWorldPos = GetMouseWorldPos();
+        glm::vec2 delta = mouseWorldPos - m_DragStartWorldPos;
+
+        glm::vec2 baseSize(1.0f);
+        if (hasRender)
+        {
+            auto &render = selectedEntity.GetComponent<RenderComponent>();
+            baseSize = {render.width, render.height};
+        }
+        else if (hasCollider)
+        {
+            auto &collider = selectedEntity.GetComponent<CollisionComponent>();
+            baseSize = {collider.width, collider.height};
+        }
+
+        auto gizmoDelta = m_GizmoSystem.CalculateTransformDelta(
+            m_GizmoSystem.GetActiveGizmo(),
+            delta,
+            baseSize);
+
+        transform.position = m_DragStartEntityPos + gizmoDelta.positionDelta;
+        transform.scale = m_DragStartEntityScale + gizmoDelta.scaleDelta;
+
+        transform.scale.x = glm::max(transform.scale.x, 0.01f);
+        transform.scale.y = glm::max(transform.scale.y, 0.01f);
+
+        if (selectedEntity.HasComponent<CollisionComponent>() && hasCollider)
+        {
+            auto &collider = selectedEntity.GetComponent<CollisionComponent>();
+
+            collider.width = glm::max(1.0f, m_DragStartColliderWidth + gizmoDelta.scaleDelta.x);
+            collider.height = glm::max(1.0f, m_DragStartColliderHeight + gizmoDelta.scaleDelta.y);
+
+            collider.offsetX = m_DragStartColliderOffsetX + gizmoDelta.positionDelta.x;
+            collider.offsetY = m_DragStartColliderOffsetY + gizmoDelta.positionDelta.y;
+        }
+    }
+
+    if (!m_GizmoSystem.IsInteracting())
     {
         RenderImGuizmo(selectedEntity, transform);
     }
@@ -274,152 +376,6 @@ void ViewportPanel::CalculateEntityCorners(const TransformComponent &transform,
     corners[3] = transform.position + glm::vec2(width, height);
 }
 
-GizmoHandle ViewportPanel::DrawGizmoHandles(const glm::vec2 corners[4])
-{
-    GizmoHandle hoveredGizmo = GizmoHandle::None;
-    float minDist = FLT_MAX;
-
-    DrawSingleGizmo(corners[0], GizmoHandle::TopLeft, hoveredGizmo, minDist);
-    DrawSingleGizmo(corners[1], GizmoHandle::TopRight, hoveredGizmo, minDist);
-    DrawSingleGizmo(corners[2], GizmoHandle::BottomLeft, hoveredGizmo, minDist);
-    DrawSingleGizmo(corners[3], GizmoHandle::BottomRight, hoveredGizmo, minDist);
-
-    glm::vec2 topCenter = (corners[0] + corners[1]) * 0.5f;
-    glm::vec2 bottomCenter = (corners[2] + corners[3]) * 0.5f;
-    glm::vec2 leftCenter = (corners[0] + corners[2]) * 0.5f;
-    glm::vec2 rightCenter = (corners[1] + corners[3]) * 0.5f;
-
-    DrawSingleGizmo(topCenter, GizmoHandle::TopCenter, hoveredGizmo, minDist);
-    DrawSingleGizmo(bottomCenter, GizmoHandle::BottomCenter, hoveredGizmo, minDist);
-    DrawSingleGizmo(leftCenter, GizmoHandle::LeftCenter, hoveredGizmo, minDist);
-    DrawSingleGizmo(rightCenter, GizmoHandle::RightCenter, hoveredGizmo, minDist);
-
-    return hoveredGizmo;
-}
-
-void ViewportPanel::DrawSingleGizmo(const glm::vec2 &worldPos, GizmoHandle handleType,
-                                    GizmoHandle &hoveredGizmo, float &minDist)
-{
-    ImDrawList *drawList = ImGui::GetForegroundDrawList();
-
-    glm::vec2 screenPos = WorldToScreen(worldPos);
-
-    // Check if the gizmo is within the viewport bounds
-    ImVec2 viewportMin = {windowPos.x + contentMin.x, windowPos.y + contentMin.y};
-    ImVec2 viewportMax = {windowPos.x + contentMax.x, windowPos.y + contentMax.y};
-
-    if (screenPos.x < viewportMin.x || screenPos.x > viewportMax.x ||
-        screenPos.y < viewportMin.y || screenPos.y > viewportMax.y)
-    {
-        return; // Skip drawing if outside viewport
-    }
-
-    glm::vec2 mouseScreen = {mousePos.x, mousePos.y};
-    float dist = glm::distance(mouseScreen, screenPos);
-
-    bool isHovered = (dist <= GIZMO_RADIUS * 1.8f);
-    bool isActive = (m_ActiveGizmo == handleType);
-
-    ImU32 color = isActive ? GIZMO_HOVER_COLOR : (isHovered ? GIZMO_HOVER_COLOR : GIZMO_COLOR);
-
-    drawList->AddCircleFilled(ImVec2(screenPos.x, screenPos.y), GIZMO_RADIUS, color);
-    drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), GIZMO_RADIUS, IM_COL32(0, 0, 0, 255), 12, 1.0f);
-
-    if (isHovered)
-    {
-        drawList->AddCircle(ImVec2(screenPos.x, screenPos.y), GIZMO_RADIUS * 1.8f,
-                            IM_COL32(255, 255, 255, 100), 12, 2.0f);
-    }
-
-    if (isHovered && dist < minDist)
-    {
-        hoveredGizmo = handleType;
-        minDist = dist;
-    }
-}
-
-void ViewportPanel::HandleGizmoDragging(SIMPEngine::Entity &entity,
-                                        TransformComponent &transform,
-                                        RenderComponent &render,
-                                        const glm::vec2 corners[4],
-                                        GizmoHandle hoveredGizmo)
-{
-    glm::vec2 mouseWorldPos = m_RenderingLayer->GetCamera().ScreenToWorld(
-        {mousePos.x - (windowPos.x + contentMin.x), mousePos.y - (windowPos.y + contentMin.y)});
-
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && hoveredGizmo != GizmoHandle::None)
-    {
-        m_ActiveGizmo = hoveredGizmo;
-        m_IsDraggingGizmo = true;
-        m_DragStartWorldPos = mouseWorldPos;
-        m_DragStartEntityPos = transform.position;
-        m_DragStartEntityScale = transform.scale;
-    }
-
-    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
-    {
-        m_ActiveGizmo = GizmoHandle::None;
-        m_IsDraggingGizmo = false;
-    }
-
-    if (m_IsDraggingGizmo && m_ActiveGizmo != GizmoHandle::None)
-    {
-        glm::vec2 delta = mouseWorldPos - m_DragStartWorldPos;
-
-        switch (m_ActiveGizmo)
-        {
-        case GizmoHandle::TopLeft:
-            transform.position.x = m_DragStartEntityPos.x + delta.x;
-            transform.position.y = m_DragStartEntityPos.y + delta.y;
-            transform.scale.x = m_DragStartEntityScale.x - delta.x / render.width;
-            transform.scale.y = m_DragStartEntityScale.y - delta.y / render.height;
-            break;
-
-        case GizmoHandle::TopRight:
-            transform.position.y = m_DragStartEntityPos.y + delta.y;
-            transform.scale.x = m_DragStartEntityScale.x + delta.x / render.width;
-            transform.scale.y = m_DragStartEntityScale.y - delta.y / render.height;
-            break;
-
-        case GizmoHandle::BottomLeft:
-            transform.position.x = m_DragStartEntityPos.x + delta.x;
-            transform.scale.x = m_DragStartEntityScale.x - delta.x / render.width;
-            transform.scale.y = m_DragStartEntityScale.y + delta.y / render.height;
-            break;
-
-        case GizmoHandle::BottomRight:
-            transform.scale.x = m_DragStartEntityScale.x + delta.x / render.width;
-            transform.scale.y = m_DragStartEntityScale.y + delta.y / render.height;
-            break;
-
-        case GizmoHandle::TopCenter:
-            transform.position.y = m_DragStartEntityPos.y + delta.y;
-            transform.scale.y = m_DragStartEntityScale.y - delta.y / render.height;
-            break;
-
-        case GizmoHandle::BottomCenter:
-            transform.scale.y = m_DragStartEntityScale.y + delta.y / render.height;
-            break;
-
-        case GizmoHandle::LeftCenter:
-            transform.position.x = m_DragStartEntityPos.x + delta.x;
-            transform.scale.x = m_DragStartEntityScale.x - delta.x / render.width;
-            break;
-
-        case GizmoHandle::RightCenter:
-            transform.scale.x = m_DragStartEntityScale.x + delta.x / render.width;
-            break;
-
-        default:
-            break;
-        }
-
-        transform.scale.x = glm::max(transform.scale.x, 0.01f);
-        transform.scale.y = glm::max(transform.scale.y, 0.01f);
-    }
-}
-
-
 glm::vec2 ViewportPanel::WorldToScreen(const glm::vec2 &worldPos)
 {
     glm::vec2 screenPos = m_RenderingLayer->GetCamera().WorldToScreen(worldPos);
@@ -428,43 +384,48 @@ glm::vec2 ViewportPanel::WorldToScreen(const glm::vec2 &worldPos)
     return screenPos;
 }
 
-void ViewportPanel::SelectEntites(SIMPEngine::Entity &selectedEntity)
+void ViewportPanel::SelectEntities(SIMPEngine::Entity &selectedEntity)
 {
     if (IsClickingOnGizmo())
         return;
-
-    if (ImGuizmo::IsOver() || ImGuizmo::IsUsing() || m_IsDraggingGizmo)
+    if (ImGuizmo::IsOver() || ImGuizmo::IsUsing())
         return;
-
     if (!m_ViewportHovered || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         return;
 
     glm::vec2 localMouse = {
         mousePos.x - (windowPos.x + contentMin.x),
         mousePos.y - (windowPos.y + contentMin.y)};
-
     glm::vec2 worldMouse = m_RenderingLayer->GetCamera().ScreenToWorld(localMouse);
 
+    SIMPEngine::Entity topEntity;
+    SIMPEngine::Entity topCollision;
+    float topZIndex = -FLT_MAX;
+
+    // Check sprites first
     auto view = m_Context->GetRegistry().view<TransformComponent, RenderComponent>();
     for (auto entity : view)
     {
         auto &transform = view.get<TransformComponent>(entity);
-        auto &sprite = view.get<RenderComponent>(entity);
+        auto &render = view.get<RenderComponent>(entity);
 
         float left = transform.position.x;
-        float right = transform.position.x + sprite.width * transform.scale.x;
+        float right = transform.position.x + render.width * transform.scale.x;
         float top = transform.position.y;
-        float bottom = transform.position.y + sprite.height * transform.scale.y;
+        float bottom = transform.position.y + render.height * transform.scale.y;
 
         if (worldMouse.x >= left && worldMouse.x <= right &&
             worldMouse.y >= top && worldMouse.y <= bottom)
         {
-            m_SelectedEntity = SIMPEngine::Entity{entity, m_Context};
-            selectedEntity = m_SelectedEntity;
-            return;
+            if (transform.zIndex > topZIndex)
+            {
+                topZIndex = transform.zIndex;
+                topEntity = SIMPEngine::Entity{entity, m_Context};
+            }
         }
     }
 
+    // Check collisions
     auto collisionView = m_Context->GetRegistry().view<TransformComponent, CollisionComponent>();
     for (auto entity : collisionView)
     {
@@ -479,14 +440,41 @@ void ViewportPanel::SelectEntites(SIMPEngine::Entity &selectedEntity)
         if (worldMouse.x >= left && worldMouse.x <= right &&
             worldMouse.y >= top && worldMouse.y <= bottom)
         {
-            m_SelectedEntity = SIMPEngine::Entity{entity, m_Context};
-            selectedEntity = m_SelectedEntity;
-            return;
+            if (transform.zIndex > topZIndex)
+            {
+                topZIndex = transform.zIndex;
+                topCollision = SIMPEngine::Entity{entity, m_Context};
+            }
         }
     }
 
-    m_SelectedEntity = {};
-    selectedEntity = {};
+    // Decide what to select
+    if (topCollision)
+    {
+        m_SelectedEntity = topCollision;
+        selectedEntity = topCollision;
+
+        if (topCollision.HasComponent<CollisionComponent>())
+            LOG_INFO("Selected Collider: Entity ID {}", (int)topEntity.GetHandle());
+        else if (topCollision.HasComponent<RenderComponent>())
+            LOG_INFO("Selected Sprite: Entity ID {}", (int)topEntity.GetHandle());
+    }
+    else if (topEntity)
+    {
+        m_SelectedEntity = topEntity;
+        selectedEntity = topEntity;
+    }
+    else
+    {
+        m_SelectedEntity = {};
+        selectedEntity = {};
+    }
+}
+
+glm::vec2 ViewportPanel::GetMouseWorldPos() const
+{
+    return m_RenderingLayer->GetCamera().ScreenToWorld({mousePos.x - (windowPos.x + contentMin.x),
+                                                        mousePos.y - (windowPos.y + contentMin.y)});
 }
 
 bool ViewportPanel::IsClickingOnGizmo()
@@ -494,60 +482,5 @@ bool ViewportPanel::IsClickingOnGizmo()
     if (!m_ViewportHovered || !ImGui::IsMouseClicked(ImGuiMouseButton_Left))
         return false;
 
-    if (!m_SelectedEntity || !m_SelectedEntity.HasComponent<TransformComponent>() ||
-        !m_SelectedEntity.HasComponent<RenderComponent>())
-        return false;
-
-    auto &transform = m_SelectedEntity.GetComponent<TransformComponent>();
-    auto &render = m_SelectedEntity.GetComponent<RenderComponent>();
-
-    glm::vec2 corners[4];
-    CalculateEntityCorners(transform, render, corners);
-
-    glm::vec2 localMouse = {
-        mousePos.x - (windowPos.x + contentMin.x),
-        mousePos.y - (windowPos.y + contentMin.y)};
-
-    if (localMouse.x < 0 || localMouse.y < 0 ||
-        localMouse.x > (contentMax.x - contentMin.x) ||
-        localMouse.y > (contentMax.y - contentMin.y))
-    {
-        return false;
-    }
-
-    glm::vec2 worldMouse = m_RenderingLayer->GetCamera().ScreenToWorld(localMouse);
-
-    for (int i = 0; i < 4; i++)
-    {
-        glm::vec2 screenCorner = WorldToScreen(corners[i]);
-        if (screenCorner.x >= (windowPos.x + contentMin.x) &&
-            screenCorner.x <= (windowPos.x + contentMax.x) &&
-            screenCorner.y >= (windowPos.y + contentMin.y) &&
-            screenCorner.y <= (windowPos.y + contentMax.y))
-        {
-            if (glm::distance(worldMouse, corners[i]) <= GIZMO_RADIUS * 2.0f)
-                return true;
-        }
-    }
-
-    glm::vec2 topCenter = (corners[0] + corners[1]) * 0.5f;
-    glm::vec2 bottomCenter = (corners[2] + corners[3]) * 0.5f;
-    glm::vec2 leftCenter = (corners[0] + corners[2]) * 0.5f;
-    glm::vec2 rightCenter = (corners[1] + corners[3]) * 0.5f;
-
-    glm::vec2 edgeCenters[] = {topCenter, bottomCenter, leftCenter, rightCenter};
-    for (const auto &center : edgeCenters)
-    {
-        glm::vec2 screenCenter = WorldToScreen(center);
-        if (screenCenter.x >= (windowPos.x + contentMin.x) &&
-            screenCenter.x <= (windowPos.x + contentMax.x) &&
-            screenCenter.y >= (windowPos.y + contentMin.y) &&
-            screenCenter.y <= (windowPos.y + contentMax.y))
-        {
-            if (glm::distance(worldMouse, center) <= GIZMO_RADIUS * 2.0f)
-                return true;
-        }
-    }
-
-    return false;
+    return m_GizmoSystem.IsInteracting();
 }

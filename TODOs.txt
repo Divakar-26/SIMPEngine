@@ -4,7 +4,7 @@
 4.  Make collision component of diffrent size
 5.  Make Z indexing (first)                                           -> DONE
 6.  Draw gizmo below the popup 
-7.  Dock space Gliching
+7.  Dock space Gliching                                               -> DONE
 8.  Hover problem
 9.  Moving Entitied while camera is primary
 10. Overall viewport cleanup

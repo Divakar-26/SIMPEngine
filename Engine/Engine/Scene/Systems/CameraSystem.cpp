@@ -14,7 +14,8 @@ namespace SIMPEngine
             auto &transform = cameraView.get<TransformComponent>(entity);
 
             if (camComp.primary)
-            {   
+            {      
+            
                 auto w = camComp.Camera.GetViewportSize();
                 camComp.Camera.SetPosition({transform.position.x , transform.position.y});
                 camComp.Camera.Update(dt);

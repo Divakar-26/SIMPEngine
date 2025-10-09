@@ -37,9 +37,12 @@ namespace SIMPEngine
     GLRenderingAPI::GLRenderingAPI() {}
     GLRenderingAPI::~GLRenderingAPI()
     {
-        if (m_VAO) glDeleteVertexArrays(1, &m_VAO);
-        if (m_VBO) glDeleteBuffers(1, &m_VBO);
-        if (m_EBO) glDeleteBuffers(1, &m_EBO);
+        if (m_VAO)
+            glDeleteVertexArrays(1, &m_VAO);
+        if (m_VBO)
+            glDeleteBuffers(1, &m_VBO);
+        if (m_EBO)
+            glDeleteBuffers(1, &m_EBO);
     }
 
     void GLRenderingAPI::Init()
@@ -52,8 +55,7 @@ namespace SIMPEngine
             0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
             1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
             1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 0.0f, 0.0f
-        };
+            0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
         unsigned int indices[6] = {0, 1, 2, 2, 3, 0};
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers(1, &m_VBO);
@@ -71,7 +73,7 @@ namespace SIMPEngine
         glBindVertexArray(0);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        
+
         SetProjection(m_ViewportWidth, m_ViewportHeight);
         InitFramebuffer(m_ViewportWidth, m_ViewportHeight);
         SetProjection(m_ViewportWidth, m_ViewportHeight);
@@ -103,7 +105,11 @@ namespace SIMPEngine
 
     void GLRenderingAPI::SetProjection(float width, float height)
     {
-        m_Projection = glm::ortho(0.0f, width, height, 0.0f, -1000.0f, 1000.0f);
+        float halfWidth = width / 2.0f;
+        float halfHeight = height / 2.0f;
+
+        // Origin at center
+        m_Projection = glm::ortho(-halfWidth, halfWidth, halfHeight, -halfHeight, -1000.0f, 1000.0f);
     }
 
     void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)
@@ -135,8 +141,10 @@ namespace SIMPEngine
         m_Shader->SetUniform4f("uColor", color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
         m_Shader->SetUniform1i("uUseTexture", 0);
         glBindVertexArray(m_VAO);
-        if (fill) glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        else glDrawArrays(GL_LINE_LOOP, 0, 4);
+        if (fill)
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        else
+            glDrawArrays(GL_LINE_LOOP, 0, 4);
         glBindVertexArray(0);
         m_Shader->Unbind();
     }
@@ -146,7 +154,8 @@ namespace SIMPEngine
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glBlendEquation(GL_FUNC_ADD);
-        if (!texture) return;
+        if (!texture)
+            return;
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
         model = glm::translate(model, glm::vec3(width * 0.5f, height * 0.5f, 0.0f));
         model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -181,7 +190,8 @@ namespace SIMPEngine
 
     void GLRenderingAPI::InitFramebuffer(int width, int height)
     {
-        if (m_Framebuffer) {
+        if (m_Framebuffer)
+        {
             glDeleteFramebuffers(1, &m_Framebuffer);
             glDeleteTextures(1, &m_ColorAttachment);
             glDeleteRenderbuffers(1, &m_RBO);
@@ -196,7 +206,6 @@ namespace SIMPEngine
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
 
-        
         glGenRenderbuffers(1, &m_RBO);
         glBindRenderbuffer(GL_RENDERBUFFER, m_RBO);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);

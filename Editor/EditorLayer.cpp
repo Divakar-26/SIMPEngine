@@ -69,7 +69,6 @@ void EditorLayer::OnRender()
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
     
-    // SINGLE menu bar - remove the duplicate from ShowLogs()
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("File"))
@@ -90,7 +89,7 @@ void EditorLayer::OnRender()
 
     ImGui::End(); 
     
-    // Render all panels
+
     auto it = m_HieararchyPanel.GetSelectedEntity();
     
     m_ViewportPanel.OnRender(*it);
@@ -100,12 +99,11 @@ void EditorLayer::OnRender()
     m_ContentBrowser->OnImGuiRender();
     
     if (showLogs)
-        ShowLogs(); // This should ONLY show the log window, no menu bars
+        ShowLogs(); 
 }
 
 void EditorLayer::ShowLogs()
 {
-    // REMOVE the menu bar from here - it's already in the main dock space
     if (showLogs)
     {
         ImGui::Begin("Log", &showLogs);

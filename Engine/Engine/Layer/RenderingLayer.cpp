@@ -15,48 +15,42 @@ namespace SIMPEngine
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 
-        // auto myTexture = TextureManager::Get().GetTexture("man");
+        int w = SIMPEngine::Renderer::m_WindowWidth;
+        int h = SIMPEngine::Renderer::m_WindowHeight;
 
-        // Entity entity1 = m_Scene.CreateEntity("RedBox");
-        // entity1.GetComponent<TransformComponent>().position.x = 500.0f;
-        // entity1.GetComponent<TransformComponent>().position.y = 500.0f;
-        // entity1.AddComponent<TagComponent>("RedBox");
-        // // entity1.AddComponent<SpriteComponent>(myTexture, 100.0f, 100.0f);
+        auto scene1 = std::make_shared<SIMPEngine::Scene>("Level1");
+        m_SceneManager->AddScene("Level1", scene1);
+        m_SceneManager->SetActiveScene("Level1");
 
-        // // auto &render = entity1.AddComponent<RenderComponent>();
-        // // render.width = 100;
-        // // render.height = 100;
-        // // render.color = SDL_Color{0, 255, 0, 255};
+        Entity e = m_SceneManager->GetActiveScene()->CreateEntity("Player");
+        auto &transform = e.GetComponent<TransformComponent>();
+        transform.position = {0.0f, 0.0f};
+        transform.scale = {1.0f, 1.0f};
+        transform.zIndex = 0.0f;
 
-        // auto &cam = entity1.AddComponent<CameraComponent>(1.0f, glm::vec2(-1.0f, 1.0f));
-        // cam.primary = false;
+        auto &render = e.AddComponent<RenderComponent>();
+        render.width = 100.0f;
+        render.height = 100.0f;
+        render.color = SDL_Color{255, 0, 0, 255};
 
-        // auto texture = std::make_shared<SIMPEngine::Texture>();
-        // texture->LoadFromFile("../assets/man.png");
+        auto &camera = e.AddComponent<CameraComponent>(1.0f, glm::vec2(w / 2.0f, h / 2.0f));
+        camera.primary = false;
 
-        // auto &sprite = entity1.AddComponent<SpriteComponent>();
-        // sprite.texture = texture;
-        // sprite.width = 400;
-        // sprite.height = 400;
+        auto &vel = e.AddComponent<VelocityComponent>();
+        vel.vx = 0.0f;
 
-        // auto &col = entity1.AddComponent<CollisionComponent>();
-        // col.width = 100.0f;
-        // col.height = 100.0f;
+        Entity e2 = m_SceneManager->GetActiveScene()->CreateEntity("Player2");
+        auto &t1 = e2.GetComponent<TransformComponent>();
+        t1.position = {200.0f, 500.0f};
+        t1.scale = {1.0f, 1.0f};
+        t1.zIndex = 0.0f;
 
-        // auto &vel = entity1.AddComponent<VelocityComponent>();
-        // vel.vx = 0.0f;
-        // vel.vy = 0.0f;
+        auto &render2 = e2.AddComponent<RenderComponent>();
+        render2.width = 50.0f;
+        render2.height = 50.0f;
+        render2.color = SDL_Color{0, 255, 0, 255};
 
-        // std::vector<Sprite> frames;
-        // auto it = TextureManager::Get().GetTexture("coin");
-
-        // for(int i = 0; i < 12; i++){
-
-        //     frames.emplace_back(Sprite(it, SDL_FRect{(float)(i * 16.0f), 0.0f, 16.0f, 16.0f }));
-        // }
-
-        // // frames.push_back(new Sprite(it->GetSDLTexture(), {0,0,16,16}));
-        // anim = new Animation(frames, 0.2f, true);
+        CORE_INFO("WIDTH : {}, HEIGHT : {}", camera.Camera.GetPosition().x, camera.Camera.GetPosition().y);
     }
 
     void RenderingLayer::OnDetach()
@@ -69,58 +63,15 @@ namespace SIMPEngine
         if (scene)
             scene->OnUpdate(ts.GetSeconds());
 
-        // auto &vel = m_Scene.GetEntityByName("RedBox").GetComponent<TransformComponent>();
-        // vel.position.x += 50 * ts.GetSeconds();
-
-        // if(m_Scene.GetRegistry().any_of<VelocityComponent>(m_Scene.GetEntityByName("RedBox"))){
-
-        //     int sprint;
-        //     if(Input::IsKeyPressed(SDLK_LSHIFT)){
-        //         sprint = 1000.0f;
-        //     }
-        //     if(!Input::IsKeyPressed(SDLK_LSHIFT)){
-        //         sprint = 0.0f;
-        //     }
-
-        //     if (Input::IsKeyPressed(SDLK_UP))
-        //         vel.vy = -500.0f + -sprint;
-        //     else if (Input::IsKeyPressed(SDLK_DOWN))
-        //         vel.vy = 500.0f + sprint;
-        //     else
-        //         vel.vy = 0.0f;
-
-        //     if (Input::IsKeyPressed(SDLK_LEFT))
-        //         vel.vx = -500.0f + -sprint;
-        //     else if (Input::IsKeyPressed(SDLK_RIGHT))
-        //         vel.vx = 500.0f + sprint;
-        //     else
-        //         vel.vx = 0.0f;
-        // }
-
         kl += ts.GetSeconds() * 90.0f;
-        // anim->Update(ts.GetSeconds());
     }
 
     void RenderingLayer::OnRender()
     {
         auto scene = m_SceneManager->GetActiveScene();
+
         if (scene)
             scene->OnRender();
-        // // anim->Draw(500,500,300,300,SDL_Color{255,255,255,255});
-
-        // // auto cointex = TextureManager::Get().GetTexture("coin");
-        // Renderer::DrawQuad(0, 0, 100, 100, SDL_Color{255, 0, 0, 255});
-        // Renderer::DrawQuad(500, 0, 100, 100, SDL_Color{0, 0, 0, 255});
-
-        // // SDL_FRect rect;
-        // // rect.x = 0;
-        // // rect.y = 0;
-        // // rect.w = 16;
-        // // rect.h = 16;
-        // Texture tex;
-        // tex.LoadFromFile("assets/man.png");
-        // Renderer::DrawTexture(tex.GetID(), 100, 100, tex.GetWidth() + 100, tex.GetHeight() + 100,
-        //                       SDL_Color{255, 255, 255, 255}, 0.0f);
 
         Renderer::Flush();
     }
@@ -133,16 +84,28 @@ namespace SIMPEngine
 
         dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent &ev)
                                                {
-                                                int width = ev.GetWidth();
+    int width = ev.GetWidth();
     int height = ev.GetHeight();
 
     Renderer::GetAPI()->ResizeViewport(width, height);
-    // m_Scene.GetActiveCamera().SetViewportSize(width, height);
-    // m_Camera.SetViewportSize(width, height);
+    
+    // Update all primary cameras with new viewport size
+    auto scene = m_SceneManager->GetActiveScene();
+    if (scene)
+    {
+        auto view = scene->GetRegistry().view<CameraComponent>();
+        for (auto entity : view)
+        {
+            auto &camComp = view.get<CameraComponent>(entity);
+            if (camComp.primary)
+            {
+                camComp.Camera.SetViewportSize(width, height);
+            }
+        }
+    }
 
     CORE_INFO("Viewport resized: {}x{}", width, height);
-    return false;
-        return false; });
+    return false; });
     }
 
 }
