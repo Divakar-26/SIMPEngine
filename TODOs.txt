@@ -11,3 +11,4 @@
 11. Collision size should NOT be dependent on render component        -> DONE
 12. Add gizmos in collision component
 13. Add toggle to render collisios
+14. resize problem in runtime

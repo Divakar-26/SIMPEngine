@@ -35,27 +35,55 @@ namespace SIMPEngine
 
         auto &physics = e.AddComponent<PhysicsComponent>();
 
-        b2BodyDef bodyDef;
-        bodyDef.type = b2_dynamicBody;
-        bodyDef.position.Set(transform.position.x, transform.position.y);
-
-        physics.body = m_SceneManager->GetActiveScene()->physicsSystem.world.CreateBody(&bodyDef);
-
-        b2PolygonShape boxShape;
-        boxShape.SetAsBox(render.width / 2.0f, render.height / 2.0f); 
-
-        b2FixtureDef fixtureDef;
-        fixtureDef.shape = &boxShape;
-        fixtureDef.density = 1.0f; 
-        fixtureDef.friction = 0.3f;
-
-        physics.body->CreateFixture(&fixtureDef);
-
         auto &camera = e.AddComponent<CameraComponent>(1.0f, glm::vec2(w / 2.0f, h / 2.0f));
         camera.primary = false;
 
         auto &vel = e.AddComponent<VelocityComponent>();
-        vel.vx = 0.0f;
+        vel.vx = 100.0f;
+
+        b2BodyDef bodyDef;
+        bodyDef.type = b2_dynamicBody;
+        bodyDef.position.Set(transform.position.x, transform.position.y);
+        physics.body = m_SceneManager->GetActiveScene()->physicsSystem.world.CreateBody(&bodyDef);
+
+        b2PolygonShape boxShape;
+        boxShape.SetAsBox(render.width / 2.0f, render.height / 2.0f);
+
+        b2FixtureDef fixtureDef;
+        fixtureDef.shape = &boxShape;
+        fixtureDef.density = 1.0f;
+        fixtureDef.friction = 0.3f;
+        physics.body->CreateFixture(&fixtureDef);
+
+        // entity two
+        Entity bottomWall = m_SceneManager->GetActiveScene()->CreateEntity("WALL");
+        auto &transform2 = bottomWall.GetComponent<TransformComponent>();
+
+        transform2.position = {0.0f, 500.0f};
+        transform2.rotation = 0.0f;
+        transform2.scale = {1.0f, 1.0f};
+        transform2.zIndex = 0.0f;
+
+        auto &render3 = bottomWall.AddComponent<RenderComponent>();
+        render3.width = 1920.0f;
+        render3.height = 100.0f;
+        render3.color = SDL_Color{0, 0, 255, 255};
+
+        auto & physics2 = bottomWall.AddComponent<PhysicsComponent>();
+
+        b2BodyDef wallShape;
+        wallShape.type = b2_staticBody;
+        wallShape.position.Set(transform2.position.x, transform2.position.y);
+        physics2.body = m_SceneManager->GetActiveScene()->physicsSystem.world.CreateBody(&wallShape);
+
+        b2PolygonShape wallPShape;
+        wallPShape.SetAsBox(render3.width / 2.0f, render3.height / 2.0f);
+
+        b2FixtureDef wallFix;
+        wallFix.shape = &wallPShape;
+        wallFix.density = 1.0f;
+        wallFix.friction = 0.3f;
+        physics2.body->CreateFixture(&wallFix);
 
         Entity e2 = m_SceneManager->GetActiveScene()->CreateEntity("Player2");
         auto &t1 = e2.GetComponent<TransformComponent>();
@@ -77,6 +105,12 @@ namespace SIMPEngine
 
     void RenderingLayer::OnUpdate(class TimeStep ts)
     {
+        auto e = m_SceneManager->GetActiveScene()->GetEntityByName("Player");
+        if(Input::IsKeyPressed(SIMPK_RIGHT)){
+            e.GetComponent<TransformComponent>().position.x += 5.0f;
+            CORE_INFO("{}", e.GetComponent<TransformComponent>().position.x);
+        }
+
         auto scene = m_SceneManager->GetActiveScene();
         if (scene)
             scene->OnUpdate(ts.GetSeconds());
