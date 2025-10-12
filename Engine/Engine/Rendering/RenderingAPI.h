@@ -16,7 +16,7 @@ namespace SIMPEngine
         virtual void Init() = 0;
         virtual void SetClearColor(float r, float g, float b, float a) = 0;
         virtual void Clear() = 0;
-        virtual void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill, float zIndex) = 0;
+        virtual void DrawQuad(float x, float y, float width, float height,float rotation, SDL_Color color, bool fill, float zIndex) = 0;
         virtual void DrawCircle(float x, float y, float r, SDL_Color color) = 0;
         virtual void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color) = 0;
         virtual void Present() = 0;

@@ -174,7 +174,7 @@ void ViewportPanel::DrawMouseWorldPosition()
 
 void ViewportPanel::RenderViewportBorder()
 {
-    SIMPEngine::Renderer::DrawQuad(0, 0, SIMPEngine::Renderer::m_WindowWidth, SIMPEngine::Renderer::m_WindowHeight, {255, 255, 255, 255}, false);
+    SIMPEngine::Renderer::DrawQuad(0, 0, SIMPEngine::Renderer::m_WindowWidth, SIMPEngine::Renderer::m_WindowHeight, 0.0f, {255, 255, 255, 255}, false);
 }
 
 void ViewportPanel::OriginLines()

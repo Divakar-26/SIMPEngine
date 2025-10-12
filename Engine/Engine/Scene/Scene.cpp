@@ -159,6 +159,7 @@ namespace SIMPEngine
                 transform.position.y,
                 render.width * transform.scale.x,
                 render.height * transform.scale.y,
+                transform.rotation,
                 render.color,
                 true,
                 zIndex);
@@ -195,12 +196,12 @@ void Scene::RenderColliders()
 
         Renderer::DrawQuad(
             bounds.x, bounds.y, 
-            bounds.w, bounds.h, 
+            bounds.w, bounds.h, transform.rotation,
             fillColor, true, zIndex+1);
 
         Renderer::DrawQuad(
             bounds.x - 2, bounds.y - 2, 
-            bounds.w + 4, bounds.h + 4, 
+            bounds.w + 4, bounds.h + 4, transform.rotation, 
             outlineColor, false, zIndex+1);
     }
 }

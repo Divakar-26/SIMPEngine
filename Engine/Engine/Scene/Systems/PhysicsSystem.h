@@ -5,7 +5,7 @@
 class PhysicsSystem
 {
 public:
-    PhysicsSystem() : world(b2Vec2(0.0f, 980.0f)) {}
+    PhysicsSystem() : world(b2Vec2(0.0f, 9.8f)) {}
 
     void Update(entt::registry &registry, float dt)
     {
@@ -19,7 +19,7 @@ public:
             if (physics.body)
             {
                 // Apply velocity (convert to Box2D scale if needed)
-                physics.body->SetLinearVelocity(b2Vec2(velocity.vx * 100.0f, velocity.vy * 100.0f));
+                physics.body->SetLinearVelocity(b2Vec2(velocity.vx , velocity.vy));
             }
         }
 

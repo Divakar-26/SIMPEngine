@@ -59,7 +59,7 @@ namespace SIMPEngine
 
         //setting its shape as box so that we can use our collision system
         b2PolygonShape boxShape;
-        boxShape.SetAsBox(render.width / 2.0f, render.height / 2.0f);
+        boxShape.SetAsBox((render.width / 2.0f) / 100.0f, (render.height / 2.0f) / 100.0f);
 
         //making fixture (friction density, we can set sensor to false also to ingnore collision)
         b2FixtureDef fixtureDef;
@@ -68,12 +68,12 @@ namespace SIMPEngine
         fixtureDef.friction = 0.3f;
         physics.body->CreateFixture(&fixtureDef);
 
-        // entity two
+        // entity two THE WALL
         Entity bottomWall = m_SceneManager->GetActiveScene()->CreateEntity("WALL");
         auto &transform2 = bottomWall.GetComponent<TransformComponent>();
 
         transform2.position = {0.0f, 500.0f};
-        transform2.rotation = 45.0f;
+        transform2.rotation = 0.0f;
         transform2.scale = {1.0f, 1.0f};
         transform2.zIndex = 0.0f;
 
@@ -87,11 +87,11 @@ namespace SIMPEngine
         b2BodyDef wallShape;
         wallShape.type = b2_staticBody;
         wallShape.position.Set(transform2.position.x, transform2.position.y);
-        // wallShape.angle = glm::radians(transform2.rotation);
+        wallShape.angle = glm::radians(transform2.rotation);
         physics2.body = m_SceneManager->GetActiveScene()->physicsSystem.world.CreateBody(&wallShape);
 
         b2PolygonShape wallPShape;
-        wallPShape.SetAsBox(render3.width / 2.0f, render3.height / 2.0f);
+        wallPShape.SetAsBox((render3.width / 2.0f) / 100.0f, (render3.height / 2.0f) / 100.0f);
 
         b2FixtureDef wallFix;
         wallFix.shape = &wallPShape;

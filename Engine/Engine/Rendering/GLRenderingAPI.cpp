@@ -132,9 +132,10 @@ namespace SIMPEngine
     glm::vec2 GLRenderingAPI::TransformPosition(float x, float y) const { return {x, y}; }
     glm::vec2 GLRenderingAPI::TransformSize(float w, float h) const { return {w, h}; }
 
-    void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill, float zIndex)
+    void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, float rotation , SDL_Color color, bool fill, float zIndex)
     {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f,0.0f,1.0f));
         model = glm::scale(model, glm::vec3(width, height, 1.0f));
         glm::mat4 mvp = m_Projection * m_ViewMatrix * model;
         m_Shader->Bind();

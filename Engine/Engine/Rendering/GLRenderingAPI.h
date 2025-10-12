@@ -18,7 +18,7 @@ namespace SIMPEngine
         void Clear() override;
         void Present() override;
 
-        void DrawQuad(float x, float y, float width, float height, SDL_Color color, bool fill = true, float zIndex = 0.0f) override;
+        void DrawQuad(float x, float y, float width, float height, float rotation = 0.0f ,SDL_Color color = {255,255,255,255}, bool fill = true, float zIndex = 0.0f) override;
         void DrawCircle(float, float, float, SDL_Color) override {}
         void DrawLine(float, float, float, float, SDL_Color) override;
         void DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex) override;
