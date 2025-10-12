@@ -7,7 +7,7 @@ class MovementSystem
 public:
     void Update(entt::registry &r, float dt)
     {
-        auto view = r.view<TransformComponent, VelocityComponent>();
+        auto view = r.view<TransformComponent, VelocityComponent>(entt::exclude<PhysicsComponent>);
         for (auto entity : view)
         {
             auto &transform = view.get<TransformComponent>(entity);

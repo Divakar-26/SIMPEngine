@@ -1,4 +1,3 @@
-
     add_library(Engine STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Window.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Log.cpp

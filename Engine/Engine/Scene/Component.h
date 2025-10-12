@@ -65,7 +65,35 @@ struct VelocityComponent
 {
     float vx = 0.0f;
     float vy = 0.0f;
+    b2Body* body = nullptr;
+
+    void Set(float x, float y)
+    {
+        vx = x;
+        vy = y;
+        if (body)
+            body->SetLinearVelocity(b2Vec2(x, y));
+    }
+
+    void Add(float x, float y)
+    {
+        vx += x;
+        vy += y;
+        if (body)
+            body->SetLinearVelocity(b2Vec2(vx, vy));
+    }
+
+    void SyncFromBox2D()
+    {
+        if (body)
+        {
+            b2Vec2 vel = body->GetLinearVelocity();
+            vx = vel.x;
+            vy = vel.y;
+        }
+    }
 };
+
 
 struct CameraComponent
 {

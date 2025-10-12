@@ -135,6 +135,8 @@ namespace SIMPEngine
                 auto &sprite = m_Registry.get<SpriteComponent>(entity);
                 if (sprite.texture && sprite.texture->GetID() != 0)
                     continue;
+
+                
             }
 
             auto &transform = view.get<TransformComponent>(entity);
