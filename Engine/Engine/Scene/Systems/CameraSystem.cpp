@@ -1,5 +1,5 @@
-#include "CameraSystem.h"
-#include "Core/Log.h"
+#include <Engine/Scene/Systems/CameraSystem.h>
+#include <Engine/Core/Log.h>
 
 namespace SIMPEngine
 {
@@ -9,7 +9,6 @@ namespace SIMPEngine
         auto cameraView = registry.view<CameraComponent, TransformComponent>();
         for (auto entity : cameraView)
         {
-            
             auto &camComp = cameraView.get<CameraComponent>(entity);
             auto &transform = cameraView.get<TransformComponent>(entity);
 

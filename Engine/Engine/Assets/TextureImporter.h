@@ -1,8 +1,7 @@
-
 #pragma once
-#include "Importers.h"
-#include "Rendering/Renderer.h"
-#include "Rendering/TextureManager.h"
+#include <Engine/Assets/Importers.h>
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Rendering/TextureManager.h>
 
 namespace SIMPEngine {
 class TextureImporter : public IAssetImporter {

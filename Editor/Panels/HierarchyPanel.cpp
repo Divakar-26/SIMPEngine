@@ -1,5 +1,5 @@
 #include "HierarchyPanel.h"
-#include "Scene/Scene.h"
+#include <Engine/Scene/Scene.h>
 #include "../icons.h"
 
 template <typename T>

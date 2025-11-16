@@ -1,8 +1,8 @@
 #include "EditorLayer.h"
 #include "imgui.h"
-#include "Core/Log.h"
+#include <Engine/Core/Log.h>
 #include "ImGuiSink.h"
-#include "Core/FileSystem.h"
+#include <Engine/Core/FileSystem.h>
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer), serializer(&renderingLayer->GetScene())

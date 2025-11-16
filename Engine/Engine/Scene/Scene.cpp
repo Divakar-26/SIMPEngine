@@ -1,10 +1,11 @@
-#include "Scene.h"
-#include "Entity.h"
-#include "../Rendering/TextureManager.h"
-#include "../Rendering/Renderer.h"
-#include "Core/Log.h"
-#include "Input/Input.h"
-#include "Scene/ScriptableEntity.h"
+#include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Entity.h>
+#include <Engine/Rendering/TextureManager.h>
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Core/Log.h>
+#include <Engine/Input/Input.h> 
+#include <Engine/Scene/ScriptableEntity.h>
+
 #include <entt/entt.hpp>
 #include <iostream>
 
@@ -62,7 +63,6 @@ namespace SIMPEngine
 
         cameraSystem.OnUpdate(m_Registry, deltaTime);
         
-        physicsSystem.Update(m_Registry, deltaTime);
         movementSystem.Update(m_Registry, deltaTime);
         collisionSystem.Update(m_Registry, deltaTime);
 

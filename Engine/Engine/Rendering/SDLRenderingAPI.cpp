@@ -1,11 +1,11 @@
-#include "Rendering/SDLRenderingAPI.h"
+#include <Engine/Rendering/SDLRenderingAPI.h>
+#include <Engine/Rendering/TextureManager.h>
+
 #include <SDL3/SDL.h>
 
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <cmath>
 #include <algorithm>
-#include "TextureManager.h"
 
 namespace SIMPEngine
 {

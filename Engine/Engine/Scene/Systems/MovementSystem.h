@@ -1,13 +1,14 @@
 #pragma once
+#include <Engine/Scene/Component.h>
+
 #include <entt/entt.hpp>
-#include "Scene/Component.h"
 
 class MovementSystem
 {
 public:
     void Update(entt::registry &r, float dt)
     {
-        auto view = r.view<TransformComponent, VelocityComponent>(entt::exclude<PhysicsComponent>);
+        auto view = r.view<TransformComponent, VelocityComponent>();
         for (auto entity : view)
         {
             auto &transform = view.get<TransformComponent>(entity);

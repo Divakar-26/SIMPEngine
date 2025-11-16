@@ -1,6 +1,7 @@
-#include "Shader.h"
-#include <iostream>
+#include <Engine/Rendering/Shader.h>
+
 #include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 
 namespace SIMPEngine
 {

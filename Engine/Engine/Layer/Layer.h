@@ -3,8 +3,8 @@
 #include<string>
 #include<iostream>
 
-#include"Events/Event.h"
-#include"Core/TimeStep.h"
+#include<Engine/Events/Event.h>
+#include<Engine/Core/TimeStep.h>
 #include<SDL3/SDL_events.h>
 
 

@@ -1,13 +1,13 @@
 #pragma once
 
+#include <Engine/Scene/Component.h>
+#include <Engine/Math/Camera2D.h>
+#include <Engine/Scene/Systems/MovementSystem.h>
+#include <Engine/Scene/Systems/CollisionSystem.h>
+#include <Engine/Scene/Systems/CameraSystem.h>
+
 #include <entt/entt.hpp>
-#include "Component.h"
-#include "Math/Camera2D.h"
 #include <string>
-#include "Systems/MovementSystem.h"
-#include "Systems/CollisionSystem.h"
-#include "Systems/CameraSystem.h"
-#include "Systems/PhysicsSystem.h"
 
 namespace SIMPEngine
 {
@@ -46,7 +46,6 @@ namespace SIMPEngine
         void RenderQuad();
         void RenderSprites();
         void RenderColliders();
-        PhysicsSystem physicsSystem;
 
     private:
         std::string m_Name;

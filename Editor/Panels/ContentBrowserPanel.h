@@ -1,14 +1,14 @@
 // ContentBrowserPanel.h
 #pragma once
 #include <string>
-#include "Assets/AssetManager.h"
+#include <Engine/Assets/AssetManager.h>
 #include <imgui.h>
 #include <string>
 #include <filesystem>
 #include <unordered_map>
-#include "Rendering/Texture.h"
-#include "Rendering/Renderer.h"
-#include "Core/VFS.h"
+#include <Engine/Rendering/Texture.h>
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Core/VFS.h>
 #include "icons/folder_icon.h"
 
 class ContentBrowserPanel

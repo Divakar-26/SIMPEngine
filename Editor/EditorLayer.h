@@ -1,15 +1,15 @@
 #pragma once
-#include "Layer/Layer.h"
-#include "Core/TimeStep.h"
+#include <Engine/Layer/Layer.h>
+#include <Engine/Core/TimeStep.h>
+#include <Engine/Layer/RenderingLayer.h>
+#include <Engine/Events/Event.h>
+#include <Engine/Assets/AssetManager.h>
+#include <Engine/Scene/SceneSerializer.h>
 #include "Panels/ViewportPanel.h"
 #include "Panels/HierarchyPanel.h"
-#include "Layer/RenderingLayer.h"
 #include "Panels/InspectorPanel.h"
 #include "Panels/ContentBrowserPanel.h"
-#include "Events/Event.h"
-#include "Assets/AssetManager.h"
 
-#include "Scene/SceneSerializer.h"
 
 class EditorLayer : public SIMPEngine::Layer
 {

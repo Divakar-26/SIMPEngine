@@ -2,7 +2,7 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/ostr.h>
-#include "ImGuiSink.h"
+#include <Engine/ImGuiSink.h>
 
 namespace SIMPEngine
 {

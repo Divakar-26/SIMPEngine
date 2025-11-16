@@ -1,10 +1,10 @@
 #pragma once
 #include <imgui.h>
-#include "Rendering/Renderer.h"
-#include "Layer/RenderingLayer.h"
-#include "Application/Application.h"
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Layer/RenderingLayer.h>
+#include <Engine/Application/Application.h>
 #include <ImGuizmo.h>
-#include "Scene/Scene.h"
+#include <Engine/Scene/Scene.h>
 #include "GizmoSystem.h"
 
 

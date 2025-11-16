@@ -1,22 +1,22 @@
 // -----Events--------------------
-#include "Events/ApplicationEvent.h"
-#include "Events/EventDispatcher.h"
-#include "Events/KeyEvent.h"
-#include "Events/MouseEvent.h"
+#include <Engine/Events/ApplicationEvent.h>
+#include <Engine/Events/EventDispatcher.h>
+#include <Engine/Events/KeyEvent.h>
+#include <Engine/Events/MouseEvent.h>
 
 // -----utils-----
-#include "Core/Log.h"
-#include "Core/TimeStep.h"
-#include "Input/Input.h"
-#include "Input/SIMP_Keys.h"
+#include <Engine/Core/Log.h>
+#include <Engine/Core/TimeStep.h>
+#include <Engine/Input/Input.h>
+#include <Engine/Input/SIMP_Keys.h>
 
 // ------Rendering-----------------
-#include "Rendering/GLRenderingAPI.h"
-#include "Rendering/TextureManager.h"
-#include "Rendering/Sprite.h"
-#include "Rendering/Animation.h"
-#include "Rendering/SpriteAtlas.h"
-// #include "Rendering/SDLRenderingAPI.h"
+#include <Engine/Rendering/GLRenderingAPI.h>
+#include <Engine/Rendering/TextureManager.h>
+#include <Engine/Rendering/Sprite.h>
+#include <Engine/Rendering/Animation.h>
+#include <Engine/Rendering/SpriteAtlas.h>
+// #include <Engine/Rendering/SDLRenderingAPI.h>
 
 #include <iostream>
 #include <functional>

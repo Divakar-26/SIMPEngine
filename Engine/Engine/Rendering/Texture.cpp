@@ -1,5 +1,5 @@
-#include "Texture.h"
-#include "Core/Log.h"
+#include <Engine/Rendering/Texture.h>
+#include <Engine/Core/Log.h>
 #include <iostream>
 
 #define STB_IMAGE_IMPLEMENTATION

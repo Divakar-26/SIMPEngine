@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Entity.h"
+#include <Engine/Scene/Entity.h>
 
 namespace SIMPEngine
 {

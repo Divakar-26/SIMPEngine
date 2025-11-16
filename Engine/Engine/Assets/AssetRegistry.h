@@ -1,7 +1,8 @@
 #pragma once
-#include "Asset.h"
-#include  <unordered_map>
+#include <Engine/Assets/Asset.h>
+
 #include <string>
+#include <unordered_map>
 
 namespace SIMPEngine{
     class AssetRegistry{

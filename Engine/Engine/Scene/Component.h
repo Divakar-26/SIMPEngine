@@ -1,11 +1,11 @@
 #pragma once
+#include <Engine/Rendering/Texture.h>
+#include <Engine/Rendering/Sprite.h>
+#include <Engine/Math/Camera2D.h>
+
 #include <SDL3/SDL_rect.h>
-#include "Rendering/Texture.h"
-#include "Rendering/Sprite.h"
-#include "Math/Camera2D.h"
 #include <memory>
 #include <string>
-#include <box2d/box2d.h>
 
 namespace SIMPEngine
 {
@@ -65,33 +65,6 @@ struct VelocityComponent
 {
     float vx = 0.0f;
     float vy = 0.0f;
-    b2Body* body = nullptr;
-
-    void Set(float x, float y)
-    {
-        vx = x;
-        vy = y;
-        if (body)
-            body->SetLinearVelocity(b2Vec2(x, y));
-    }
-
-    void Add(float x, float y)
-    {
-        vx += x;
-        vy += y;
-        if (body)
-            body->SetLinearVelocity(b2Vec2(vx, vy));
-    }
-
-    void SyncFromBox2D()
-    {
-        if (body)
-        {
-            b2Vec2 vel = body->GetLinearVelocity();
-            vx = vel.x;
-            vy = vel.y;
-        }
-    }
 };
 
 
@@ -119,10 +92,4 @@ struct ScriptComponent
         DestroyScript = [](ScriptComponent *sc)
         { delete sc->Instance; sc->Instance = nullptr; };
     }
-};
-
-struct PhysicsComponent
-{
-    b2Body* body = nullptr;   
-    bool dynamic = true;      
 };

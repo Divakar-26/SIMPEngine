@@ -1,9 +1,10 @@
 #pragma once
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Events/Event.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Events/Event.h"
-#include "Rendering/Renderer.h"
+
 namespace SIMPEngine
 {
     class Camera2D

@@ -1,5 +1,6 @@
 #pragma once
-#include "Scene.h"
+#include <Engine/Scene/Scene.h>
+
 #include <yaml-cpp/yaml.h>
 
 namespace SIMPEngine

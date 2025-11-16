@@ -1,6 +1,6 @@
-#include "Sprite.h"
-#include "Renderer.h"
-#include "Core/Log.h"
+#include <Engine/Rendering/Sprite.h>
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Core/Log.h>
 
 namespace SIMPEngine
 {

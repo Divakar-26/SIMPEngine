@@ -1,8 +1,9 @@
 #pragma once
-#include "Math/Camera2D.h"
+#include <Engine/Math/Camera2D.h>
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Scene/Component.h>
+
 #include <entt/entt.hpp>
-#include "Rendering/Renderer.h"
-#include "Scene/Component.h"
 
 namespace SIMPEngine
 {

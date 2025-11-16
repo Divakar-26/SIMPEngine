@@ -21,13 +21,6 @@ add_subdirectory(vendor/spdlog EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/glm EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/yaml-cpp EXCLUDE_FROM_ALL)
 
-set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
-set(BOX2D_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(BOX2D_BUILD_TESTBED OFF CACHE BOOL "" FORCE)
-set(BOX2D_BUILD_UNIT_TESTS OFF CACHE BOOL "" FORCE)  # <- Disable tests
-set(BOX2D_INSTALL OFF CACHE BOOL "" FORCE)
-set(BOX2D_USE_EXTERNAL_DEPS OFF CACHE BOOL "" FORCE)   # <- Important
-add_subdirectory(vendor/box2d)
 
 # ImGui wrapper (manual CMake target)
 add_library(imgui STATIC

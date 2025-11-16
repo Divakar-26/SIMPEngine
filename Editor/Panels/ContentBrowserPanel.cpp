@@ -1,9 +1,9 @@
 // ContentBrowserPanel.cpp
 #include "ContentBrowserPanel.h"
-#include "Core/VFS.h"
-#include "Core/FileSystem.h"
-#include "Core/Log.h"
-#include "Assets/AssetManager.h"
+#include <Engine/Core/VFS.h>
+#include <Engine/Core/FileSystem.h>
+#include <Engine/Core/Log.h>
+#include <Engine/Assets/AssetManager.h>
 #include "Assets/Asset.h"
 #include "../icons.h"
 

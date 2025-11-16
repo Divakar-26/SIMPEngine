@@ -1,5 +1,5 @@
-#include "SpriteAtlas.h"
-#include "Core/Log.h"
+#include <Engine/Rendering/SpriteAtlas.h>
+#include <Engine/Core/Log.h>
 
 namespace SIMPEngine
 {

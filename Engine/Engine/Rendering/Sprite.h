@@ -1,8 +1,9 @@
 #pragma once
+#include <Engine/Rendering/Texture.h>
 
-#include "Texture.h"
-#include <memory>
 #include <SDL3/SDL.h>
+
+#include <memory>
 
 namespace SIMPEngine
 {

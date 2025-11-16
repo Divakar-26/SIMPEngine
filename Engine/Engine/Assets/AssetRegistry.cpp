@@ -1,5 +1,6 @@
-#include "AssetRegistry.h"
-#include "Core/FileSystem.h"
+#include <Engine/Assets/AssetRegistry.h>
+#include <Engine/Core/FileSystem.h>
+
 #include <sstream>
 #include <iomanip>
 

@@ -1,5 +1,6 @@
 #pragma once
-#include "Asset.h"
+#include <Engine/Assets/Asset.h>
+
 #include <vector>
 #include <memory>
 #include <unordered_map>

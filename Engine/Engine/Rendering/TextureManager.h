@@ -1,25 +1,24 @@
 #pragma once
+#include <Engine/Rendering/Texture.h>
+
+#include <SDL3/SDL.h>
 #include <string>
 #include <unordered_map>
 #include <memory>
-#include <SDL3/SDL.h>
-#include "Texture.h"
-#include<SDL3/SDL.h>
 
-namespace SIMPEngine {
+namespace SIMPEngine
+{
 
-    class TextureManager {
+    class TextureManager
+    {
     public:
-        static TextureManager& Get(); 
+        static TextureManager &Get();
 
+        std::shared_ptr<Texture> LoadTexture(const std::string &id, const std::string &filePath, SDL_Renderer *renderer);
 
-        std::shared_ptr<Texture> LoadTexture(const std::string& id, const std::string& filePath, SDL_Renderer * renderer);
+        std::shared_ptr<Texture> GetTexture(const std::string &id);
 
-
-        std::shared_ptr<Texture> GetTexture(const std::string& id);
-
-        void UnloadTexture(const std::string& id);
-
+        void UnloadTexture(const std::string &id);
 
         void UnloadAll();
 

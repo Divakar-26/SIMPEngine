@@ -6,7 +6,7 @@ add_executable(GameApp
     # Panels/HierarchyPanel.cpp
 )
 
-option(NO_EDITOR "Build Game Without Editor" OFF)
+option(NO_EDITOR "Build Game Without Editor" ON)
 if(NOT NO_EDITOR)
     target_link_libraries(GameApp
     PRIVATE Engine Editor imgui 

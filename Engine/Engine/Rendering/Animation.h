@@ -1,9 +1,11 @@
 #pragma once
 
-#include<vector>
-#include"Sprite.h"
-#include<memory>
+#include <Engine/Rendering/Sprite.h>
+
+    
 #include<SDL3/SDL.h>
+#include<vector>
+#include<memory>
 
 
 namespace SIMPEngine{

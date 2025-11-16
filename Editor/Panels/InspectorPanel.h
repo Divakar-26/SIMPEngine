@@ -1,7 +1,7 @@
 #pragma once
-#include "Scene/Scene.h"
-#include "Scene/Entity.h"
-#include "Scene/Component.h"
+#include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Entity.h>
+#include <Engine/Scene/Component.h>
 
 class InspectorPanel
 {

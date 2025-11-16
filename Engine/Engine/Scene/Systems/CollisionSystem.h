@@ -1,8 +1,9 @@
 // Scene/Systems/CollisionSystem.h
 #pragma once
-#include <entt/entt.hpp>
+#include <Engine/Scene/Component.h>
+
 #include <SDL3/SDL_rect.h>
-#include "Scene/Component.h"
+#include <entt/entt.hpp>
 #include <cmath>
 
 class CollisionSystem

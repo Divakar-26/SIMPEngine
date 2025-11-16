@@ -1,8 +1,9 @@
 #pragma once
-#include "RenderingAPI.h"
+#include <Engine/Rendering/RenderingAPI.h>
+#include <Engine/Rendering/Texture.h>
+
 #include <glm/glm.hpp>
 #include <vector>
-#include "Texture.h"
 #include <memory>
 
 namespace SIMPEngine

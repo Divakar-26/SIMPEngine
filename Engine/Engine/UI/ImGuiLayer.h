@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Layer/Layer.h" // Your base Layer class
-#include "Core/TimeStep.h"
+#include <Engine/Layer/Layer.h> // Your base Layer class
+#include <Engine/Core/TimeStep.h>
+#include <Engine/Scene/Entity.h>
+#include <Engine/Scene/Scene.h>
+
 #include <SDL3/SDL_events.h>
 #include <imgui.h>
-#include"Scene/Entity.h"
-#include"Scene/Scene.h"
 
 struct SDL_Window;
 struct SDL_Renderer;

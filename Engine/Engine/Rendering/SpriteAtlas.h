@@ -1,12 +1,14 @@
 #pragma once
 
+
+#include <Engine/Rendering/Texture.h>
+#include <Engine/Rendering/Sprite.h>
+
+#include <SDL3/SDL.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include <memory>
-#include <SDL3/SDL.h>
-#include "Texture.h"
-#include "Sprite.h"
 
 namespace SIMPEngine
 {

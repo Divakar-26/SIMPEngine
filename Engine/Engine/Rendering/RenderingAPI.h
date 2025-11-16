@@ -1,9 +1,9 @@
 #pragma once
-#include <SDL3/SDL.h>
-#include <glm/glm.hpp>
+#include <Engine/Rendering/Texture.h>
 
+#include <glm/glm.hpp>
+#include <SDL3/SDL.h>
 #include <memory>
-#include "Texture.h"
 
 namespace SIMPEngine
 {

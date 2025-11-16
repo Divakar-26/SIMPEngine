@@ -1,7 +1,8 @@
-    #include "Window.h"
-    #include "Log.h"
-    #include <SDL3/SDL.h>
-    #include <iostream>
+#include <Engine/Core/Window.h>
+#include <Engine/Core/Log.h>
+
+#include <SDL3/SDL.h>
+#include <iostream>
 
     namespace SIMPEngine
     {

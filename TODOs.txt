@@ -12,3 +12,4 @@
 12. Add gizmos in collision component
 13. Add toggle to render collisios
 14. resize problem in runtime
+15. Warping when window or viewport resizing

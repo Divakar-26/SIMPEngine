@@ -1,6 +1,6 @@
 #include "InspectorPanel.h"
 #include <imgui.h>
-#include "Core/Log.h"
+#include <Engine/Core/Log.h>
 
 template <typename T, typename UIFunc>
 static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc uiFunc)

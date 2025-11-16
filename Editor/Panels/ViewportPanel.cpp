@@ -1,10 +1,10 @@
 #include "ViewportPanel.h"
-#include "Core/Log.h"
-#include "Input/Input.h"
-#include "Rendering/Renderer.h"
-#include "Input/SIMP_Keys.h"
-#include "Core/VFS.h"
-#include "Scene/Component.h"
+#include <Engine/Core/Log.h>
+#include <Engine/Input/Input.h>
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Input/SIMP_Keys.h>
+#include <Engine/Core/VFS.h>
+#include <Engine/Scene/Component.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>

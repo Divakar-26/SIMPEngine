@@ -1,5 +1,6 @@
 #pragma once
-#include "AssetRegistry.h"
+#include <Engine/Assets/AssetRegistry.h>
+
 #include <unordered_map>
 
 namespace SIMPEngine {

@@ -1,10 +1,11 @@
-#include "Camera2D.h"
-#include "Events/EventDispatcher.h"
-#include "Events/KeyEvent.h"
+#include <Engine/Math/Camera2D.h>
+#include <Engine/Events/EventDispatcher.h>
+#include <Engine/Events/KeyEvent.h>
+#include <Engine/Core/Log.h>
+#include <Engine/Input/Input.h>
+#include <Engine/Input/SIMP_Keys.h>
+
 #include <SDL3/SDL_keycode.h>
-#include "Core/Log.h"
-#include "Input/Input.h"
-#include "Input/SIMP_Keys.h"
 
 namespace SIMPEngine
 {

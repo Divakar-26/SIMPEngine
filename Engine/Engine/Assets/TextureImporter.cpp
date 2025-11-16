@@ -1,7 +1,7 @@
-#include "TextureImporter.h"
-#include "Core/VFS.h"
-#include "Core/FileSystem.h"
-#include "Core/Log.h"
+#include <Engine/Assets/TextureImporter.h>
+#include <Engine/Core/VFS.h>
+#include <Engine/Core/FileSystem.h>
+#include <Engine/Core/Log.h>
 
 namespace SIMPEngine {
 bool TextureImporter::Import(const AssetMetadata& meta, void*& outObject){

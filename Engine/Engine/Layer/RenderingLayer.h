@@ -1,16 +1,15 @@
 #pragma once
 
-#include "Layer/Layer.h"
-#include "Rendering/Renderer.h"
-#include "Rendering/Animation.h"
-#include "Events/Event.h"
-#include "Core/TimeStep.h"
+#include <Engine/Layer/Layer.h>
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Rendering/Animation.h>
+#include <Engine/Events/Event.h>
+#include <Engine/Core/TimeStep.h>
+#include <Engine/Scene/Scene.h>
+#include <Engine/Scene/SceneManager.h>
+#include <Engine/Math/Camera2D.h>
+
 #include <SDL3/SDL_pixels.h>
-
-#include "Math/Camera2D.h"
-#include "Scene/Scene.h"
-#include "Scene/SceneManager.h"
-
 #include <queue>
 #include <functional>
 

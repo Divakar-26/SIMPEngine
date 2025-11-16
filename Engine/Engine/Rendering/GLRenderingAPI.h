@@ -1,9 +1,10 @@
 #pragma once
-#include "RenderingAPI.h"
+#include <Engine/Rendering/RenderingAPI.h>
+#include <Engine/Rendering/Shader.h>
+
 #include <glm/glm.hpp>
 #include <SDL3/SDL.h>
 #include <memory>
-#include "Shader.h"
 
 namespace SIMPEngine
 {

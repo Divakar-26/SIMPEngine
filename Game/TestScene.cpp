@@ -1,9 +1,9 @@
-#include "PCH.h"
+#include <Engine/PCH.h>
 
 #include "TestScene.h"
 
-#include "Scene/Scene.h"
-#include "Scene/Entity.h"
+#include <Engine/Scene/Scene.h>
+#include <Engine/Scene/Entity.h>
 
 float kl = 0.0f;
 

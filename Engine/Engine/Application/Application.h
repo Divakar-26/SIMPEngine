@@ -1,12 +1,14 @@
 #pragma once
-#include "Core/Window.h"
-#include "Events/Event.h"
-#include "Layer/LayerStack.h"
-#include "UI/ImGuiLayer.h"
-#include "Layer/RenderingLayer.h"
+#include <Engine/Core/Window.h>
+#include <Engine/Events/Event.h>
+#include <Engine/Layer/LayerStack.h>
+#include <Engine/UI/ImGuiLayer.h>
+#include <Engine/Layer/RenderingLayer.h>
+#include <Engine/Math/Camera2D.h>
+#include <Engine/Scene/SceneManager.h>
+
+
 #include <functional>
-#include "Math/Camera2D.h"
-#include "Scene/SceneManager.h"
 
 namespace SIMPEngine
 {

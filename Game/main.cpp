@@ -1,10 +1,10 @@
-#include "Application/Application.h"
-#include "Core/Log.h"
+#include <Engine/Application/Application.h>
+#include <Engine/Core/Log.h>
 
-#include "Layer/LayerStack.h"
-#include "UI/ImGuiLayer.h"
-#include "Layer/RenderingLayer.h"
-#include "Scene/SceneManager.h"
+#include <Engine/Layer/LayerStack.h>
+#include <Engine/UI/ImGuiLayer.h>
+#include <Engine/Layer/RenderingLayer.h>
+#include <Engine/Scene/SceneManager.h>
 
 #ifndef NO_EDITOR
 #include "EditorLayer.h"

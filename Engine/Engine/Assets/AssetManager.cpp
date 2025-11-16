@@ -1,8 +1,8 @@
-#include "AssetManager.h"
-#include "Core/VFS.h"
-#include "Core/FileSystem.h"
-#include "Importers.h"
-#include "Core/Log.h"
+#include <Engine/Core/Log.h>
+#include <Engine/Assets/AssetManager.h>
+#include <Engine/Core/VFS.h>
+#include <Engine/Core/FileSystem.h>
+#include <Engine/Assets/Importers.h>
 
 namespace SIMPEngine {
 
