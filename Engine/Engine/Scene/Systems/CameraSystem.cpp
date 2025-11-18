@@ -14,8 +14,6 @@ namespace SIMPEngine
 
             if (camComp.primary)
             {      
-            
-                auto w = camComp.Camera.GetViewportSize();
                 camComp.Camera.SetPosition({transform.position.x , transform.position.y});
                 camComp.Camera.Update(dt);
                 break;
@@ -23,6 +21,7 @@ namespace SIMPEngine
         }
         
         m_MainCamera.Update(dt);
+
     }
 
     void CameraSystem::OnRender(entt::registry &registry)

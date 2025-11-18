@@ -13,13 +13,25 @@ namespace SIMPEngine
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 
-        int w = SIMPEngine::Renderer::m_WindowWidth;
-        int h = SIMPEngine::Renderer::m_WindowHeight;
+        // auto scene = std::make_shared<SIMPEngine::Scene>("Level1");
+        // m_SceneManager->AddScene("Level1", scene);
+        // m_SceneManager->SetActiveScene("Level1");
 
-        // making scene
-        auto scene1 = std::make_shared<SIMPEngine::Scene>("Level1");
-        m_SceneManager->AddScene("Level1", scene1);
-        m_SceneManager->SetActiveScene("Level1");
+        // // Spawn an example entity
+        // Entity entity = scene->CreateEntity("TestQuad");
+        // auto &transform = entity.GetComponent<TransformComponent>();
+        // transform.position = {0.0f, 0.0f}; // Centered
+        // transform.scale = {1.0f, 1.0f};
+        // transform.rotation = 0.0f;
+        // transform.zIndex = 0.0f;
+
+        // auto &render = entity.AddComponent<RenderComponent>();
+        // render.width = 200.0f;
+        // render.height = 200.0f;
+        // render.color = {0, 255, 0, 255}; // Green
+
+        // auto & camera = entity.AddComponent<CameraComponent>();
+        // camera.primary = true;
     }
 
     void RenderingLayer::OnDetach()
@@ -28,25 +40,41 @@ namespace SIMPEngine
 
     void RenderingLayer::OnUpdate(TimeStep ts)
     {
-        auto camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
+        // auto &camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
 
-        glm::vec2 rawMouse(Input::GetMousePosition().first,
-                           Input::GetMousePosition().second);
 
-        int windowW = Renderer::m_WindowWidth;
-        int windowH = Renderer::m_WindowHeight;
+        // glm::vec2 rawMouse(Input::GetMousePosition().first,
+        //                    Input::GetMousePosition().second);
 
-        // Convert raw pixels → your centered coordinate system
-        glm::vec2 screen;
-        screen.x = rawMouse.x - windowW * 0.5f;
-        screen.y = (windowH * 0.5f) - rawMouse.y;
+        // int windowW = Renderer::m_WindowWidth;
+        // int windowH = Renderer::m_WindowHeight;
 
-        // Now convert screen → world
-        glm::vec2 world = camera.ScreenToWorld(screen);
-        if (Input::IsMouseButtonPressed(1))
-        {
-            std::cout << "Mouse World = " << world.x << " " << world.y << std::endl;
+        // // Convert raw pixels → your centered coordinate system
+        // glm::vec2 screen;
+        // screen.x = rawMouse.x - windowW * 0.5f;
+        // screen.y = (windowH * 0.5f) - rawMouse.y;
+
+        auto scene = m_SceneManager->GetActiveScene();
+        if(scene){
+            scene->OnUpdate(ts.GetSeconds());
         }
+
+        // glm::vec2 world = camera.ScreenToWorld(screen);
+        // if (Input::IsMouseButtonPressed(1))
+        // {
+        //     std::cout << "Mouse World = " << world.x << " " << world.y << std::endl;
+        // }
+        // if (Input::IsKeyPressed(SIMPK_LEFT))
+        // {
+        //     camera.Move({-200.0f * ts.GetSeconds(), 0});
+        //     std::cout << "Camera moved" << std::endl;
+        // }
+
+        // Entity entity = scene->GetEntityByName("TestQuad");
+        // auto & t = entity.GetComponent<TransformComponent>();
+        // t.position.x += 200.0 * ts.GetSeconds();
+
+        // Renderer::SetViewMatrix(camera.GetViewMatrix());
     }
 
     void RenderingLayer::OnRender()
@@ -56,8 +84,8 @@ namespace SIMPEngine
         if (scene)
             scene->OnRender();
 
-        Renderer::DrawQuad(0, 0, 200, 200);
-        Renderer::DrawQuad(0, 0, 1280, 720, 0.0, {255, 0, 0, 255});
+        // // Renderer::DrawQuad(0, 0, 200, 200);
+        // Renderer::DrawQuad(0, 0, 1280, 720, 0.0, {255, 0, 0, 255});
 
         Renderer::Flush();
     }
@@ -74,6 +102,9 @@ namespace SIMPEngine
         int height = ev.GetHeight();
 
         Renderer::GetAPI()->ResizeViewport(width, height);
+
+        // auto &camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
+        // camera.SetViewportSize(width, height);
 
         CORE_INFO("Viewport resized: {}x{}", width, height);
         return false; });

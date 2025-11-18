@@ -74,12 +74,12 @@ namespace SIMPEngine
         // --- Middle Mouse Panning ---
         if (Input::IsMouseButtonPressed(SIMPK_MOUSE_MIDDLE))
         {
-            glm::vec2 mousePos(Input::GetMousePosition().first, Input::GetMousePosition().second);
+            glm::vec2 mousePos(Input::GetMousePosition().first, -Input::GetMousePosition().second);
 
             if (!m_Panning)
             {
                 m_Panning = true;
-                m_LastMousePos = mousePos;
+                m_LastMousePos = mousePos;  
             }
 
             glm::vec2 delta = mousePos - m_LastMousePos;
@@ -95,7 +95,7 @@ namespace SIMPEngine
         }
 
         m_ManualZoom = glm::clamp(m_ManualZoom, 0.1f, 10.0f);
-
+        m_Dirty = true;
         // CORE_ERROR("{} {} {}", m_Position.x , m_Position.y, m_ManualZoom);
     }
 
@@ -130,6 +130,7 @@ namespace SIMPEngine
         }
 
         m_ViewMatrix = transform;
+        m_Dirty = false;
     }
 
     void Camera2D::SetViewportSize(float width, float height)
