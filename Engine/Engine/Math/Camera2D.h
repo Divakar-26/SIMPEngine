@@ -84,8 +84,8 @@ namespace SIMPEngine
         int m_ViewportWidth = 0;
         int m_ViewportHeight = 0;
 
-        float m_TargetWidth = Renderer::m_WindowWidth;
-        float m_TargetHeight = Renderer::m_WindowHeight;
+        float m_TargetWidth = 1920;
+        float m_TargetHeight = 1080;
 
         glm::vec2 m_LastMousePos{0.0f};
         bool m_Panning = false;

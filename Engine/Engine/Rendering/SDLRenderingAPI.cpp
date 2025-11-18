@@ -218,21 +218,21 @@ void SDLRenderingAPI::FlushQuadBatch()
             h * m_ViewState.zoomY};
     }
 
-    void SDLRenderingAPI::ResizeViewport(int width, int height)
-    {
-        if (m_ViewportWidth == width && m_ViewportHeight == height)
-            return;
+    // void SDLRenderingAPI::ResizeViewport(int width, int height)
+    // {
+    //     if (m_ViewportWidth == width && m_ViewportHeight == height)
+    //         return;
 
-        if (m_ViewportTexture)
-            SDL_DestroyTexture(m_ViewportTexture);
+    //     if (m_ViewportTexture)
+    //         SDL_DestroyTexture(m_ViewportTexture);
 
-        m_ViewportTexture = SDL_CreateTexture(
-            m_Renderer,
-            SDL_PIXELFORMAT_RGBA8888,
-            SDL_TEXTUREACCESS_TARGET,
-            width, height);
-        m_ViewportWidth = width;
-        m_ViewportHeight = height;
-    }
+    //     m_ViewportTexture = SDL_CreateTexture(
+    //         m_Renderer,
+    //         SDL_PIXELFORMAT_RGBA8888,
+    //         SDL_TEXTUREACCESS_TARGET,
+    //         width, height);
+    //     m_ViewportWidth = width;
+    //     m_ViewportHeight = height;
+    // }
 
 }

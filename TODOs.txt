@@ -13,3 +13,7 @@
 13. Add toggle to render collisios
 14. resize problem in runtime
 15. Warping when window or viewport resizing
+
+-------------------------
+1. Camera + rendering is so messed up
+2. layers are not using timestep

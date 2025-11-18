@@ -18,7 +18,7 @@
 
         bool Window::Init(const char *name, int width, int height)
         {
-            //Initialize the SDL
+            //Initialize the SDL (DO NOT USE != it was in the old SDL)
             if (SDL_Init(SDL_INIT_VIDEO) == 0)
             {
                 CORE_ERROR("SDL_Init failed: {}", SDL_GetError());
@@ -26,8 +26,8 @@
             }
 
             // Set opengl parameters
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4); // eg Opengl 4....
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6); // eg Opengl 4.3, 4.6 etc
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
             SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 

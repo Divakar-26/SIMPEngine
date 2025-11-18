@@ -30,9 +30,9 @@ namespace SIMPEngine
 
         virtual SDL_Renderer *GetSDLRenderer() override;
 
-        SDL_Texture *GetViewportTexture() { return m_ViewportTexture; }
+        // SDL_Texture *GetViewportTexture() { return m_ViewportTexture; }
 
-        void ResizeViewport(int width, int height);
+        // void ResizeViewport(int width, int height);
 
     private:
         struct ViewState

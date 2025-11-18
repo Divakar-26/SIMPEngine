@@ -51,7 +51,10 @@ namespace SIMPEngine
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
+
+        // Shader Program
         m_Shader = std::make_unique<Shader>(vertexSrc, fragmentSrc);
+
         float vertices[] = {
             -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
             0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
@@ -59,6 +62,7 @@ namespace SIMPEngine
             -0.5f, -0.5f, 0.0f, 0.0f, 0.0f};
 
         unsigned int indices[6] = {0, 1, 2, 2, 3, 0};
+
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers(1, &m_VBO);
         glGenBuffers(1, &m_EBO);
@@ -76,8 +80,7 @@ namespace SIMPEngine
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        SetProjection(m_ViewportWidth, m_ViewportHeight);
-        InitFramebuffer(m_ViewportWidth, m_ViewportHeight);
+        // InitFramebuffer(m_ViewportWidth, m_ViewportHeight);
         SetProjection(m_ViewportWidth, m_ViewportHeight);
     }
 
@@ -105,13 +108,19 @@ namespace SIMPEngine
         m_Shader->Unbind();
     }
 
-    void GLRenderingAPI::SetProjection(float width, float height)
+    void GLRenderingAPI::SetProjection(float viewportWidth, float viewportHeight)
     {
-        float halfWidth = width / 2.0f;
-        float halfHeight = height / 2.0f;
+        float orthoSize = 540.0f;
+        float aspect = viewportWidth / viewportHeight;
 
-        // Origin at center
-        m_Projection = glm::ortho(-halfWidth, halfWidth, halfHeight, -halfHeight, -1000.0f, 1000.0f);
+        m_Projection = glm::ortho(
+            -orthoSize * aspect,
+            orthoSize * aspect,
+            -orthoSize,
+            orthoSize,
+            -1000.0f, 1000.0f);
+
+        // later when i can do it, so if window_w is less thatn window_h thne sstart x scaling
     }
 
     void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)
@@ -133,10 +142,10 @@ namespace SIMPEngine
     glm::vec2 GLRenderingAPI::TransformPosition(float x, float y) const { return {x, y}; }
     glm::vec2 GLRenderingAPI::TransformSize(float w, float h) const { return {w, h}; }
 
-    void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, float rotation , SDL_Color color, bool fill, float zIndex)
+    void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, float rotation, SDL_Color color, bool fill, float zIndex)
     {
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f,0.0f,1.0f));
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
         model = glm::scale(model, glm::vec3(width, height, 1.0f));
         glm::mat4 mvp = m_Projection * m_ViewMatrix * model;
         m_Shader->Bind();
@@ -188,12 +197,14 @@ namespace SIMPEngine
 
     void GLRenderingAPI::SetViewMatrix(const glm::mat4 &view) { m_ViewMatrix = view; }
 
+    // to be only used by editor later
     void GLRenderingAPI::BeginFrame()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
     }
 
+    // same to be used by editor later do not touch it
     void GLRenderingAPI::EndFrame() { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
     void GLRenderingAPI::InitFramebuffer(int width, int height)
@@ -225,6 +236,8 @@ namespace SIMPEngine
 
     void GLRenderingAPI::ResizeViewport(int width, int height)
     {
+        glViewport(0, 0, width, height);
+        std::cout << "Viewport changed" << std::endl;
         m_ViewportWidth = width;
         m_ViewportHeight = height;
         InitFramebuffer(width, height);

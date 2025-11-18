@@ -15,7 +15,7 @@ namespace SIMPEngine
         static void Init(std::unique_ptr<RenderingAPI> api, int w, int h);
 
         // Renderer.h
-        static RenderingAPI *GetAPI(); // add this
+        static RenderingAPI *GetAPI();
 
         static void SetClearColor(float r, float g, float b, float a);
         static void Clear();

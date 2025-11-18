@@ -4,12 +4,12 @@
 #include <Engine/PCH.h>
 
 float kl = 0.0f;
+float roatation = 0.0f;
 
 namespace SIMPEngine
 {
     void RenderingLayer::OnAttach()
     {
-
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 
@@ -20,18 +20,33 @@ namespace SIMPEngine
         auto scene1 = std::make_shared<SIMPEngine::Scene>("Level1");
         m_SceneManager->AddScene("Level1", scene1);
         m_SceneManager->SetActiveScene("Level1");
-
-
     }
 
     void RenderingLayer::OnDetach()
     {
     }
 
-    void RenderingLayer::OnUpdate(class TimeStep ts)
+    void RenderingLayer::OnUpdate(TimeStep ts)
     {
-        auto e = m_SceneManager->GetActiveScene()->GetEntityByName("Player");
-        
+        auto camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
+
+        glm::vec2 rawMouse(Input::GetMousePosition().first,
+                           Input::GetMousePosition().second);
+
+        int windowW = Renderer::m_WindowWidth;
+        int windowH = Renderer::m_WindowHeight;
+
+        // Convert raw pixels → your centered coordinate system
+        glm::vec2 screen;
+        screen.x = rawMouse.x - windowW * 0.5f;
+        screen.y = (windowH * 0.5f) - rawMouse.y;
+
+        // Now convert screen → world
+        glm::vec2 world = camera.ScreenToWorld(screen);
+        if (Input::IsMouseButtonPressed(1))
+        {
+            std::cout << "Mouse World = " << world.x << " " << world.y << std::endl;
+        }
     }
 
     void RenderingLayer::OnRender()
@@ -40,6 +55,9 @@ namespace SIMPEngine
 
         if (scene)
             scene->OnRender();
+
+        Renderer::DrawQuad(0, 0, 200, 200);
+        Renderer::DrawQuad(0, 0, 1280, 720, 0.0, {255, 0, 0, 255});
 
         Renderer::Flush();
     }
@@ -56,21 +74,6 @@ namespace SIMPEngine
         int height = ev.GetHeight();
 
         Renderer::GetAPI()->ResizeViewport(width, height);
-        
-        // Update all primary cameras with new viewport size
-        auto scene = m_SceneManager->GetActiveScene();
-        if (scene)
-        {
-            auto view = scene->GetRegistry().view<CameraComponent>();
-            for (auto entity : view)
-            {
-                auto &camComp = view.get<CameraComponent>(entity);
-                if (camComp.primary)
-                {
-                    // camComp.Camera.SetViewportSize(width, height);
-                }
-            }
-        }
 
         CORE_INFO("Viewport resized: {}x{}", width, height);
         return false; });

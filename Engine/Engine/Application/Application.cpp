@@ -8,10 +8,10 @@ namespace SIMPEngine
 
     Application::Application()
     {
-        if (s_Instance)
-        {
-            
-        }
+        // if (s_Instance)
+        // {
+
+        // }
         s_Instance = this;
         m_Window.Init("SIMPEngine", 1920, 1080);
 
@@ -39,6 +39,7 @@ namespace SIMPEngine
         uint64_t lastFrameTime = SDL_GetPerformanceCounter();
         const double freq = (double)SDL_GetPerformanceFrequency();
 
+        // actual gameloop
         while (m_Running)
         {
             uint64_t currentFrameTime = SDL_GetPerformanceCounter();
@@ -49,14 +50,15 @@ namespace SIMPEngine
             while (SDL_PollEvent(&sdlEvent))
             {
                 if (m_ImGuiLayer)
-                    m_ImGuiLayer->OnSDLEvent(sdlEvent);
+                    m_ImGuiLayer->OnSDLEvent(sdlEvent); // LOOKAT
                 SDLEventToEngine(sdlEvent);
             }
 
-
+            // update all layers
             for (Layer *layer : m_LayerStack)
                 layer->OnUpdate(deltaTime);
 
+            // Rendering
             Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
             Renderer::Clear();
 
@@ -64,76 +66,12 @@ namespace SIMPEngine
 
             for (Layer *layer : m_LayerStack)
                 layer->OnRender();
-            
 
             m_ImGuiLayer->End();
 
             // Renderer::Present();
-            SDL_GL_SwapWindow(m_Window.GetNativeWindow());
-        }
-    }
-
-    void Application::OnEvent(Event &e)
-    {
-        m_ImGuiLayer->OnEvent(e);
-
-        EventDispatcher dispatcher(e);
-
-        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
-                                              {
-        m_Running = false;
-        return true; });
-
-        dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
-                                             {
-                                                 CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
-                                                 Input::OnKeyPressed(ev.GetKeyCode());
-                                                 return false; });
-
-        dispatcher.Dispatch<KeyReleasedEvent>([](KeyReleasedEvent &ev)
-                                              {
-                                                 CORE_INFO("{}", ev.ToString());
-
-        Input::OnKeyReleased(ev.GetKeyCode());
-        return false; });
-
-        dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &ev)
-                                                     {
-                                                 CORE_INFO("{}", ev.ToString());
-
-        Input::OnMouseButtonPressed(ev.GetMouseButton());
-        return false; });
-
-        dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
-                                                      {
-
-                                                 CORE_INFO("{}", ev.ToString());
-
-        Input::OnMouseButtonReleased(ev.GetMouseButton());
-        return false; });
-
-        dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
-                                             {
-
-                                                //  CORE_INFO("{}", ev.ToString());
-
-        Input::OnMouseMoved(ev.GetX(), ev.GetY());
-        return false; });
-
-        dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
-                                                {
-    CORE_INFO("Mouse wheel delta: {}", ev.GetYOffset());
-    Input::OnMouseWheel(ev.GetYOffset());
-    return false; });
-
-        if (!e.Handled)
-        {
-            for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
-            {
-                (*--it)->OnEvent(e);
-                if (e.Handled)
-                    break;
-            }
+            // SDL_GL_SwapWindow(m_Window.GetNativeWindow());
+            m_Window.OnUpdate();
         }
     }
 
@@ -208,6 +146,70 @@ namespace SIMPEngine
         }
         default:
             break;
+        }
+    }
+
+    void Application::OnEvent(Event &e)
+    {
+        m_ImGuiLayer->OnEvent(e);
+
+        EventDispatcher dispatcher(e);
+
+        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
+                                              {
+        m_Running = false;
+        return true; });
+
+        dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
+                                             {
+                                                 CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
+                                                 Input::OnKeyPressed(ev.GetKeyCode());
+                                                 return false; });
+
+        dispatcher.Dispatch<KeyReleasedEvent>([](KeyReleasedEvent &ev)
+                                              {
+                                                 CORE_INFO("{}", ev.ToString());
+
+        Input::OnKeyReleased(ev.GetKeyCode());
+        return false; });
+
+        dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &ev)
+                                                     {
+                                                 CORE_INFO("{}", ev.ToString());
+
+        Input::OnMouseButtonPressed(ev.GetMouseButton());
+        return false; });
+
+        dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
+                                                      {
+
+                                                 CORE_INFO("{}", ev.ToString());
+
+        Input::OnMouseButtonReleased(ev.GetMouseButton());
+        return false; });
+
+        dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
+                                             {
+
+                                                //  CORE_INFO("{}", ev.ToString());
+
+        Input::OnMouseMoved(ev.GetX(), ev.GetY());
+        return false; });
+
+        dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
+                                                {
+    CORE_INFO("Mouse wheel delta: {}", ev.GetYOffset());
+    Input::OnMouseWheel(ev.GetYOffset());
+    return false; });
+
+        if (!e.Handled)
+        {
+            for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
+            {
+                (*--it)->OnEvent(e);
+                if (e.Handled)
+                    break;
+            }
         }
     }
 }

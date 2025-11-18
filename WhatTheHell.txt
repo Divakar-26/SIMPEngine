@@ -1,0 +1,2 @@
+1. why did i set application size in application.cpp ? in game library?
+2. in window.cpp i do swapping in OnUpdate 
