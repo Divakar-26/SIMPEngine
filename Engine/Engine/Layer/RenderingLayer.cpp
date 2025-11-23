@@ -9,7 +9,7 @@ float roatation = 0.0f;
 namespace SIMPEngine
 {
     void RenderingLayer::OnAttach()
-    {
+    {   
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 

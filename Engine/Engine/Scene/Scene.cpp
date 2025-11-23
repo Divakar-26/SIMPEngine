@@ -82,7 +82,7 @@ namespace SIMPEngine
         }
     }
 
-    // TODO -> Z INDEX SYSTEM
+    // TODO -> Z INDEX SYSTEM -> DONE
     void Scene::OnRender()
     {
         cameraSystem.OnRender(m_Registry);

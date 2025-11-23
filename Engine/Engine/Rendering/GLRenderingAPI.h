@@ -30,7 +30,7 @@ namespace SIMPEngine
 
         void SetProjection(float width, float height);
         void SetViewMatrix(const glm::mat4 &view) override;
-
+        
         unsigned int GetViewportTexture() override;
         void BeginFrame() override;
         void EndFrame() override;

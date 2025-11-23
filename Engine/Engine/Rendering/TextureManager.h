@@ -14,15 +14,13 @@ namespace SIMPEngine
     public:
         static TextureManager &Get();
 
-        std::shared_ptr<Texture> LoadTexture(const std::string &id, const std::string &filePath, SDL_Renderer *renderer);
-
+        std::shared_ptr<Texture> LoadTexture(const std::string &id, const std::string &filePath);
         std::shared_ptr<Texture> GetTexture(const std::string &id);
 
         void UnloadTexture(const std::string &id);
-
         void UnloadAll();
 
-    private:
+    private:    
         TextureManager() = default;
         ~TextureManager();
 

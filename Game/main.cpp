@@ -1,10 +1,4 @@
-#include <Engine/Application/Application.h>
-#include <Engine/Core/Log.h>
-#include <Engine/Layer/LayerStack.h>
-#include <Engine/UI/ImGuiLayer.h>
-#include <Engine/Layer/RenderingLayer.h>
-#include <Engine/Scene/SceneManager.h>
-
+#include <Engine/SIMPEngine.h>
 #include "moveScript.h"
 
 #ifndef NO_EDITOR
@@ -24,9 +18,9 @@ public:
 
         // creation of entity
         SIMPEngine::Entity entity = scene1->CreateEntity("TestQuad");
-        auto& transform = entity.GetComponent<TransformComponent>();
+        auto& transform = entity.GetComponent<TransformComponent>(); // x , y , scaleX, scaleY, rotation 
         transform.position = { 0, 0 };
-        transform.scale = { 1, 1 };
+        transform.scale = { 1, 1 }; 
 
         //its render component
         auto& render = entity.AddComponent<RenderComponent>();
@@ -62,5 +56,5 @@ int main()
     CORE_INFO("Engine Starting up....");
     auto app = SIMPEngine::CreateApplication();
     app->Run();
-    delete app;
+    delete app; 
 }
