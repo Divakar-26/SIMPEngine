@@ -34,7 +34,5 @@ namespace SIMPEngine
 
         virtual void BeginFrame() = 0;
         virtual void EndFrame() = 0;
-
-        virtual SDL_Renderer *GetSDLRenderer() = 0;
     };
 }

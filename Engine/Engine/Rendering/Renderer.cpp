@@ -76,10 +76,6 @@ namespace SIMPEngine
         // return s_RenderingAPI->CreateTexture(path);
     }
 
-    SDL_Renderer *Renderer::GetSDLRenderer()
-    {
-        // return s_RenderingAPI->GetSDLRenderer();
-    }
 
     void Renderer::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
     {

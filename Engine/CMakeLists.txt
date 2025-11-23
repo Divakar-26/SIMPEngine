@@ -17,7 +17,7 @@
         # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SpriteAtlas.cpp
         # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Sprite.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Texture.cpp
-        # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/TextureManager.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/TextureManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Layer/RenderingLayer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Input/Input.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Math/Camera2D.cpp

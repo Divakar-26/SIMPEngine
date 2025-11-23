@@ -34,8 +34,6 @@ namespace SIMPEngine
         static void BeginFrame();
         static void EndFrame();
 
-        static SDL_Renderer *GetSDLRenderer();
-
         static int m_WindowWidth, m_WindowHeight;
 
     private:

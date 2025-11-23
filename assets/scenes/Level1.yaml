@@ -1,0 +1,17 @@
+Scene: Level1
+Entities:
+  - Tag: TestQuad
+    Transform: [0, 0, 0, 1, 1]
+    Sprite: [100, 100, assets://textures/coin.png]
+    Render: [0, 255, 0, 255, 200, 200]
+    Camera: [false]
+  - Tag: SecondQuad
+    Transform: [400, 0, 0, 1, 1]
+    Sprite: [100, 100, assets://textures/coin.png]
+    Render: [255, 255, 0, 255, 200, 200]
+    Camera: [false]
+  - Tag: thirdQuad
+    Transform: [400, 400, 0, 1, 1]
+    Sprite: [100, 100, assets://textures/coin.png]
+    Render: [0, 255, 255, 255, 200, 200]
+    Camera: [false]

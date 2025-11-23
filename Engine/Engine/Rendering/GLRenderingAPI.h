@@ -25,12 +25,11 @@ namespace SIMPEngine
         void DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex) override;
         std::shared_ptr<Texture> CreateTexture(const char *) override { return nullptr; }
         void Flush() override {}
-        SDL_Renderer *GetSDLRenderer() override { return nullptr; }
         void ResizeViewport(int, int) override;
 
         void SetProjection(float width, float height);
         void SetViewMatrix(const glm::mat4 &view) override;
-        
+
         unsigned int GetViewportTexture() override;
         void BeginFrame() override;
         void EndFrame() override;

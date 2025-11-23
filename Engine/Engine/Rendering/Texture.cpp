@@ -18,7 +18,7 @@ namespace SIMPEngine
     bool Texture::LoadFromFile(const char *path)
     {
         Destroy();
-
+        
         m_Path = (std::string)path;
 
         int channel;

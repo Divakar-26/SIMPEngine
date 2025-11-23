@@ -1,6 +1,7 @@
 #include <Engine/PCH.h>
 #include <Engine/Application/Application.h>
 #include <Engine/Core/FileSystem.h>
+#include <Engine/Core/VFS.h>
 
 namespace SIMPEngine
 {
@@ -8,10 +9,11 @@ namespace SIMPEngine
 
     Application::Application()
     {
-        // if (s_Instance)
-        // {
+        // std::string exePath = FileSystem::Normalise(FileSystem::Join(FileSystem::GetExecutableDir(), ".."));
+        // std::string assetsPath = FileSystem::Join(exePath, "assets");
 
-        // }
+        VFS::Mount("assets", "../assets");
+        CORE_INFO("Mounted assets VFS at {}", "../assets");
         s_Instance = this;
         m_Window.Init("SIMPEngine", 1920, 1080);
 
