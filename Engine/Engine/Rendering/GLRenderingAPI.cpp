@@ -1,39 +1,11 @@
 #include <Engine/Rendering/GLRenderingAPI.h>
-
+#include <Engine/Rendering/Shaders/SpriteShader.h>
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 namespace SIMPEngine
 {
-    static const char *vertexSrc = R"(
-        #version 330 core
-        layout (location = 0) in vec3 aPos;
-        layout (location = 1) in vec2 aTex;
-        uniform mat4 uMVP;
-        out vec2 TexCoord;
-        void main() {
-            gl_Position = uMVP * vec4(aPos, 1.0);
-            TexCoord = aTex;
-        }
-    )";
-
-    static const char *fragmentSrc = R"(    
-        #version 330 core
-        in vec2 TexCoord;
-        out vec4 FragColor;
-        uniform vec4 uColor;
-        uniform sampler2D uTexture;
-        uniform bool uUseTexture;
-        void main() {
-            if(uUseTexture) {
-                vec4 tex = texture(uTexture, TexCoord);
-                FragColor = vec4(tex.rgb * uColor.rgb, tex.a * uColor.a);
-            } else {
-                FragColor = uColor;
-            }
-        }
-    )";
 
     GLRenderingAPI::GLRenderingAPI() {}
     GLRenderingAPI::~GLRenderingAPI()
@@ -53,7 +25,9 @@ namespace SIMPEngine
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
 
         // Shader Program
-        m_Shader = std::make_unique<Shader>(vertexSrc, fragmentSrc);
+        m_Shader = std::make_unique<Shader>(
+            Shaders::SPRITE_VERT,
+            Shaders::SPRITE_FRAG);
 
         float vertices[] = {
             -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
@@ -122,25 +96,6 @@ namespace SIMPEngine
 
         // later when i can do it, so if window_w is less thatn window_h thne sstart x scaling
     }
-
-    void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)
-    {
-        m_ClearColor[0] = r;
-        m_ClearColor[1] = g;
-        m_ClearColor[2] = b;
-        m_ClearColor[3] = a;
-    }
-
-    void GLRenderingAPI::Clear()
-    {
-        glClearColor(m_ClearColor[0], m_ClearColor[1], m_ClearColor[2], m_ClearColor[3]);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    }
-
-    void GLRenderingAPI::Present() {}
-
-    glm::vec2 GLRenderingAPI::TransformPosition(float x, float y) const { return {x, y}; }
-    glm::vec2 GLRenderingAPI::TransformSize(float w, float h) const { return {w, h}; }
 
     void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, float rotation, SDL_Color color, bool fill, float zIndex)
     {
@@ -245,5 +200,24 @@ namespace SIMPEngine
     }
 
     unsigned int GLRenderingAPI::GetViewportTexture() { return m_ColorAttachment; }
+
+    void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)
+    {
+        m_ClearColor[0] = r;
+        m_ClearColor[1] = g;
+        m_ClearColor[2] = b;
+        m_ClearColor[3] = a;
+    }
+
+    void GLRenderingAPI::Clear()
+    {
+        glClearColor(m_ClearColor[0], m_ClearColor[1], m_ClearColor[2], m_ClearColor[3]);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+
+    void GLRenderingAPI::Present() {}
+
+    glm::vec2 GLRenderingAPI::TransformPosition(float x, float y) const { return {x, y}; }
+    glm::vec2 GLRenderingAPI::TransformSize(float w, float h) const { return {w, h}; }
 
 } // namespace SIMPEngine

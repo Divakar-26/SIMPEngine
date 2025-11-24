@@ -20,6 +20,7 @@ add_subdirectory(vendor/SDL_image EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/spdlog EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/glm EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/yaml-cpp EXCLUDE_FROM_ALL)
+add_subdirectory(vendor/AccelEngine)
 
 
 # ImGui wrapper (manual CMake target)

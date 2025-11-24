@@ -3,7 +3,7 @@
 #include <Engine/Rendering/TextureManager.h>
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Core/Log.h>
-#include <Engine/Input/Input.h> 
+#include <Engine/Input/Input.h>
 #include <Engine/Scene/ScriptableEntity.h>
 
 #include <entt/entt.hpp>
@@ -12,9 +12,7 @@
 namespace SIMPEngine
 {
     Scene::Scene(const std::string &name)
-        : m_Name(name)
-    {
-    }
+        : m_Name(name) {}
 
     void Scene::DestroyEntity(Entity entity)
     {
@@ -60,9 +58,30 @@ namespace SIMPEngine
 
     void Scene::OnUpdate(float deltaTime)
     {
+        const int substeps = 20;
+        float subdt = deltaTime / substeps;
+
+        for (int i = 0; i < substeps; i++)
+        {
+            physicsWorld.startFrame();
+            physicsRegistry.updateForces(subdt);
+            physicsWorld.step(subdt, 1);
+        }
+
+        auto view2 = m_Registry.view<TransformComponent, PhysicsComponent>();
+        for (auto entity : view2)
+        {
+            auto &transform = view2.get<TransformComponent>(entity);
+            auto &phys = view2.get<PhysicsComponent>(entity);
+
+            if (!phys.body)
+                continue;
+            transform.position = {phys.body->position.x, phys.body->position.y};
+            transform.rotation = phys.body->orientation * (180.0f / 3.14159f);
+        }
 
         cameraSystem.OnUpdate(m_Registry, deltaTime);
-        
+
         movementSystem.Update(m_Registry, deltaTime);
         collisionSystem.Update(m_Registry, deltaTime);
 
@@ -70,6 +89,9 @@ namespace SIMPEngine
         for (auto entityHandle : view)
         {
             auto &sc = view.get<ScriptComponent>(entityHandle);
+
+            if (!sc.InstantiateScript)
+                continue;
 
             if (!sc.Instance)
             {
@@ -135,8 +157,6 @@ namespace SIMPEngine
                 auto &sprite = m_Registry.get<SpriteComponent>(entity);
                 if (sprite.texture && sprite.texture->GetID() != 0)
                     continue;
-
-                
             }
 
             auto &transform = view.get<TransformComponent>(entity);
@@ -166,43 +186,42 @@ namespace SIMPEngine
         }
     }
 
-void Scene::RenderColliders()
-{
-    std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
-
-    auto view = m_Registry.view<TransformComponent, CollisionComponent>();
-    for (auto entity : view)
+    void Scene::RenderColliders()
     {
-        auto &transform = view.get<TransformComponent>(entity);
-        entitiesWithZIndex.emplace_back(entity, transform.zIndex);
+        std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
+
+        auto view = m_Registry.view<TransformComponent, CollisionComponent>();
+        for (auto entity : view)
+        {
+            auto &transform = view.get<TransformComponent>(entity);
+            entitiesWithZIndex.emplace_back(entity, transform.zIndex);
+        }
+
+        std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(),
+                  [](const auto &a, const auto &b)
+                  {
+                      return a.second < b.second;
+                  });
+
+        for (const auto &[entity, zIndex] : entitiesWithZIndex)
+        {
+            auto &transform = m_Registry.get<TransformComponent>(entity);
+            auto &collider = m_Registry.get<CollisionComponent>(entity);
+
+            SDL_FRect bounds = collider.GetBoundsWorld(transform);
+
+            SDL_Color fillColor = {200, 85, 90, 200};
+            SDL_Color outlineColor = {68, 85, 90, 200};
+
+            Renderer::DrawQuad(
+                bounds.x, bounds.y,
+                bounds.w, bounds.h, transform.rotation,
+                fillColor, true, zIndex + 1);
+
+            Renderer::DrawQuad(
+                bounds.x - 2, bounds.y - 2,
+                bounds.w + 4, bounds.h + 4, transform.rotation,
+                outlineColor, false, zIndex + 1);
+        }
     }
-
-    std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(),
-              [](const auto &a, const auto &b)
-              {
-                  return a.second < b.second;
-              });
-
-    for (const auto &[entity, zIndex] : entitiesWithZIndex)
-    {
-        auto &transform = m_Registry.get<TransformComponent>(entity);
-        auto &collider = m_Registry.get<CollisionComponent>(entity);
-
-        SDL_FRect bounds = collider.GetBoundsWorld(transform);
-        
-
-        SDL_Color fillColor = {200,85,90,200};
-        SDL_Color outlineColor = {68,85,90,200};
-
-        Renderer::DrawQuad(
-            bounds.x, bounds.y, 
-            bounds.w, bounds.h, transform.rotation,
-            fillColor, true, zIndex+1);
-
-        Renderer::DrawQuad(
-            bounds.x - 2, bounds.y - 2, 
-            bounds.w + 4, bounds.h + 4, transform.rotation, 
-            outlineColor, false, zIndex+1);
-    }
-}
 }

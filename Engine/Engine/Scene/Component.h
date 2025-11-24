@@ -3,6 +3,8 @@
 #include <Engine/Rendering/Sprite.h>
 #include <Engine/Math/Camera2D.h>
 
+#include <AccelEngine/world.h>
+
 #include <SDL3/SDL_rect.h>
 #include <memory>
 #include <string>
@@ -92,4 +94,8 @@ struct ScriptComponent
         DestroyScript = [](ScriptComponent *sc)
         { delete sc->Instance; sc->Instance = nullptr; };
     }
+};
+
+struct PhysicsComponent{
+    AccelEngine::RigidBody * body = nullptr;
 };

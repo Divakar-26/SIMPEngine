@@ -99,6 +99,8 @@
         "any": "cpp",
         "forward_list": "cpp",
         "valarray": "cpp",
-        "csignal": "cpp"
-    }
+        "csignal": "cpp",
+        "makefile": "cpp"
+    },
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build/compile_commands.json"
 }

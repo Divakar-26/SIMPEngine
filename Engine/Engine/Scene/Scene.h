@@ -6,6 +6,9 @@
 #include <Engine/Scene/Systems/CollisionSystem.h>
 #include <Engine/Scene/Systems/CameraSystem.h>
 
+#include <AccelEngine/world.h>
+#include <AccelEngine/ForceRegistry.h>
+
 #include <entt/entt.hpp>
 #include <string>
 
@@ -47,6 +50,11 @@ namespace SIMPEngine
         void RenderSprites();
         void RenderColliders();
 
+        // temp
+
+        AccelEngine::World physicsWorld;
+        std::vector<AccelEngine::RigidBody *> bodies;
+        AccelEngine::ForceRegistry physicsRegistry;
     private:
         std::string m_Name;
         entt::registry m_Registry;
