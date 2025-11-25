@@ -26,6 +26,7 @@ namespace SIMPEngine
 
         static void SetViewMatrix(const glm::mat4 &view);
         static const glm::mat4 &GetViewMatrix();
+        static glm::vec2 GetViewportSize();
 
         static std::shared_ptr<Texture> CreateTexture(const char *path);
 

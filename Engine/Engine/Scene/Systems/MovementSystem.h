@@ -3,19 +3,23 @@
 
 #include <entt/entt.hpp>
 
-class MovementSystem
+namespace SIMPEngine
 {
-public:
-    void Update(entt::registry &r, float dt)
+    class MovementSystem
     {
-        auto view = r.view<TransformComponent, VelocityComponent>();
-        for (auto entity : view)
+    public:
+        void Update(entt::registry &r, float dt)
         {
-            auto &transform = view.get<TransformComponent>(entity);
-            auto &velocity = view.get<VelocityComponent>(entity);
+            auto view = r.view<TransformComponent, VelocityComponent>();
+            for (auto entity : view)
+            {
+                auto &transform = view.get<TransformComponent>(entity);
+                auto &velocity = view.get<VelocityComponent>(entity);
 
-            transform.position.x += velocity.vx * dt;
-            transform.position.y += velocity.vy * dt;
+                transform.position.x += velocity.vx * dt;
+                transform.position.y += velocity.vy * dt;
+            }
         }
-    }
-};
+    };
+
+}

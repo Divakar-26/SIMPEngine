@@ -77,4 +77,8 @@ namespace SIMPEngine
     {
         s_RenderingAPI->DrawLine(x1, y1, x2, y2, color);
     }
+
+    glm::vec2 Renderer::GetViewportSize(){
+        return s_RenderingAPI->GetViewportSize();
+    }
 }

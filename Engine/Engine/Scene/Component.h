@@ -100,3 +100,7 @@ struct ScriptComponent
 struct PhysicsComponent{
     AccelEngine::RigidBody * body = nullptr;
 };
+
+struct AnimatedSpriteComponent{
+    SIMPEngine::Animation * animation = nullptr;
+};

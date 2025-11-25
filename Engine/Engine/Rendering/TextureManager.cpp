@@ -35,6 +35,7 @@ namespace SIMPEngine
         }
 
         m_TextureMap[id] = texture;
+        m_TextureMap[id]->SetVFSPath(filePath);
         LOG_INFO("Loaded texture: {}", id);
         // SDL_SetTextureScaleMode(texture->GetSDLTexture(), SDL_SCALEMODE_NEAREST);
 

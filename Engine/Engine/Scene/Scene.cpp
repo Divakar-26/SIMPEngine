@@ -64,8 +64,6 @@ namespace SIMPEngine
         for (int i = 0; i < substeps; i++)
         {
             physicsWorld.startFrame();
-            physicsRegistry.updateForces(subdt);
-            physicsWorld.step(subdt, 1);
         }
 
         auto view2 = m_Registry.view<TransformComponent, PhysicsComponent>();
@@ -81,7 +79,6 @@ namespace SIMPEngine
         }
 
         cameraSystem.OnUpdate(m_Registry, deltaTime);
-
         movementSystem.Update(m_Registry, deltaTime);
         collisionSystem.Update(m_Registry, deltaTime);
 
@@ -102,6 +99,20 @@ namespace SIMPEngine
 
             sc.Instance->OnUpdate(deltaTime);
         }
+
+        for (int i = 0; i < substeps; i++)
+        {
+            physicsRegistry.updateForces(subdt);
+            physicsWorld.step(subdt, 1);
+        }
+
+        auto animView = m_Registry.view<AnimatedSpriteComponent>();
+        for (auto entity : animView)
+        {
+            auto &anim = animView.get<AnimatedSpriteComponent>(entity);
+            if (anim.animation)
+                anim.animation->Update(deltaTime);
+        }
     }
 
     // TODO -> Z INDEX SYSTEM -> DONE
@@ -116,31 +127,72 @@ namespace SIMPEngine
     void Scene::RenderSprites()
     {
         std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
-        auto spriteView = m_Registry.view<TransformComponent, SpriteComponent>();
-        for (auto entity : spriteView)
+
+        // Collect all entities that have a Sprite or Animation
+        auto view = m_Registry.view<TransformComponent>();
+
+        for (auto entity : view)
         {
-            auto &transform = spriteView.get<TransformComponent>(entity);
-            entitiesWithZIndex.emplace_back(entity, transform.zIndex);
+            // Must have Transform + (Sprite OR Animation)
+            if (m_Registry.any_of<SpriteComponent>(entity) ||
+                m_Registry.any_of<AnimatedSpriteComponent>(entity))
+            {
+                auto &transform = m_Registry.get<TransformComponent>(entity);
+                entitiesWithZIndex.emplace_back(entity, transform.zIndex);
+            }
         }
 
-        std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(), [](const auto &a, const auto &b)
-                  { return a.second < b.second; });
+        // Sort by zIndex (lower first → back to front)
+        std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(),
+                  [](const auto &a, const auto &b)
+                  {
+                      return a.second < b.second;
+                  });
 
+        // Render in correct order
         for (const auto &[entity, zIndex] : entitiesWithZIndex)
         {
             auto &transform = m_Registry.get<TransformComponent>(entity);
-            auto &spriteComp = m_Registry.get<SpriteComponent>(entity);
+            float width = 1.0f;
+            float height = 1.0f;
 
-            if (spriteComp.texture)
+            if (m_Registry.any_of<RenderComponent>(entity))
             {
-                Renderer::DrawTexture(
-                    spriteComp.texture,
-                    transform.position.x,
-                    transform.position.y,
-                    spriteComp.width * transform.scale.x,
-                    spriteComp.height * transform.scale.y,
-                    SDL_Color{255, 255, 255, 255},
-                    transform.rotation, zIndex);
+                auto &render = m_Registry.get<RenderComponent>(entity);
+                width = render.width * transform.scale.x;
+                height = render.height * transform.scale.y;
+            }
+
+            if (m_Registry.any_of<AnimatedSpriteComponent>(entity))
+            {
+                auto &anim = m_Registry.get<AnimatedSpriteComponent>(entity);
+                if (anim.animation)
+                {
+                    anim.animation->Draw(
+                        transform.position.x,
+                        transform.position.y,
+                        width, height,
+                        SDL_Color{255, 255, 255, 255},
+                        transform.rotation);
+
+                    continue;
+                }
+            }
+
+            if (m_Registry.any_of<SpriteComponent>(entity))
+            {
+                auto &spriteComp = m_Registry.get<SpriteComponent>(entity);
+                if (spriteComp.texture)
+                {
+                    Renderer::DrawTexture(
+                        spriteComp.texture,
+                        transform.position.x,
+                        transform.position.y,
+                        width, height,
+                        SDL_Color{255, 255, 255, 255},
+                        transform.rotation,
+                        zIndex);
+                }
             }
         }
     }
@@ -152,11 +204,11 @@ namespace SIMPEngine
 
         for (auto entity : view)
         {
-            if (m_Registry.any_of<SpriteComponent>(entity))
+            if (m_Registry.any_of<SpriteComponent>(entity) || m_Registry.any_of<AnimatedSpriteComponent>(entity))
             {
-                auto &sprite = m_Registry.get<SpriteComponent>(entity);
-                if (sprite.texture && sprite.texture->GetID() != 0)
-                    continue;
+                // auto &sprite = m_Registry.get<SpriteComponent>(entity);
+                // if (sprite.texture && sprite.texture->GetID() != 0)
+                continue;
             }
 
             auto &transform = view.get<TransformComponent>(entity);

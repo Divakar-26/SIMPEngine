@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <SDL3/SDL.h>
 #include <memory>
+#include <iostream>
 
 namespace SIMPEngine
 {
@@ -26,6 +27,7 @@ namespace SIMPEngine
         virtual std::shared_ptr<Texture> CreateTexture(const char *path) = 0;
 
         virtual void ResizeViewport(int width, int height) = 0;
+        virtual glm::vec2 GetViewportSize() = 0;
 
         virtual unsigned int GetViewportTexture() = 0;
 

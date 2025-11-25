@@ -6,37 +6,39 @@
 #include <entt/entt.hpp>
 #include <cmath>
 
-class CollisionSystem
+namespace SIMPEngine
 {
-public:
-    void Update(entt::registry &r, float dt)
+
+    class CollisionSystem
     {
-        auto collidable = r.view<TransformComponent, CollisionComponent>();
-
-        for (auto entityA : collidable)
+    public:
+        void Update(entt::registry &r, float dt)
         {
-            auto &aTransform = collidable.get<TransformComponent>(entityA);
-            auto &aCollision = collidable.get<CollisionComponent>(entityA);
+            auto collidable = r.view<TransformComponent, CollisionComponent>();
 
-
-            SDL_FRect aRect = aCollision.GetBoundsWorld(aTransform);
-
-            for (auto entityB : collidable)
+            for (auto entityA : collidable)
             {
-                if (entityA == entityB)
-                    continue;
+                auto &aTransform = collidable.get<TransformComponent>(entityA);
+                auto &aCollision = collidable.get<CollisionComponent>(entityA);
 
-                auto &bTransform = collidable.get<TransformComponent>(entityB);
-                auto &bCollision = collidable.get<CollisionComponent>(entityB);
+                SDL_FRect aRect = aCollision.GetBoundsWorld(aTransform);
 
-
-                SDL_FRect bRect = bCollision.GetBoundsWorld(bTransform);
-
-                if (SDL_HasRectIntersectionFloat(&aRect, &bRect))
+                for (auto entityB : collidable)
                 {
-                    
+                    if (entityA == entityB)
+                        continue;
+
+                    auto &bTransform = collidable.get<TransformComponent>(entityB);
+                    auto &bCollision = collidable.get<CollisionComponent>(entityB);
+
+                    SDL_FRect bRect = bCollision.GetBoundsWorld(bTransform);
+
+                    if (SDL_HasRectIntersectionFloat(&aRect, &bRect))
+                    {
+                    }
                 }
             }
         }
-    }
-};
+    };
+
+}

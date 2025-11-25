@@ -23,6 +23,9 @@ namespace SIMPEngine
         int GetWidth() const { return m_Width; }
         int GetHeight() const { return m_Height; }
         std::string GetPath() { return m_Path; }
+        std::string GetVFSPath() {return m_VFSPath;}
+
+        void SetVFSPath(std::string vfsPath) { m_VFSPath = vfsPath ;}
 
         bool LoadFromMemory(unsigned char *data, size_t size);
         void UploadToGPU(unsigned char *pixels, int width, int height, int channels);
@@ -33,5 +36,6 @@ namespace SIMPEngine
         int m_Height;
 
         std::string m_Path = "";
+        std::string m_VFSPath = "";
     };
 }

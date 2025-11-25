@@ -11,7 +11,6 @@ float roatation = 0.0f;
 
 namespace SIMPEngine
 {
-    Animation * anim = nullptr;
 
     void RenderingLayer::OnAttach()
     {   
@@ -22,23 +21,7 @@ namespace SIMPEngine
         // m_SceneManager->AddScene("Level1", scene);
         // m_SceneManager->SetActiveScene("Level1");
 
-        // // Spawn an example entity
-        // Entity entity = scene->CreateEntity("TestQuad");
-        // auto &transform = entity.GetComponent<TransformComponent>();
-        // transform.position = {0.0f, 0.0f}; // Centered
-        // transform.scale = {1.0f, 1.0f};
-        // transform.rotation = 0.0f;
-        // transform.zIndex = 0.0f;
-
-        // auto &render = entity.AddComponent<RenderComponent>();
-        // render.width = 200.0f;
-        // render.height = 200.0f;
-        // render.color = {0, 255, 0, 255}; // Green 
-
-        // auto & camera = entity.AddComponent<CameraComponent>();
-        // camera.primary = true;
-
-        anim = new Animation(TextureManager::Get().LoadTexture("coin", "assets://textures/coin.png"), 16,16,12,0.05, true);
+    
     }
 
     void RenderingLayer::OnDetach()
@@ -75,7 +58,6 @@ namespace SIMPEngine
             s.Deserialize("assets://scenes/Level1.yaml");
         }
 
-        anim->Update(ts.GetSeconds());
 
         // glm::vec2 world = camera.ScreenToWorld(screen);
         // if (Input::IsMouseButtonPressed(1))
@@ -97,14 +79,16 @@ namespace SIMPEngine
 
     void RenderingLayer::OnRender()
     {
-        auto scene = m_SceneManager->GetActiveScene();
+        auto scene = m_SceneManager->GetActiveScene();  
 
         if (scene)
             scene->OnRender();
 
-        anim->Draw(800, 800, 200,200);
-        // // Renderer::DrawQuad(0, 0, 200, 200);
-        // Renderer::DrawQuad(0, 0, 1280, 720, 0.0, {255, 0, 0, 255});
+        int width = Renderer::m_WindowWidth;
+        int height = Renderer::m_WindowHeight;
+
+        CORE_ERROR("{} {}",width, height);
+        Renderer::DrawQuad(0,0, width, height, 0.0f, {255,255,255,255}, false, 0);
 
         Renderer::Flush();
     }

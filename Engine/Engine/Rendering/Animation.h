@@ -19,6 +19,13 @@ namespace SIMPEngine {
         void Draw(float x, float y, float width, float height,
                   SDL_Color tint = {255, 255, 255, 255},
                   float rotation = 0.0f);
+        
+        int GetFrameNumber() {return m_FrameCount;}
+        int GetFrameWidth() {return m_FrameWidth;}
+        int GetFrameHeight() {return m_FrameHeight;}
+        float GetFrameDuration() {return m_FrameDuration;}
+        bool IsLooping() {return m_Loop;}
+        std::shared_ptr<Texture> GetTexture() { return m_Texture;}
 
         void Reset();
         void SetLooping(bool loop);

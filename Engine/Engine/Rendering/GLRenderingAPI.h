@@ -22,7 +22,7 @@ namespace SIMPEngine
 
         void DrawQuad(float x, float y, float width, float height, float rotation = 0.0f, SDL_Color color = {255, 255, 255, 255}, bool fill = true, float zIndex = 0.0f) override;
         void DrawLine(float, float, float, float, SDL_Color) override;
-        void DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect* srcRect = nullptr) override;
+        void DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect *srcRect = nullptr) override;
         std::shared_ptr<Texture> CreateTexture(const char *) override { return nullptr; }
 
         void Flush() override {}
@@ -32,6 +32,8 @@ namespace SIMPEngine
         void SetViewMatrix(const glm::mat4 &view) override;
 
         unsigned int GetViewportTexture() override;
+        glm::vec2 GetViewportSize() {return {m_ViewportWidth, m_ViewportHeight};}
+
         void BeginFrame() override;
         void EndFrame() override;
         void InitFramebuffer(int width, int height);
@@ -42,7 +44,9 @@ namespace SIMPEngine
             float x, float y, float width, float height,
             float rotation, float zIndex,
             SDL_Color color, bool useTexture);
-        
+
+        int m_ViewportWidth = 1920;
+        int m_ViewportHeight = 1080;
 
     private:
         float m_ClearColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
@@ -53,9 +57,6 @@ namespace SIMPEngine
 
         glm::mat4 m_Projection = glm::mat4(1.0f);
         glm::mat4 m_ViewMatrix = glm::mat4(1.0f);
-
-        int m_ViewportWidth = 1920;
-        int m_ViewportHeight = 1080;
 
         glm::vec2 TransformPosition(float x, float y) const;
         glm::vec2 TransformSize(float w, float h) const;

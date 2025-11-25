@@ -36,18 +36,27 @@ namespace SIMPEngine
                     << tc.rotation << tc.scale.x << tc.scale.y << YAML::EndSeq;
             }
 
+            
+            if(entity.HasComponent<RenderComponent>()){
+                auto & rc = entity.GetComponent<RenderComponent>();
+                out << YAML::Key << "Render" << YAML::Value << YAML::Flow
+                << YAML::BeginSeq << (int)rc.color.r << (int)rc.color.g << (int)rc.color.b << (int)rc.color.a << rc.width << rc.height << YAML::EndSeq;
+            }
+            
             if (entity.HasComponent<SpriteComponent>())
             {
                 auto& sc = entity.GetComponent<SpriteComponent>();
                 if(!(sc.texture == nullptr)){
                 out << YAML::Key << "Sprite" << YAML::Value << YAML::Flow
-                    << YAML::BeginSeq << sc.width << sc.height << sc.texture->GetPath() <<YAML::EndSeq;
+                    << YAML::BeginSeq << sc.width << sc.height << sc.texture->GetVFSPath() <<YAML::EndSeq;
                 }
             }
-            if(entity.HasComponent<RenderComponent>()){
-                auto & rc = entity.GetComponent<RenderComponent>();
-                out << YAML::Key << "Render" << YAML::Value << YAML::Flow
-                    << YAML::BeginSeq << (int)rc.color.r << (int)rc.color.g << (int)rc.color.b << (int)rc.color.a << rc.width << rc.height << YAML::EndSeq;
+
+            if(entity.HasComponent<AnimatedSpriteComponent>()){
+                auto & ac = entity.GetComponent<AnimatedSpriteComponent>();
+                out << YAML::Key << "Animation" << YAML::Value << YAML::Flow
+                    << YAML::BeginSeq << ac.animation->GetTexture()->GetVFSPath() << ac.animation->GetFrameWidth() 
+                    << ac.animation->GetFrameHeight() << ac.animation->GetFrameNumber() << (float)ac.animation->GetFrameDuration() << (bool)ac.animation->IsLooping() << YAML::EndSeq; 
             }
 
             if(entity.HasComponent<CollisionComponent>()){
@@ -159,6 +168,24 @@ namespace SIMPEngine
                 {
                     auto &cc = entity.AddComponent<CameraComponent>();
                     cc.primary = camera[0].as<bool>();
+                }
+
+                if (auto animation = entityNode["Animation"])
+                {
+                    std::string path = animation[0].as<std::string>();
+                    int fW = animation[1].as<int>();
+                    int fH = animation[2].as<int>();
+                    int fN = animation[3].as<int>();
+                    float fD = animation[4].as<float>();
+                    bool looping = animation[5].as<bool>();
+                    auto tex = TextureManager::Get().LoadTexture(path, path);
+                    if (!tex)
+                    {
+                        CORE_WARN("Failed to load texture '{}' during animation deserialization", path);
+                        continue;
+                    }
+                    auto &ac = entity.AddComponent<AnimatedSpriteComponent>();
+                    ac.animation = new Animation(tex, fW, fH, fN, fD, looping);
                 }
             }
         }
