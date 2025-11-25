@@ -224,4 +224,17 @@ namespace SIMPEngine
                 outlineColor, false, zIndex + 1);
         }
     }
+
+    void Scene::Clear()
+    {
+        // Destroy physics bodies
+        for (auto body : bodies)
+            delete body;
+        bodies.clear();
+        physicsWorld.clear();
+
+        // Destroy all ECS entities
+        m_Registry.clear();
+    }
+
 }

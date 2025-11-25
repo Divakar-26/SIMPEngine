@@ -27,6 +27,9 @@ namespace SIMPEngine
         void OnRender();
         void OnEvent();
 
+        void Clear();
+
+
         Entity CreatePlayer();
         Entity CreateEntity(const std::string &name = "");
         Entity GetEntityByName(const std::string &name);

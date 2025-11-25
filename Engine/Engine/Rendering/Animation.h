@@ -2,35 +2,40 @@
 
 #include <Engine/Rendering/Sprite.h>
 
-    
-#include<SDL3/SDL.h>
-#include<vector>
-#include<memory>
+#include <SDL3/SDL.h>
+#include <memory>
 
+namespace SIMPEngine {
 
-namespace SIMPEngine{
-    class Animation{
-        public:
-            Animation(const std::vector<Sprite>& frames, float frameDuration, bool loop = true);
+    class Animation {
+    public:
+        Animation() = default;
+        Animation(std::shared_ptr<Texture> spritesheet,
+                  int frameWidth, int frameHeight,
+                  int frameCount, float frameDuration,
+                  bool loop = true);
 
-            void Update(float deltaTime);
+        void Update(float deltaTime);
+        void Draw(float x, float y, float width, float height,
+                  SDL_Color tint = {255, 255, 255, 255},
+                  float rotation = 0.0f);
 
-            void Draw(float x, float y, float width, float height, SDL_Color hint = {255,255,255,255}, float rotation = 0.0f);
+        void Reset();
+        void SetLooping(bool loop);
+        bool isFinished();
 
-            void Reset();
-            void SetLooping(bool loop);
-            bool isFinished();
-            
-        private:
+    private:
+        std::shared_ptr<Texture> m_Texture = nullptr;
 
-        std::shared_ptr<Texture> m_Texture;
-        std::vector<Sprite> m_Frames;
+        int m_FrameWidth = 0;
+        int m_FrameHeight = 0;
+        int m_FrameCount = 0;
 
-        float m_FrameDuration;
-        bool m_Loop;
-        bool m_Finished;
+        float m_FrameDuration = 0.1f;
+        bool m_Loop = true;
+        bool m_Finished = false;
 
-        float m_ElapsedTime;
-        size_t m_CurrentFrame;
+        float m_ElapsedTime = 0.0f;
+        int m_CurrentFrame = 0;
     };
 }

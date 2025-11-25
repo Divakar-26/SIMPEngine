@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine/Rendering/Texture.h>
 #include <Engine/Rendering/Sprite.h>
+#include <Engine/Rendering/Animation.h>
 #include <Engine/Math/Camera2D.h>
 
 #include <AccelEngine/world.h>

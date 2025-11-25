@@ -1,6 +1,7 @@
 #include <Engine/Layer/RenderingLayer.h>
 #include <Engine/Scene/Entity.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Scene/SceneSerializer.h>
 #include <Engine/PCH.h>
 
 float kl = 0.0f;
@@ -54,9 +55,18 @@ namespace SIMPEngine
         // screen.x = rawMouse.x - windowW * 0.5f;
         // screen.y = (windowH * 0.5f) - rawMouse.y;
 
+
+
         auto scene = m_SceneManager->GetActiveScene();
         if(scene){
             scene->OnUpdate(ts.GetSeconds());
+        }
+
+        SceneSerializer s(scene.get());
+
+        if(Input::IsKeyPressed(SIMPK_F1)){
+            scene->Clear();
+            s.Deserialize("assets://scenes/Level1.yaml");
         }
 
         // glm::vec2 world = camera.ScreenToWorld(screen);

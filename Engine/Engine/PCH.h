@@ -15,7 +15,6 @@
 #include <Engine/Rendering/TextureManager.h>
 #include <Engine/Rendering/Sprite.h>
 #include <Engine/Rendering/Animation.h>
-#include <Engine/Rendering/SpriteAtlas.h>
 // #include <Engine/Rendering/SDLRenderingAPI.h>
 
 #include <iostream>

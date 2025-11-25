@@ -34,19 +34,6 @@ public:
         scene1->physicsWorld.addBody(phys.body);
         scene1->bodies.push_back(phys.body);
 
-        auto entity2 = scene1->GetEntityByName("TestQuad2");
-        auto &phys2 = entity2.AddComponent<PhysicsComponent>(); 
-        phys2.body = new AccelEngine::RigidBody();
-        phys2.body->position = {700, 0};
-        phys2.body->inverseMass = 0.0f;
-        phys2.body->shapeType = AccelEngine::ShapeType::AABB;
-        phys2.body->aabb.halfSize = {100, 100};
-        phys2.body->calculateInertia();
-        phys2.body->rotation = 0.0f;
-        phys2.body->velocity = {0.0f, 0.0f};
-        scene1->physicsWorld.addBody(phys2.body);
-        scene1->bodies.push_back(phys2.body);   
-
         // serializer.Serialize("assets://scenes/Level1.yaml");
 
         SIMPEngine::RenderingLayer *m_RenderingLayer = new SIMPEngine::RenderingLayer(sceneManager);

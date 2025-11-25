@@ -15,7 +15,7 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/RenderingAPI.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Animation.cpp
         # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SpriteAtlas.cpp
-        # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Sprite.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Sprite.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Texture.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/TextureManager.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Layer/RenderingLayer.cpp

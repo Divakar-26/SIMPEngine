@@ -15,7 +15,7 @@ namespace SIMPEngine
         m_Texture = std::move(texture);
     }
 
-    void Sprite::SetSourceRect(const SDL_FRect& srcRect)
+    void Sprite::SetSourceRect(const SDL_FRect& srcRect)    
     {
         m_SourceRect = srcRect;
         m_HasSourceRect = true;
@@ -44,13 +44,14 @@ namespace SIMPEngine
             return;
         }
 
+        // TODO -> manage Z INDEX
         if (m_HasSourceRect)
         {
-            Renderer::DrawTexture(sdlTex, x, y, width, height, tint, rotation);
+            Renderer::DrawTexture(sdlTex, x, y, width, height, tint, rotation, 0);
         }
         else
         {
-            Renderer::DrawTexture(sdlTex, x, y, width, height, tint, rotation);
+            Renderer::DrawTexture(sdlTex, x, y, width, height, tint, rotation, 0);
         }
     }
 }

@@ -5,6 +5,14 @@ Entities:
     Render: [0, 255, 0, 255, 200, 200]
     Camera: [false]
   - Tag: TestQuad2
-    Transform: [700, 0, 0, 1, 1]
+    Transform: [400, 0, 0, 1, 1]
+    Render: [255, 255, 0, 255, 200, 200]
+    Camera: [false]
+  - Tag: TestQuad3
+    Transform: [400, 400, 0, 1, 1]
     Render: [255, 0, 0, 255, 200, 200]
+    Camera: [false]
+  - Tag: TestQuad3
+    Transform: [0, 400, 0, 1, 1]
+    Render: [255, 0, 255, 255, 200, 200]
     Camera: [false]
