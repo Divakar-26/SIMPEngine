@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine/Rendering/RenderingAPI.h>
 #include <Engine/Rendering/Shader.h>
+#include <Engine/Rendering/Texture.h>
 
 #include <glm/glm.hpp>
 #include <SDL3/SDL.h>
@@ -19,14 +20,14 @@ namespace SIMPEngine
         void Clear() override;
         void Present() override;
 
-        void DrawQuad(float x, float y, float width, float height, float rotation = 0.0f ,SDL_Color color = {255,255,255,255}, bool fill = true, float zIndex = 0.0f) override;
-        void DrawCircle(float, float, float, SDL_Color) override {}
+        void DrawQuad(float x, float y, float width, float height, float rotation = 0.0f, SDL_Color color = {255, 255, 255, 255}, bool fill = true, float zIndex = 0.0f) override;
         void DrawLine(float, float, float, float, SDL_Color) override;
-        void DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex) override;
+        void DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect* srcRect = nullptr) override;
         std::shared_ptr<Texture> CreateTexture(const char *) override { return nullptr; }
-        void Flush() override {}
-        void ResizeViewport(int, int) override;
 
+        void Flush() override {}
+
+        void ResizeViewport(int, int) override;
         void SetProjection(float width, float height);
         void SetViewMatrix(const glm::mat4 &view) override;
 
@@ -35,10 +36,19 @@ namespace SIMPEngine
         void EndFrame() override;
         void InitFramebuffer(int width, int height);
 
+        // -- helper functions----
+
+        void ApplyCommonSpriteState(
+            float x, float y, float width, float height,
+            float rotation, float zIndex,
+            SDL_Color color, bool useTexture);
+        
+
     private:
         float m_ClearColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
         unsigned int m_VAO = 0, m_VBO = 0, m_EBO = 0;
+        unsigned int m_LineVAO = 0, m_LineVBO = 0;
         std::unique_ptr<Shader> m_Shader;
 
         glm::mat4 m_Projection = glm::mat4(1.0f);

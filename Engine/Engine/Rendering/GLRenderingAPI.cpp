@@ -16,6 +16,10 @@ namespace SIMPEngine
             glDeleteBuffers(1, &m_VBO);
         if (m_EBO)
             glDeleteBuffers(1, &m_EBO);
+        if (m_LineVAO)
+            glDeleteVertexArrays(1, &m_LineVAO);
+        if (m_LineVBO)
+            glDeleteBuffers(1, &m_LineVBO);
     }
 
     void GLRenderingAPI::Init()
@@ -29,7 +33,9 @@ namespace SIMPEngine
             Shaders::SPRITE_VERT,
             Shaders::SPRITE_FRAG);
 
+        // ------ QUAD ------
         float vertices[] = {
+            // pos       //uv
             -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
             0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
             0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
@@ -40,11 +46,15 @@ namespace SIMPEngine
         glGenVertexArrays(1, &m_VAO);
         glGenBuffers(1, &m_VBO);
         glGenBuffers(1, &m_EBO);
+
         glBindVertexArray(m_VAO);
+
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
@@ -54,32 +64,140 @@ namespace SIMPEngine
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+        // ------ LINE -------
+
+        glGenVertexArrays(1, &m_LineVAO);
+        glGenBuffers(1, &m_LineVBO);
+
+        glBindVertexArray(m_LineVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4, nullptr, GL_DYNAMIC_DRAW);
+
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
+        glEnableVertexAttribArray(0);
+
+        glBindVertexArray(0);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         // InitFramebuffer(m_ViewportWidth, m_ViewportHeight);
         SetProjection(m_ViewportWidth, m_ViewportHeight);
     }
 
     void GLRenderingAPI::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
     {
-        m_Shader->Bind();
         float vertices[] = {x1, y1, x2, y2};
-        GLuint lineVAO, lineVBO;
-        glGenVertexArrays(1, &lineVAO);
-        glGenBuffers(1, &lineVBO);
-        glBindVertexArray(lineVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-        glEnableVertexAttribArray(0);
+
+        m_Shader->Bind();
+
         glm::mat4 mvp = m_Projection * m_ViewMatrix;
         m_Shader->SetUniformMat4("uMVP", mvp);
-        m_Shader->SetUniform4f("uColor", color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+        m_Shader->SetUniform4f("uColor",
+                               color.r / 255.0f,
+                               color.g / 255.0f,
+                               color.b / 255.0f,
+                               color.a / 255.0f);
         m_Shader->SetUniform1i("uUseTexture", 0);
+
+        glBindVertexArray(m_LineVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
         glDrawArrays(GL_LINES, 0, 2);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
         glBindVertexArray(0);
-        glDeleteBuffers(1, &lineVBO);
-        glDeleteVertexArrays(1, &lineVAO);
+
         m_Shader->Unbind();
+    }
+
+    void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, float rotation, SDL_Color color, bool fill, float zIndex)
+    {
+        ApplyCommonSpriteState(x, y, width, height, rotation, zIndex, color, false);
+
+        glBindVertexArray(m_VAO);
+        if (fill)
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        else
+            glDrawArrays(GL_LINE_LOOP, 0, 4);
+        glBindVertexArray(0);
+        m_Shader->Unbind();
+    }
+
+    void GLRenderingAPI::DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect *srcRect)
+    {
+        if (!texture)
+        {
+            return;
+        }
+
+        if (srcRect)
+        {
+            float texWidth = texture->GetWidth();
+            float texHeight = texture->GetHeight();
+
+            float u1 = srcRect->x / texWidth;
+            float v1 = srcRect->y / texHeight;
+            float u2 = (srcRect->x + srcRect->w) / texWidth;
+            float v2 = (srcRect->y + srcRect->h) / texHeight;
+
+            float newVertices[] = {
+                -0.5f, 0.5f, 0.0f, u1, v2, // Top-left
+                0.5f, 0.5f, 0.0f, u2, v2,  // Top-right
+                0.5f, -0.5f, 0.0f, u2, v1, // Bottom-right
+                -0.5f, -0.5f, 0.0f, u1, v1 // Bottom-left
+            };
+            
+            glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertices), newVertices);
+
+            glBindVertexArray(m_VAO);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+            glEnableVertexAttribArray(0);
+            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+            glEnableVertexAttribArray(1);
+        }
+
+        ApplyCommonSpriteState(x, y, width, height, rotation, zIndex, color, true);
+
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0, 0, 1));
+        model = glm::scale(model, glm::vec3(width, height, 1.0f));
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture->GetID());
+        m_Shader->SetUniform1i("uTexture", 0);
+
+        glDepthMask(GL_FALSE);
+        glBindVertexArray(m_VAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+        glDepthMask(GL_TRUE);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        m_Shader->Unbind();
+    }
+
+    void GLRenderingAPI::ApplyCommonSpriteState(
+        float x, float y, float width, float height,
+        float rotation, float zIndex,
+        SDL_Color color, bool useTexture)
+    {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
+        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0, 0, 1));
+        model = glm::scale(model, glm::vec3(width, height, 1.0f));
+
+        glm::mat4 mvp = m_Projection * m_ViewMatrix * model;
+
+        m_Shader->Bind();
+        m_Shader->SetUniformMat4("uMVP", mvp);
+        m_Shader->SetUniform4f(
+            "uColor",
+            color.r / 255.0f,
+            color.g / 255.0f,
+            color.b / 255.0f,
+            color.a / 255.0f);
+        m_Shader->SetUniform1i("uUseTexture", useTexture ? 1 : 0);
     }
 
     void GLRenderingAPI::SetProjection(float viewportWidth, float viewportHeight)
@@ -95,59 +213,6 @@ namespace SIMPEngine
             -1000.0f, 1000.0f);
 
         // later when i can do it, so if window_w is less thatn window_h thne sstart x scaling
-    }
-
-    void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, float rotation, SDL_Color color, bool fill, float zIndex)
-    {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
-        model = glm::scale(model, glm::vec3(width, height, 1.0f));
-        glm::mat4 mvp = m_Projection * m_ViewMatrix * model;
-        m_Shader->Bind();
-        m_Shader->SetUniformMat4("uMVP", mvp);
-        m_Shader->SetUniform4f("uColor", color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
-        m_Shader->SetUniform1i("uUseTexture", 0);
-        glBindVertexArray(m_VAO);
-        if (fill)
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        else
-            glDrawArrays(GL_LINE_LOOP, 0, 4);
-        glBindVertexArray(0);
-        m_Shader->Unbind();
-    }
-
-    void GLRenderingAPI::DrawTexture(GLuint texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex)
-    {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glBlendEquation(GL_FUNC_ADD);
-        if (!texture)
-            return;
-        // glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
-        // model = glm::translate(model, glm::vec3(width * 0.5f, height * 0.5f, 0.0f));
-        // model = glm::rotate(model, glm::radians(rotation), glm::vec3(0.0f, 0.0f, 1.0f));
-        // model = glm::translate(model, glm::vec3(-width * 0.5f, -height * 0.5f, 0.0f));
-        // model = glm::scale(model, glm::vec3(width, height, 1.0f));
-
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0, 0, 1));
-        model = glm::scale(model, glm::vec3(width, height, 1.0f));
-
-        glm::mat4 mvp = m_Projection * m_ViewMatrix * model;
-        m_Shader->Bind();
-        m_Shader->SetUniformMat4("uMVP", mvp);
-        m_Shader->SetUniform4f("uColor", color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
-        m_Shader->SetUniform1i("uUseTexture", 1);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        m_Shader->SetUniform1i("uTexture", 0);
-        glDepthMask(GL_FALSE);
-        glBindVertexArray(m_VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-        glDepthMask(GL_TRUE);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        m_Shader->Unbind();
     }
 
     void GLRenderingAPI::SetViewMatrix(const glm::mat4 &view) { m_ViewMatrix = view; }

@@ -30,9 +30,10 @@ public:
         phys.body->aabb.halfSize = {100, 100};
         phys.body->calculateInertia();
         phys.body->rotation = 3.0f;
-        phys.body->velocity = {200.0f, 0.0f};
+        phys.body->velocity = {0.0f, 0.0f};
         scene1->physicsWorld.addBody(phys.body);
         scene1->bodies.push_back(phys.body);
+
 
         // serializer.Serialize("assets://scenes/Level1.yaml");
 

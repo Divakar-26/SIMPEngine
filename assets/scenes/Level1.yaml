@@ -2,17 +2,14 @@ Scene: Level1
 Entities:
   - Tag: TestQuad
     Transform: [0, 0, 0, 1, 1]
+    Sprite: [200,200, assets://textures/coin.png]
     Render: [0, 255, 0, 255, 200, 200]
-    Camera: [false]
+    Camera: [false] 
   - Tag: TestQuad2
-    Transform: [400, 0, 0, 1, 1]
+    Transform: [150, 0, 0, 0.5, 0.5]
     Render: [255, 255, 0, 255, 200, 200]
-    Camera: [false]
+    Camera: [false] 
   - Tag: TestQuad3
-    Transform: [400, 400, 0, 1, 1]
-    Render: [255, 0, 0, 255, 200, 200]
-    Camera: [false]
-  - Tag: TestQuad3
-    Transform: [0, 400, 0, 1, 1]
-    Render: [255, 0, 255, 255, 200, 200]
-    Camera: [false]
+    Transform: [0, 300, 0, 1, 1]
+    Render: [255, 255, 255, 255, 200, 200]
+    Camera: [false] 

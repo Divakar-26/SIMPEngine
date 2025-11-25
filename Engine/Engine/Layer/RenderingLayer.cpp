@@ -7,8 +7,12 @@
 float kl = 0.0f;
 float roatation = 0.0f;
 
+
+
 namespace SIMPEngine
 {
+    Animation * anim = nullptr;
+
     void RenderingLayer::OnAttach()
     {   
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -29,10 +33,12 @@ namespace SIMPEngine
         // auto &render = entity.AddComponent<RenderComponent>();
         // render.width = 200.0f;
         // render.height = 200.0f;
-        // render.color = {0, 255, 0, 255}; // Green
+        // render.color = {0, 255, 0, 255}; // Green 
 
         // auto & camera = entity.AddComponent<CameraComponent>();
         // camera.primary = true;
+
+        anim = new Animation(TextureManager::Get().LoadTexture("coin", "assets://textures/coin.png"), 16,16,12,0.05, true);
     }
 
     void RenderingLayer::OnDetach()
@@ -69,6 +75,8 @@ namespace SIMPEngine
             s.Deserialize("assets://scenes/Level1.yaml");
         }
 
+        anim->Update(ts.GetSeconds());
+
         // glm::vec2 world = camera.ScreenToWorld(screen);
         // if (Input::IsMouseButtonPressed(1))
         // {
@@ -94,6 +102,7 @@ namespace SIMPEngine
         if (scene)
             scene->OnRender();
 
+        anim->Draw(800, 800, 200,200);
         // // Renderer::DrawQuad(0, 0, 200, 200);
         // Renderer::DrawQuad(0, 0, 1280, 720, 0.0, {255, 0, 0, 255});
 

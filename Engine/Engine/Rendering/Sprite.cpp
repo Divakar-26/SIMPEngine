@@ -7,7 +7,7 @@ namespace SIMPEngine
     Sprite::Sprite(std::shared_ptr<Texture> texture)
         : m_Texture(std::move(texture)), m_HasSourceRect(false) {}
 
-    Sprite::Sprite(std::shared_ptr<Texture> texture,const SDL_FRect& srcRect)
+    Sprite::Sprite(std::shared_ptr<Texture> texture, const SDL_FRect &srcRect)
         : m_Texture(std::move(texture)), m_SourceRect(srcRect), m_HasSourceRect(true) {}
 
     void Sprite::SetTexture(std::shared_ptr<Texture> texture)
@@ -15,7 +15,7 @@ namespace SIMPEngine
         m_Texture = std::move(texture);
     }
 
-    void Sprite::SetSourceRect(const SDL_FRect& srcRect)    
+    void Sprite::SetSourceRect(const SDL_FRect &srcRect)
     {
         m_SourceRect = srcRect;
         m_HasSourceRect = true;
@@ -27,7 +27,6 @@ namespace SIMPEngine
         m_SourceRect = {0, 0, 0, 0};
     }
 
-
     void Sprite::Draw(float x, float y, float width, float height,
                       SDL_Color tint, float rotation) const
     {
@@ -37,21 +36,24 @@ namespace SIMPEngine
             return;
         }
 
-        GLuint sdlTex = m_Texture->GetID();
-        if (!sdlTex)
-        {
-            CORE_ERROR("Texture is invalid (SDL_Texture is null)!");
-            return;
-        }
-
-        // TODO -> manage Z INDEX
         if (m_HasSourceRect)
         {
-            Renderer::DrawTexture(sdlTex, x, y, width, height, tint, rotation, 0);
+            Renderer::DrawTexture(
+                m_Texture,
+                x, y, width, height,
+                tint, rotation, 0.0f,
+                &m_SourceRect // ← FIXED
+            );
         }
         else
         {
-            Renderer::DrawTexture(sdlTex, x, y, width, height, tint, rotation, 0);
+            Renderer::DrawTexture(
+                m_Texture,
+                x, y, width, height,
+                tint, rotation, 0.0f,
+                nullptr // ← FIXED
+            );
         }
     }
+
 }

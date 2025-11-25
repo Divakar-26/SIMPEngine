@@ -134,7 +134,7 @@ namespace SIMPEngine
             if (spriteComp.texture)
             {
                 Renderer::DrawTexture(
-                    spriteComp.texture->GetID(),
+                    spriteComp.texture,
                     transform.position.x,
                     transform.position.y,
                     spriteComp.width * transform.scale.x,
