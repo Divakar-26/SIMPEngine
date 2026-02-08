@@ -19,3 +19,4 @@
 2. layers are not using timestep
 3. Make a VFS on Engine startUP -> DONE
 4. use central width, and height    
+5. Make the physics component serialised

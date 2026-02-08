@@ -1,16 +1,15 @@
 Scene: Level1
 Entities:
-  - Tag: Ball
+  - Tag: RightPlayer
     Transform:
-      position: [0, 0]
+      position: [900, 0]
       rotation: 0
       scale: [1, 1]
     Render:
-      color: [0, 255, 0, 255]
-      size: [40, 40]
+      color: [255, 255, 255, 255]
+      size: [50, 200]
     Camera:
       primary: false
-
   - Tag: LeftPlayer
     Transform:
       position: [-900, 0]
@@ -21,14 +20,13 @@ Entities:
       size: [50, 200]
     Camera:
       primary: false
-
-  - Tag: RightPlayer
+  - Tag: Ball
     Transform:
-      position: [900, 0]
+      position: [0, 0]
       rotation: 0
       scale: [1, 1]
     Render:
-      color: [255, 255, 255, 255]
-      size: [50, 200]
+      color: [0, 255, 0, 255]
+      size: [40, 40]
     Camera:
       primary: false
