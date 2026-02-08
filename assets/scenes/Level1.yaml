@@ -10,25 +10,15 @@ Entities:
       size: [40, 40]
     Camera:
       primary: false
-
-  - Tag: LeftPlayer
-    Transform:
-      position: [-900, 0]
+    Physics:
+      shape: CIRCLE
+      position: [0, 0]
       rotation: 0
-      scale: [1, 1]
-    Render:
-      color: [255, 255, 0, 255]
-      size: [50, 200]
-    Camera:
-      primary: false
-
-  - Tag: RightPlayer
-    Transform:
-      position: [900, 0]
-      rotation: 0
-      scale: [1, 1]
-    Render:
-      color: [255, 255, 255, 255]
-      size: [50, 200]
-    Camera:
-      primary: false
+      inverse_mass: 1
+      radius: 20
+      velocity: [0, 0]
+      restitution: 1
+      static_friction: 0
+      dynamic_friction: 0
+      lock_rotation: true
+      lock_position: false
