@@ -82,7 +82,6 @@ namespace SIMPEngine
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         // InitFramebuffer(m_ViewportWidth, m_ViewportHeight);
-        SetProjection(m_ViewportWidth, m_ViewportHeight);
     }
 
     void GLRenderingAPI::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
@@ -147,7 +146,7 @@ namespace SIMPEngine
                 0.5f, -0.5f, 0.0f, u2, v1, // Bottom-right
                 -0.5f, -0.5f, 0.0f, u1, v1 // Bottom-left
             };
-            
+
             glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
             glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(newVertices), newVertices);
 
@@ -200,21 +199,6 @@ namespace SIMPEngine
         m_Shader->SetUniform1i("uUseTexture", useTexture ? 1 : 0);
     }
 
-    void GLRenderingAPI::SetProjection(float viewportWidth, float viewportHeight)
-    {
-        float orthoSize = 540.0f;
-        float aspect = viewportWidth / viewportHeight;
-
-        m_Projection = glm::ortho(
-            -orthoSize * aspect,
-            orthoSize * aspect,
-            -orthoSize,
-            orthoSize,
-            -1000.0f, 1000.0f);
-
-        // later when i can do it, so if window_w is less thatn window_h thne sstart x scaling
-    }
-
     void GLRenderingAPI::SetViewMatrix(const glm::mat4 &view) { m_ViewMatrix = view; }
 
     // to be only used by editor later
@@ -261,7 +245,6 @@ namespace SIMPEngine
         m_ViewportWidth = width;
         m_ViewportHeight = height;
         InitFramebuffer(width, height);
-        SetProjection(width, height);
     }
 
     unsigned int GLRenderingAPI::GetViewportTexture() { return m_ColorAttachment; }
@@ -284,5 +267,10 @@ namespace SIMPEngine
 
     glm::vec2 GLRenderingAPI::TransformPosition(float x, float y) const { return {x, y}; }
     glm::vec2 GLRenderingAPI::TransformSize(float w, float h) const { return {w, h}; }
+
+    void GLRenderingAPI::SetProjectionMatrix(const glm::mat4 &proj)
+    {
+        m_Projection = proj;
+    }
 
 } // namespace SIMPEngine

@@ -7,21 +7,17 @@
 float kl = 0.0f;
 float roatation = 0.0f;
 
-
-
 namespace SIMPEngine
 {
 
     void RenderingLayer::OnAttach()
-    {   
+    {
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 
         // auto scene = std::make_shared<SIMPEngine::Scene>("Level1");
         // m_SceneManager->AddScene("Level1", scene);
         // m_SceneManager->SetActiveScene("Level1");
-
-    
     }
 
     void RenderingLayer::OnDetach()
@@ -31,7 +27,6 @@ namespace SIMPEngine
     void RenderingLayer::OnUpdate(TimeStep ts)
     {
         // auto &camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
-
 
         // glm::vec2 rawMouse(Input::GetMousePosition().first,
         //                    Input::GetMousePosition().second);
@@ -44,26 +39,30 @@ namespace SIMPEngine
         // screen.x = rawMouse.x - windowW * 0.5f;
         // screen.y = (windowH * 0.5f) - rawMouse.y;
 
-
-
         auto scene = m_SceneManager->GetActiveScene();
-        if(scene){
+        if (scene)
+        {
             scene->OnUpdate(ts.GetSeconds());
         }
 
         SceneSerializer s(scene.get());
 
-        if(Input::IsKeyPressed(SIMPK_F1)){
+        if (Input::IsKeyPressed(SIMPK_F1))
+        {
             scene->Clear();
             s.Deserialize("assets://scenes/Level1.yaml");
         }
 
 
         // glm::vec2 world = camera.ScreenToWorld(screen);
-        // if (Input::IsMouseButtonPressed(1))
-        // {
-        //     std::cout << "Mouse World = " << world.x << " " << world.y << std::endl;
-        // }
+        if (Input::IsMouseButtonPressed(1))
+        {
+            auto pos = Input::GetMousePosition();
+            glm::vec2 cor = {pos.first, pos.second};
+            auto world = scene->GetActiveCamera().ScreenToWorld(cor);
+            std::cout << world.x << " " << world.y << std::endl;
+
+        }
         // if (Input::IsKeyPressed(SIMPK_LEFT))
         // {
         //     camera.Move({-200.0f * ts.GetSeconds(), 0});
@@ -79,7 +78,7 @@ namespace SIMPEngine
 
     void RenderingLayer::OnRender()
     {
-        auto scene = m_SceneManager->GetActiveScene();  
+        auto scene = m_SceneManager->GetActiveScene();
 
         if (scene)
             scene->OnRender();
@@ -87,8 +86,8 @@ namespace SIMPEngine
         int width = Renderer::m_WindowWidth;
         int height = Renderer::m_WindowHeight;
 
-        CORE_ERROR("{} {}",width, height);
-        Renderer::DrawQuad(0,0, width, height, 0.0f, {255,255,255,255}, false, 0);
+        // CORE_ERROR("{} {}", width, height);
+        Renderer::DrawQuad(0, 0, width, height, 0.0f, {255, 255, 255, 255}, false, 0);
 
         Renderer::Flush();
     }
@@ -106,8 +105,8 @@ namespace SIMPEngine
 
         Renderer::GetAPI()->ResizeViewport(width, height);
 
-        // auto &camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
-        // camera.SetViewportSize(width, height);
+        auto &camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
+        camera.SetViewportSize(width, height);
 
         CORE_INFO("Viewport resized: {}x{}", width, height);
         return false; });

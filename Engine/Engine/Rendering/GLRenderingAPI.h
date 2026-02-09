@@ -28,8 +28,9 @@ namespace SIMPEngine
         void Flush() override {}
 
         void ResizeViewport(int, int) override;
-        void SetProjection(float width, float height);
         void SetViewMatrix(const glm::mat4 &view) override;
+        void SetProjectionMatrix(const glm::mat4& proj) override;
+
 
         unsigned int GetViewportTexture() override;
         glm::vec2 GetViewportSize() {return {m_ViewportWidth, m_ViewportHeight};}

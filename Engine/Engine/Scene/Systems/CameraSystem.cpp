@@ -13,25 +13,24 @@ namespace SIMPEngine
             auto &transform = cameraView.get<TransformComponent>(entity);
 
             if (camComp.primary)
-            {      
-                camComp.Camera.SetPosition({transform.position.x , transform.position.y});
+            {
+                camComp.Camera.SetPosition({transform.position.x, transform.position.y});
                 camComp.Camera.Update(dt);
                 break;
             }
         }
-        
-        m_MainCamera.Update(dt);
 
+        m_MainCamera.Update(dt);
     }
 
     void CameraSystem::OnRender(entt::registry &registry)
     {
         Camera2D *activeCamera = GetActiveCameraPtr(registry);
 
-        if (activeCamera)
-        {
-            Renderer::SetViewMatrix(activeCamera->GetViewMatrix());
-        }
+        Renderer::GetAPI()->SetProjectionMatrix(activeCamera->GetProjectionMatrix());
+
+        Renderer::SetViewMatrix(
+            activeCamera->GetViewMatrix());
     }
 
     bool CameraSystem::HasActiveCamera(entt::registry &registry)

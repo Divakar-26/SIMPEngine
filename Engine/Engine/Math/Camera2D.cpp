@@ -52,51 +52,75 @@ namespace SIMPEngine
 
     void Camera2D::Update(float deltaTime)
     {
-        m_Position += (m_TargetPosition - m_Position) * glm::clamp(m_SmoothFactor * deltaTime, 0.0f, 1.0f);
+        m_Position +=
+            (m_TargetPosition - m_Position) *
+            glm::clamp(m_SmoothFactor * deltaTime, 0.0f, 1.0f);
 
-        glm::vec2 delta(0.0f);
+        glm::vec2 moveDelta(0.0f);
+
         if (Input::IsKeyPressed(SIMPK_A))
-            delta.x -= m_MoveSpeed * deltaTime;
+            moveDelta.x -= m_MoveSpeed * deltaTime;
+
         if (Input::IsKeyPressed(SIMPK_D))
-            delta.x += m_MoveSpeed * deltaTime;
+            moveDelta.x += m_MoveSpeed * deltaTime;
+
         if (Input::IsKeyPressed(SIMPK_W))
-            delta.y -= m_MoveSpeed * deltaTime;
+            moveDelta.y -= m_MoveSpeed * deltaTime;
+
         if (Input::IsKeyPressed(SIMPK_S))
-            delta.y += m_MoveSpeed * deltaTime;
+            moveDelta.y += m_MoveSpeed * deltaTime;
+
+        Move(moveDelta);
 
         int wheelDelta = Input::GetMouseWheel();
+
         if (wheelDelta > 0)
             m_ManualZoom += 0.1f * wheelDelta;
-        else if (wheelDelta < 0)
-            m_ManualZoom -= 0.1f * -wheelDelta;
-        Move(delta);
 
-        // --- Middle Mouse Panning ---
+        if (wheelDelta < 0)
+            m_ManualZoom -= 0.1f * -wheelDelta;
+
+        m_ManualZoom =
+            glm::clamp(m_ManualZoom, 0.1f, 10.0f);
+
+        glm::vec2 mousePixel(
+            Input::GetMousePosition().first,
+            Input::GetMousePosition().second);
+
         if (Input::IsMouseButtonPressed(SIMPK_MOUSE_MIDDLE))
         {
-            glm::vec2 mousePos(Input::GetMousePosition().first, -Input::GetMousePosition().second);
-
             if (!m_Panning)
             {
                 m_Panning = true;
-                m_LastMousePos = mousePos;  
+                m_LastMousePixel = mousePixel;
             }
+            else
+            {
+                glm::vec2 pixelDelta =
+                    mousePixel - m_LastMousePixel;
 
-            glm::vec2 delta = mousePos - m_LastMousePos;
-            m_LastMousePos = mousePos;
+                pixelDelta.y = -pixelDelta.y;
 
-            delta /= m_ManualZoom;
+                float scale =
+                    (540.0f * m_ManualZoom) /
+                    (float)m_ViewportHeight;
 
-            Move(-delta);
+                glm::vec2 worldDelta =
+                    pixelDelta * scale;
+
+                m_Position -= worldDelta;
+
+                m_TargetPosition = m_Position;
+
+                m_LastMousePixel = mousePixel;
+            }
         }
         else
         {
             m_Panning = false;
         }
 
-        m_ManualZoom = glm::clamp(m_ManualZoom, 0.1f, 10.0f);
         m_Dirty = true;
-        // CORE_ERROR("{} {} {}", m_Position.x , m_Position.y, m_ManualZoom);
     }
 
     glm::mat4 Camera2D::GetViewMatrix() const
@@ -107,30 +131,37 @@ namespace SIMPEngine
     }
     void Camera2D::RecalculateViewMatrix() const
     {
-        float totalZoom = m_BaseZoom * m_ManualZoom;
+        glm::mat4 view(1.0f);
 
-        float halfWidth = m_ViewportWidth / 2.0f;
-        float halfHeight = m_ViewportHeight / 2.0f;
+        // Move world opposite to camera
+        view = glm::translate(view,
+                              glm::vec3(-m_Position.x,
+                                        -m_Position.y,
+                                        0.0f));
 
-        glm::mat4 transform(1.0f);
-        if (!isCentered)
-        {
-            // Origin = top-left
-            transform = glm::translate(transform, glm::vec3(halfWidth, halfHeight, 0.0f));
-            transform = glm::scale(transform, glm::vec3(totalZoom, totalZoom, 1.0f));
-            transform = glm::translate(transform, glm::vec3(-m_Position.x, -m_Position.y, 0.0f));
-            transform = glm::rotate(transform, glm::radians(-m_Rotation), glm::vec3(0, 0, 1));
-        }
-        else
-        {
-            // Origin = center
-            transform = glm::translate(transform, glm::vec3(-m_Position.x, -m_Position.y, 0.0f));
-            transform = glm::rotate(transform, glm::radians(-m_Rotation), glm::vec3(0, 0, 1));
-            transform = glm::scale(transform, glm::vec3(totalZoom, totalZoom, 1.0f));
-        }
+        // Rotate world opposite to camera
+        view = glm::rotate(view,
+                           glm::radians(-m_Rotation),
+                           glm::vec3(0, 0, 1));
 
-        m_ViewMatrix = transform;
+        m_ViewMatrix = view;
         m_Dirty = false;
+    }
+
+    glm::mat4 Camera2D::GetProjectionMatrix() const
+    {
+        float aspect =
+            (float)m_ViewportWidth /
+            (float)m_ViewportHeight;
+
+        float size = 540.0f * m_ManualZoom;
+
+        return glm::ortho(
+            -size * aspect,
+            size * aspect,
+            -size,
+            size,
+            -1.0f, 1.0f);
     }
 
     void Camera2D::SetViewportSize(float width, float height)
@@ -145,17 +176,49 @@ namespace SIMPEngine
         RecalculateViewMatrix();
     }
 
-    glm::vec2 Camera2D::WorldToScreen(const glm::vec2 &worldPos) const
+    glm::vec2 Camera2D::WorldToScreen(
+        const glm::vec2 &worldPos) const
     {
-        glm::vec4 screenPos = m_ViewMatrix * glm::vec4(worldPos, 0.0f, 1.0f);
-        return glm::vec2(screenPos.x, screenPos.y);
+        glm::mat4 VP =
+            GetProjectionMatrix() * GetViewMatrix();
+
+        glm::vec4 clip =
+            VP * glm::vec4(worldPos, 0, 1);
+
+        if (clip.w != 0)
+            clip /= clip.w;
+
+        float px =
+            (clip.x + 1.0f) * 0.5f * m_ViewportWidth;
+
+        float py =
+            (1.0f - clip.y) * 0.5f * m_ViewportHeight;
+
+        return {px, py};
     }
 
-    glm::vec2 Camera2D::ScreenToWorld(const glm::vec2 &screenPos) const
+    glm::vec2 Camera2D::ScreenToWorld(
+        const glm::vec2 &pixel) const
     {
-        glm::mat4 inverseView = glm::inverse(m_ViewMatrix);
-        glm::vec4 worldPos = inverseView * glm::vec4(screenPos, 0.0f, 1.0f);
-        return glm::vec2(worldPos.x, worldPos.y);
+        if (m_ViewportWidth == 0 || m_ViewportHeight == 0)
+            return {0, 0};
+
+        // pixel → NDC (-1 to 1)
+        float ndcX =
+            (2.0f * pixel.x) / m_ViewportWidth - 1.0f;
+
+        float ndcY =
+            1.0f - (2.0f * pixel.y) / m_ViewportHeight;
+
+        glm::vec4 clip(ndcX, ndcY, 0, 1);
+
+        glm::mat4 invVP =
+            glm::inverse(
+                GetProjectionMatrix() * GetViewMatrix());
+
+        glm::vec4 world = invVP * clip;
+
+        return {world.x, world.y};
     }
 
     void Camera2D::GetVisibleWorldBounds(float &left, float &right, float &top, float &bottom) const

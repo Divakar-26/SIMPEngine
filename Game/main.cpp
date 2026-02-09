@@ -26,18 +26,6 @@ public:
         SIMPEngine::SceneSerializer serializer(scene1.get());
         serializer.Deserialize("assets://scenes/Level1.yaml"); // this point everything parses
 
-        auto entity = scene1->GetEntityByName("Ball");
-        auto &script = entity.AddComponent<ScriptComponent>();
-        script.Bind<BallScript>();
-
-        auto leftPlayer = scene1->GetEntityByName("LeftPlayer");
-        auto &leftPlayerScript = leftPlayer.AddComponent<ScriptComponent>();
-        leftPlayerScript.Bind<LeftPlayerMove>();
-
-        auto rigthPlayer = scene1->GetEntityByName("RightPlayer");
-        auto &rigthPlayerScript = rigthPlayer.AddComponent<ScriptComponent>();
-        rigthPlayerScript.Bind<RightPlayerMove>();
-
         serializer.Serialize("assets://scenes/Level2.yaml");
         SIMPEngine::RenderingLayer *m_RenderingLayer = new SIMPEngine::RenderingLayer(sceneManager);
 

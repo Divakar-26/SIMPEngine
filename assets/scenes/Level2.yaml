@@ -1,5 +1,34 @@
 Scene: Level1
 Entities:
+  - Tag: Ball2
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      scale: [1, 1]
+    Render:
+      color: [0, 255, 0, 255]
+      size: [40, 40]
+    Animation:
+      texture: assets://textures/coin.png
+      frame_width: 16
+      frame_height: 16
+      frame_count: 12
+      frame_duration: 0.1
+      looping: true
+    Camera:
+      primary: false
+    Physics:
+      shape: AABB
+      position: [-1000, 0]
+      rotation: 2
+      inverse_mass: 1
+      half_size: [20, 20]
+      velocity: [0, 0]
+      restitution: 2
+      static_friction: 0
+      dynamic_friction: 0
+      lock_rotation: true
+      lock_position: false
   - Tag: Ball
     Transform:
       position: [0, 0]
@@ -11,56 +40,12 @@ Entities:
     Camera:
       primary: false
     Physics:
-      shape: CIRCLE
+      shape: AABB
       position: [0, 0]
       rotation: 0
       inverse_mass: 1
-      radius: 20
-      velocity: [500, 200]
-      restitution: 1
-      static_friction: 0
-      dynamic_friction: 0
-      lock_rotation: true
-      lock_position: false
-  - Tag: LeftPlayer
-    Transform:
-      position: [-900, 0]
-      rotation: 0
-      scale: [1, 1]
-    Render:
-      color: [255, 255, 0, 255]
-      size: [50, 200]
-    Camera:
-      primary: false
-    Physics:
-      shape: AABB
-      position: [-900, 0]
-      rotation: 0
-      inverse_mass: 0
-      half_size: [25, 100]
-      velocity: [0, 0]
-      restitution: 1
-      static_friction: 0
-      dynamic_friction: 0
-      lock_rotation: false
-      lock_position: false
-  - Tag: RightPlayer
-    Transform:
-      position: [900, 0]
-      rotation: 0
-      scale: [1, 1]
-    Render:
-      color: [255, 255, 255, 255]
-      size: [50, 200]
-    Camera:
-      primary: false
-    Physics:
-      shape: AABB
-      position: [900, 0]
-      rotation: 0
-      inverse_mass: 0
-      half_size: [25, 100]
-      velocity: [0, 0]
+      half_size: [20, 20]
+      velocity: [100, 0]
       restitution: 1
       static_friction: 0
       dynamic_friction: 0

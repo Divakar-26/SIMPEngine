@@ -28,6 +28,7 @@ namespace SIMPEngine
 
         glm::mat4 GetViewMatrix() const;
 
+        glm::mat4 GetProjectionMatrix() const;
         void SetViewportSize(float width, float height);
         std::pair<int, int> GetViewportSize() { return {m_ViewportWidth, m_ViewportHeight}; }
 
@@ -36,16 +37,6 @@ namespace SIMPEngine
         glm::vec2 ScreenToWorld(const glm::vec2 &screenPos) const;
 
         void GetVisibleWorldBounds(float &left, float &right, float &top, float &bottom) const;
-
-        glm::mat4 GetProjectionMatrix() const
-        {
-            float w = (float)m_ViewportWidth;
-            float h = (float)m_ViewportHeight;
-            float halfW = w * 0.5f / m_ManualZoom;
-            float halfH = h * 0.5f / m_ManualZoom;
-
-            return glm::ortho(-halfW, halfW, -halfH, halfH, -1.0f, 1.0f);
-        }
 
         void SetCentered(bool centered) { isCentered = centered; }
         bool IsCentered() const { return isCentered; }
@@ -89,5 +80,10 @@ namespace SIMPEngine
 
         glm::vec2 m_LastMousePos{0.0f};
         bool m_Panning = false;
+
+        glm::vec2 m_PanStartWorld{0};
+        glm::vec2 m_PanStartCamPos{0};
+        glm::vec2 m_LastMousePixel{0.0f};
+
     };
 }
