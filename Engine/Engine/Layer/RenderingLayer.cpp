@@ -53,7 +53,6 @@ namespace SIMPEngine
             s.Deserialize("assets://scenes/Level1.yaml");
         }
 
-
         // glm::vec2 world = camera.ScreenToWorld(screen);
         if (Input::IsMouseButtonPressed(1))
         {
@@ -62,6 +61,33 @@ namespace SIMPEngine
             auto world = scene->GetActiveCamera().ScreenToWorld(cor);
             std::cout << world.x << " " << world.y << std::endl;
 
+            Entity e = scene->CreateEntity("test");
+
+            auto &t =
+                e.GetComponent<TransformComponent>();
+
+            t.position.x = world.x;
+            t.position.y = world.y;
+            
+            auto & r = e.AddComponent<RenderComponent>();
+
+            r.width = 20;
+            r.height = 20;
+            r.color = {255, 0,0,255};
+
+            // auto & p = e.AddComponent<PhysicsComponent>();
+            
+            // p.body = new AccelEngine::RigidBody();
+            // p.body->shapeType = AccelEngine::ShapeType::AABB;   
+            // p.body->aabb.halfSize = {10, 10};
+            // p.body->position = {world.x, world.y};
+            // p.body->rotation = 0.0;
+            // p.body->inverseMass = 1;
+            // p.body->restitution = 1;
+            // p.body->calculateInertia();
+
+            // scene->physicsWorld.addBody(p.body);
+            // scene->bodies.push_back(p.body);
         }
         // if (Input::IsKeyPressed(SIMPK_LEFT))
         // {
