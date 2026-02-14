@@ -24,3 +24,4 @@
 7. Diffrent animation system like (animation.play("run")) etc
 8. Tiles
 9. Parralax 
+10. Dirty in transform and Hierarchy

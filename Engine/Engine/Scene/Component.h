@@ -8,7 +8,10 @@
 
 #include <SDL3/SDL_rect.h>
 #include <memory>
+#include <vector>
 #include <string>
+
+#include <entt/entt.hpp>
 
 namespace SIMPEngine
 {
@@ -17,20 +20,24 @@ namespace SIMPEngine
 
 struct TransformComponent
 {
-    glm::vec2 position{0.0f, 0.0f};
-    float rotation = 0.0f;
-    glm::vec2 scale{1.0f, 1.0f};
-    float zIndex = 0.0f;
+    glm::vec2 position{0,0};
+    float rotation = 0;
+    glm::vec2 scale{1,1};
+    float zIndex = 0;
 
-    glm::mat4 GetTransform() const
+    glm::mat4 worldTransform;
+
+    bool dirty = true;
+
+    glm::mat4 GetLocalTransform() const
     {
-        glm::mat4 transform = glm::mat4(1.0f);
-        transform = glm::translate(transform, glm::vec3(position, zIndex));
-        transform = glm::rotate(transform, glm::radians(rotation), {0, 0, 1});
-        transform = glm::scale(transform, glm::vec3(scale, 1.0f));
-        return transform;
+        glm::mat4 t = glm::translate(glm::mat4(1), {position, zIndex});
+        t = glm::rotate(t, glm::radians(rotation), {0,0,1});
+        t = glm::scale(t, {scale,1});
+        return t;
     }
 };
+
 
 struct CollisionComponent
 {
@@ -70,7 +77,6 @@ struct VelocityComponent
     float vy = 0.0f;
 };
 
-
 struct CameraComponent
 {
     SIMPEngine::Camera2D Camera;
@@ -97,10 +103,22 @@ struct ScriptComponent
     }
 };
 
-struct PhysicsComponent{
-    AccelEngine::RigidBody * body = nullptr;
+struct PhysicsComponent
+{
+    AccelEngine::RigidBody *body = nullptr;
 };
 
-struct AnimatedSpriteComponent{
-    SIMPEngine::Animation * animation = nullptr;
+struct AnimatedSpriteComponent
+{
+    SIMPEngine::Animation *animation = nullptr;
+};
+
+struct HierarchyComponent
+{
+    entt::entity parent = entt::null;
+    std::vector<entt::entity> children;
+};
+
+struct LifetimeComponent{
+    float remaining = 1.0f;
 };

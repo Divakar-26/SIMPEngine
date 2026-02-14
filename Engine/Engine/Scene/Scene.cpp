@@ -81,6 +81,9 @@ namespace SIMPEngine
         cameraSystem.OnUpdate(m_Registry, deltaTime);
         movementSystem.Update(m_Registry, deltaTime);
         collisionSystem.Update(m_Registry, deltaTime);
+        hierarchySystem.Update(m_Registry);
+        lifetimeSystem.Update(m_Registry, deltaTime);
+
 
         auto view = m_Registry.view<ScriptComponent>();
         for (auto entityHandle : view)
@@ -226,9 +229,12 @@ namespace SIMPEngine
             auto &transform = m_Registry.get<TransformComponent>(entity);
             auto &render = m_Registry.get<RenderComponent>(entity);
 
+            glm::vec3 worldPos =
+                transform.worldTransform[3];
+
             Renderer::DrawQuad(
-                transform.position.x,
-                transform.position.y,
+                worldPos.x,
+                worldPos.y,
                 render.width * transform.scale.x,
                 render.height * transform.scale.y,
                 transform.rotation,

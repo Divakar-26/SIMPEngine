@@ -5,6 +5,8 @@
 #include <Engine/Scene/Systems/MovementSystem.h>
 #include <Engine/Scene/Systems/CollisionSystem.h>
 #include <Engine/Scene/Systems/CameraSystem.h>
+#include <Engine/Scene/Systems/HierarchySystem.h>
+#include <Engine/Scene/Systems/LifetimeSystem.h>
 
 #include <AccelEngine/world.h>
 #include <AccelEngine/ForceRegistry.h>
@@ -29,7 +31,6 @@ namespace SIMPEngine
 
         void Clear();
 
-
         Entity CreatePlayer();
         Entity CreateEntity(const std::string &name = "");
         Entity GetEntityByName(const std::string &name);
@@ -53,11 +54,25 @@ namespace SIMPEngine
         void RenderSprites();
         void RenderColliders();
 
+        void SetParent(entt::entity child,
+                       entt::entity parent)
+        {
+            auto &ch =
+                m_Registry.get_or_emplace<HierarchyComponent>(child);
+
+            auto &ph =
+                m_Registry.get_or_emplace<HierarchyComponent>(parent);
+
+            ch.parent = parent;
+            ph.children.push_back(child);
+        }
+
         // temp
 
         AccelEngine::World physicsWorld;
         std::vector<AccelEngine::RigidBody *> bodies;
         AccelEngine::ForceRegistry physicsRegistry;
+
     private:
         std::string m_Name;
         entt::registry m_Registry;
@@ -65,5 +80,7 @@ namespace SIMPEngine
         MovementSystem movementSystem;
         CollisionSystem collisionSystem;
         CameraSystem cameraSystem;
+        HierarchySystem hierarchySystem;
+        LifetimeSystem lifetimeSystem;
     };
 }
