@@ -57,19 +57,10 @@ namespace SIMPEngine
             s_RenderingAPI->SetViewMatrix(view);
     }
 
-    const glm::mat4 &Renderer::GetViewMatrix()
-    {
-        // return s_ViewMatrix;
-    }
 
     void Renderer::DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float w, float h, SDL_Color tint, float rotation, float zIndex, const SDL_FRect* srcRect)
     {
         s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation, zIndex, srcRect);
-    }
-
-    std::shared_ptr<Texture> Renderer::CreateTexture(const char *path)
-    {
-        // return s_RenderingAPI->CreateTexture(path);
     }
 
 

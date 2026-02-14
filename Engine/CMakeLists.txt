@@ -3,6 +3,7 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Log.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/FileSystem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/VFS.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Profiler.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/AssetRegistry.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/TextureImporter.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/Importers.cpp

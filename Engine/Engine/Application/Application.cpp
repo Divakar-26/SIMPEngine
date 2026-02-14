@@ -2,6 +2,7 @@
 #include <Engine/Application/Application.h>
 #include <Engine/Core/FileSystem.h>
 #include <Engine/Core/VFS.h>
+#include <Engine/Core/Profiler.h>
 
 namespace SIMPEngine
 {
@@ -61,15 +62,18 @@ namespace SIMPEngine
                 layer->OnUpdate(deltaTime);
 
             // Rendering
-            Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
-            Renderer::Clear();
+            {
+                ProfileTimer timer("Render");
+                Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
+                Renderer::Clear();
 
-            m_ImGuiLayer->Begin();
+                m_ImGuiLayer->Begin();
 
-            for (Layer *layer : m_LayerStack)
-                layer->OnRender();
+                for (Layer *layer : m_LayerStack)
+                    layer->OnRender();
 
-            m_ImGuiLayer->End();
+                m_ImGuiLayer->End();
+            }
 
             // Renderer::Present();
             // SDL_GL_SwapWindow(m_Window.GetNativeWindow());
