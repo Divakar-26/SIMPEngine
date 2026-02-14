@@ -15,6 +15,26 @@ namespace SIMPEngine
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
 
+        auto scene = m_SceneManager->GetActiveScene();
+        for (int i = 0; i < 100000; i++)
+        {
+            Entity e = scene->CreateEntity("test");
+
+            auto &t =
+                e.GetComponent<TransformComponent>();
+
+            t.position.x = 100;
+            t.position.y = 100;
+
+            auto &r = e.AddComponent<RenderComponent>();
+
+            r.width = 40;
+            r.height = 40;
+            r.color = {255, 0, 0, 255};
+            static int count = 0;
+            CORE_ERROR("{}", count++);
+        }
+
         // auto scene = std::make_shared<SIMPEngine::Scene>("Level1");
         // m_SceneManager->AddScene("Level1", scene);
         // m_SceneManager->SetActiveScene("Level1");

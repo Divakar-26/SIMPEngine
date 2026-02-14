@@ -63,6 +63,7 @@ namespace SIMPEngine
 
             // Rendering
             {
+                
                 ProfileTimer timer("Render");
                 Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
                 Renderer::Clear();
@@ -74,6 +75,7 @@ namespace SIMPEngine
 
                 m_ImGuiLayer->End();
             }
+            
 
             // Renderer::Present();
             // SDL_GL_SwapWindow(m_Window.GetNativeWindow());
