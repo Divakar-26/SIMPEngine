@@ -1,0 +1,39 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/c++",
+      "-DFMT_SHARED",
+      "-DSPDLOG_COMPILED_LIB",
+      "-DSPDLOG_SHARED_LIB",
+      "-I/home/divakar/Desktop/SDLGameEngine/Engine",
+      "-I/home/divakar/Desktop/SDLGameEngine/Engine/Engine",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/entt/src",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/glm",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/glad/include",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/yaml-cpp/include",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/AccelEngine/include",
+      "-I/home/divakar/Desktop/SDLGameEngine/build/vendor/SDL/include-revision",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/SDL/include",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/SDL_image/include",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/spdlog/include",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/imgui",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/imgui/backends",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/ImGuizmo",
+      "-I/home/divakar/Desktop/SDLGameEngine/vendor/stb",
+      "-O3",
+      "-DNDEBUG",
+      "-fPIC",
+      "-std=gnu++20",
+      "-Winvalid-pch",
+      "-include",
+      "/home/divakar/Desktop/SDLGameEngine/build/Engine/CMakeFiles/Engine.dir/cmake_pch.hxx",
+      "-c",
+      "-o",
+      "CMakeFiles/Engine.dir/Engine/Scene/SceneSerializer.cpp.o",
+      "/home/divakar/Desktop/SDLGameEngine/Engine/Engine/Scene/SceneSerializer.cpp"
+    ],
+    "directory": "/home/divakar/Desktop/SDLGameEngine/build/Engine",
+    "file": "/home/divakar/Desktop/SDLGameEngine/Engine/Engine/Scene/SceneSerializer.cpp",
+    "output": "/home/divakar/Desktop/SDLGameEngine/build/Engine/CMakeFiles/Engine.dir/Engine/Scene/SceneSerializer.cpp.o"
+  }
+]

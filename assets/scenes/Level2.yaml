@@ -29,6 +29,28 @@ Entities:
       dynamic_friction: 0
       lock_rotation: true
       lock_position: false
+  - Tag: Ball3
+    Transform:
+      position: [500, 0]
+      rotation: 0
+      scale: [1, 1]
+    Render:
+      color: [255, 255, 0, 255]
+      size: [40, 40]
+    Camera:
+      primary: false
+    Physics:
+      shape: AABB
+      position: [500, 0]
+      rotation: 0
+      inverse_mass: 1
+      half_size: [20, 20]
+      velocity: [0, 0]
+      restitution: 1
+      static_friction: 0
+      dynamic_friction: 0
+      lock_rotation: false
+      lock_position: false
   - Tag: Ball
     Transform:
       position: [0, 0]

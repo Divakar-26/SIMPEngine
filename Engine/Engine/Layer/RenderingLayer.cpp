@@ -58,7 +58,7 @@ namespace SIMPEngine
         vc.vx = 100;
 
         auto & life = parent.AddComponent<LifetimeComponent>();
-        life.remaining = 3.0f;
+        life.remaining = 2.0f;
 
 
         

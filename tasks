@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 2,
+  "tags": [],
+  "lastNodeId": 2,
+  "nodes": [
+    {
+      "kind": "Checkbox",
+      "id": 1,
+      "name": "Prefabs",
+      "tags": [],
+      "description": "Creating pre fabricated data, for player / bullets / enemy etc ect",
+      "nodes": [],
+      "collapsed": true,
+      "checked": false
+    },
+    {
+      "kind": "Checkbox",
+      "id": 2,
+      "name": "Lighting",
+      "tags": [],
+      "description": "Create ligthing system, like bloom ambient etc",
+      "nodes": [],
+      "collapsed": true,
+      "checked": false
+    }
+  ]
+}

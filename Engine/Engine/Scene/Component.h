@@ -121,4 +121,4 @@ struct HierarchyComponent
 
 struct LifetimeComponent{
     float remaining = 1.0f;
-};
+};  

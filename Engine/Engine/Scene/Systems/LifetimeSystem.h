@@ -7,6 +7,22 @@ namespace SIMPEngine
     class LifetimeSystem
     {
     public:
+        void DestroyRecursive(entt::registry &reg, entt::entity e)
+        {
+            if (reg.any_of<HierarchyComponent>(e))
+            {
+                auto &h = reg.get<HierarchyComponent>(e);
+
+                for (auto child : h.children)
+                {
+                    if (reg.valid(child))
+                        DestroyRecursive(reg, child);
+                }
+            }
+
+            reg.destroy(e);
+        }
+
         void Update(entt::registry &reg, float dt)
         {
             std::vector<entt::entity> toDestroy;
@@ -24,7 +40,7 @@ namespace SIMPEngine
             }
 
             for (auto e : toDestroy)
-                reg.destroy(e);
+                DestroyRecursive(reg, e);
         }
     };
 }

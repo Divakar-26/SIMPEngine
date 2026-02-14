@@ -84,7 +84,6 @@ namespace SIMPEngine
         hierarchySystem.Update(m_Registry);
         lifetimeSystem.Update(m_Registry, deltaTime);
 
-
         auto view = m_Registry.view<ScriptComponent>();
         for (auto entityHandle : view)
         {
@@ -109,6 +108,22 @@ namespace SIMPEngine
             physicsWorld.step(subdt, 1);
         }
 
+        // collision checking
+        for (auto &ev : physicsWorld.GetCollisionEvents())
+        {
+            entt::entity ea = (entt::entity)ev.a->entityID;
+            entt::entity eb = (entt::entity)ev.b->entityID;
+
+            if (!m_Registry.valid(ea) || !m_Registry.valid(eb))
+                continue;
+
+            Entity A{ea, this};
+            Entity B{eb, this};
+
+            std::cout << "Collision!\n";
+        }
+
+        // upgrading all animation
         auto animView = m_Registry.view<AnimatedSpriteComponent>();
         for (auto entity : animView)
         {
