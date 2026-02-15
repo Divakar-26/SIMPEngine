@@ -26,6 +26,8 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneManager.cpp
         # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/ScriptableEntity.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/CameraSystem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/PhysicsSystem.cpp
+
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneSerializer.cpp
         # ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c
     )

@@ -366,7 +366,7 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
           phys.body->shapeType = AccelEngine::ShapeType::CIRCLE;
           phys.body->circle.radius = radius;
         } else {
-          auto hs = p["half_size"];
+          auto hs = p["half_size"]; 
           if (!hs || hs.size() < 2)
             continue;
 
@@ -389,8 +389,8 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
 
         phys.body->calculateInertia();
 
-        m_Scene->physicsWorld.addBody(phys.body);
-        m_Scene->bodies.push_back(phys.body);
+        m_Scene->GetPhysicsWorld().addBody(phys.body);
+        m_Scene->GetPhysicsSystem().bodies.push_back(phys.body);
       }
     } catch (const YAML::Exception &e) {
       CORE_ERROR("Entity deserialize error: {}", e.what());

@@ -60,7 +60,7 @@ Entities:
       color: [0, 255, 0, 255]
       size: [40, 40]
     Camera:
-      primary: false
+      primary: true
     Physics:
       shape: AABB
       position: [0, 0]
