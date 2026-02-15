@@ -52,14 +52,16 @@ namespace SIMPEngine
 
         style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
 
-        io.Fonts->AddFontFromFileTTF("../assets/JetBrainsMonoNerdFont-Regular.ttf", 18.0f);
+        // if(io.Fonts->AddFontFromFileTTF("../assets/JetBrainsMonoNerdFont-Regular.ttf", 18.0f)){
+        //     CORE_ERROR("Could not load the fonts");
+        // }
 
-        ImFontConfig config;
-        config.MergeMode = true;
-        config.PixelSnapH = true;
+        // ImFontConfig config;
+        // config.MergeMode = true;
+        // config.PixelSnapH = true;
 
-        static const ImWchar icon_ranges[] = {0xE000, 0xE7BF, 0};
-        io.Fonts->AddFontFromFileTTF("../assets/myicons.ttf", 18.0f, &config, icon_ranges);
+        // static const ImWchar icon_ranges[] = {0xE000, 0xE7BF, 0};
+        // io.Fonts->AddFontFromFileTTF("../assets/myicons.ttf", 18.0f, &config, icon_ranges);
 
         // Init backends
         ImGui_ImplSDL3_InitForOpenGL(m_Window, SDL_GL_GetCurrentContext());
