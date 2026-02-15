@@ -8,6 +8,8 @@
 #include <Engine/Scene/Systems/HierarchySystem.h>
 #include <Engine/Scene/Systems/LifetimeSystem.h>
 #include <Engine/Scene/Systems/PhysicsSystem.h>
+#include <Engine/Scene/Systems/AnimationSystem.h>
+#include <Engine/Scene/Systems/RenderSystem.h>
 
 #include <AccelEngine/world.h>
 #include <AccelEngine/ForceRegistry.h>
@@ -32,7 +34,6 @@ namespace SIMPEngine
 
         void Clear();
 
-        Entity CreatePlayer();
         Entity CreateEntity(const std::string &name = "");
         Entity GetEntityByName(const std::string &name);
 
@@ -59,23 +60,7 @@ namespace SIMPEngine
             return physicsSystem;
         }
 
-        // helper functions
-        void RenderQuad();
-        void RenderSprites();
-        void RenderColliders();
-
-        void SetParent(entt::entity child,
-                       entt::entity parent)
-        {
-            auto &ch =
-                m_Registry.get_or_emplace<HierarchyComponent>(child);
-
-            auto &ph =
-                m_Registry.get_or_emplace<HierarchyComponent>(parent);
-
-            ch.parent = parent;
-            ph.children.push_back(child);
-        }
+        void SetParent(entt::entity child, entt::entity parent);
 
         // temp
 
@@ -89,5 +74,7 @@ namespace SIMPEngine
         HierarchySystem hierarchySystem;
         LifetimeSystem lifetimeSystem;
         PhysicsSystem physicsSystem;
+        AnimationSystem animationSystem;
+        RenderSystem renderSystem;
     };
 }

@@ -10,7 +10,7 @@ static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc ui
         auto &component = entity.GetComponent<T>();
 
         if (ImGui::TreeNodeEx((void *)typeid(T).hash_code(),
-                              ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowItemOverlap,
+                              ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap,
                               name))
         {
             if (ImGui::BeginPopupContextItem())
