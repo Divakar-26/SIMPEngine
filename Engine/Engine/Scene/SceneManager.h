@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Engine/Scene/Scene.h>
-
 #include <memory>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <utility>
 
 namespace SIMPEngine
 {
@@ -14,22 +14,26 @@ namespace SIMPEngine
         SceneManager() = default;
         ~SceneManager() = default;
 
-        void AddScene(const std::string name, std::shared_ptr<Scene> scene)
+        void AddScene(const std::string & name, std::shared_ptr<Scene> scene)
         {
-            m_Scenes[name] = scene;
+            m_Scenes[name] = std::move(scene);
         }
 
-        void RemoveScene(const std::string name)
+        void RemoveScene(const std::string & name)
         {
-            if (m_ActiveScene && m_ActiveScene == m_Scenes[name])
-            {
+            auto it = m_Scenes.find(name);
+            if(it == m_Scenes.end()){
+                return;
+            }
+
+            if(m_ActiveScene == it->second){
                 m_ActiveScene.reset();
             }
 
-            m_Scenes.erase(name);
+            m_Scenes.erase(it);
         }
 
-        void SetActiveScene(const std::string name)
+        void SetActiveScene(const std::string & name)
         {
             auto it = m_Scenes.find(name);
             if (it != m_Scenes.end())
@@ -46,7 +50,7 @@ namespace SIMPEngine
             return m_Scenes.find(name) != m_Scenes.end();
         }
 
-        const std::unordered_map<std::string, std::shared_ptr<Scene>>& GetAllScenes() const
+        const std::unordered_map<std::string, std::shared_ptr<Scene>> &GetAllScenes() const
         {
             return m_Scenes;
         }

@@ -66,6 +66,8 @@ namespace SIMPEngine
     void Input::ResetAllKeys()
     {
         s_KeysPressed.clear();
+        s_MouseButtonsPressed.clear();
+        s_MouseWheel = 0;
     }
 
     int Input::GetMouseWheel()

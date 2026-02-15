@@ -4,8 +4,6 @@
 #include <Engine/Scene/SceneSerializer.h>
 #include <Engine/PCH.h>
 
-float kl = 0.0f;
-float roatation = 0.0f;
 
 namespace SIMPEngine
 {
