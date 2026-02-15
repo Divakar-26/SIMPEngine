@@ -2,3 +2,5 @@ Akshat
     6:40 - 15/02/2026
         1. Added SIMD STBI_NOSIMD in Texture.cpp
         2. commented out the font section in Imgui
+    6:50 - 15/02/2026
+        1. Seperated AnimationSystem from the main Scene

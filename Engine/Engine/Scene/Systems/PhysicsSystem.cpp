@@ -3,7 +3,6 @@
 #include <Scene/Entity.h>
 
 namespace SIMPEngine{
-  
 
   void PhysicsSystem::startFrame(float dt)
   {
@@ -36,6 +35,8 @@ namespace SIMPEngine{
         physicsRegistry.updateForces(subdt);
         physicsWorld.step(subdt, 1);
       }
+
+      // collision checking
       for (auto &ev : physicsWorld.GetCollisionEvents())
         {
             entt::entity ea = (entt::entity)ev.a->entityID;
