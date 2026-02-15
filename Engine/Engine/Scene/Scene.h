@@ -9,7 +9,6 @@
 #include <Engine/Scene/Systems/LifetimeSystem.h>
 #include <Engine/Scene/Systems/PhysicsSystem.h>
 
-
 #include <AccelEngine/world.h>
 #include <AccelEngine/ForceRegistry.h>
 
@@ -51,11 +50,13 @@ namespace SIMPEngine
             return cameraSystem.GetActiveCamera(m_Registry);
         }
 
-        AccelEngine::World & GetPhysicsWorld(){
-          return physicsSystem.GetWorld();
+        AccelEngine::World &GetPhysicsWorld()
+        {
+            return physicsSystem.GetWorld();
         }
-        PhysicsSystem & GetPhysicsSystem(){
-          return physicsSystem;
+        PhysicsSystem &GetPhysicsSystem()
+        {
+            return physicsSystem;
         }
 
         // helper functions
@@ -78,7 +79,6 @@ namespace SIMPEngine
 
         // temp
 
-
     private:
         std::string m_Name;
         entt::registry m_Registry;
@@ -87,6 +87,7 @@ namespace SIMPEngine
         CollisionSystem collisionSystem;
         CameraSystem cameraSystem;
         HierarchySystem hierarchySystem;
-        LifetimeSystem  lifetimeSystem;
-        PhysicsSystem physicsSystem; };
+        LifetimeSystem lifetimeSystem;
+        PhysicsSystem physicsSystem;
+    };
 }
