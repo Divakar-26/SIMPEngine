@@ -62,6 +62,8 @@ namespace SIMPEngine
 
         void SetParent(entt::entity child, entt::entity parent);
 
+
+        
         // temp
 
     private:
@@ -76,5 +78,11 @@ namespace SIMPEngine
         PhysicsSystem physicsSystem;
         AnimationSystem animationSystem;
         RenderSystem renderSystem;
+
+        // 
+        void OnPhysicsComponentDestroyed(entt::registry &registry, entt::entity entity);
+        void OnAnimatedSpriteComponentDestroyed(entt::registry &registry, entt::entity entity);
+        void OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity);
+        void OnScriptComponentDestroyed(entt::registry &registry, entt::entity entity);
     };
 }

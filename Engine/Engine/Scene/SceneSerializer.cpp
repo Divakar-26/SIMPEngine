@@ -76,18 +76,23 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       auto &ac = entity.GetComponent<AnimatedSpriteComponent>();
       auto *anim = ac.animation;
 
-      out << YAML::Key << "Animation" << YAML::BeginMap;
-      out << YAML::Key << "texture" << YAML::Value
-          << anim->GetTexture()->GetVFSPath();
-      out << YAML::Key << "frame_width" << YAML::Value << anim->GetFrameWidth();
-      out << YAML::Key << "frame_height" << YAML::Value
-          << anim->GetFrameHeight();
-      out << YAML::Key << "frame_count" << YAML::Value
-          << anim->GetFrameNumber();
-      out << YAML::Key << "frame_duration" << YAML::Value
-          << (float)anim->GetFrameDuration();
-      out << YAML::Key << "looping" << YAML::Value << anim->IsLooping();
-      out << YAML::EndMap;
+      if (!anim || !anim->GetTexture()) {
+        CORE_WARN("Skipping animation serialization for '{}' due to missing animation/texture", tag.Tag);
+      } else {
+
+        out << YAML::Key << "Animation" << YAML::BeginMap;
+        out << YAML::Key << "texture" << YAML::Value
+            << anim->GetTexture()->GetVFSPath();
+        out << YAML::Key << "frame_width" << YAML::Value << anim->GetFrameWidth();
+        out << YAML::Key << "frame_height" << YAML::Value
+            << anim->GetFrameHeight();
+        out << YAML::Key << "frame_count" << YAML::Value
+            << anim->GetFrameNumber();
+        out << YAML::Key << "frame_duration" << YAML::Value
+            << (float)anim->GetFrameDuration();
+        out << YAML::Key << "looping" << YAML::Value << anim->IsLooping();
+        out << YAML::EndMap;
+      }
     }
 
     // Collision
@@ -133,7 +138,11 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       auto &phys = entity.GetComponent<PhysicsComponent>();
       auto *body = phys.body;
 
-      out << YAML::Key << "Physics" << YAML::BeginMap;
+      if (!body) {
+        CORE_WARN("Skipping physics serialization for '{}' due to missing body", tag.Tag);
+      } else {
+
+        out << YAML::Key << "Physics" << YAML::BeginMap;
 
       // Shape
       std::string shape = (body->shapeType == AccelEngine::ShapeType::CIRCLE)
@@ -180,6 +189,8 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       out << YAML::Key << "lock_position" << YAML::Value << body->lockPosition;
 
       out << YAML::EndMap;
+        out << YAML::EndMap;
+      }
     }
 
     out << YAML::EndMap;
