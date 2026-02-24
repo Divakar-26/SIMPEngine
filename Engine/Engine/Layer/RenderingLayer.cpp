@@ -1,6 +1,7 @@
 #include <Engine/Layer/RenderingLayer.h>
 #include <Engine/Scene/Entity.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Scene/TilemapUtils.h>
 #include <Engine/Scene/SceneSerializer.h>
 #include <Engine/PCH.h>
 
@@ -61,9 +62,6 @@ namespace SIMPEngine
 
         auto size = Renderer::GetViewportSize();
 
-        auto &t = map.GetComponent<TransformComponent>();
-        t.position = {-size.x / 2, - size.y / 2};
-
         auto &tm = map.AddComponent<TilemapComponent>();
 
         auto texture = TextureManager::Get().LoadTexture(
@@ -71,18 +69,14 @@ namespace SIMPEngine
             "assets://textures/Grass.png");
 
         tm.tileset = std::make_shared<Tileset>(texture, 16, 16);
+        tm.tileSize = 64.0f;
 
-        tm.width = 20;
-        tm.height = 20;
-        tm.tileSize = 64;
-
-        tm.tiles.resize(20 * 20);
-
-        for (int i = 0; i < 400; i++)
-        {
-            tm.tiles[i] = rand() % 8; // random tile
-        }
-
+        // Create tiles in negative and positive space
+        SetTile(tm, 0, 0, 1);
+        SetTile(tm, -1, 0, 1);
+        // SetTile(tm, 0,1,2);
+        // SetTile(tm, -1,0,2);
+        // SetTile(tm, -1,-1,1);
         // auto scene = std::make_shared<SIMPEngine::Scene>("Level1");
         // m_SceneManager->AddScene("Level1", scene);
         // m_SceneManager->SetActiveScene("Level1");
@@ -120,42 +114,24 @@ namespace SIMPEngine
         // glm::vec2 world = camera.ScreenToWorld(screen);
         if (Input::IsMouseButtonPressed(1))
         {
+            auto scene = m_SceneManager->GetActiveScene();
+            auto &camera = scene->GetActiveCamera();
+
             auto pos = Input::GetMousePosition();
-            glm::vec2 cor = {pos.first, pos.second};
-            auto world = scene->GetActiveCamera().ScreenToWorld(cor);
-            std::cout << world.x << " " << world.y << std::endl;
+            glm::vec2 screen = {pos.first, pos.second};
+            glm::vec2 world = camera.ScreenToWorld(screen);
 
-            for (int i = 0; i < 1000; i++)
+            // Get tilemap entity
+            auto view = scene->GetRegistry().view<TilemapComponent>();
+            for (auto entity : view)
             {
-                Entity e = scene->CreateEntity("test");
+                auto &tm = view.get<TilemapComponent>(entity);
 
-                auto &t =
-                    e.GetComponent<TransformComponent>();
+                int tileX = (int)floor(world.x / tm.tileSize);
+                int tileY = (int)floor(world.y / tm.tileSize);
 
-                t.position.x = world.x;
-                t.position.y = world.y;
-
-                auto &r = e.AddComponent<RenderComponent>();
-
-                r.width = 40;
-                r.height = 40;
-                r.color = {255, 0, 0, 255};
-                static int count = 0;
-                CORE_ERROR("{}", count++);
+                SetTile(tm, tileX, tileY, rand() % 8); // place tile ID 1
             }
-            // auto & p = e.AddComponent<PhysicsComponent>();
-
-            // p.body = new AccelEngine::RigidBody();
-            // p.body->shapeType = AccelEngine::ShapeType::AABB;
-            // p.body->aabb.halfSize = {20, 20};
-            // p.body->position = {world.x, world.y};
-            // p.body->rotation = 0.0;
-            // p.body->inverseMass = 1;
-            // p.body->restitution = 1;
-            // p.body->calculateInertia();
-
-            // scene->physicsWorld.addBody(p.body);
-            // scene->bodies.push_back(p.body);
         }
 
         // if (Input::IsKeyPressed(SIMPK_LEFT))

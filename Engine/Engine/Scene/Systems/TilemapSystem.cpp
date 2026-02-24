@@ -1,10 +1,12 @@
 #include "TilemapSystem.h"
 #include <Engine/Scene/Component.h>
+#include <Engine/Scene/TilemapUtils.h>
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Math/Camera2D.h>
 
 namespace SIMPEngine
 {
+    
     void TilemapSystem::Render(entt::registry &registry)
     {
         auto view = registry.view<TilemapComponent, TransformComponent>();
@@ -15,38 +17,48 @@ namespace SIMPEngine
             auto &transform = view.get<TransformComponent>(entity);
 
             if (!tilemap.tileset)
-            {
                 continue;
-            }
 
             auto texture = tilemap.tileset->GetTexture();
+            if (!texture)
+                continue;
 
-            for (int y = 0; y < tilemap.height; y++)
+            for (auto &[key, chunk] : tilemap.chunks)
             {
-                for (int x = 0; x < tilemap.width; x++)
+                int chunkX = (int)(key >> 32);
+                int chunkY = (int)(key & 0xffffffff);
+
+                for (int localY = 0; localY < CHUNK_SIZE; localY++)
                 {
-                    int tileID = tilemap.tiles[y * tilemap.width + x];
+                    for (int localX = 0; localX < CHUNK_SIZE; localX++)
+                    {
+                        Tile &tile = chunk.tiles[localY * CHUNK_SIZE + localX];
 
-                    if (tileID < 0)
-                        continue;
+                        if (tile.id < 0)
+                            continue;
 
-                    float worldX = transform.position.x + x * tilemap.tileSize;
-                    float worldY = transform.position.y + y * tilemap.tileSize;
-                    float centerX = worldX + tilemap.tileSize * 0.5f;
-                    float centerY = worldY + tilemap.tileSize * 0.5f;
+                        int tileX = chunkX * CHUNK_SIZE + localX;
+                        int tileY = chunkY * CHUNK_SIZE + localY;
 
-                    SDL_FRect src = tilemap.tileset->GetTileRect(tileID);
+                        float worldX = transform.position.x + tileX * tilemap.tileSize;
+                        float worldY = transform.position.y + tileY * tilemap.tileSize;
 
-                    Renderer::DrawTexture(
-                        texture,
-                        centerX,
-                        centerY,
-                        tilemap.tileSize,
-                        tilemap.tileSize,
-                        {255, 255, 255, 255},
-                        0.0f,
-                        transform.zIndex,
-                        &src);
+                        float centerX = worldX + tilemap.tileSize * 0.5f;
+                        float centerY = worldY + tilemap.tileSize * 0.5f;
+
+                        SDL_FRect src = tilemap.tileset->GetTileRect(tile.id);
+
+                        Renderer::DrawTexture(
+                            texture,
+                            centerX,
+                            centerY,
+                            tilemap.tileSize,
+                            tilemap.tileSize,
+                            {255, 255, 255, 255},
+                            0.0f,
+                            transform.zIndex,
+                            &src);
+                    }
                 }
             }
         }

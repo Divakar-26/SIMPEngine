@@ -11,6 +11,8 @@
 #include <memory>
 #include <vector>
 #include <string>
+#include <unordered_map>
+#include <array>
 
 #include <entt/entt.hpp>
 
@@ -124,19 +126,22 @@ struct LifetimeComponent
     float remaining = 1.0f;
 };
 
+struct Tile
+{
+    int id = -1;
+};
+
+static constexpr int CHUNK_SIZE = 16;
+
+struct TileChunk
+{
+    std::array<Tile, CHUNK_SIZE * CHUNK_SIZE> tiles;
+};
+
 struct TilemapComponent
 {
     std::shared_ptr<SIMPEngine::Tileset> tileset;
+    float tileSize = 32.0f;
 
-    int width = 0;
-    int height = 0;
-
-    float tileSize = 32.0f; // world size
-
-    std::vector<int> tiles; // tileIDs
-
-    int Get(int x, int y) const
-    {
-        return tiles[y * width + x]; // our grid
-    }
+    std::unordered_map<int64_t, TileChunk> chunks;
 };

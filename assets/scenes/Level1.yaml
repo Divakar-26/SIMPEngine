@@ -16,7 +16,7 @@ Entities:
       rotation: 0
       inverse_mass: 1
       half_size: [20, 20]
-      velocity: [100, 0]
+      velocity: [0, 0]
       restitution: 1
       static_friction: 0
       dynamic_friction: 0
