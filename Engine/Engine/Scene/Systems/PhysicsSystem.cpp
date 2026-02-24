@@ -1,12 +1,13 @@
 #include "entt/entity/fwd.hpp"
 #include <Scene/Systems/PhysicsSystem.h>
 #include <Scene/Entity.h>
+#include <Engine/Core/Log.h>
 
 namespace SIMPEngine{
 
   void PhysicsSystem::startFrame(float dt)
   {
-        float subdt = dt / substep;
+        (void)dt;
         
         for(int i = 0; i < substep; i++)
         {
@@ -48,7 +49,8 @@ namespace SIMPEngine{
             // Entity A{ea, this};
             // Entity B{eb, this};
 
-            std::cout << "Collision!\n";
+            CORE_TRACE("Collision detected between entities {} and {}", static_cast<uint32_t>(ea), static_cast<uint32_t>(eb));
+
         }
 
      

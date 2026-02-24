@@ -10,6 +10,7 @@
 #include <Engine/Scene/Systems/PhysicsSystem.h>
 #include <Engine/Scene/Systems/AnimationSystem.h>
 #include <Engine/Scene/Systems/RenderSystem.h>
+#include <Engine/Scene/Systems/TilemapSystem.h>
 
 #include <AccelEngine/world.h>
 #include <AccelEngine/ForceRegistry.h>
@@ -78,6 +79,7 @@ namespace SIMPEngine
         PhysicsSystem physicsSystem;
         AnimationSystem animationSystem;
         RenderSystem renderSystem;
+        TilemapSystem tilemapSystem;
 
         // 
         void OnPhysicsComponentDestroyed(entt::registry &registry, entt::entity entity);

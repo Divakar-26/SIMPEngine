@@ -15,6 +15,7 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Shader.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/RenderingAPI.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Animation.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Tileset.cpp
         # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SpriteAtlas.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Sprite.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Texture.cpp
@@ -28,6 +29,7 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/CameraSystem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/PhysicsSystem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/RenderSystem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/TilemapSystem.cpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneSerializer.cpp
         # ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c

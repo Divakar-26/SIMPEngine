@@ -4,7 +4,6 @@
 #include <Engine/Scene/SceneSerializer.h>
 #include <Engine/PCH.h>
 
-
 namespace SIMPEngine
 {
 
@@ -35,32 +34,55 @@ namespace SIMPEngine
 
         Entity parent = scene->CreateEntity("parent");
         Entity child = scene->CreateEntity("child");
-        
+
         scene->SetParent(child, parent);
 
         child.GetComponent<TransformComponent>().position = {50, 60};
-        auto & cRC = child.AddComponent<RenderComponent>();
-        cRC.color = {0,0,255,255};
+        auto &cRC = child.AddComponent<RenderComponent>();
+        cRC.color = {0, 0, 255, 255};
         cRC.width = 100;
         cRC.height = 100;
-        
-        auto & rc = parent.AddComponent<RenderComponent>();
-        rc.color = {255, 255, 0,255};
+
+        auto &rc = parent.AddComponent<RenderComponent>();
+        rc.color = {255, 255, 0, 255};
         rc.width = 100;
         rc.height = 100;
 
-        auto & tc = parent.GetComponent<TransformComponent>();
-        tc.position = {300,-300};
+        auto &tc = parent.GetComponent<TransformComponent>();
+        tc.position = {300, -300};
 
-        auto & vc = parent.AddComponent<VelocityComponent>();
+        auto &vc = parent.AddComponent<VelocityComponent>();
         vc.vx = 100;
 
-        auto & life = parent.AddComponent<LifetimeComponent>();
+        auto &life = parent.AddComponent<LifetimeComponent>();
         life.remaining = 2.0f;
 
+        Entity map = scene->CreateEntity("Tilemap");
 
-        
-    
+        auto size = Renderer::GetViewportSize();
+
+        auto &t = map.GetComponent<TransformComponent>();
+        t.position = {-size.x / 2, - size.y / 2};
+
+        auto &tm = map.AddComponent<TilemapComponent>();
+
+        auto texture = TextureManager::Get().LoadTexture(
+            "assets://textures/Grass.png",
+            "assets://textures/Grass.png");
+
+        tm.tileset = std::make_shared<Tileset>(texture, 16, 16);
+
+        tm.width = 20;
+        tm.height = 20;
+        tm.tileSize = 64;
+
+        tm.tiles.resize(20 * 20);
+
+        for (int i = 0; i < 400; i++)
+        {
+            tm.tiles[i] = rand() % 8; // random tile
+        }
+
         // auto scene = std::make_shared<SIMPEngine::Scene>("Level1");
         // m_SceneManager->AddScene("Level1", scene);
         // m_SceneManager->SetActiveScene("Level1");
@@ -86,15 +108,15 @@ namespace SIMPEngine
         // screen.y = (windowH * 0.5f) - rawMouse.y;
 
         auto scene = m_SceneManager->GetActiveScene();
-        
+
         SceneSerializer s(scene.get());
-        
+
         if (Input::IsKeyPressed(SIMPK_F1))
         {
             scene->Clear();
             s.Deserialize("assets://scenes/Level1.yaml");
         }
-        
+
         // glm::vec2 world = camera.ScreenToWorld(screen);
         if (Input::IsMouseButtonPressed(1))
         {
@@ -102,19 +124,19 @@ namespace SIMPEngine
             glm::vec2 cor = {pos.first, pos.second};
             auto world = scene->GetActiveCamera().ScreenToWorld(cor);
             std::cout << world.x << " " << world.y << std::endl;
-            
+
             for (int i = 0; i < 1000; i++)
             {
                 Entity e = scene->CreateEntity("test");
-                
+
                 auto &t =
-                e.GetComponent<TransformComponent>();
-                
+                    e.GetComponent<TransformComponent>();
+
                 t.position.x = world.x;
                 t.position.y = world.y;
-                
+
                 auto &r = e.AddComponent<RenderComponent>();
-                
+
                 r.width = 40;
                 r.height = 40;
                 r.color = {255, 0, 0, 255};
@@ -122,7 +144,7 @@ namespace SIMPEngine
                 CORE_ERROR("{}", count++);
             }
             // auto & p = e.AddComponent<PhysicsComponent>();
-            
+
             // p.body = new AccelEngine::RigidBody();
             // p.body->shapeType = AccelEngine::ShapeType::AABB;
             // p.body->aabb.halfSize = {20, 20};
@@ -131,21 +153,21 @@ namespace SIMPEngine
             // p.body->inverseMass = 1;
             // p.body->restitution = 1;
             // p.body->calculateInertia();
-            
+
             // scene->physicsWorld.addBody(p.body);
             // scene->bodies.push_back(p.body);
         }
-        
+
         // if (Input::IsKeyPressed(SIMPK_LEFT))
         // {
         //     camera.Move({-200.0f * ts.GetSeconds(), 0});
         //     std::cout << "Camera moved" << std::endl;
         // }
-        
+
         // Entity entity = scene->GetEntityByName("TestQuad");
         // auto & t = entity.GetComponent<TransformComponent>();
         // t.position.x += 200.0 * ts.GetSeconds();
-        
+
         // Renderer::SetViewMatrix(camera.GetViewMatrix());
         if (scene)
         {

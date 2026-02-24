@@ -21,7 +21,7 @@ namespace SIMPEngine
 
     void Scene::DestroyEntity(Entity entity)
     {
-        if(!entity || !m_Registry.valid(entity.GetHandle()))
+        if (!entity || !m_Registry.valid(entity.GetHandle()))
             return;
         m_Registry.destroy(entity.GetHandle());
     }
@@ -89,6 +89,9 @@ namespace SIMPEngine
     void Scene::OnRender()
     {
         cameraSystem.OnRender(m_Registry);
+
+        tilemapSystem.Render(m_Registry); 
+
         renderSystem.RenderQuads(m_Registry);
         renderSystem.RenderSprites(m_Registry);
     }
@@ -104,7 +107,7 @@ namespace SIMPEngine
     }
 
     void Scene::SetParent(entt::entity child,
-                   entt::entity parent)
+                          entt::entity parent)
     {
         auto &ch =
             m_Registry.get_or_emplace<HierarchyComponent>(child);
@@ -175,6 +178,5 @@ namespace SIMPEngine
                 childHierarchy.parent = entt::null;
         }
     }
-
 
 } // namespace SIMPEngine

@@ -5,8 +5,9 @@ namespace SIMPEngine
 {
     void RenderSystem::RenderQuads(entt::registry &m_Registry)
     {
-        std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
+        m_QuadSortBuffer.clear();
         auto view = m_Registry.view<TransformComponent, RenderComponent>();
+
 
         for (auto entity : view)
         {
@@ -19,14 +20,14 @@ namespace SIMPEngine
             }
 
             auto &transform = view.get<TransformComponent>(entity);
-            entitiesWithZIndex.emplace_back(entity, transform.zIndex);
+            m_QuadSortBuffer.emplace_back(entity, transform.zIndex);
         }
 
-        std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(),
+        std::sort(m_QuadSortBuffer.begin(), m_QuadSortBuffer.end(),
                   [](const auto &a, const auto &b)
                   { return a.second < b.second; });
 
-        for (const auto &[entity, zIndex] : entitiesWithZIndex)
+        for (const auto &[entity, zIndex] : m_QuadSortBuffer)
         {
             auto &transform = m_Registry.get<TransformComponent>(entity);
             auto &render = m_Registry.get<RenderComponent>(entity);
@@ -41,7 +42,7 @@ namespace SIMPEngine
 
     void RenderSystem::RenderSprites(entt::registry &m_Registry)
     {
-        std::vector<std::pair<entt::entity, float>> entitiesWithZIndex;
+        m_SpriteSortBuffer.clear();
 
         // Collect all entities that have a Sprite or Animation
         auto view = m_Registry.view<TransformComponent>();
@@ -53,17 +54,17 @@ namespace SIMPEngine
                 m_Registry.any_of<AnimatedSpriteComponent>(entity))
             {
                 auto &transform = m_Registry.get<TransformComponent>(entity);
-                entitiesWithZIndex.emplace_back(entity, transform.zIndex);
+                m_SpriteSortBuffer.emplace_back(entity, transform.zIndex);
             }
         }
 
         // Sort by zIndex (lower first → back to front)
-        std::sort(entitiesWithZIndex.begin(), entitiesWithZIndex.end(),
+        std::sort(m_SpriteSortBuffer.begin(), m_SpriteSortBuffer.end(),
                   [](const auto &a, const auto &b)
                   { return a.second < b.second; });
 
         // Render in correct order
-        for (const auto &[entity, zIndex] : entitiesWithZIndex)
+        for (const auto &[entity, zIndex] : m_SpriteSortBuffer)
         {
             auto &transform = m_Registry.get<TransformComponent>(entity);
             float width = 1.0f;

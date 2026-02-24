@@ -2,6 +2,7 @@
 #include <Engine/Rendering/Texture.h>
 #include <Engine/Rendering/Sprite.h>
 #include <Engine/Rendering/Animation.h>
+#include <Engine/Rendering/Tileset.h>
 #include <Engine/Math/Camera2D.h>
 
 #include <AccelEngine/world.h>
@@ -20,9 +21,9 @@ namespace SIMPEngine
 
 struct TransformComponent
 {
-    glm::vec2 position{0,0};
+    glm::vec2 position{0, 0};
     float rotation = 0;
-    glm::vec2 scale{1,1};
+    glm::vec2 scale{1, 1};
     float zIndex = 0;
 
     glm::mat4 worldTransform;
@@ -32,12 +33,11 @@ struct TransformComponent
     glm::mat4 GetLocalTransform() const
     {
         glm::mat4 t = glm::translate(glm::mat4(1), {position, zIndex});
-        t = glm::rotate(t, glm::radians(rotation), {0,0,1});
-        t = glm::scale(t, {scale,1});
+        t = glm::rotate(t, glm::radians(rotation), {0, 0, 1});
+        t = glm::scale(t, {scale, 1});
         return t;
     }
 };
-
 
 struct CollisionComponent
 {
@@ -56,8 +56,8 @@ struct CollisionComponent
 struct SpriteComponent
 {
     std::shared_ptr<SIMPEngine::Texture> texture = nullptr;
-    float width;
-    float height;
+    float width = 1.0f;
+    float height = 1.0f;
 };
 
 struct TagComponent
@@ -67,7 +67,7 @@ struct TagComponent
 
 struct RenderComponent
 {
-    float width, height;
+    float width = 1.0f, height = 1.0f;
     SDL_Color color = {255, 255, 255, 255};
 };
 
@@ -119,6 +119,24 @@ struct HierarchyComponent
     std::vector<entt::entity> children;
 };
 
-struct LifetimeComponent{
+struct LifetimeComponent
+{
     float remaining = 1.0f;
-};  
+};
+
+struct TilemapComponent
+{
+    std::shared_ptr<SIMPEngine::Tileset> tileset;
+
+    int width = 0;
+    int height = 0;
+
+    float tileSize = 32.0f; // world size
+
+    std::vector<int> tiles; // tileIDs
+
+    int Get(int x, int y) const
+    {
+        return tiles[y * width + x]; // our grid
+    }
+};
