@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine/Scene/Scene.h>
+#include <Engine/Scene/SceneSerializer.h>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -40,6 +41,20 @@ namespace SIMPEngine
             {
                 m_ActiveScene = it->second;
             }
+        }
+
+        void LoadScene(const std::string& name, const std::string& filepath)
+        {
+            if (HasScene(name)) {
+                SetActiveScene(name);
+                return;
+            }
+            
+            auto scene = std::make_shared<Scene>(name);
+            AddScene(name, scene);
+            SetActiveScene(name);
+            SceneSerializer serializer(scene.get());
+            serializer.Deserialize(filepath);
         }
 
         std::shared_ptr<Scene> GetActiveScene() { return m_ActiveScene; }

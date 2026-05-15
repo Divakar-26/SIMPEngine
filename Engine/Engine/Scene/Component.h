@@ -90,29 +90,26 @@ struct CameraComponent
 
 struct ScriptComponent
 {
-    SIMPEngine::ScriptableEntity *Instance = nullptr;
+    std::unique_ptr<SIMPEngine::ScriptableEntity> Instance;
 
-    std::function<SIMPEngine::ScriptableEntity *()> InstantiateScript;
-    std::function<void(ScriptComponent *)> DestroyScript;
+    std::function<std::unique_ptr<SIMPEngine::ScriptableEntity>()> InstantiateScript;
 
     template <typename T>
     void Bind()
     {
-        InstantiateScript = []()
-        { return new T(); };
-        DestroyScript = [](ScriptComponent *sc)
-        { delete sc->Instance; sc->Instance = nullptr; };
+        InstantiateScript = []() -> std::unique_ptr<SIMPEngine::ScriptableEntity>
+        { return std::make_unique<T>(); };
     }
 };
 
 struct PhysicsComponent
 {
-    AccelEngine::RigidBody *body = nullptr;
+    std::unique_ptr<AccelEngine::RigidBody> body;
 };
 
 struct AnimatedSpriteComponent
 {
-    SIMPEngine::Animation *animation = nullptr;
+    std::unique_ptr<SIMPEngine::Animation> animation;
 };
 
 struct HierarchyComponent

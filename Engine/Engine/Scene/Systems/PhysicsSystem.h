@@ -3,6 +3,7 @@
 #include "entt/entity/fwd.hpp"
 #include <AccelEngine/body.h>
 #include <AccelEngine/world.h>
+#include <Engine/Scene/Component.h>
 
 namespace SIMPEngine {
 class PhysicsSystem {

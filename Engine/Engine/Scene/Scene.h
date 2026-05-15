@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Engine/Scene/Entity.h>
 #include <Engine/Scene/Component.h>
 #include <Engine/Math/Camera2D.h>
 #include <Engine/Scene/Systems/MovementSystem.h>
@@ -21,6 +22,71 @@
 namespace SIMPEngine
 {
     class Entity;
+    
+    class EntityBuilder
+    {
+    public:
+        EntityBuilder(entt::registry& registry, Entity entity) 
+            : m_Registry(registry), m_Entity(entity) {}
+
+        template<typename T, typename... Args>
+        EntityBuilder& With(Args&&... args)
+        {
+            m_Registry.emplace<T>(m_Entity.GetHandle(), std::forward<Args>(args)...);
+            return *this;
+        }
+
+        EntityBuilder& At(glm::vec2 pos)
+        {
+            m_Registry.get<TransformComponent>(m_Entity.GetHandle()).position = pos;
+            return *this;
+        }
+
+        EntityBuilder& At(float x, float y)
+        {
+            m_Registry.get<TransformComponent>(m_Entity.GetHandle()).position = {x, y};
+            return *this;
+        }
+
+        EntityBuilder& Scale(glm::vec2 scale)
+        {
+            m_Registry.get<TransformComponent>(m_Entity.GetHandle()).scale = scale;
+            return *this;
+        }
+
+        EntityBuilder& Scale(float x, float y)
+        {
+            m_Registry.get<TransformComponent>(m_Entity.GetHandle()).scale = {x, y};
+            return *this;
+        }
+
+        EntityBuilder& Rotation(float radians)
+        {
+            m_Registry.get<TransformComponent>(m_Entity.GetHandle()).rotation = radians;
+            return *this;
+        }
+
+        EntityBuilder& ZIndex(float z)
+        {
+            m_Registry.get<TransformComponent>(m_Entity.GetHandle()).zIndex = z;
+            return *this;
+        }
+
+        Entity& Build()
+        {
+            return m_Entity;
+        }
+
+        operator Entity&()
+        {
+            return m_Entity;
+        }
+
+    private:
+        entt::registry& m_Registry;
+        Entity m_Entity;
+    };
+
     class Scene
     {
     public:
@@ -36,6 +102,7 @@ namespace SIMPEngine
         void Clear();
 
         Entity CreateEntity(const std::string &name = "");
+        EntityBuilder BuildEntity(const std::string &name = "");
         Entity GetEntityByName(const std::string &name);
 
         entt::registry &GetRegistry()

@@ -74,7 +74,7 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
     // Animation
     if (entity.HasComponent<AnimatedSpriteComponent>()) {
       auto &ac = entity.GetComponent<AnimatedSpriteComponent>();
-      auto *anim = ac.animation;
+      auto *anim = ac.animation.get();
 
       if (!anim || !anim->GetTexture()) {
         CORE_WARN("Skipping animation serialization for '{}' due to missing animation/texture", tag.Tag);
@@ -136,7 +136,7 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
     // Physics
     if (entity.HasComponent<PhysicsComponent>()) {
       auto &phys = entity.GetComponent<PhysicsComponent>();
-      auto *body = phys.body;
+      auto *body = phys.body.get();
 
       if (!body) {
         CORE_WARN("Skipping physics serialization for '{}' due to missing body", tag.Tag);
@@ -344,7 +344,7 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
           continue;
 
         auto &ac = entity.AddComponent<AnimatedSpriteComponent>();
-        ac.animation = new Animation(tex, fw, fh, fn, fd, loop);
+        ac.animation = std::make_unique<Animation>(tex, fw, fh, fn, fd, loop);
       }
 
       if (auto p = entityNode["Physics"]) {
@@ -361,7 +361,7 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
           continue;
 
         auto &phys = entity.AddComponent<PhysicsComponent>();
-        phys.body = new AccelEngine::RigidBody();
+        phys.body = std::make_unique<AccelEngine::RigidBody>();
 
         phys.body->entityID = (uint32_t)entity.GetHandle();
 
@@ -400,8 +400,8 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
 
         phys.body->calculateInertia();
 
-        m_Scene->GetPhysicsWorld().addBody(phys.body);
-        m_Scene->GetPhysicsSystem().bodies.push_back(phys.body);
+        m_Scene->GetPhysicsWorld().addBody(phys.body.get());
+        m_Scene->GetPhysicsSystem().bodies.push_back(phys.body.get());
       }
     } catch (const YAML::Exception &e) {
       CORE_ERROR("Entity deserialize error: {}", e.what());

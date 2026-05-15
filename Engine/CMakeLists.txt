@@ -32,6 +32,7 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/TilemapSystem.cpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneSerializer.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Loaders/TiledLoader.cpp
         # ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c
     )
 

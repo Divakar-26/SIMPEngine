@@ -3,6 +3,7 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/TilemapUtils.h>
 #include <Engine/Scene/SceneSerializer.h>
+#include <Engine/Scene/Loaders/TiledLoader.h>
 #include <Engine/PCH.h>
 
 namespace SIMPEngine
@@ -33,53 +34,56 @@ namespace SIMPEngine
         //     CORE_ERROR("{}", count++);
         // }
 
-        Entity parent = scene->CreateEntity("parent");
-        Entity child = scene->CreateEntity("child");
+        // ==================== HARDCODED TEST CODE ====================
+        // Entity parent = scene->CreateEntity("parent");
+        // Entity child = scene->CreateEntity("child");
 
-        scene->SetParent(child, parent);
+        // scene->SetParent(child, parent);
 
-        child.GetComponent<TransformComponent>().position = {50, 60};
-        auto &cRC = child.AddComponent<RenderComponent>();
-        cRC.color = {0, 0, 255, 255};
-        cRC.width = 100;
-        cRC.height = 100;
+        // child.GetComponent<TransformComponent>().position = {50, 60};
+        // auto &cRC = child.AddComponent<RenderComponent>();
+        // cRC.color = {0, 0, 255, 255};
+        // cRC.width = 100;
+        // cRC.height = 100;
 
-        auto &rc = parent.AddComponent<RenderComponent>();
-        rc.color = {255, 255, 0, 255};
-        rc.width = 100;
-        rc.height = 100;
+        // auto &rc = parent.AddComponent<RenderComponent>();
+        // rc.color = {255, 255, 0, 255};
+        // rc.width = 100;
+        // rc.height = 100;
 
-        auto &tc = parent.GetComponent<TransformComponent>();
-        tc.position = {300, -300};
+        // auto &tc = parent.GetComponent<TransformComponent>();
+        // tc.position = {300, -300};
 
-        auto &vc = parent.AddComponent<VelocityComponent>();
-        vc.vx = 100;
+        // auto &vc = parent.AddComponent<VelocityComponent>();
+        // vc.vx = 100;
 
-        auto &life = parent.AddComponent<LifetimeComponent>();
-        life.remaining = 2.0f;
+        // auto &life = parent.AddComponent<LifetimeComponent>();
+        // life.remaining = 2.0f;
 
-        Entity map = scene->CreateEntity("Tilemap");
+        // Entity map = scene->CreateEntity("Tilemap");
 
-        auto size = Renderer::GetViewportSize();
+        // auto size = Renderer::GetViewportSize();
 
-        auto &tm = map.AddComponent<TilemapComponent>();
+        // auto &tm = map.AddComponent<TilemapComponent>();
+        // auto &tr = map.GetComponent<TransformComponent>();
 
-        auto texture = TextureManager::Get().LoadTexture(
-            "assets://textures/Grass.png",
-            "assets://textures/Grass.png");
+        // auto texture = TextureManager::Get().LoadTexture(
+        //     "assets://textures/Grass.png",
+        //     "assets://textures/Grass.png");
 
-        tm.tileset = std::make_shared<Tileset>(texture, 16, 16);
-        tm.tileSize = 64.0f;
+        // tm.tileset = std::make_shared<Tileset>(texture, 16, 16);
+        // tm.tileSize = 64.0f;
 
-        // Create tiles in negative and positive space
-        SetTile(tm, 0, 0, 1);
-        SetTile(tm, -1, 0, 1);
-        // SetTile(tm, 0,1,2);
-        // SetTile(tm, -1,0,2);
-        // SetTile(tm, -1,-1,1);
-        // auto scene = std::make_shared<SIMPEngine::Scene>("Level1");
-        // m_SceneManager->AddScene("Level1", scene);
-        // m_SceneManager->SetActiveScene("Level1");
+        // // Create tiles in negative and positive space
+        // SetTile(tm, 0, 0, 1);
+        // SetTile(tm, -1, 0, 1);
+        // // SetTile(tm, 0,1,2);
+        // // SetTile(tm, -1,0,2);
+        // // SetTile(tm, -1,-1,1);
+        // // auto scene = std::make_shared<SIMPEngine::Scene>("Level1");
+        // // m_SceneManager->AddScene("Level1", scene);
+        // // m_SceneManager->SetActiveScene("Level1");
+        // ============================================================
     }
 
     void RenderingLayer::OnDetach()

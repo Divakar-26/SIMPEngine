@@ -21,6 +21,7 @@ add_subdirectory(vendor/spdlog EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/glm EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/yaml-cpp EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/AccelEngine)
+add_subdirectory(vendor/json)
 
 
 # ImGui wrapper (manual CMake target)
@@ -46,6 +47,7 @@ target_include_directories(imgui PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/imgui
     ${CMAKE_SOURCE_DIR}/vendor/imgui/backends
     ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo
+    ${CMAKE_SOURCE_DIR}/vendor/json
 )
 
 # glad

@@ -36,6 +36,16 @@ namespace SIMPEngine
         return entity;
     }
 
+    EntityBuilder Scene::BuildEntity(const std::string &name)
+    {
+        entt::entity handle = m_Registry.create();
+        Entity entity(handle, this);
+
+        entity.AddComponent<TransformComponent>();
+        entity.AddComponent<TagComponent>(name.empty() ? "Unnamed Entity" : name);
+        return EntityBuilder(m_Registry, entity);
+    }
+
     Entity Scene::GetEntityByName(const std::string &name)
     {
         auto view = m_Registry.view<TagComponent>();
@@ -125,14 +135,7 @@ namespace SIMPEngine
         if (scriptComponent.Instance)
         {
             scriptComponent.Instance->OnDestroy();
-
-            if (scriptComponent.DestroyScript)
-                scriptComponent.DestroyScript(&scriptComponent);
-            else
-            {
-                delete scriptComponent.Instance;
-                scriptComponent.Instance = nullptr;
-            }
+            // unique_ptr automatically destroys on component removal
         }
     }
 
@@ -143,17 +146,14 @@ namespace SIMPEngine
             return;
 
         auto &bodies = physicsSystem.bodies;
-        bodies.erase(std::remove(bodies.begin(), bodies.end(), physicsComponent.body), bodies.end());
-
-        delete physicsComponent.body;
-        physicsComponent.body = nullptr;
+        bodies.erase(std::remove(bodies.begin(), bodies.end(), physicsComponent.body.get()), bodies.end());
+        // unique_ptr automatically destroys body on component removal
     }
 
     void Scene::OnAnimatedSpriteComponentDestroyed(entt::registry &registry, entt::entity entity)
     {
         auto &animatedSprite = registry.get<AnimatedSpriteComponent>(entity);
-        delete animatedSprite.animation;
-        animatedSprite.animation = nullptr;
+        // unique_ptr automatically destroys animation on component removal
     }
 
     void Scene::OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity)
