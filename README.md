@@ -158,6 +158,37 @@ The integrated editor provides:
 - **Content Browser** - Asset management and preview
 - **Gizmo System** - Transform manipulation tools
 
+## Performance Profiling (Tracy)
+
+Tracy Profiler is integrated for real-time performance analysis. Profiling is **zero-cost when disabled**.
+
+### Usage
+
+**Terminal 1 - Start Tracy GUI:**
+```bash
+./tracy
+```
+
+**Terminal 2 - Run game (auto-connects to Tracy):**
+```bash
+./build/bin/GameApp
+```
+
+The game automatically sends frame data to `localhost:8086`. View frame timeline, zones, memory, and statistics in real-time.
+
+### Build Options
+
+```bash
+cd build
+cmake .. -DENABLE_TRACY_PROFILING=ON   # Enable profiling
+make -j$(nproc)
+```
+
+Default is OFF (zero overhead). Profiling macros:
+- `PROFILE_FRAME()` - Frame boundary
+- `PROFILE_SCOPE("name")` - Scoped timing
+- `PROFILE_FUNCTION()` - Function timing
+
 ## License
 
 [Your License Here]
@@ -169,4 +200,5 @@ The integrated editor provides:
 ---
 
 For detailed implementation guides, see [docs/API_GUIDE.md](docs/API_GUIDE.md).
+
 

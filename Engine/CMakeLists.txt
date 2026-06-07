@@ -1,9 +1,12 @@
     add_library(Engine STATIC
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Window.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/EngineDimensions.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Log.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/FileSystem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/VFS.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Profiler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/TracyProfiler.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/tracy_public/TracyClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/AssetRegistry.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/TextureImporter.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/Importers.cpp
@@ -44,6 +47,7 @@
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad/include
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/yaml-cpp/include
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/AccelEngine/include
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/tracy_public
     )
 
     target_precompile_headers(Engine PRIVATE Engine/PCH.h)

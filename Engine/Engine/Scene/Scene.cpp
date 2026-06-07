@@ -67,7 +67,7 @@ namespace SIMPEngine
         cameraSystem.OnUpdate(m_Registry, deltaTime);
         movementSystem.Update(m_Registry, deltaTime);
         collisionSystem.Update(m_Registry, deltaTime);
-        hierarchySystem.Update(m_Registry);
+        hierarchySystem.Update(m_Registry, deltaTime);
         lifetimeSystem.Update(m_Registry, deltaTime);
 
         auto view = m_Registry.view<ScriptComponent>();

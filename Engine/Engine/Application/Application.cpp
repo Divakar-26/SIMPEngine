@@ -3,6 +3,7 @@
 #include <Engine/Core/FileSystem.h>
 #include <Engine/Core/VFS.h>
 #include <Engine/Core/Profiler.h>
+#include <Engine/Core/ProfilingUtils.h>
 
 namespace SIMPEngine
 {
@@ -10,6 +11,7 @@ namespace SIMPEngine
 
     Application::Application()
     {
+
         // std::string exePath = FileSystem::Normalise(FileSystem::Join(FileSystem::GetExecutableDir(), ".."));
         // std::string assetsPath = FileSystem::Join(exePath, "assets");
 
@@ -59,7 +61,7 @@ namespace SIMPEngine
 
             // update all layers
             for (Layer *layer : m_LayerStack)
-                layer->OnUpdate(deltaTime);
+                layer->OnUpdate(TimeStep(deltaTime));
 
             // Rendering
             {

@@ -8,7 +8,6 @@ namespace SIMPEngine
         m_QuadSortBuffer.clear();
         auto view = m_Registry.view<TransformComponent, RenderComponent>();
 
-
         for (auto entity : view)
         {
             if (m_Registry.any_of<SpriteComponent>(entity) ||
@@ -19,7 +18,7 @@ namespace SIMPEngine
                 continue;
             }
 
-            auto &transform = view.get<TransformComponent>(entity);
+            auto &transform = m_Registry.get<TransformComponent>(entity);
             m_QuadSortBuffer.emplace_back(entity, transform.zIndex);
         }
 

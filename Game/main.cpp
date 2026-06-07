@@ -17,7 +17,7 @@ public:
         sceneManager->LoadScene("Level1", "assets://scenes/Level1.yaml");
         auto scene1 = sceneManager->GetActiveScene();
 
-        scene1->BuildEntity("player").With<RenderComponent>(50,50),
+        scene1->BuildEntity("player").With<RenderComponent>(50,50).With<VelocityComponent>(1000,0).At(-1000,1000).Scale(1.0f, 1.0f).Build();
 
         SIMPEngine::SceneSerializer serializer(scene1.get());
         serializer.Serialize("assets://scenes/Level2.yaml");

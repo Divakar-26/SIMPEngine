@@ -16,6 +16,10 @@ namespace SIMPEngine
         void ShutDown();
         void OnUpdate();
 
+        // Get window dimensions
+        int GetWidth() const { return m_Width; }
+        int GetHeight() const { return m_Height; }
+
         //return the window for others to use like appplication
         SDL_Window *GetNativeWindow() { return m_Window; }
 
@@ -28,5 +32,7 @@ namespace SIMPEngine
         SDL_Window *m_Window = nullptr;
         SDL_Renderer *m_Renderer = nullptr;
         SDL_GLContext m_GLContext = nullptr;
+        int m_Width = 1920;
+        int m_Height = 1080;
     };
 }

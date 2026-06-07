@@ -5,6 +5,26 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# === Profiling Options ===
+option(ENABLE_TRACY_PROFILING "Enable Tracy Profiler for detailed performance analysis" OFF)
+if(ENABLE_TRACY_PROFILING)
+    add_compile_definitions(ENABLE_TRACY_PROFILING)
+    message(STATUS "Tracy Profiler enabled - connect with Tracy client for visualization")
+else()
+    message(STATUS "Tracy Profiler disabled - all profiling macros are zero-cost")
+endif()
+
+# Windows-specific settings
+if(WIN32)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    add_compile_options(/permissive- /W4)
+endif()
+
+# Set output directories consistently across platforms
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
 # === Third-party libraries (vendor builds) ===
 add_subdirectory(vendor/SDL EXCLUDE_FROM_ALL)
 

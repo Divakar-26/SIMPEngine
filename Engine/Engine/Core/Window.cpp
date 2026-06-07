@@ -1,5 +1,6 @@
 #include <Engine/Core/Window.h>
 #include <Engine/Core/Log.h>
+#include <Engine/Core/EngineDimensions.h>
 
 #include <SDL3/SDL.h>
 #include <iostream>
@@ -87,6 +88,10 @@
 
             //Log this
             CORE_INFO("Window '{}' created successfully ({} x {})", name, width, height);
+            
+            m_Width = width;
+            m_Height = height;
+            EngineDimensions::SetDimensions(width, height);
 
             m_Initialized = true;
             return true;

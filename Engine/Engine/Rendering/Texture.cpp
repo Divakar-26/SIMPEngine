@@ -30,11 +30,37 @@ namespace SIMPEngine
             return false;
         }
 
+        // Validate dimensions
+        if (m_Width <= 0 || m_Height <= 0 || (channel != 3 && channel != 4))
+        {
+            CORE_ERROR("Invalid image dimensions or channels: {}x{} ch={}", m_Width, m_Height, channel);
+            stbi_image_free(data);
+            return false;
+        }
+
         GLenum format = (channel == 4) ? GL_RGBA : GL_RGB;
         glGenTextures(1, &m_TextureID);
-        glBindTexture(GL_TEXTURE_2D, m_TextureID);
+        if (m_TextureID == 0)
+        {
+            CORE_ERROR("Failed to generate OpenGL texture for: {}", path);
+            stbi_image_free(data);
+            return false;
+        }
 
+        glBindTexture(GL_TEXTURE_2D, m_TextureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, data);
+        
+        // Verify texture upload succeeded
+        GLenum error = glGetError();
+        if (error != GL_NO_ERROR)
+        {
+            CORE_ERROR("OpenGL texture upload failed ({}): {}", error, path);
+            glDeleteTextures(1, &m_TextureID);
+            m_TextureID = 0;
+            stbi_image_free(data);
+            return false;
+        }
+
         glGenerateMipmap(GL_TEXTURE_2D);
 
         // setting up the properties of the texture, like wrapping and filtering

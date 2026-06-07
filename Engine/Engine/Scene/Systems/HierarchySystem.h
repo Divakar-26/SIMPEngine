@@ -9,7 +9,7 @@ namespace SIMPEngine
     {
 
     public:
-        void Update(entt::registry &registry)
+        void Update(entt::registry &registry, float deltaTime = 0.0f)
         {
             auto view = registry.view<TransformComponent>();
 

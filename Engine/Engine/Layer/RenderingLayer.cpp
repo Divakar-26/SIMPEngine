@@ -4,6 +4,8 @@
 #include <Engine/Scene/TilemapUtils.h>
 #include <Engine/Scene/SceneSerializer.h>
 #include <Engine/Scene/Loaders/TiledLoader.h>
+#include <Engine/Core/ProfilingUtils.h>
+#include <Engine/Core/EngineDimensions.h>
 #include <Engine/PCH.h>
 
 namespace SIMPEngine
@@ -92,8 +94,6 @@ namespace SIMPEngine
 
     void RenderingLayer::OnUpdate(TimeStep ts)
     {
-        // auto &camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
-
         // glm::vec2 rawMouse(Input::GetMousePosition().first,
         //                    Input::GetMousePosition().second);
 
@@ -157,6 +157,8 @@ namespace SIMPEngine
 
     void RenderingLayer::OnRender()
     {
+        PROFILE_RENDER_SYSTEM();
+        
         auto scene = m_SceneManager->GetActiveScene();
 
         if (scene)
@@ -183,6 +185,7 @@ namespace SIMPEngine
         int height = ev.GetHeight();
 
         Renderer::GetAPI()->ResizeViewport(width, height);
+        EngineDimensions::SetDimensions(width, height);
 
         auto &camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
         camera.SetViewportSize(width, height);
