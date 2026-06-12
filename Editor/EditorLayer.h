@@ -9,7 +9,7 @@
 #include "Panels/HierarchyPanel.h"
 #include "Panels/InspectorPanel.h"
 #include "Panels/ContentBrowserPanel.h"
-
+#include "EditorContext.h"
 
 class EditorLayer : public SIMPEngine::Layer
 {
@@ -26,6 +26,9 @@ public:
     void ShowLogs();
     
 private:
+
+    EditorContext m_EditorContext;
+
     ViewportPanel m_ViewportPanel;
     HierarchyPanel m_HieararchyPanel;
     InspectorPanel m_InspectorPanel;

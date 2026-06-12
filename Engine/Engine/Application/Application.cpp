@@ -33,6 +33,7 @@ namespace SIMPEngine
 
     Application::~Application()
     {
+        ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
         m_Window.ShutDown();
         s_Instance = nullptr;
     }

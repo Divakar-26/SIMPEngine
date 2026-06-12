@@ -24,7 +24,13 @@ void DrawComponent(SIMPEngine::Entity entity, const char *name)
     }
 }
 
-HierarchyPanel::HierarchyPanel(SIMPEngine::RenderingLayer *rl) : m_RenderingLayer(rl) {}
+HierarchyPanel::HierarchyPanel(
+    SIMPEngine::RenderingLayer* rl,
+    EditorContext* context)
+    : m_RenderingLayer(rl),
+      m_Context(context)
+{
+}
 
 void HierarchyPanel::OnRender()
 {
@@ -95,7 +101,7 @@ void HierarchyPanel::OnRender()
     bool opened = ImGui::TreeNodeEx((void*)(uint64_t)handle, flags, "%s", nameWithIcon.c_str());
 
     if (ImGui::IsItemClicked())
-        m_SelectedEntity = entity;
+        m_Context->SelectedEntity = entity;
               
     if (ImGui::BeginPopupContextItem())
     {
@@ -125,8 +131,8 @@ void HierarchyPanel::OnRender()
         if (ImGui::MenuItem("Delete Entity"))
         {
             scene.GetRegistry().destroy(handle);
-            if (m_SelectedEntity.GetHandle() == handle)
-                m_SelectedEntity = {};
+            if (m_Context->SelectedEntity.GetHandle() == handle)
+                m_Context->SelectedEntity = {};
         }
 
         if(ImGui::MenuItem("Add Script")){

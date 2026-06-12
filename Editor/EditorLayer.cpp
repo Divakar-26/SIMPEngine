@@ -5,9 +5,13 @@
 #include <Engine/Core/FileSystem.h>
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer), m_HieararchyPanel(renderingLayer), serializer(&renderingLayer->GetScene())
+    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer, &m_EditorContext), m_HieararchyPanel(renderingLayer, &m_EditorContext), serializer(&renderingLayer->GetScene()), m_InspectorPanel(
+                                                                                                                                                                                 &m_EditorContext)
 {
     this->m_RenderingLayer = renderingLayer;
+
+    m_EditorContext.Scene = &renderingLayer->GetScene();
+    m_EditorContext.Viewport = &m_ViewportPanel;
 
     m_AssetManager = std::make_unique<SIMPEngine::AssetManager>();
     m_AssetManager->Init("assets", "assets/registry.asset");
@@ -49,11 +53,11 @@ void EditorLayer::OnRender()
     static bool dockspaceOpen = true;
     static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGuiViewport *viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
     ImGui::SetNextWindowSize(viewport->WorkSize);
     ImGui::SetNextWindowViewport(viewport->ID);
-    
+
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
     window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
@@ -62,13 +66,13 @@ void EditorLayer::OnRender()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    
+
     ImGui::Begin("DockSpaceWindow", &dockspaceOpen, window_flags);
     ImGui::PopStyleVar(3);
 
     ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-    
+
     if (ImGui::BeginMenuBar())
     {
         if (ImGui::BeginMenu("File"))
@@ -87,19 +91,16 @@ void EditorLayer::OnRender()
         ImGui::EndMenuBar();
     }
 
-    ImGui::End(); 
-    
-
-    auto it = m_HieararchyPanel.GetSelectedEntity();
-    
-    m_ViewportPanel.OnRender(*it);
+    m_ViewportPanel.OnRender(
+        m_EditorContext.SelectedEntity);
     m_HieararchyPanel.OnRender();
-    m_InspectorPanel.SetSelectedEntity(*it);
     m_InspectorPanel.OnRender();
-    m_ContentBrowser->OnImGuiRender();
-    
+    // m_ContentBrowser->OnImGuiRender();
+
     if (showLogs)
-        ShowLogs(); 
+        ShowLogs();
+
+    ImGui::End();
 }
 
 void EditorLayer::ShowLogs()

@@ -3,7 +3,9 @@ add_executable(GameApp
     main.cpp
 )
 
-option(NO_EDITOR "Build Game Without Editor" ON)
+set_target_properties(GameApp PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+
+option(NO_EDITOR "Build Game Without Editor" OFF)
 if(NOT NO_EDITOR)
     target_link_libraries(GameApp
         PRIVATE Engine Editor imgui

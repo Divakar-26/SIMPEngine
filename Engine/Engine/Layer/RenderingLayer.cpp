@@ -116,27 +116,26 @@ namespace SIMPEngine
         }
 
         // glm::vec2 world = camera.ScreenToWorld(screen);
-        if (Input::IsMouseButtonPressed(1))
-        {
-            auto scene = m_SceneManager->GetActiveScene();
-            auto &camera = scene->GetActiveCamera();
+        // if (Input::IsMouseButtonPressed(1))
+        // {
+        //     auto scene = m_SceneManager->GetActiveScene();
 
-            auto pos = Input::GetMousePosition();
-            glm::vec2 screen = {pos.first, pos.second};
-            glm::vec2 world = camera.ScreenToWorld(screen);
+        //     auto pos = Input::GetMousePosition(); 
+        //     glm::vec2 world = scene->GetActiveCamera()
+        //                           .ScreenToWorld({pos.first, pos.second});
 
-            // Get tilemap entity
-            auto view = scene->GetRegistry().view<TilemapComponent>();
-            for (auto entity : view)
-            {
-                auto &tm = view.get<TilemapComponent>(entity);
+        //     Entity e = scene->BuildEntity("Box")
+        //                    .At(world.x, world.y)
+        //                    .With<RenderComponent>();
 
-                int tileX = (int)floor(world.x / tm.tileSize);
-                int tileY = (int)floor(world.y / tm.tileSize);
-
-                SetTile(tm, tileX, tileY, rand() % 8); // place tile ID 1
-            }
-        }
+        //     auto &rc = e.GetComponent<RenderComponent>();
+        //     rc.width = 64;
+        //     rc.height = 64;
+        //     float r = rand() % 255;
+        //     float g = rand() % 255;
+        //     float b = rand() % 255;
+        //     rc.color = {(unsigned char)r, (unsigned char)g, (unsigned char)b, 255};
+        // }
 
         // if (Input::IsKeyPressed(SIMPK_LEFT))
         // {
@@ -158,7 +157,7 @@ namespace SIMPEngine
     void RenderingLayer::OnRender()
     {
         PROFILE_RENDER_SYSTEM();
-        
+
         auto scene = m_SceneManager->GetActiveScene();
 
         if (scene)

@@ -5,18 +5,20 @@
 #include <Engine/Layer/RenderingLayer.h>
 #include <Engine/Application/Application.h>
 #include <Engine/Scene/Scene.h>
+#include <../EditorContext.h>
 
 class HierarchyPanel
 {
 public:
-    HierarchyPanel(SIMPEngine::RenderingLayer *renderingLayer);
+    HierarchyPanel(SIMPEngine::RenderingLayer *renderingLayer, EditorContext* context);
 
     void OnRender();
     void ShowComponents(SIMPEngine::Entity entity);
-    SIMPEngine::Entity * GetSelectedEntity() {return &m_SelectedEntity;}
+    SIMPEngine::Entity * GetSelectedEntity() {return &m_Context->SelectedEntity;}
 
 private:
-    SIMPEngine::Entity m_SelectedEntity;
+
+    EditorContext* m_Context;   
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
     char m_EntityNameBuffer[128] = "New Entity";
     bool m_AddTransform = false;

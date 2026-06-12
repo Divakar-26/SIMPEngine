@@ -26,8 +26,17 @@ static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc ui
     }
 }
 
+InspectorPanel::InspectorPanel(
+    EditorContext* context)
+{
+    m_Context = context;
+}
+
 void InspectorPanel::OnRender()
 {
+    auto& m_SelectedEntity =
+    m_Context->SelectedEntity;
+    
     ImGui::Begin("Inspector");
 
     if (m_SelectedEntity)

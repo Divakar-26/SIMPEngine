@@ -29,7 +29,7 @@ namespace SIMPEngine
     Entity Scene::CreateEntity(const std::string &name)
     {
         entt::entity handle = m_Registry.create();
-        Entity entity(handle, this);
+        Entity entity(handle, this); 
 
         entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(name.empty() ? "Unnamed Entity" : name);

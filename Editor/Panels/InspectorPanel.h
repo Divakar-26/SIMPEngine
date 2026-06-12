@@ -2,15 +2,15 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Entity.h>
 #include <Engine/Scene/Component.h>
+#include <../EditorContext.h>
 
 class InspectorPanel
 {
 public:
-    InspectorPanel() = default;
+    InspectorPanel(EditorContext* m_Context);
 
-    void SetSelectedEntity(SIMPEngine::Entity entity) { m_SelectedEntity = entity; }
     void OnRender();
 
 private:
-    SIMPEngine::Entity m_SelectedEntity;
+    EditorContext* m_Context;
 };

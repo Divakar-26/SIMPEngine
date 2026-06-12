@@ -22,7 +22,7 @@ namespace SIMPEngine
         template<typename T>
         T& GetComponent();
 
-        template<typename T>
+        template<typename T> 
         bool HasComponent();
 
         template<typename T>

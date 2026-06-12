@@ -15,6 +15,7 @@ namespace SIMPEngine
         SceneManager() = default;
         ~SceneManager() = default;
 
+        
         void AddScene(const std::string & name, std::shared_ptr<Scene> scene)
         {
             m_Scenes[name] = std::move(scene);

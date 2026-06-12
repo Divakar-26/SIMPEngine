@@ -17,15 +17,16 @@ public:
         sceneManager->LoadScene("Level1", "assets://scenes/Level1.yaml");
         auto scene1 = sceneManager->GetActiveScene();
 
-        scene1->BuildEntity("player").With<RenderComponent>(50,50).With<VelocityComponent>(1000,0).At(-1000,1000).Scale(1.0f, 1.0f).Build();
+        scene1->BuildEntity("player").With<RenderComponent>(50.0f, 50.0f).With<VelocityComponent>(1000.0f, 0.0f).At(-1000, 1000).Scale(1.0f, 1.0f).Build();
 
         SIMPEngine::SceneSerializer serializer(scene1.get());
         serializer.Serialize("assets://scenes/Level2.yaml");
         
-        PushOverlay(new SIMPEngine::RenderingLayer(sceneManager));
+        auto renderingLayer = new SIMPEngine::RenderingLayer(sceneManager);
+        PushOverlay(renderingLayer);
 
 #ifndef NO_EDITOR
-        PushOverlay(new EditorLayer(sceneManager));
+        PushOverlay(new EditorLayer(renderingLayer));
 #endif
     }
 };
