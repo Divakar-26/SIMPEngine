@@ -22,11 +22,19 @@ private:
 
     EditorContext* m_Context;   
     char m_EntityNameBuffer[128] = "New Entity";
+    bool m_OpenAddPopup = false;
+
     bool m_AddTransform = false;
     bool m_AddSprite = false;
     bool m_AddCamera = false;
     bool m_AddCollision = false;
-    bool m_OpenAddPopup = false;
     bool m_AddVelocity = false;
     bool m_AddRender = false;
+    bool m_AddScript = false;
+    bool m_AddPhysics = false;
+    bool m_AddAnimatedSprite = false;
+    bool m_AddLifetime = false;
+    bool m_AddTilemap = false;
+
+    // internal components are tag and hierarchy
 };

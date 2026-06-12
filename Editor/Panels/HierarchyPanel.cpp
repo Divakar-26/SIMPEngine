@@ -54,6 +54,11 @@ void HierarchyPanel::OnImGuiRender()
         ImGui::Checkbox("Velocity", &m_AddVelocity);
         ImGui::Checkbox("Collision", &m_AddCollision);
         ImGui::Checkbox("Render", &m_AddRender);
+        ImGui::Checkbox("Script", &m_AddScript);
+        ImGui::Checkbox("Physics", &m_AddPhysics);
+        ImGui::Checkbox("Animated Sprite", &m_AddAnimatedSprite);
+        ImGui::Checkbox("Lifetime", &m_AddLifetime);
+        ImGui::Checkbox("Tilemap", &m_AddTilemap);
 
         ImGui::Separator();
 
@@ -76,6 +81,16 @@ void HierarchyPanel::OnImGuiRender()
                 entity.AddComponent<CollisionComponent>();
             if (m_AddRender)
                 entity.AddComponent<RenderComponent>();
+            if (m_AddScript)
+                    //
+            if (m_AddPhysics)
+                entity.AddComponent<PhysicsComponent>();
+            if (m_AddAnimatedSprite)
+                entity.AddComponent<AnimatedSpriteComponent>();
+            if (m_AddLifetime)
+                entity.AddComponent<LifetimeComponent>();
+            if (m_AddTilemap)
+                entity.AddComponent<TilemapComponent>();
 
             m_AddVelocity = m_AddSprite = m_AddCamera = m_AddCollision = false;
             strcpy(m_EntityNameBuffer, "New Entity");

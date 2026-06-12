@@ -111,6 +111,115 @@ void InspectorPanel::OnImGuiRender()
                                               ImGui::DragFloat("Height", &col.height, 0.1f);
                                               ImGui::DragFloat("Offset X", &col.offsetX, 0.1f);
                                               ImGui::DragFloat("Offset Y", &col.offsetY, 0.1f); });
+
+        DrawComponent<SpriteComponent>("Sprite", m_SelectedEntity, [](auto &sc)
+                                       {
+                                           ImGui::DragFloat("Width", &sc.width, 0.1f);
+                                           ImGui::DragFloat("Height", &sc.height, 0.1f);
+
+                                           if (sc.texture)
+                                           {
+                                               ImGui::Text("Texture:");
+                                               ImGui::Text("%s",
+                                                           sc.texture->GetVFSPath().c_str());
+                                           }
+
+                                           // later:
+                                           // drag-drop texture assignment
+                                       });
+
+        DrawComponent<LifetimeComponent>("Lifetime",
+                                         m_SelectedEntity,
+                                         [](auto &lf)
+                                         {
+                                             ImGui::DragFloat(
+                                                 "Remaining",
+                                                 &lf.remaining,
+                                                 0.1f,
+                                                 0.0f,
+                                                 10000.0f);
+                                         });
+
+        DrawComponent<AnimatedSpriteComponent>(
+            "Animation",
+            m_SelectedEntity,
+            [](auto &ac)
+            {
+                if (!ac.animation)
+                {
+                    ImGui::Text("No Animation");
+                    return;
+                }
+
+                bool loop = ac.animation->IsLooping();
+
+                if (ImGui::Checkbox("Loop", &loop))
+                {
+                    ac.animation->SetLooping(loop);
+                }
+
+                float duration = ac.animation->GetFrameDuration();
+
+                ImGui::DragFloat(
+                    "Frame Duration",
+                    &ac.animation->GetFrameDurationRef(),
+                    0.01f);
+
+                ImGui::DragFloat(
+                    "Frame Duration",
+                    &duration,
+                    0.01f);
+            });
+
+        DrawComponent<PhysicsComponent>(
+            "Physics",
+            m_SelectedEntity,
+            [](auto &pc)
+            {
+                if (!pc.body)
+                {
+                    ImGui::Text("No Body");
+                    return;
+                }
+
+                auto *body = pc.body.get();
+
+                ImGui::DragFloat2(
+                    "Position",
+                    &body->position.x);
+
+                ImGui::DragFloat2(
+                    "Velocity",
+                    &body->velocity.x);
+
+                ImGui::DragFloat(
+                    "Rotation",
+                    &body->rotation);
+
+                ImGui::DragFloat(
+                    "Inverse Mass",
+                    &body->inverseMass);
+
+                ImGui::DragFloat(
+                    "Restitution",
+                    &body->restitution);
+
+                ImGui::DragFloat(
+                    "Static Friction",
+                    &body->staticFriction);
+
+                ImGui::DragFloat(
+                    "Dynamic Friction",
+                    &body->dynamicFriction);
+
+                ImGui::Checkbox(
+                    "Lock Rotation",
+                    &body->lockRotation);
+
+                ImGui::Checkbox(
+                    "Lock Position",
+                    &body->lockPosition);
+            });
     }
 
     ImGui::End();
