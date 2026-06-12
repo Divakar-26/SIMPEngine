@@ -25,17 +25,15 @@ void DrawComponent(SIMPEngine::Entity entity, const char *name)
 }
 
 HierarchyPanel::HierarchyPanel(
-    SIMPEngine::RenderingLayer* rl,
-    EditorContext* context)
-    : m_RenderingLayer(rl),
-      m_Context(context)
+    EditorContext *context)
+    : m_Context(context)
 {
 }
 
-void HierarchyPanel::OnRender()
+void HierarchyPanel::OnImGuiRender()
 {
     ImGui::Begin(ICON_FOLDER "Hierarchy");
-    SIMPEngine::Scene &scene = m_RenderingLayer->GetScene();
+    SIMPEngine::Scene &scene = *m_Context->Scene;
 
     if (ImGui::Button("+", ImVec2(40, 40)))
     {
@@ -61,9 +59,12 @@ void HierarchyPanel::OnRender()
 
         if (ImGui::Button("Add"))
         {
-            auto &registry = m_RenderingLayer->GetScene().GetRegistry();
+            auto &registry = m_Context->Scene->GetRegistry();
 
-            SIMPEngine::Entity entity = scene.CreateEntity(m_EntityNameBuffer);
+            SIMPEngine::Entity entity =
+                EditorCommands::CreateEntity(
+                    *m_Context,
+                    m_EntityNameBuffer);
 
             if (m_AddVelocity)
                 entity.AddComponent<VelocityComponent>();
@@ -130,9 +131,7 @@ void HierarchyPanel::OnRender()
 
         if (ImGui::MenuItem("Delete Entity"))
         {
-            scene.GetRegistry().destroy(handle);
-            if (m_Context->SelectedEntity.GetHandle() == handle)
-                m_Context->SelectedEntity = {};
+            EditorCommands::DeleteEntity(*m_Context, entity);
         }
 
         if(ImGui::MenuItem("Add Script")){

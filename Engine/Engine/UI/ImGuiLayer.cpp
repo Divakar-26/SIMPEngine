@@ -41,8 +41,6 @@ namespace SIMPEngine
         float oldScale = io.FontGlobalScale;
         io.FontGlobalScale = 1.0f;
 
-        io.IniFilename = "../assets/ImGUIPanels/imgui.ini";
-
         ImGuiStyle &style = ImGui::GetStyle();
         style.Colors[ImGuiCol_WindowBg] = ImVec4(0.129f, 0.149f, 0.180f, 1.0f); // RGBA
         style.Colors[ImGuiCol_FrameBg] = ImVec4(0.129f, 0.149f, 0.180f, 1.0f);  // RGBA

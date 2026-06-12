@@ -5,7 +5,7 @@
 #include <Engine/Core/FileSystem.h>
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer, &m_EditorContext), m_HieararchyPanel(renderingLayer, &m_EditorContext), serializer(&renderingLayer->GetScene()), m_InspectorPanel(
+    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer, &m_EditorContext), m_HieararchyPanel(&m_EditorContext), serializer(&renderingLayer->GetScene()), m_InspectorPanel(
                                                                                                                                                                                  &m_EditorContext)
 {
     this->m_RenderingLayer = renderingLayer;
@@ -91,11 +91,10 @@ void EditorLayer::OnRender()
         ImGui::EndMenuBar();
     }
 
-    m_ViewportPanel.OnRender(
-        m_EditorContext.SelectedEntity);
-    m_HieararchyPanel.OnRender();
-    m_InspectorPanel.OnRender();
-    // m_ContentBrowser->OnImGuiRender();
+    m_ViewportPanel.OnImGuiRender();
+    m_HieararchyPanel.OnImGuiRender();
+    m_InspectorPanel.OnImGuiRender();
+    m_ContentBrowser->OnImGuiRender();
 
     if (showLogs)
         ShowLogs();

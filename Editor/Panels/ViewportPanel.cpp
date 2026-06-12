@@ -16,13 +16,10 @@ void ViewportPanel::OnAttach()
 
 }
 
-void ViewportPanel::OnRender(SIMPEngine::Entity &selectedEntity)
+void ViewportPanel::OnImGuiRender()
 {
-
     m_ViewportPos = ImGui::GetCursorScreenPos();
     m_ViewportSize = ImGui::GetContentRegionAvail();
-
-    m_Context->SelectedEntity = selectedEntity;
 
     ImGui::Begin("Viewport");
 
@@ -47,20 +44,20 @@ void ViewportPanel::OnRender(SIMPEngine::Entity &selectedEntity)
     m_ViewportSize = ImGui::GetItemRectSize();
     m_ViewportHovered = ImGui::IsItemHovered();
 
-    if (m_ViewportHovered && SIMPEngine::Input::IsMouseButtonPressed(1))
-    {
-        auto scene = m_Context->Scene;
-        auto &camera = scene->GetActiveCamera();
+    // if (m_ViewportHovered && SIMPEngine::Input::IsMouseButtonPressed(1))
+    // {
+    //     auto scene = m_Context->Scene;
+    //     auto &camera = scene->GetActiveCamera();
 
-        glm::vec2 world = GetMouseWorldPosition();
+    //     glm::vec2 world = GetMouseWorldPosition();
 
-        SIMPEngine::Entity e = scene->BuildEntity("Box").At(world.x, world.y).With<RenderComponent>();
+    //     SIMPEngine::Entity e = scene->BuildEntity("Box").At(world.x, world.y).With<RenderComponent>();
 
-        auto &rc = e.GetComponent<RenderComponent>();
-        rc.width = 64;
-        rc.height = 64;
-        rc.color = {255, 0, 0, 255};
-    }
+    //     auto &rc = e.GetComponent<RenderComponent>();
+    //     rc.width = 64;
+    //     rc.height = 64;
+    //     rc.color = {255, 0, 0, 255};
+    // }
 
     ImGui::End();
 }
@@ -110,4 +107,24 @@ glm::vec2 ViewportPanel::GetMouseWorldPosition() const
     return m_RenderingLayer
         ->GetCamera()
         .ScreenToWorld(viewportMouse);
+}
+
+bool ViewportPanel::IsHovered() const
+{
+    return m_ViewportHovered;
+}
+
+bool ViewportPanel::IsFocused() const
+{
+    return m_ViewportFocused;
+}
+
+const ImVec2& ViewportPanel::GetViewportPosition() const
+{
+    return m_ViewportPos;
+}
+
+const ImVec2& ViewportPanel::GetViewportSize() const
+{
+    return m_ViewportSize;
 }

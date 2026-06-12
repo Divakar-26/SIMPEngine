@@ -10,8 +10,9 @@
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Core/VFS.h>
 #include "icons/folder_icon.h"
+#include <EditorPanel.h>
 
-class ContentBrowserPanel
+class ContentBrowserPanel : public EditorPanel
 {
 public:
     ContentBrowserPanel(const std::string &rootVirtual, SIMPEngine::AssetManager *am)
@@ -19,14 +20,14 @@ public:
     {
         m_FolderIcon.LoadFromMemory(folder_png, folder_png_len);
 
-        std::string s2 = "assets://file.png";
+        std::string s2 = "assets://textures/file.png";
         auto it2 = SIMPEngine::VFS::Resolve(s2);
         if (it2)
         {
             m_FileIcon.LoadFromFile(it2->c_str());
         }
     }
-    void OnImGuiRender();
+    void OnImGuiRender() override;
 
     SIMPEngine::Texture &GetIconFor(const std::string &vpath, bool isDir);
     void LoadTexture(const std::string &vpath, bool isDir);

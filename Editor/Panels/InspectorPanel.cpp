@@ -27,16 +27,16 @@ static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc ui
 }
 
 InspectorPanel::InspectorPanel(
-    EditorContext* context)
+    EditorContext *context)
 {
     m_Context = context;
 }
 
-void InspectorPanel::OnRender()
+void InspectorPanel::OnImGuiRender()
 {
-    auto& m_SelectedEntity =
-    m_Context->SelectedEntity;
-    
+    auto &m_SelectedEntity =
+        m_Context->SelectedEntity;
+
     ImGui::Begin("Inspector");
 
     if (m_SelectedEntity)
@@ -50,7 +50,10 @@ void InspectorPanel::OnRender()
             strncpy(buffer, tag.c_str(), sizeof(buffer));
 
             if (ImGui::InputText("##Tag", buffer, sizeof(buffer)))
-                tag = std::string(buffer);
+                EditorCommands::RenameEntity(
+                    *m_Context,
+                    m_SelectedEntity,
+                    buffer);
         }
 
         ImGui::Separator();
@@ -107,8 +110,7 @@ void InspectorPanel::OnRender()
                                               ImGui::DragFloat("Width", &col.width, 0.1f);
                                               ImGui::DragFloat("Height", &col.height, 0.1f);
                                               ImGui::DragFloat("Offset X", &col.offsetX, 0.1f);
-                                              ImGui::DragFloat("Offset Y", &col.offsetY, 0.1f);
-                                          });
+                                              ImGui::DragFloat("Offset Y", &col.offsetY, 0.1f); });
     }
 
     ImGui::End();

@@ -9,7 +9,6 @@ namespace SIMPEngine {
 void AssetManager::Init(const std::string& rootAssetsDir, const std::string& registryPath){
     m_Root = rootAssetsDir;
     m_RegistryPath = registryPath;
-    VFS::Mount("assets", rootAssetsDir);
     FileSystem::CreateDirectories(rootAssetsDir);
     m_Registry.Load(registryPath);
 }

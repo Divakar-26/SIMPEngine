@@ -1,6 +1,7 @@
 # Create Editor library
 add_library(Editor STATIC
     EditorLayer.cpp
+    EditorCommands.cpp
     Panels/HierarchyPanel.cpp
     Panels/ViewportPanel.cpp
     Panels/InspectorPanel.cpp

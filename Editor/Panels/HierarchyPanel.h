@@ -6,20 +6,21 @@
 #include <Engine/Application/Application.h>
 #include <Engine/Scene/Scene.h>
 #include <../EditorContext.h>
+#include <../EditorCommands.h>
+#include <EditorPanel.h>
 
-class HierarchyPanel
+
+class HierarchyPanel : public EditorPanel
 {
 public:
-    HierarchyPanel(SIMPEngine::RenderingLayer *renderingLayer, EditorContext* context);
+    HierarchyPanel(EditorContext* context);
 
-    void OnRender();
+    void OnImGuiRender() override;
     void ShowComponents(SIMPEngine::Entity entity);
-    SIMPEngine::Entity * GetSelectedEntity() {return &m_Context->SelectedEntity;}
 
 private:
 
     EditorContext* m_Context;   
-    SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
     char m_EntityNameBuffer[128] = "New Entity";
     bool m_AddTransform = false;
     bool m_AddSprite = false;
