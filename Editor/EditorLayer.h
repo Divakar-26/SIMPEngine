@@ -9,6 +9,7 @@
 #include "Panels/HierarchyPanel.h"
 #include "Panels/InspectorPanel.h"
 #include "Panels/ContentBrowserPanel.h"
+#include "Panels/AssetPickerPanel.h"
 #include "EditorContext.h"
 
 class EditorLayer : public SIMPEngine::Layer
@@ -36,6 +37,7 @@ private:
 
     std::unique_ptr<ContentBrowserPanel> m_ContentBrowser;
     std::unique_ptr<SIMPEngine::AssetManager> m_AssetManager;
+    std::unique_ptr<AssetPickerPanel> m_AssetPicker;
 
     SIMPEngine::SceneSerializer serializer;
 

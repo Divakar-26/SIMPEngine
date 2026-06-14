@@ -22,6 +22,7 @@ namespace SIMPEngine
         
         m_Path = (std::string)path;
 
+        stbi_set_flip_vertically_on_load(true);
         int channel;
         unsigned char *data = stbi_load(path, &m_Width, &m_Height, &channel, 0);
         if (!data)
@@ -85,6 +86,8 @@ namespace SIMPEngine
 
     bool Texture::LoadFromMemory(unsigned char *data, size_t size)
     {
+        stbi_set_flip_vertically_on_load(true);
+        
         int width, height, channels;
         unsigned char *pixels = stbi_load_from_memory(data, size, &width, &height, &channels, 4);
         if (!pixels)

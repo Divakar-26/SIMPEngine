@@ -158,7 +158,7 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
                 vpath.c_str(),
                 (ImTextureID)icon.GetID(),
                 ImVec2(72, 72),
-                ImVec2(0, 0), ImVec2(1, 1),
+                ImVec2(0, 1), ImVec2(1, 0),
                 ImVec4(0, 0, 0, 0),
                 ImVec4(1, 1, 1, 1)))
         {

@@ -1,6 +1,11 @@
 #include "InspectorPanel.h"
 #include <imgui.h>
 #include <Engine/Core/Log.h>
+#include <Engine/Core/FileSystem.h>
+#include <Engine/Core/VFS.h>
+#include <algorithm>
+#include <cctype>
+#include <filesystem>
 
 template <typename T, typename UIFunc>
 static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc uiFunc)
@@ -112,7 +117,7 @@ void InspectorPanel::OnImGuiRender()
                                               ImGui::DragFloat("Offset X", &col.offsetX, 0.1f);
                                               ImGui::DragFloat("Offset Y", &col.offsetY, 0.1f); });
 
-        DrawComponent<SpriteComponent>("Sprite", m_SelectedEntity, [](auto &sc)
+        DrawComponent<SpriteComponent>("Sprite", m_SelectedEntity, [this](auto &sc)
                                        {
                                            ImGui::DragFloat("Width", &sc.width, 0.1f);
                                            ImGui::DragFloat("Height", &sc.height, 0.1f);
@@ -122,6 +127,45 @@ void InspectorPanel::OnImGuiRender()
                                                ImGui::Text("Texture:");
                                                ImGui::Text("%s",
                                                            sc.texture->GetVFSPath().c_str());
+                                           }
+                                           else
+                                           {
+                                               ImGui::Text("No Texture");
+                                           }
+
+                                           if (ImGui::Button("Select Texture"))
+                                           {
+                                               m_AssetPicker->Open(
+                                                   "Select Texture",
+                                                   "assets://",
+                                                   [&](const std::string &vpath)
+                                                   {
+                                                       auto texture =
+                                                           std::make_shared<SIMPEngine::Texture>();
+
+                                                       auto real =
+                                                           SIMPEngine::VFS::Resolve(vpath);
+
+                                                       if (!real)
+                                                       {
+                                                           CORE_ERROR(
+                                                               "Could not resolve {}",
+                                                               vpath);
+                                                           return;
+                                                       }
+
+                                                       if (!texture->LoadFromFile(real->c_str()))
+                                                       {
+                                                           CORE_ERROR(
+                                                               "Could not load {}",
+                                                               *real);
+                                                           return;
+                                                       }
+
+                                                       texture->SetVFSPath(vpath);
+
+                                                       sc.texture = texture;
+                                                   });
                                            }
 
                                            // later:

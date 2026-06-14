@@ -3,6 +3,7 @@
 
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Entity.h>
+#include <unordered_set>
 
 class ViewportPanel;
 

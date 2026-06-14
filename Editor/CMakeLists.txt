@@ -7,6 +7,7 @@ add_library(Editor STATIC
     Panels/ViewportPanel.cpp
     Panels/InspectorPanel.cpp
     Panels/ContentBrowserPanel.cpp
+    Panels/AssetPickerPanel.cpp
 )
 
 target_include_directories(Editor PUBLIC

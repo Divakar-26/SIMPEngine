@@ -5,8 +5,7 @@
 #include <Engine/Core/FileSystem.h>
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer, &m_EditorContext), m_HieararchyPanel(&m_EditorContext), serializer(&renderingLayer->GetScene()), m_InspectorPanel(
-                                                                                                                                                                                 &m_EditorContext)
+    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer, &m_EditorContext), m_HieararchyPanel(&m_EditorContext), serializer(&renderingLayer->GetScene()), m_InspectorPanel(&m_EditorContext)
 {
     this->m_RenderingLayer = renderingLayer;
 
@@ -15,8 +14,11 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
 
     m_AssetManager = std::make_unique<SIMPEngine::AssetManager>();
     m_AssetManager->Init("assets", "assets/registry.asset");
-
+    
     m_ContentBrowser = std::make_unique<ContentBrowserPanel>("assets://", m_AssetManager.get());
+    
+    m_AssetPicker = std::make_unique<AssetPickerPanel>("assets://", m_AssetManager.get());
+    m_InspectorPanel.SetAssetPicker(m_AssetPicker.get());
 
     SIMPEngine::FileSystem::CreateDirectories("assets");
 }
@@ -88,6 +90,21 @@ void EditorLayer::OnRender()
             ImGui::MenuItem("Log", nullptr, &showLogs);
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Debug"))
+        {
+            if (ImGui::MenuItem("Open Asset Picker"))
+            {
+                m_AssetPicker->Open(
+                    "Select Texture",
+                    "assets://",
+                    [](const std::string &path)
+                    {
+                        CORE_INFO("Picked {}", path);
+                    });
+            }
+    
+            ImGui::EndMenu();
+        }
         ImGui::EndMenuBar();
     }
 
@@ -95,6 +112,8 @@ void EditorLayer::OnRender()
     m_HieararchyPanel.OnImGuiRender();
     m_InspectorPanel.OnImGuiRender();
     m_ContentBrowser->OnImGuiRender();
+    m_AssetPicker->OnImGuiRender();
+
 
     if (showLogs)
         ShowLogs();

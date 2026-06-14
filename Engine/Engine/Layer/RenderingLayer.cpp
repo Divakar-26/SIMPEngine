@@ -10,6 +10,7 @@
 
 namespace SIMPEngine
 {
+    std::shared_ptr<Texture> m_TestGrass;
 
     void RenderingLayer::OnAttach()
     {
@@ -69,9 +70,9 @@ namespace SIMPEngine
         // auto &tm = map.AddComponent<TilemapComponent>();
         // auto &tr = map.GetComponent<TransformComponent>();
 
-        // auto texture = TextureManager::Get().LoadTexture(
-        //     "assets://textures/Grass.png",
-        //     "assets://textures/Grass.png");
+        m_TestGrass = TextureManager::Get().LoadTexture(
+            "assets://textures/Grass.png",
+            "assets://textures/Grass.png");
 
         // tm.tileset = std::make_shared<Tileset>(texture, 16, 16);
         // tm.tileSize = 64.0f;
@@ -120,7 +121,7 @@ namespace SIMPEngine
         // {
         //     auto scene = m_SceneManager->GetActiveScene();
 
-        //     auto pos = Input::GetMousePosition(); 
+        //     auto pos = Input::GetMousePosition();
         //     glm::vec2 world = scene->GetActiveCamera()
         //                           .ScreenToWorld({pos.first, pos.second});
 
@@ -168,6 +169,16 @@ namespace SIMPEngine
 
         // CORE_ERROR("{} {}", width, height);
         Renderer::DrawQuad(0, 0, width, height, 0.0f, {255, 255, 255, 255}, false, 0);
+
+        if (m_TestGrass)
+        {
+            Renderer::DrawTexture(
+                m_TestGrass,
+                100,
+                100,
+                128,
+                128, SDL_Color{255, 0,0,255}, 0, 1);
+        }
 
         Renderer::Flush();
     }
