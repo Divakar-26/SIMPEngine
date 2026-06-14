@@ -3,6 +3,7 @@ add_library(Editor STATIC
     EditorLayer.cpp
     EditorCommands.cpp
     Panels/HierarchyPanel.cpp
+    Panels/ViewportUtility.cpp
     Panels/ViewportPanel.cpp
     Panels/InspectorPanel.cpp
     Panels/ContentBrowserPanel.cpp

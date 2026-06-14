@@ -173,20 +173,20 @@ namespace SIMPEngine
 
         dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
                                              {
-                                                 CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
+                                                //  CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
                                                  Input::OnKeyPressed(ev.GetKeyCode());
                                                  return false; });
 
         dispatcher.Dispatch<KeyReleasedEvent>([](KeyReleasedEvent &ev)
                                               {
-                                                 CORE_INFO("{}", ev.ToString());
+                                                //  CORE_INFO("{}", ev.ToString());
 
         Input::OnKeyReleased(ev.GetKeyCode());
         return false; });
 
         dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &ev)
                                                      {
-                                                 CORE_INFO("{}", ev.ToString());
+                                                //  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseButtonPressed(ev.GetMouseButton());
         return false; });
@@ -194,7 +194,7 @@ namespace SIMPEngine
         dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
                                                       {
 
-                                                 CORE_INFO("{}", ev.ToString());
+                                                //  CORE_INFO("{}", ev.ToString());
 
         Input::OnMouseButtonReleased(ev.GetMouseButton());
         return false; });
@@ -209,7 +209,7 @@ namespace SIMPEngine
 
         dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
                                                 {
-    CORE_INFO("Mouse wheel delta: {}", ev.GetYOffset());
+    // CORE_INFO("Mouse wheel delta: {}", ev.GetYOffset());
     Input::OnMouseWheel(ev.GetYOffset());
     return false; });
 

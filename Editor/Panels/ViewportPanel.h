@@ -4,6 +4,7 @@
 #include <Engine/Layer/RenderingLayer.h>
 #include <Engine/Application/Application.h>
 #include <Engine/Scene/Scene.h>
+#include <Engine/Math/EntityUtility.h>
 #include <../EditorContext.h>
 #include <EditorPanel.h>
 
@@ -25,6 +26,9 @@ public:
     const ImVec2 &GetViewportSize() const;
 
     void ShowDetailsInViewport();
+    void DrawSelectionOutline();
+    void FocusOnSelectedEntity();
+
 
 
 private:
@@ -38,5 +42,5 @@ private:
     void ResizeViewportIfNeeded(const ImVec2 &viewportSize);
     void UpdateFocusState();
 
-    void PickEntityUnderMouse();
+    SIMPEngine::Entity GetEntityUnderMouse();
 };

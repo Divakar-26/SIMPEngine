@@ -26,6 +26,7 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Layer/RenderingLayer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Input/Input.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Math/Camera2D.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Math/EntityUtility.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Scene.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneManager.cpp
         # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/ScriptableEntity.cpp

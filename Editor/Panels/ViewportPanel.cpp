@@ -43,22 +43,18 @@ void ViewportPanel::OnImGuiRender()
     m_ViewportSize = ImGui::GetItemRectSize();
     m_Context->ViewportHovered = ImGui::IsItemHovered();
 
-    // if (m_ViewportHovered && SIMPEngine::Input::IsMouseButtonPressed(1))
-    // {
-    //     auto scene = m_Context->Scene;
-    //     auto &camera = scene->GetActiveCamera();
+    if (m_Context->ViewportHovered &&
+        ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    {
+        m_Context->SelectedEntity = GetEntityUnderMouse();
+    }
 
-    //     glm::vec2 world = GetMouseWorldPosition();
-
-    //     SIMPEngine::Entity e = scene->BuildEntity("Box").At(world.x, world.y).With<RenderComponent>();
-
-    //     auto &rc = e.GetComponent<RenderComponent>();
-    //     rc.width = 64;
-    //     rc.height = 64;
-    //     rc.color = {255, 0, 0, 255};
-    // }
+    if(m_Context->ViewportFocused && ImGui::IsKeyDown(ImGuiKey_F)){
+        FocusOnSelectedEntity(); // inside ViewportUtility.cpp
+    }
 
     ShowDetailsInViewport();
+    DrawSelectionOutline();
 
     ImGui::End();
 }
@@ -129,9 +125,56 @@ const ImVec2 &ViewportPanel::GetViewportSize() const
     return m_ViewportSize;
 }
 
+SIMPEngine::Entity ViewportPanel::GetEntityUnderMouse()
+{
+    if (!m_Context->ViewportHovered || !m_Context->Scene)
+        return {};
+
+    glm::vec2 worldPos = GetMouseWorldPosition();
+
+    auto &registry = m_Context->Scene->GetRegistry();
+    auto view = registry.view<TransformComponent>();
+
+    SIMPEngine::Entity best{};
+    float highestZ = -FLT_MAX;
+
+    for (auto entityHandle : view)
+    {
+        SIMPEngine::Entity entity(entityHandle, m_Context->Scene);
+
+        auto bounds = SIMPEngine::GetEntityBounds2D(entity);
+        if (!bounds)
+            continue;
+
+        if (!bounds->Contains(worldPos))
+            continue;
+
+        auto &tc = entity.GetComponent<TransformComponent>();
+        if (tc.zIndex >= highestZ)
+        {
+            highestZ = tc.zIndex;
+            best = entity;
+        }
+    }
+
+    return best;
+}
+
 void ViewportPanel::ShowDetailsInViewport()
 {
-    const char* status = "None";
+    auto hovered = GetEntityUnderMouse();
+    m_Context->HoveredEntity = hovered;
+    std::string hoveredEntityName = "None";
+    if (hovered)
+    {
+        if (hovered.HasComponent<TagComponent>())
+            hoveredEntityName =
+                hovered.GetComponent<TagComponent>().Tag;
+        else
+            hoveredEntityName = "Unnamed";
+    }
+
+    const char *status = "None";
 
     if (m_Context->ViewportFocused && m_Context->ViewportHovered)
         status = "Focused & Hovered";
@@ -142,53 +185,102 @@ void ViewportPanel::ShowDetailsInViewport()
 
     glm::vec2 worldPos = GetMouseWorldPosition();
 
-    std::string text =
-        std::string("Status: ") + status +
-        "\nCoords: (" +
-        std::to_string(worldPos.x) + ", " +
-        std::to_string(worldPos.y) + ")";
+    char buffer[512];
+    snprintf(
+        buffer,
+        sizeof(buffer),
+        "Status: %s\n"
+        "Coords: (%.2f, %.2f)\n"
+        "Entity: %s",
+        status,
+        worldPos.x,
+        worldPos.y,
+        hoveredEntityName.c_str());
 
-    ImDrawList* drawList = ImGui::GetWindowDrawList();
+    ImDrawList *drawList = ImGui::GetWindowDrawList();
 
-    ImVec2 textPos = {
-        m_ViewportPos.x + 10.0f,
-        m_ViewportPos.y + m_ViewportSize.y - 50.0f
-    };
+    ImVec2 textPos =
+        {
+            m_ViewportPos.x + 10.0f,
+            m_ViewportPos.y + m_ViewportSize.y - 65.0f};
 
-    ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+    ImVec2 textSize = ImGui::CalcTextSize(buffer);
 
-    const float padding = 6.0f;
+    constexpr float padding = 6.0f;
 
-    ImVec2 rectMin = {
-        textPos.x - padding,
-        textPos.y - padding
-    };
+    ImVec2 rectMin =
+        {
+            textPos.x - padding,
+            textPos.y - padding};
 
-    ImVec2 rectMax = {
-        textPos.x + textSize.x + padding,
-        textPos.y + textSize.y + padding
-    };
+    ImVec2 rectMax =
+        {
+            textPos.x + textSize.x + padding,
+            textPos.y + textSize.y + padding};
 
-    // Semi-transparent gray background
     drawList->AddRectFilled(
         rectMin,
         rectMax,
         IM_COL32(60, 60, 60, 180),
-        4.0f
-    );
+        4.0f);
 
-    // Optional border
     drawList->AddRect(
         rectMin,
         rectMax,
         IM_COL32(120, 120, 120, 220),
-        4.0f
-    );
+        4.0f);
 
-    // Text
     drawList->AddText(
         textPos,
         IM_COL32(255, 255, 255, 255),
-        text.c_str()
+        buffer);
+}
+
+
+void ViewportPanel::DrawSelectionOutline()
+{
+    auto entity = m_Context->SelectedEntity;
+
+    if (!entity)
+        return;
+
+    auto bounds =
+        SIMPEngine::GetEntityBounds2D(entity);
+
+    if (!bounds)
+        return;
+
+    ImDrawList* drawList =
+        ImGui::GetWindowDrawList();
+
+    glm::vec2 screenMin =
+        m_RenderingLayer
+            ->GetCamera()
+            .WorldToScreen(bounds->min);
+
+    glm::vec2 screenMax =
+        m_RenderingLayer
+            ->GetCamera()
+            .WorldToScreen(bounds->max);
+
+    ImVec2 min =
+    {
+        m_ViewportPos.x + screenMin.x,
+        m_ViewportPos.y + screenMin.y
+    };
+
+    ImVec2 max =
+    {
+        m_ViewportPos.x + screenMax.x,
+        m_ViewportPos.y + screenMax.y
+    };
+
+    drawList->AddRect(
+        min,
+        max,
+        IM_COL32(255, 0, 0, 255), // yellow
+        0.0f,                       // rounding
+        0,
+        2.0f                        // thickness
     );
 }

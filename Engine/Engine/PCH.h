@@ -9,6 +9,7 @@
 #include <Engine/Core/TimeStep.h>
 #include <Engine/Input/Input.h>
 #include <Engine/Input/SIMP_Keys.h>
+#include <Engine/Math/EntityUtility.h>
 
 // ------Rendering-----------------
 #include <Engine/Rendering/GLRenderingAPI.h>
