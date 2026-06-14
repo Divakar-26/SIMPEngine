@@ -9,6 +9,8 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <ImGuizmo.h>
 
+#include "style.h"
+
 namespace SIMPEngine
 {
     ImGuiLayer::ImGuiLayer()
@@ -42,29 +44,70 @@ namespace SIMPEngine
         io.FontGlobalScale = 1.0f;
 
         ImGuiStyle &s = ImGui::GetStyle();
-        s.WindowRounding = 6.f;
-        s.FrameRounding = 4.f;
-        s.GrabRounding = 3.f;
-        s.TabRounding = 4.f;
-        s.FramePadding = ImVec2(6, 3);
-        s.ItemSpacing = ImVec2(6, 4);
-        s.IndentSpacing = 14.f;
-        s.WindowBorderSize = 1.f;
-        s.FrameBorderSize = 0.f; // remove frame borders, use bg contrast instead
 
-        ImVec4 *c = ImGui::GetStyle().Colors;
-        c[ImGuiCol_WindowBg] = ImVec4(0.086f, 0.086f, 0.094f, 1.f); // #3131bf
-        c[ImGuiCol_FrameBg] = ImVec4(0.051f, 0.051f, 0.059f, 1.f);  // #0d0d0f
-        c[ImGuiCol_Header] = ImVec4(0.118f, 0.118f, 0.176f, 1.f);   // active row
-        c[ImGuiCol_HeaderHovered] = ImVec4(0.122f, 0.122f, 0.157f, 1.f);
-        c[ImGuiCol_TitleBg] = ImVec4(0.078f, 0.078f, 0.086f, 1.f);
-        // Accent: a single purple
-        c[ImGuiCol_CheckMark] = ImVec4(0.486f, 0.416f, 0.961f, 1.f);
-        c[ImGuiCol_SliderGrab] = ImVec4(0.486f, 0.416f, 0.961f, 1.f);
+        s.WindowRounding = 8;
+        s.ChildRounding = 8;
+        s.PopupRounding = 8;
+        s.FrameRounding = 6;
+        s.GrabRounding = 6;
+        s.TabRounding = 6;
 
-        s.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
+        s.WindowBorderSize = 0;
+        s.ChildBorderSize = 1;
+        s.FrameBorderSize = 0;
 
-        if(io.Fonts->AddFontFromFileTTF("../assets/fonts/JetBrainsMonoNerdFont-Regular.ttf", 18.0f)){
+        s.WindowPadding = ImVec2(10, 10);
+        s.FramePadding = ImVec2(8, 4);
+        s.ItemSpacing = ImVec2(8, 6);
+        s.ItemInnerSpacing = ImVec2(6, 4);
+
+        s.ScrollbarSize = 12;
+        s.IndentSpacing = 18;
+
+        ImVec4 *c = s.Colors;
+
+        c[ImGuiCol_Text] = TEXT;
+        c[ImGuiCol_TextDisabled] = TEXT_DIM;
+
+        c[ImGuiCol_WindowBg] = BG0;
+        c[ImGuiCol_ChildBg] = BG1;
+        c[ImGuiCol_PopupBg] = BG1;
+
+        c[ImGuiCol_Border] =
+            ImVec4(0.18f, 0.18f, 0.20f, 1.0f);
+
+        c[ImGuiCol_FrameBg] = BG2;
+        c[ImGuiCol_FrameBgHovered] =
+            ImVec4(0.18f, 0.18f, 0.22f, 1.0f);
+        c[ImGuiCol_FrameBgActive] =
+            ImVec4(0.22f, 0.22f, 0.27f, 1.0f);
+
+        c[ImGuiCol_Button] = BG2;
+        c[ImGuiCol_ButtonHovered] = ACCENT_HOVER;
+        c[ImGuiCol_ButtonActive] = ACCENT_ACTIVE;
+
+        c[ImGuiCol_Header] =
+            ImVec4(0.14f, 0.14f, 0.17f, 1.0f);
+        c[ImGuiCol_HeaderHovered] = ACCENT_HOVER;
+        c[ImGuiCol_HeaderActive] = ACCENT_ACTIVE;
+
+        c[ImGuiCol_Tab] = BG1;
+        c[ImGuiCol_TabHovered] = ACCENT_HOVER;
+        c[ImGuiCol_TabActive] = ACCENT;
+        c[ImGuiCol_TabUnfocused] = BG1;
+        c[ImGuiCol_TabUnfocusedActive] = BG2;
+
+        c[ImGuiCol_CheckMark] = ACCENT;
+
+        c[ImGuiCol_SliderGrab] = ACCENT;
+        c[ImGuiCol_SliderGrabActive] = ACCENT_HOVER;
+
+        c[ImGuiCol_ResizeGrip] = ACCENT;
+        c[ImGuiCol_ResizeGripHovered] = ACCENT_HOVER;
+        c[ImGuiCol_ResizeGripActive] = ACCENT_ACTIVE;
+
+        if (io.Fonts->AddFontFromFileTTF("../assets/fonts/JetBrainsMonoNerdFont-Regular.ttf", 18.0f))
+        {
             CORE_ERROR("Could not load the fonts");
         }
 
@@ -94,6 +137,7 @@ namespace SIMPEngine
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
         ImGuizmo::BeginFrame();
+        ImGui::ShowDemoWindow();
     }
 
     void ImGuiLayer::End()

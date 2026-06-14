@@ -1,35 +1,8 @@
 #include "InspectorPanel.h"
 #include <imgui.h>
-#include <Engine/Core/Log.h>
-#include <Engine/Core/FileSystem.h>
-#include <Engine/Core/VFS.h>
-#include <algorithm>
-#include <cctype>
-#include <filesystem>
 
-template <typename T, typename UIFunc>
-static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc uiFunc)
-{
-    if (entity.HasComponent<T>())
-    {
-        auto &component = entity.GetComponent<T>();
 
-        if (ImGui::TreeNodeEx((void *)typeid(T).hash_code(),
-                              ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap,
-                              name))
-        {
-            if (ImGui::BeginPopupContextItem())
-            {
-                if (ImGui::MenuItem("Remove Component"))
-                    entity.RemoveComponent<T>();
-                ImGui::EndPopup();
-            }
 
-            uiFunc(component);
-            ImGui::TreePop();
-        }
-    }
-}
 
 InspectorPanel::InspectorPanel(
     EditorContext *context)
@@ -61,9 +34,9 @@ void InspectorPanel::OnImGuiRender()
                     buffer);
         }
 
-        ImGui::Separator();
+        ImGui::Dummy(ImVec2(0,4));
 
-        DrawComponent<TransformComponent>("Transform", m_SelectedEntity, [](auto &tc)
+        DrawComponentCard<TransformComponent>("Transform", m_SelectedEntity, [](auto &tc)
                                           {
     ImGui::DragFloat("X", &tc.position.x, 0.1f);
     ImGui::DragFloat("Y", &tc.position.y, 0.1f);
@@ -72,7 +45,7 @@ void InspectorPanel::OnImGuiRender()
     ImGui::DragFloat("ScaleY", &tc.scale.y, 0.1f, 0.01f, 100.0f);
     ImGui::DragFloat("Z-Index", &tc.zIndex,1.0f, 0.0f, 10.0f); });
 
-        DrawComponent<RenderComponent>("Render", m_SelectedEntity, [&](auto &rc)
+        DrawComponentCard<RenderComponent>("Render", m_SelectedEntity, [&](auto &rc)
                                        {
     float color[4] = {
         static_cast<float>(rc.color.r) / 255.0f,
@@ -103,76 +76,24 @@ void InspectorPanel::OnImGuiRender()
         }
     } });
 
-        DrawComponent<VelocityComponent>("Velocity", m_SelectedEntity, [](auto &vc)
+        DrawComponentCard<VelocityComponent>("Velocity", m_SelectedEntity, [](auto &vc)
                                          { ImGui::DragFloat("Velocity X", &vc.vx, 0.1f); 
                                             ImGui::DragFloat("Velocity Y", &vc.vy, 0.1f); });
 
-        DrawComponent<CameraComponent>("Camera", m_SelectedEntity, [](auto &cc)
+        DrawComponentCard<CameraComponent>("Camera", m_SelectedEntity, [](auto &cc)
                                        { ImGui::Checkbox("Primary", &cc.primary); });
 
-        DrawComponent<CollisionComponent>("Collision", m_SelectedEntity, [](auto &col)
+        DrawComponentCard<CollisionComponent>("Collision", m_SelectedEntity, [](auto &col)
                                           {
                                               ImGui::DragFloat("Width", &col.width, 0.1f);
                                               ImGui::DragFloat("Height", &col.height, 0.1f);
                                               ImGui::DragFloat("Offset X", &col.offsetX, 0.1f);
                                               ImGui::DragFloat("Offset Y", &col.offsetY, 0.1f); });
 
-        DrawComponent<SpriteComponent>("Sprite", m_SelectedEntity, [this](auto &sc)
-                                       {
-                                           ImGui::DragFloat("Width", &sc.width, 0.1f);
-                                           ImGui::DragFloat("Height", &sc.height, 0.1f);
+        // sprite section
+        DrawSpriteSection(m_SelectedEntity);
 
-                                           if (sc.texture)
-                                           {
-                                               ImGui::Text("Texture:");
-                                               ImGui::Text("%s",
-                                                           sc.texture->GetVFSPath().c_str());
-                                           }
-                                           else
-                                           {
-                                               ImGui::Text("No Texture");
-                                           }
-
-                                           if (ImGui::Button("Select Texture"))
-                                           {
-                                               m_AssetPicker->Open(
-                                                   "Select Texture",
-                                                   "assets://",
-                                                   [&](const std::string &vpath)
-                                                   {
-                                                       auto texture =
-                                                           std::make_shared<SIMPEngine::Texture>();
-
-                                                       auto real =
-                                                           SIMPEngine::VFS::Resolve(vpath);
-
-                                                       if (!real)
-                                                       {
-                                                           CORE_ERROR(
-                                                               "Could not resolve {}",
-                                                               vpath);
-                                                           return;
-                                                       }
-
-                                                       if (!texture->LoadFromFile(real->c_str()))
-                                                       {
-                                                           CORE_ERROR(
-                                                               "Could not load {}",
-                                                               *real);
-                                                           return;
-                                                       }
-
-                                                       texture->SetVFSPath(vpath);
-
-                                                       sc.texture = texture;
-                                                   });
-                                           }
-
-                                           // later:
-                                           // drag-drop texture assignment
-                                       });
-
-        DrawComponent<LifetimeComponent>("Lifetime",
+        DrawComponentCard<LifetimeComponent>("Lifetime",
                                          m_SelectedEntity,
                                          [](auto &lf)
                                          {
@@ -184,7 +105,7 @@ void InspectorPanel::OnImGuiRender()
                                                  10000.0f);
                                          });
 
-        DrawComponent<AnimatedSpriteComponent>(
+        DrawComponentCard<AnimatedSpriteComponent>(
             "Animation",
             m_SelectedEntity,
             [](auto &ac)
@@ -215,7 +136,7 @@ void InspectorPanel::OnImGuiRender()
                     0.01f);
             });
 
-        DrawComponent<PhysicsComponent>(
+        DrawComponentCard<PhysicsComponent>(
             "Physics",
             m_SelectedEntity,
             [](auto &pc)

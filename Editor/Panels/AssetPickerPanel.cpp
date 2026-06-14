@@ -39,7 +39,7 @@ void AssetPickerPanel::OnImGuiRender()
         }
 
         ImGui::TextUnformatted("Choose an asset");
-        ImGui::Separator();
+        ImGui::Dummy(ImVec2(0,4));
 
         ImGui::BeginChild("##tree", ImVec2(220, 360), true);
         DrawDirectory(m_Root);
@@ -51,9 +51,9 @@ void AssetPickerPanel::OnImGuiRender()
         DrawFiles(m_CurrentDir);
         ImGui::EndChild();
 
-        ImGui::Separator();
+        ImGui::Dummy(ImVec2(0,4));
         DrawPreview();
-        ImGui::Separator();
+        ImGui::Dummy(ImVec2(0,4));
 
         const bool valid = !m_SelectedVPath.empty();
 

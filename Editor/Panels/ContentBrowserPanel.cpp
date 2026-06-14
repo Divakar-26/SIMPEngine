@@ -173,14 +173,37 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
             }
         }
 
-        if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+        if (!isDir)
         {
-            // Only use CONTENT_BROWSER_ITEM payload for both files and folders
-            ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", vpath.c_str(), vpath.size() + 1);
+            std::string ext = std::filesystem::path(name).extension().string();
 
-            ImGui::TextUnformatted(name.c_str());
-            ImGui::EndDragDropSource();
+            if (ext == ".png" || ext == ".jpg" || ext == ".jpeg")
+            {
+                if (ImGui::BeginDragDropSource())
+                {
+                    CORE_ERROR("DRAG STARTED: {}", vpath);
+
+                    ImGui::SetDragDropPayload(
+                        "TEXTURE_ASSET",
+                        vpath.c_str(),
+                        vpath.size() + 1);
+
+                    ImGui::Text("Texture");
+                    ImGui::Text("%s", name.c_str());
+
+                    ImGui::EndDragDropSource();
+                }
+            }
         }
+
+        // if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
+        // {
+        //     // Only use CONTENT_BROWSER_ITEM payload for both files and folders
+        //     ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", vpath.c_str(), vpath.size() + 1);
+
+        //     ImGui::TextUnformatted(name.c_str());
+        //     ImGui::EndDragDropSource();
+        // }
 
         if (isDir && ImGui::BeginDragDropTarget())
         {

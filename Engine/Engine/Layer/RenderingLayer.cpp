@@ -170,15 +170,15 @@ namespace SIMPEngine
         // CORE_ERROR("{} {}", width, height);
         Renderer::DrawQuad(0, 0, width, height, 0.0f, {255, 255, 255, 255}, false, 0);
 
-        if (m_TestGrass)
-        {
-            Renderer::DrawTexture(
-                m_TestGrass,
-                100,
-                100,
-                128,
-                128, SDL_Color{255, 0,0,255}, 0, 1);
-        }
+        // if (m_TestGrass)
+        // {
+        //     Renderer::DrawTexture(
+        //         m_TestGrass,
+        //         100,
+        //         100,
+        //         128,
+        //         128, SDL_Color{255, 0,0,255}, 0, 1);
+        // }
 
         Renderer::Flush();
     }

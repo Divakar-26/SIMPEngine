@@ -45,7 +45,7 @@ void HierarchyPanel::OnImGuiRender()
         // Input entity name
         ImGui::InputText("Entity Name", m_EntityNameBuffer, sizeof(m_EntityNameBuffer));
 
-        ImGui::Separator();
+        ImGui::Dummy(ImVec2(0,4));
 
         // Component checkboxes
         ImGui::Text("Select Components:");
@@ -60,7 +60,7 @@ void HierarchyPanel::OnImGuiRender()
         ImGui::Checkbox("Lifetime", &m_AddLifetime);
         ImGui::Checkbox("Tilemap", &m_AddTilemap);
 
-        ImGui::Separator();
+        ImGui::Dummy(ImVec2(0,4));
 
         if (ImGui::Button("Add"))
         {
