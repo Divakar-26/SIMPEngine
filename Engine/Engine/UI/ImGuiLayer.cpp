@@ -41,18 +41,32 @@ namespace SIMPEngine
         float oldScale = io.FontGlobalScale;
         io.FontGlobalScale = 1.0f;
 
-        ImGuiStyle &style = ImGui::GetStyle();
-        style.Colors[ImGuiCol_WindowBg] = ImVec4(0.129f, 0.149f, 0.180f, 1.0f); // RGBA
-        style.Colors[ImGuiCol_FrameBg] = ImVec4(0.129f, 0.149f, 0.180f, 1.0f);  // RGBA
-        style.Colors[ImGuiCol_FrameBgHovered] = ImVec4(0.3f, 0.3f, 0.3f, 1.0f);
-        style.Colors[ImGuiCol_FrameBgActive] = ImVec4(0.4f, 0.4f, 0.4f, 1.0f);
-        style.FrameBorderSize = 1.0f; // default is 0.0f (no border)
+        ImGuiStyle &s = ImGui::GetStyle();
+        s.WindowRounding = 6.f;
+        s.FrameRounding = 4.f;
+        s.GrabRounding = 3.f;
+        s.TabRounding = 4.f;
+        s.FramePadding = ImVec2(6, 3);
+        s.ItemSpacing = ImVec2(6, 4);
+        s.IndentSpacing = 14.f;
+        s.WindowBorderSize = 1.f;
+        s.FrameBorderSize = 0.f; // remove frame borders, use bg contrast instead
 
-        style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
+        ImVec4 *c = ImGui::GetStyle().Colors;
+        c[ImGuiCol_WindowBg] = ImVec4(0.086f, 0.086f, 0.094f, 1.f); // #3131bf
+        c[ImGuiCol_FrameBg] = ImVec4(0.051f, 0.051f, 0.059f, 1.f);  // #0d0d0f
+        c[ImGuiCol_Header] = ImVec4(0.118f, 0.118f, 0.176f, 1.f);   // active row
+        c[ImGuiCol_HeaderHovered] = ImVec4(0.122f, 0.122f, 0.157f, 1.f);
+        c[ImGuiCol_TitleBg] = ImVec4(0.078f, 0.078f, 0.086f, 1.f);
+        // Accent: a single purple
+        c[ImGuiCol_CheckMark] = ImVec4(0.486f, 0.416f, 0.961f, 1.f);
+        c[ImGuiCol_SliderGrab] = ImVec4(0.486f, 0.416f, 0.961f, 1.f);
 
-        // if(io.Fonts->AddFontFromFileTTF("../assets/JetBrainsMonoNerdFont-Regular.ttf", 18.0f)){
-        //     CORE_ERROR("Could not load the fonts");
-        // }
+        s.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
+
+        if(io.Fonts->AddFontFromFileTTF("../assets/fonts/JetBrainsMonoNerdFont-Regular.ttf", 18.0f)){
+            CORE_ERROR("Could not load the fonts");
+        }
 
         // ImFontConfig config;
         // config.MergeMode = true;
@@ -89,7 +103,6 @@ namespace SIMPEngine
         // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
     }
 
     void ImGuiLayer::OnEvent(Event &e)

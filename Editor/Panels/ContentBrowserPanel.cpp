@@ -83,7 +83,7 @@ void ContentBrowserPanel::DrawDirectory(const std::string &vdir)
     if (!real)
         return;
 
-    std::string label = std::string(ICON_CAMERA) + std::filesystem::u8path(*real).filename().string();
+    std::string label = std::filesystem::u8path(*real).filename().string();
     if (label.empty())
         label = vdir;
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;

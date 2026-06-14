@@ -8,9 +8,12 @@ class ViewportPanel;
 
 struct EditorContext
 {
-    SIMPEngine::Scene* Scene = nullptr;
+    SIMPEngine::Scene *Scene = nullptr;
 
     SIMPEngine::Entity SelectedEntity;
+    SIMPEngine::Entity HoveredEntity{};
 
-    ViewportPanel* Viewport = nullptr;
+    ViewportPanel *Viewport = nullptr;
+    bool ViewportHovered = false;
+    bool ViewportFocused = false;
 };

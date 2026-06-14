@@ -120,7 +120,7 @@ struct HierarchyComponent
 
 struct LifetimeComponent
 {
-    float remaining = 1.0f;
+    float remaining = 10000.0f;
 };
 
 struct Tile

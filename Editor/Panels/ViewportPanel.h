@@ -15,7 +15,7 @@ public:
     void OnAttach();
     void OnImGuiRender() override;
 
-    bool iSFocusedAndHovered() { return m_ViewportFocused; }
+    bool iSFocusedAndHovered() { return m_Context->ViewportFocused && m_Context->ViewportHovered; }
     glm::vec2 GetMouseWorldPosition() const;
 
     bool IsHovered() const;
@@ -24,16 +24,19 @@ public:
     const ImVec2 &GetViewportPosition() const;
     const ImVec2 &GetViewportSize() const;
 
+    void ShowDetailsInViewport();
+
+
 private:
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
     EditorContext *m_Context = nullptr;
     SIMPEngine::Entity *m_SelectedEntity = nullptr;
-    bool m_ViewportFocused = false;
-    bool m_ViewportHovered = false;
 
     ImVec2 m_ViewportPos;
     ImVec2 m_ViewportSize;
 
     void ResizeViewportIfNeeded(const ImVec2 &viewportSize);
     void UpdateFocusState();
+
+    void PickEntityUnderMouse();
 };

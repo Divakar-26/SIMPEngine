@@ -13,7 +13,7 @@ void DrawComponent(SIMPEngine::Entity entity, const char *name)
 
         if (ImGui::BeginPopupContextItem())
         {
-            if (ImGui::MenuItem(ICON_DELETE_LEFT " Remove Component"))
+            if (ImGui::MenuItem("Remove Component"))
                 entity.RemoveComponent<T>();
 
             ImGui::EndPopup();
@@ -32,7 +32,7 @@ HierarchyPanel::HierarchyPanel(
 
 void HierarchyPanel::OnImGuiRender()
 {
-    ImGui::Begin(ICON_FOLDER "Hierarchy");
+    ImGui::Begin("Hierarchy");
     SIMPEngine::Scene &scene = *m_Context->Scene;
 
     if (ImGui::Button("+", ImVec2(40, 40)))
@@ -82,9 +82,9 @@ void HierarchyPanel::OnImGuiRender()
             if (m_AddRender)
                 entity.AddComponent<RenderComponent>();
             if (m_AddScript)
-                    //
-            if (m_AddPhysics)
-                entity.AddComponent<PhysicsComponent>();
+                //
+                if (m_AddPhysics)
+                    entity.AddComponent<PhysicsComponent>();
             if (m_AddAnimatedSprite)
                 entity.AddComponent<AnimatedSpriteComponent>();
             if (m_AddLifetime)
@@ -100,7 +100,7 @@ void HierarchyPanel::OnImGuiRender()
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
-        if (ImGui::Button(ICON_MULTIPLY "Cancel"))
+        if (ImGui::Button("Cancel"))
         {
             ImGui::CloseCurrentPopup();
         }
@@ -112,7 +112,7 @@ void HierarchyPanel::OnImGuiRender()
                                                   {
     SIMPEngine::Entity entity(handle, &scene);
 
-    std::string nameWithIcon = std::string(ICON_CUBE) + " " + tag.Tag;
+    std::string nameWithIcon = tag.Tag;
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
     bool opened = ImGui::TreeNodeEx((void*)(uint64_t)handle, flags, "%s", nameWithIcon.c_str());
 
@@ -141,6 +141,20 @@ void HierarchyPanel::OnImGuiRender()
             if (!entity.HasComponent<CollisionComponent>() && ImGui::MenuItem("Collision"))
                 entity.AddComponent<CollisionComponent>();
 
+                
+                if (!entity.HasComponent<PhysicsComponent>() && ImGui::MenuItem("Physics"))
+                entity.AddComponent<PhysicsComponent>();
+                
+                if (!entity.HasComponent<AnimatedSpriteComponent>() && ImGui::MenuItem("Animated Sprite"))
+                entity.AddComponent<AnimatedSpriteComponent>();
+                
+                if (!entity.HasComponent<LifetimeComponent>() && ImGui::MenuItem("Lifetime"))
+                entity.AddComponent<LifetimeComponent>();
+
+                // if (!entity.HasComponent<ScriptComponent>() && ImGui::MenuItem("Script"))
+                //     entity.AddComponent<ScriptComponent>();
+
+
             ImGui::EndMenu();
         }
 
@@ -167,9 +181,9 @@ void HierarchyPanel::OnImGuiRender()
 
 void HierarchyPanel::ShowComponents(SIMPEngine::Entity entity)
 {
-    DrawComponent<TransformComponent>(entity, ICON_ARROWS " Transform");
-    DrawComponent<RenderComponent>(entity, ICON_PHOTO_FILM " Render");
-    DrawComponent<CameraComponent>(entity, ICON_CAMERA " Camera Entity");
-    DrawComponent<CollisionComponent>(entity, ICON_CAR_CRASH " Collision Box");
-    DrawComponent<SpriteComponent>(entity, ICON_FACE_SMILE "  Sprite");
+    DrawComponent<TransformComponent>(entity, "Transform");
+    DrawComponent<RenderComponent>(entity, "Render");
+    DrawComponent<CameraComponent>(entity, "Camera Entity");
+    DrawComponent<CollisionComponent>(entity, "Collision Box");
+    DrawComponent<SpriteComponent>(entity, "Sprite");
 }

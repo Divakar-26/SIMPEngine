@@ -5,7 +5,7 @@
 #include <Engine/Input/SIMP_Keys.h>
 #include <Engine/Scene/Component.h>
 
-ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer, EditorContext * context)
+ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer, EditorContext *context)
 {
     m_RenderingLayer = renderingLayer;
     m_Context = context;
@@ -13,7 +13,6 @@ ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer, EditorC
 
 void ViewportPanel::OnAttach()
 {
-
 }
 
 void ViewportPanel::OnImGuiRender()
@@ -42,7 +41,7 @@ void ViewportPanel::OnImGuiRender()
 
     m_ViewportPos = ImGui::GetItemRectMin();
     m_ViewportSize = ImGui::GetItemRectSize();
-    m_ViewportHovered = ImGui::IsItemHovered();
+    m_Context->ViewportHovered = ImGui::IsItemHovered();
 
     // if (m_ViewportHovered && SIMPEngine::Input::IsMouseButtonPressed(1))
     // {
@@ -59,6 +58,8 @@ void ViewportPanel::OnImGuiRender()
     //     rc.color = {255, 0, 0, 255};
     // }
 
+    ShowDetailsInViewport();
+
     ImGui::End();
 }
 
@@ -72,8 +73,8 @@ void ViewportPanel::UpdateFocusState()
     if (!nowFocused)
         SIMPEngine::Input::ResetAllKeys();
 
-    m_ViewportFocused = nowFocused;
-    m_ViewportHovered = nowHovered;
+    m_Context->ViewportFocused = nowFocused;
+    m_Context->ViewportHovered = nowHovered;
 }
 
 void ViewportPanel::ResizeViewportIfNeeded(const ImVec2 &viewportSize)
@@ -93,16 +94,15 @@ void ViewportPanel::ResizeViewportIfNeeded(const ImVec2 &viewportSize)
 
 glm::vec2 ViewportPanel::GetMouseWorldPosition() const
 {
-    if (!m_ViewportHovered)
+    if (!m_Context->ViewportHovered)
         return {0.0f, 0.0f};
 
     auto [mx, my] = SIMPEngine::Input::GetMousePosition();
 
     glm::vec2 viewportMouse =
-    {
-        mx - m_ViewportPos.x,
-        my - m_ViewportPos.y
-    };
+        {
+            mx - m_ViewportPos.x,
+            my - m_ViewportPos.y};
 
     return m_RenderingLayer
         ->GetCamera()
@@ -111,20 +111,84 @@ glm::vec2 ViewportPanel::GetMouseWorldPosition() const
 
 bool ViewportPanel::IsHovered() const
 {
-    return m_ViewportHovered;
+    return m_Context->ViewportHovered;
 }
 
 bool ViewportPanel::IsFocused() const
 {
-    return m_ViewportFocused;
+    return m_Context->ViewportFocused;
 }
 
-const ImVec2& ViewportPanel::GetViewportPosition() const
+const ImVec2 &ViewportPanel::GetViewportPosition() const
 {
     return m_ViewportPos;
 }
 
-const ImVec2& ViewportPanel::GetViewportSize() const
+const ImVec2 &ViewportPanel::GetViewportSize() const
 {
     return m_ViewportSize;
+}
+
+void ViewportPanel::ShowDetailsInViewport()
+{
+    const char* status = "None";
+
+    if (m_Context->ViewportFocused && m_Context->ViewportHovered)
+        status = "Focused & Hovered";
+    else if (m_Context->ViewportFocused)
+        status = "Focused";
+    else if (m_Context->ViewportHovered)
+        status = "Hovered";
+
+    glm::vec2 worldPos = GetMouseWorldPosition();
+
+    std::string text =
+        std::string("Status: ") + status +
+        "\nCoords: (" +
+        std::to_string(worldPos.x) + ", " +
+        std::to_string(worldPos.y) + ")";
+
+    ImDrawList* drawList = ImGui::GetWindowDrawList();
+
+    ImVec2 textPos = {
+        m_ViewportPos.x + 10.0f,
+        m_ViewportPos.y + m_ViewportSize.y - 50.0f
+    };
+
+    ImVec2 textSize = ImGui::CalcTextSize(text.c_str());
+
+    const float padding = 6.0f;
+
+    ImVec2 rectMin = {
+        textPos.x - padding,
+        textPos.y - padding
+    };
+
+    ImVec2 rectMax = {
+        textPos.x + textSize.x + padding,
+        textPos.y + textSize.y + padding
+    };
+
+    // Semi-transparent gray background
+    drawList->AddRectFilled(
+        rectMin,
+        rectMax,
+        IM_COL32(60, 60, 60, 180),
+        4.0f
+    );
+
+    // Optional border
+    drawList->AddRect(
+        rectMin,
+        rectMax,
+        IM_COL32(120, 120, 120, 220),
+        4.0f
+    );
+
+    // Text
+    drawList->AddText(
+        textPos,
+        IM_COL32(255, 255, 255, 255),
+        text.c_str()
+    );
 }
