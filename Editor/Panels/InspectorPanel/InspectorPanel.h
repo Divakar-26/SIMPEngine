@@ -2,11 +2,13 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/Entity.h>
 #include <Engine/Scene/Component.h>
-#include <../EditorContext.h>
-#include <../EditorCommands.h>
+
+#include "../../EditorContext.h"
+#include "../../EditorCommands.h"
 #include <EditorPanel.h>
 #include <filesystem>
 #include "AssetPickerPanel.h"
+#include "AnimationMakerPanel.h"
 
 #include <Engine/Core/Log.h>
 #include <Engine/Core/FileSystem.h>
@@ -16,6 +18,7 @@
 #include <filesystem>
 
 class AssetPickerPanel;
+class AnimationMakerPanel;
 
 template <typename T, typename UIFunc>
 static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc uiFunc)
@@ -41,16 +44,16 @@ static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc ui
     }
 }
 
-template<typename T, typename UIFunc>
+template <typename T, typename UIFunc>
 static void DrawComponentCard(
-    const char* name,
+    const char *name,
     SIMPEngine::Entity entity,
     UIFunc uiFunc)
 {
     if (!entity.HasComponent<T>())
         return;
 
-    auto& component = entity.GetComponent<T>();
+    auto &component = entity.GetComponent<T>();
 
     ImGui::PushStyleVar(
         ImGuiStyleVar_FramePadding,
@@ -103,10 +106,18 @@ public:
     void OnImGuiRender() override;
 
     void DrawSpriteSection(SIMPEngine::Entity &m_SelectedEntity);
+    void DrawAnimationSection(SIMPEngine::Entity &m_SelectedEntity);
+    void DrawPhysicsSection(SIMPEngine::Entity &m_SelectedEntity);
 
     void SetAssetPicker(AssetPickerPanel *picker)
     {
         m_AssetPicker = picker;
+    }
+
+    void SetAnimationMaker(
+        AnimationMakerPanel *maker)
+    {
+        m_AnimationMaker = maker;
     }
 
 private:
@@ -116,4 +127,5 @@ private:
     std::string m_SelectedTexturePath;
 
     AssetPickerPanel *m_AssetPicker = nullptr;
+    AnimationMakerPanel* m_AnimationMaker = nullptr;
 };

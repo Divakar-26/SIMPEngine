@@ -1,5 +1,5 @@
 #include "AssetPickerPanel.h"
-
+#include "EditorUtility.h"
 #include <Engine/Core/Log.h>
 #include <algorithm>
 #include <cctype>
@@ -39,7 +39,7 @@ void AssetPickerPanel::OnImGuiRender()
         }
 
         ImGui::TextUnformatted("Choose an asset");
-        ImGui::Dummy(ImVec2(0,4));
+        ImGui::Dummy(ImVec2(0, 4));
 
         ImGui::BeginChild("##tree", ImVec2(220, 360), true);
         DrawDirectory(m_Root);
@@ -51,9 +51,9 @@ void AssetPickerPanel::OnImGuiRender()
         DrawFiles(m_CurrentDir);
         ImGui::EndChild();
 
-        ImGui::Dummy(ImVec2(0,4));
+        ImGui::Dummy(ImVec2(0, 4));
         DrawPreview();
-        ImGui::Dummy(ImVec2(0,4));
+        ImGui::Dummy(ImVec2(0, 4));
 
         const bool valid = !m_SelectedVPath.empty();
 
@@ -206,22 +206,13 @@ void AssetPickerPanel::DrawEntry(const std::string &vpath, bool isDir)
 
     if (isDir)
     {
+        CORE_INFO("Picker folder: {}x{}",
+                  m_FolderIcon.GetWidth(),
+                  m_FolderIcon.GetHeight());
+
         if (m_FolderIcon.GetID())
         {
-            if (ImGui::ImageButton(
-                    "##folder",
-                    (ImTextureID)m_FolderIcon.GetID(),
-                    ImVec2(72, 72),
-                    ImVec2(0, 1), ImVec2(1, 0),
-                    ImVec4(0, 0, 0, 0),
-                    ImVec4(1, 1, 1, 1)))
-            {
-                m_CurrentDir = vpath;
-            }
-        }
-        else
-        {
-            if (ImGui::Button("DIR", ImVec2(72, 72)))
+            if (EditorUI::DrawThumbnailButton("##folder", m_FolderIcon, 72.0f, m_SelectedVPath == vpath))
                 m_CurrentDir = vpath;
         }
     }
@@ -230,20 +221,7 @@ void AssetPickerPanel::DrawEntry(const std::string &vpath, bool isDir)
         SIMPEngine::Texture &thumb = GetThumbnailFor(vpath);
         if (thumb.GetID())
         {
-            if (ImGui::ImageButton(
-                    "##img",
-                    (ImTextureID)thumb.GetID(),
-                    ImVec2(72, 72),
-                    ImVec2(0, 1), ImVec2(1, 0),
-                    ImVec4(0, 0, 0, 0),
-                    ImVec4(1, 1, 1, 1)))
-            {
-                m_SelectedVPath = vpath;
-            }
-        }
-        else
-        {
-            if (ImGui::Button("IMG", ImVec2(72, 72)))
+            if (EditorUI::DrawThumbnailButton("##img", thumb, 72.0f, m_SelectedVPath == vpath))
                 m_SelectedVPath = vpath;
         }
     }
@@ -287,11 +265,7 @@ void AssetPickerPanel::DrawPreview()
         auto &tex = GetThumbnailFor(m_SelectedVPath);
         if (tex.GetID())
         {
-            ImGui::Image(
-                (ImTextureID)tex.GetID(),
-                ImVec2(160, 160),
-                ImVec2(0, 1),
-                ImVec2(1, 0));
+            EditorUI::DrawThumbnailImage(tex, 160.0f);
         }
     }
 }

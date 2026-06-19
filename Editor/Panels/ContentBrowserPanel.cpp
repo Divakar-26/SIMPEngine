@@ -6,6 +6,7 @@
 #include <Engine/Assets/AssetManager.h>
 #include "Assets/Asset.h"
 #include "../icons.h"
+#include "EditorUtility.h"
 
 std::string ContentBrowserPanel::ToVirtualChild(const std::string &parent, const std::string &filename)
 {
@@ -154,16 +155,14 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
 
     if (icon.GetID())
     {
-        if (ImGui::ImageButton(
-                vpath.c_str(),
-                (ImTextureID)icon.GetID(),
-                ImVec2(72, 72),
-                ImVec2(0, 1), ImVec2(1, 0),
-                ImVec4(0, 0, 0, 0),
-                ImVec4(1, 1, 1, 1)))
+        if (EditorUI::DrawThumbnailButton(vpath.c_str(), icon, 72.0f))
         {
             if (isDir)
             {
+                CORE_INFO("CB folder: {}x{}",
+                          m_FolderIcon.GetWidth(),
+                          m_FolderIcon.GetHeight());
+
                 m_CurrentDir = vpath;
                 CORE_INFO("Changed directory to: {}", vpath);
             }
@@ -176,34 +175,17 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
         if (!isDir)
         {
             std::string ext = std::filesystem::path(name).extension().string();
-
             if (ext == ".png" || ext == ".jpg" || ext == ".jpeg")
             {
                 if (ImGui::BeginDragDropSource())
                 {
-                    CORE_ERROR("DRAG STARTED: {}", vpath);
-
-                    ImGui::SetDragDropPayload(
-                        "TEXTURE_ASSET",
-                        vpath.c_str(),
-                        vpath.size() + 1);
-
-                    ImGui::Text("Texture");
+                    ImGui::SetDragDropPayload("TEXTURE_ASSET", vpath.c_str(), vpath.size() + 1);
+                    ImGui::TextUnformatted("Texture");
                     ImGui::Text("%s", name.c_str());
-
                     ImGui::EndDragDropSource();
                 }
             }
         }
-
-        // if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID))
-        // {
-        //     // Only use CONTENT_BROWSER_ITEM payload for both files and folders
-        //     ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", vpath.c_str(), vpath.size() + 1);
-
-        //     ImGui::TextUnformatted(name.c_str());
-        //     ImGui::EndDragDropSource();
-        // }
 
         if (isDir && ImGui::BeginDragDropTarget())
         {
@@ -223,7 +205,7 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
                         std::filesystem::rename(srcPath, dstPath);
                         CORE_INFO("Moved to folder: {} -> {}", srcPath.string(), dstPath.string());
                     }
-                    catch (std::exception &e)
+                    catch (const std::exception &e)
                     {
                         CORE_ERROR("Move failed: {}", e.what());
                     }

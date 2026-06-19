@@ -15,10 +15,13 @@ namespace SIMPEngine
             return m_Entity.GetComponent<T>();
         }
 
+        
+
     protected:
         virtual void OnCreate() {}
         virtual void OnDestroy() {}
         virtual void OnUpdate(float dt) {}
+        virtual void OnRender()  {} 
 
     private:
         Entity m_Entity;

@@ -5,10 +5,13 @@ add_library(Editor STATIC
     Panels/HierarchyPanel.cpp
     Panels/ViewportUtility.cpp
     Panels/ViewportPanel.cpp
-    Panels/InspectorPanel.cpp
+    Panels/InspectorPanel/InspectorPanel.cpp
     Panels/ContentBrowserPanel.cpp
     Panels/AssetPickerPanel.cpp
-    Panels/SpriteSection.cpp
+    Panels/InspectorPanel/SpriteSection.cpp
+    Panels/InspectorPanel/AnimationSection.cpp
+    Panels/InspectorPanel/AnimationMakerPanel.cpp
+    Panels/InspectorPanel/PhysicsSection.cpp
 )
 
 target_include_directories(Editor PUBLIC
@@ -16,6 +19,7 @@ target_include_directories(Editor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Panels
     # ${CMAKE_CURRENT_SOURCE_DIR}/icons
     ${CMAKE_SOURCE_DIR}/Engine 
+    ${CMAKE_SOURCE_DIR}/Editor
 )
 
 target_sources(imgui PRIVATE

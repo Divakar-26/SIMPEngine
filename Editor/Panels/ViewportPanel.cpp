@@ -17,13 +17,15 @@ void ViewportPanel::OnAttach()
 
 void ViewportPanel::OnImGuiRender()
 {
+    ImGui::Begin("Viewport");
+
     m_ViewportPos = ImGui::GetCursorScreenPos();
     m_ViewportSize = ImGui::GetContentRegionAvail();
-
-    ImGui::Begin("Viewport");
+    m_Context->ViewportHovered = ImGui::IsItemHovered();
 
     ImVec2 viewportSize = ImGui::GetContentRegionAvail();
     UpdateFocusState();
+    m_RenderingLayer->GetCamera().SetAllowZoom(m_Context->ViewportHovered);
     ResizeViewportIfNeeded(viewportSize);
 
     // Render scene
@@ -34,6 +36,8 @@ void ViewportPanel::OnImGuiRender()
     SIMPEngine::Renderer::Clear();
     m_RenderingLayer->OnRender();
 
+    // DrawGridDots();
+    
     api->EndFrame();
 
     ImTextureID texID = (ImTextureID)(intptr_t)api->GetViewportTexture();
@@ -41,7 +45,6 @@ void ViewportPanel::OnImGuiRender()
 
     m_ViewportPos = ImGui::GetItemRectMin();
     m_ViewportSize = ImGui::GetItemRectSize();
-    m_Context->ViewportHovered = ImGui::IsItemHovered();
 
     if (m_Context->ViewportHovered &&
         ImGui::IsMouseClicked(ImGuiMouseButton_Left))
@@ -49,7 +52,8 @@ void ViewportPanel::OnImGuiRender()
         m_Context->SelectedEntity = GetEntityUnderMouse();
     }
 
-    if(m_Context->ViewportFocused && ImGui::IsKeyDown(ImGuiKey_F)){
+    if (m_Context->ViewportFocused && ImGui::IsKeyDown(ImGuiKey_F))
+    {
         FocusOnSelectedEntity(); // inside ViewportUtility.cpp
     }
 
@@ -236,7 +240,6 @@ void ViewportPanel::ShowDetailsInViewport()
         buffer);
 }
 
-
 void ViewportPanel::DrawSelectionOutline()
 {
     auto entity = m_Context->SelectedEntity;
@@ -250,7 +253,7 @@ void ViewportPanel::DrawSelectionOutline()
     if (!bounds)
         return;
 
-    ImDrawList* drawList =
+    ImDrawList *drawList =
         ImGui::GetWindowDrawList();
 
     glm::vec2 screenMin =
@@ -264,23 +267,84 @@ void ViewportPanel::DrawSelectionOutline()
             .WorldToScreen(bounds->max);
 
     ImVec2 min =
-    {
-        m_ViewportPos.x + screenMin.x,
-        m_ViewportPos.y + screenMin.y
-    };
+        {
+            m_ViewportPos.x + screenMin.x,
+            m_ViewportPos.y + screenMin.y};
 
     ImVec2 max =
-    {
-        m_ViewportPos.x + screenMax.x,
-        m_ViewportPos.y + screenMax.y
-    };
+        {
+            m_ViewportPos.x + screenMax.x,
+            m_ViewportPos.y + screenMax.y};
 
     drawList->AddRect(
         min,
         max,
         IM_COL32(255, 0, 0, 255), // yellow
-        0.0f,                       // rounding
+        0.0f,                     // rounding
         0,
-        2.0f                        // thickness
+        2.0f // thickness
     );
+}
+
+void ViewportPanel::DrawGridDots()
+{
+    auto& camera = m_RenderingLayer->GetCamera();
+
+    glm::vec2 tl =
+        camera.ScreenToWorld({0.0f, 0.0f});
+
+    glm::vec2 br =
+        camera.ScreenToWorld(
+        {
+            m_ViewportSize.x,
+            m_ViewportSize.y
+        });
+
+    float left   = std::min(tl.x, br.x);
+    float right  = std::max(tl.x, br.x);
+    float bottom = std::min(tl.y, br.y);
+    float top    = std::max(tl.y, br.y);
+
+    float zoom = camera.GetZoom();
+
+    float gridSize = 1.0f;
+
+    if (zoom < 0.5f)  gridSize = 2.0f;
+    if (zoom < 0.25f) gridSize = 4.0f;
+    if (zoom < 0.12f) gridSize = 8.0f;
+    if (zoom < 0.06f) gridSize = 16.0f;
+
+    int startX = (int)std::floor(left / gridSize);
+    int endX   = (int)std::ceil(right / gridSize);
+
+    int startY = (int)std::floor(bottom / gridSize);
+    int endY   = (int)std::ceil(top / gridSize);
+
+    for (int y = startY; y <= endY; y++)
+    {
+        for (int x = startX; x <= endX; x++)
+        {
+            bool major =
+                (x % 8 == 0) &&
+                (y % 8 == 0);
+
+            float size =
+                major ? 0.08f : 0.04f;
+
+            SDL_Color color =
+                major
+                ? SDL_Color{120,120,120,255}
+                : SDL_Color{70,70,70,180};
+
+            SIMPEngine::Renderer::DrawQuad(
+                x * gridSize,
+                y * gridSize,
+                size,
+                size,
+                0.0f,
+                color,
+                true,
+                -999.0f);
+        }
+    }
 }

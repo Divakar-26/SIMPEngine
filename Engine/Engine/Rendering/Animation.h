@@ -13,7 +13,7 @@ namespace SIMPEngine
     public:
         Animation() = default;
         Animation(std::shared_ptr<Texture> spritesheet,
-                  int frameWidth, int frameHeight,
+                  int frameWidth, int frameHeight, 
                   int frameCount, float frameDuration,
                   bool loop = true);
 
@@ -40,6 +40,7 @@ namespace SIMPEngine
         void Reset();
         void SetLooping(bool loop);
         bool isFinished();
+        
 
     private:
         std::shared_ptr<Texture> m_Texture = nullptr;

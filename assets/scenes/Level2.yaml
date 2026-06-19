@@ -1,15 +1,10 @@
 Scene: Level1
 Entities:
-  - Tag: player
+  - Tag: constellation
     Transform:
-      position: [-1000, 1000]
+      position: [0, 0]
       rotation: 0
       scale: [1, 1]
-    Render:
-      color: [255, 255, 255, 255]
-      size: [50, 50]
-    Velocity:
-      value: [1000, 0]
   - Tag: Ball2
     Transform:
       position: [0, 0]

@@ -74,14 +74,16 @@ namespace SIMPEngine
 
         int wheelDelta = Input::GetMouseWheel();
 
-        if (wheelDelta > 0)
-            m_ManualZoom += 0.1f * wheelDelta;
+        if (m_AllowZoom)
+        {
+            if (wheelDelta > 0)
+                m_ManualZoom += 0.1f * wheelDelta;
 
-        if (wheelDelta < 0)
-            m_ManualZoom -= 0.1f * -wheelDelta;
+            if (wheelDelta < 0)
+                m_ManualZoom -= 0.1f * -wheelDelta;
 
-        m_ManualZoom =
-            glm::clamp(m_ManualZoom, 0.1f, 10.0f);
+            m_ManualZoom = glm::clamp(m_ManualZoom, 0.1f, 10.0f);
+        }
 
         glm::vec2 mousePixel(
             Input::GetMousePosition().first,

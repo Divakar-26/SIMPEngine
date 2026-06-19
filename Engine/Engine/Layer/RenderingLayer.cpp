@@ -168,8 +168,18 @@ namespace SIMPEngine
         int height = Renderer::m_WindowHeight;
 
         // CORE_ERROR("{} {}", width, height);
-        Renderer::DrawQuad(0, 0, width, height, 0.0f, {255, 255, 255, 255}, false, 0);
+        // Renderer::DrawQuad(0, 0, width, height, 0.0f, {255, 255, 255, 255}, false, 0);
+        // // In your game/scene code:
+        // Renderer::DrawCircle(0.0f, 0.0f, 50.0f, {255, 100, 100, 255}, 0.3);
 
+        // Renderer::DrawRoundedRect(200.0f, 100.0f,
+        //                           80.0f, 40.0f, // halfW, halfH
+        //                           8.0f,        // corner radius
+        //                           {100, 200, 255, 200}, 0.3);
+
+        // Renderer::DrawCapsuleLine(-100.0f, 0.0f, 100.0f, 50.0f,
+        //                           10.0f, // half-width
+        //                           {255, 255, 0, 255}, 0.4);
         // if (m_TestGrass)
         // {
         //     Renderer::DrawTexture(

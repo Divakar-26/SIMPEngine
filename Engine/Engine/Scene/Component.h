@@ -108,7 +108,7 @@ struct PhysicsComponent
 };
 
 struct AnimatedSpriteComponent
-{
+{ 
     std::unique_ptr<SIMPEngine::Animation> animation;
 };
 
@@ -116,7 +116,7 @@ struct HierarchyComponent
 {
     entt::entity parent = entt::null;
     std::vector<entt::entity> children;
-};
+}; 
 
 struct LifetimeComponent
 {

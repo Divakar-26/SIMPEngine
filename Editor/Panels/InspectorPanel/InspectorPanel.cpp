@@ -1,9 +1,6 @@
 #include "InspectorPanel.h"
 #include <imgui.h>
 
-
-
-
 InspectorPanel::InspectorPanel(
     EditorContext *context)
 {
@@ -105,86 +102,12 @@ void InspectorPanel::OnImGuiRender()
                                                  10000.0f);
                                          });
 
-        DrawComponentCard<AnimatedSpriteComponent>(
-            "Animation",
-            m_SelectedEntity,
-            [](auto &ac)
-            {
-                if (!ac.animation)
-                {
-                    ImGui::Text("No Animation");
-                    return;
-                }
+        // animation
+        DrawAnimationSection(m_SelectedEntity);
 
-                bool loop = ac.animation->IsLooping();
+        // Physics 
+        DrawPhysicsSection(m_SelectedEntity);        
 
-                if (ImGui::Checkbox("Loop", &loop))
-                {
-                    ac.animation->SetLooping(loop);
-                }
-
-                float duration = ac.animation->GetFrameDuration();
-
-                ImGui::DragFloat(
-                    "Frame Duration",
-                    &ac.animation->GetFrameDurationRef(),
-                    0.01f);
-
-                ImGui::DragFloat(
-                    "Frame Duration",
-                    &duration,
-                    0.01f);
-            });
-
-        DrawComponentCard<PhysicsComponent>(
-            "Physics",
-            m_SelectedEntity,
-            [](auto &pc)
-            {
-                if (!pc.body)
-                {
-                    ImGui::Text("No Body");
-                    return;
-                }
-
-                auto *body = pc.body.get();
-
-                ImGui::DragFloat2(
-                    "Position",
-                    &body->position.x);
-
-                ImGui::DragFloat2(
-                    "Velocity",
-                    &body->velocity.x);
-
-                ImGui::DragFloat(
-                    "Rotation",
-                    &body->rotation);
-
-                ImGui::DragFloat(
-                    "Inverse Mass",
-                    &body->inverseMass);
-
-                ImGui::DragFloat(
-                    "Restitution",
-                    &body->restitution);
-
-                ImGui::DragFloat(
-                    "Static Friction",
-                    &body->staticFriction);
-
-                ImGui::DragFloat(
-                    "Dynamic Friction",
-                    &body->dynamicFriction);
-
-                ImGui::Checkbox(
-                    "Lock Rotation",
-                    &body->lockRotation);
-
-                ImGui::Checkbox(
-                    "Lock Position",
-                    &body->lockPosition);
-            });
     }
 
     ImGui::End();

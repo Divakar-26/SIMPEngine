@@ -19,6 +19,7 @@ namespace SIMPEngine
 
         void SetZoom(float zoom);
         inline float GetZoom() const { return m_ManualZoom; }
+        void SetAllowZoom(bool allow) { m_AllowZoom = allow; }
 
         void SetRotation(float rotationDegrees);
         inline float GetRotation() const { return m_Rotation; }
@@ -84,6 +85,8 @@ namespace SIMPEngine
         glm::vec2 m_PanStartWorld{0};
         glm::vec2 m_PanStartCamPos{0};
         glm::vec2 m_LastMousePixel{0.0f};
+
+        bool m_AllowZoom = true;
 
     };
 }

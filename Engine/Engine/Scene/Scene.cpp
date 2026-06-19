@@ -29,7 +29,7 @@ namespace SIMPEngine
     Entity Scene::CreateEntity(const std::string &name)
     {
         entt::entity handle = m_Registry.create();
-        Entity entity(handle, this); 
+        Entity entity(handle, this);
 
         entity.AddComponent<TransformComponent>();
         entity.AddComponent<TagComponent>(name.empty() ? "Unnamed Entity" : name);
@@ -100,10 +100,18 @@ namespace SIMPEngine
     {
         cameraSystem.OnRender(m_Registry);
 
-        tilemapSystem.Render(m_Registry); 
+        tilemapSystem.Render(m_Registry);
 
         renderSystem.RenderQuads(m_Registry);
         renderSystem.RenderSprites(m_Registry);
+
+        auto view = m_Registry.view<ScriptComponent>();
+        for (auto entityHandle : view)
+        {
+            auto &sc = view.get<ScriptComponent>(entityHandle);
+            if (sc.Instance)
+                sc.Instance->OnRender();
+        }
     }
 
     void Scene::Clear()

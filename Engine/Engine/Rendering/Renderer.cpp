@@ -1,5 +1,4 @@
 #include <Engine/Rendering/Renderer.h>
-
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace SIMPEngine
@@ -34,11 +33,10 @@ namespace SIMPEngine
         s_RenderingAPI->Clear();
     }
 
-    void Renderer::DrawQuad(float x, float y, float width, float height, float rotation , SDL_Color color, bool fill, float zIndex)
+    void Renderer::DrawQuad(float x, float y, float width, float height, float rotation, SDL_Color color, bool fill, float zIndex)
     {
-        s_RenderingAPI->DrawQuad(x, y, width, height, rotation,  color,  fill,zIndex);
+        s_RenderingAPI->DrawQuad(x, y, width, height, rotation, color, fill, zIndex);
     }
-
 
     void Renderer::Present()
     {
@@ -57,19 +55,38 @@ namespace SIMPEngine
             s_RenderingAPI->SetViewMatrix(view);
     }
 
-
-    void Renderer::DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float w, float h, SDL_Color tint, float rotation, float zIndex, const SDL_FRect* srcRect)
+    void Renderer::DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float w, float h, SDL_Color tint, float rotation, float zIndex, const SDL_FRect *srcRect)
     {
         s_RenderingAPI->DrawTexture(texture, x, y, w, h, tint, rotation, zIndex, srcRect);
     }
-
 
     void Renderer::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
     {
         s_RenderingAPI->DrawLine(x1, y1, x2, y2, color);
     }
 
-    glm::vec2 Renderer::GetViewportSize(){
+    void Renderer::DrawCircle(float cx, float cy, float radius,
+                              SDL_Color color, float aa, float zIndex)
+    {
+        s_RenderingAPI->DrawCircle(cx, cy, radius, color, aa, zIndex);
+    }
+
+    void Renderer::DrawRoundedRect(float cx, float cy, float halfW, float halfH,
+                                   float cornerRadius, SDL_Color color,
+                                   float aa, float zIndex)
+    {
+        s_RenderingAPI->DrawRoundedRect(cx, cy, halfW, halfH, cornerRadius, color, aa, zIndex);
+    }
+
+    void Renderer::DrawCapsuleLine(float x1, float y1, float x2, float y2,
+                                   float width, SDL_Color color,
+                                   float aa, float zIndex)
+    {
+        s_RenderingAPI->DrawCapsuleLine(x1, y1, x2, y2, width, color, aa, zIndex);
+    }
+
+    glm::vec2 Renderer::GetViewportSize()
+    {
         return s_RenderingAPI->GetViewportSize();
     }
 }

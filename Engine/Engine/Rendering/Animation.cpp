@@ -9,7 +9,7 @@ namespace SIMPEngine
                          bool loop)
         : m_Texture(spritesheet),
           m_FrameWidth(frameWidth),
-          m_FrameHeight(frameHeight),
+          m_FrameHeight(frameHeight), 
           m_FrameCount(frameCount),
           m_FrameDuration(frameDuration),
           m_Loop(loop),

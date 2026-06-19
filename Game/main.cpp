@@ -1,5 +1,5 @@
 #include <Engine/SIMPEngine.h>
-#include "ballScript.h"
+#include "ConstellationScript.h"
 #include "leftPlayerMoveScript.h"
 #include "rightPlayerMoveScript.h"
 
@@ -13,15 +13,22 @@ public:
     MyGame()
     {
         auto sceneManager = std::make_shared<SIMPEngine::SceneManager>();
-        
+
         sceneManager->LoadScene("Level1", "assets://scenes/Level1.yaml");
         auto scene1 = sceneManager->GetActiveScene();
 
-        scene1->BuildEntity("player").With<RenderComponent>(50.0f, 50.0f).With<VelocityComponent>(1000.0f, 0.0f).At(-1000, 1000).Scale(1.0f, 1.0f).Build();
+
+        auto constellation = scene1->BuildEntity("constellation")
+                                 .At(0, 0)
+                                 .Build();
+
+        // Get the entity and bind the script
+        auto &sc = scene1->GetRegistry().emplace<ScriptComponent>(constellation);
+        sc.Bind<ConstellationScript>();
 
         SIMPEngine::SceneSerializer serializer(scene1.get());
         serializer.Serialize("assets://scenes/Level2.yaml");
-        
+
         auto renderingLayer = new SIMPEngine::RenderingLayer(sceneManager);
         PushOverlay(renderingLayer);
 

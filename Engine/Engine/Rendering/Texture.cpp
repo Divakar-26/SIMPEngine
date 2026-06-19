@@ -89,7 +89,7 @@ namespace SIMPEngine
         stbi_set_flip_vertically_on_load(true);
         
         int width, height, channels;
-        unsigned char *pixels = stbi_load_from_memory(data, size, &width, &height, &channels, 4);
+        unsigned char *pixels = stbi_load_from_memory(data, static_cast<int>(size), &width, &height, &channels, 4);
         if (!pixels)
             return false;
 

@@ -14,11 +14,16 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
 
     m_AssetManager = std::make_unique<SIMPEngine::AssetManager>();
     m_AssetManager->Init("assets", "assets/registry.asset");
-    
+
     m_ContentBrowser = std::make_unique<ContentBrowserPanel>("assets://", m_AssetManager.get());
-    
+
     m_AssetPicker = std::make_unique<AssetPickerPanel>("assets://", m_AssetManager.get());
     m_InspectorPanel.SetAssetPicker(m_AssetPicker.get());
+
+    m_AnimationMakerPanel =
+        std::make_unique<AnimationMakerPanel>();
+    m_InspectorPanel.SetAnimationMaker(
+        m_AnimationMakerPanel.get());
 
     SIMPEngine::FileSystem::CreateDirectories("assets");
 }
@@ -102,7 +107,7 @@ void EditorLayer::OnRender()
                         CORE_INFO("Picked {}", path);
                     });
             }
-    
+
             ImGui::EndMenu();
         }
         ImGui::EndMenuBar();
@@ -113,7 +118,7 @@ void EditorLayer::OnRender()
     m_InspectorPanel.OnImGuiRender();
     m_ContentBrowser->OnImGuiRender();
     m_AssetPicker->OnImGuiRender();
-
+    m_AnimationMakerPanel->OnImGuiRender();
 
     if (showLogs)
         ShowLogs();

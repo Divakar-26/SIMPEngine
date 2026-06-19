@@ -1,9 +1,11 @@
 #include <Engine/Rendering/GLRenderingAPI.h>
 #include <Engine/Rendering/Shaders/SpriteShader.h>
+#include <Engine/Rendering/Shaders/ShapeShader.h>
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
+#include <algorithm>
 
 namespace SIMPEngine
 {
@@ -27,12 +29,16 @@ namespace SIMPEngine
             glDeleteVertexArrays(1, &m_LineVAO);
         if (m_LineVBO)
             glDeleteBuffers(1, &m_LineVBO);
+        if (m_ShapeVAO)
+            glDeleteVertexArrays(1, &m_ShapeVAO);
+        if (m_ShapeVBO)
+            glDeleteBuffers(1, &m_ShapeVBO);
     }
 
     void GLRenderingAPI::Init()
     {
         glEnable(GL_DEPTH_TEST); // layering
-        glDepthFunc(GL_LESS); // blending
+        glDepthFunc(GL_LESS);    // blending
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
 
         m_Shader = std::make_unique<Shader>(
@@ -65,8 +71,6 @@ namespace SIMPEngine
         glGenBuffers(1, &m_EBO);
 
         glBindVertexArray(m_VAO);
-
-        
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
         glBufferData(GL_ARRAY_BUFFER,
@@ -127,6 +131,23 @@ namespace SIMPEngine
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        m_ShapeShader = std::make_unique<Shader>(
+            Shaders::SHAPE_VERT,
+            Shaders::SHAPE_FRAG);
+
+        glGenVertexArrays(1, &m_ShapeVAO);
+        glGenBuffers(1, &m_ShapeVBO);
+
+        glBindVertexArray(m_ShapeVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeVBO);
+        // 6 verts * 2 floats, updated every draw call
+        glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
+
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
+        glEnableVertexAttribArray(0);
+
+        glBindVertexArray(0);
     }
 
     void GLRenderingAPI::GenerateQuadVertices(
@@ -322,6 +343,115 @@ namespace SIMPEngine
 
         glBindTexture(GL_TEXTURE_2D, 0);
         m_Shader->Unbind();
+    }
+
+    void GLRenderingAPI::UpdateShapeQuad(float x0, float y0, float x1, float y1)
+    {
+        float verts[] = {
+            x0,
+            y0,
+            x1,
+            y0,
+            x1,
+            y1,
+            x0,
+            y0,
+            x1,
+            y1,
+            x0,
+            y1,
+        };
+        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verts), verts);
+    }
+
+    void GLRenderingAPI::DrawCircle(float cx, float cy, float radius,
+                                    SDL_Color color, float aa, float zIndex)
+    {
+        Flush(); // flush any pending quads first
+
+        float pad = aa * 2.0f;
+        UpdateShapeQuad(cx - radius - pad, cy - radius - pad,
+                        cx + radius + pad, cy + radius + pad);
+
+        BindShapeUniforms(0, color, aa);
+
+        GLuint id = m_ShapeShader->GetID();
+        glUniform2f(glGetUniformLocation(id, "u_circleCenter"), cx, cy);
+        glUniform1f(glGetUniformLocation(id, "u_circleRadius"), radius);
+
+        glBindVertexArray(m_ShapeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
+
+        m_ShapeShader->Unbind();
+    }
+
+    void GLRenderingAPI::DrawRoundedRect(float cx, float cy, float halfW, float halfH,
+                                         float cornerRadius, SDL_Color color,
+                                         float aa, float zIndex)
+    {
+        Flush();
+
+        float pad = aa * 2.0f;
+        float ex = halfW + cornerRadius + pad;
+        float ey = halfH + cornerRadius + pad;
+        UpdateShapeQuad(cx - ex, cy - ey, cx + ex, cy + ey);
+
+        BindShapeUniforms(1, color, aa);
+
+        GLuint id = m_ShapeShader->GetID();
+        glUniform2f(glGetUniformLocation(id, "u_rectCenter"), cx, cy);
+        glUniform2f(glGetUniformLocation(id, "u_rectHalfSize"), halfW, halfH);
+        glUniform1f(glGetUniformLocation(id, "u_rectRadius"), cornerRadius);
+
+        glBindVertexArray(m_ShapeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
+
+        m_ShapeShader->Unbind();
+    }
+
+    void GLRenderingAPI::DrawCapsuleLine(float x1, float y1, float x2, float y2,
+                                         float width, SDL_Color color,
+                                         float aa, float zIndex)
+    {
+        Flush();
+
+        float pad = aa * 2.0f;
+        float minX = std::min(x1, x2) - width - pad;
+        float minY = std::min(y1, y2) - width - pad;
+        float maxX = std::max(x1, x2) + width + pad;
+        float maxY = std::max(y1, y2) + width + pad;
+        UpdateShapeQuad(minX, minY, maxX, maxY);
+
+        BindShapeUniforms(2, color, aa);
+
+        GLuint id = m_ShapeShader->GetID();
+        glUniform2f(glGetUniformLocation(id, "u_lineA"), x1, y1);
+        glUniform2f(glGetUniformLocation(id, "u_lineB"), x2, y2);
+        glUniform1f(glGetUniformLocation(id, "u_lineWidth"), width);
+
+        glBindVertexArray(m_ShapeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(0);
+
+        m_ShapeShader->Unbind();
+    }
+
+    void GLRenderingAPI::BindShapeUniforms(int shapeType, SDL_Color color, float aa)
+    {
+        glm::mat4 mvp = m_Projection * m_ViewMatrix;
+        m_ShapeShader->Bind();
+        m_ShapeShader->SetUniformMat4("uVP", mvp);
+
+        // shapeType, color, aa — set directly via glad since Shader doesn't have vec4 setter
+        GLuint id = m_ShapeShader->GetID();
+        glUniform1i(glGetUniformLocation(id, "u_shapeType"), shapeType);
+        glUniform4f(glGetUniformLocation(id, "u_color"),
+                    color.r / 255.f, color.g / 255.f,
+                    color.b / 255.f, color.a / 255.f);
+        glUniform1f(glGetUniformLocation(id, "u_aa"), aa);
     }
 
     void GLRenderingAPI::Flush()

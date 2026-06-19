@@ -27,6 +27,7 @@ public:
 
     void ShowDetailsInViewport();
     void DrawSelectionOutline();
+    void DrawGridDots();
     void FocusOnSelectedEntity();
 
 

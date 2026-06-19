@@ -32,7 +32,7 @@ namespace SIMPEngine{
   void PhysicsSystem::Update(entt::registry & m_Registry, float dt){
       float subdt = dt / substep; 
       for(int i = 0; i < substep; i++)
-      {
+      { 
         physicsRegistry.updateForces(subdt);
         physicsWorld.step(subdt, 1);
       }

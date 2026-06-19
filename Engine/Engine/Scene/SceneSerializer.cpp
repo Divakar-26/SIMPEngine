@@ -150,7 +150,7 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
                               : "AABB";
 
       out << YAML::Key << "shape" << YAML::Value << shape;
-
+ 
       // Transform-like data
       out << YAML::Key << "position" << YAML::Value << YAML::Flow
           << YAML::BeginSeq << body->position.x << body->position.y
