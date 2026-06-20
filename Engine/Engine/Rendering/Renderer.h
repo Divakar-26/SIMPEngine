@@ -23,15 +23,15 @@ namespace SIMPEngine
         static void DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect *srcRect = nullptr);
         static void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color);
         static void DrawCircle(float cx, float cy, float radius,
-                        SDL_Color color, float aa = 1.0f, float zIndex = 0.0f);
+                               SDL_Color color, float aa = 1.0f, float zIndex = 0.0f);
 
         static void DrawRoundedRect(float cx, float cy, float halfW, float halfH,
-                             float cornerRadius, SDL_Color color,
-                             float aa = 1.0f, float zIndex = 0.0f);
+                                    float cornerRadius, SDL_Color color,
+                                    float aa = 1.0f, float zIndex = 0.0f);
 
         static void DrawCapsuleLine(float x1, float y1, float x2, float y2,
-                             float width, SDL_Color color,
-                             float aa = 1.0f, float zIndex = 0.0f);
+                                    float width, SDL_Color color,
+                                    float aa = 1.0f, float zIndex = 0.0f);
         static void Present();
 
         static void SetViewMatrix(const glm::mat4 &view);
@@ -39,12 +39,11 @@ namespace SIMPEngine
         static glm::vec2 GetViewportSize();
 
         static void Flush();
-        static void BeginFrame();
-        static void EndFrame();
-
+        static void BeginFrame() { s_RenderingAPI->BeginFrame(); }
+        static void EndFrame() { s_RenderingAPI->EndFrame(); }
         static int m_WindowWidth, m_WindowHeight;
 
-    private:
+    private: 
         static std::unique_ptr<RenderingAPI> s_RenderingAPI;
         static glm::mat4 s_ViewMatrix;
     };

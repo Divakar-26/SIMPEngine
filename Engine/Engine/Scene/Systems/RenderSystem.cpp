@@ -23,7 +23,7 @@ namespace SIMPEngine
         }
 
         std::sort(m_QuadSortBuffer.begin(), m_QuadSortBuffer.end(),
-                  [](const auto &a, const auto &b)
+                  [](const auto &a, const auto &b) 
                   { return a.second < b.second; });
 
         for (const auto &[entity, zIndex] : m_QuadSortBuffer)

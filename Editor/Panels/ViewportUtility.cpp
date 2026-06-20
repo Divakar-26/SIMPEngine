@@ -10,4 +10,4 @@ void ViewportPanel::FocusOnSelectedEntity()
         .FocusOn(
             SIMPEngine::GetEntityCenter(
                 m_Context->SelectedEntity));
-}
+} 

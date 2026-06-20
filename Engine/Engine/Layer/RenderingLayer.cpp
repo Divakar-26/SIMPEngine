@@ -9,7 +9,7 @@
 
 namespace SIMPEngine
 {
-    std::shared_ptr<Texture> m_TestGrass;
+    std::shared_ptr<Texture> m_TestGrass; 
 
     void RenderingLayer::OnAttach()
     {
@@ -17,7 +17,7 @@ namespace SIMPEngine
         srand(time(NULL));
 
         auto scene = m_SceneManager->GetActiveScene();
-        // for (int i = 0; i < 100000; i++)
+        // for (int i = 0; i < 100000; i++) 
         // {
         //     Entity e = scene->CreateEntity("test");
 
@@ -94,6 +94,7 @@ namespace SIMPEngine
 
     void RenderingLayer::OnUpdate(TimeStep ts)
     {
+        PROFILE_SCOPE("RenderingLayer/Update");
         // glm::vec2 rawMouse(Input::GetMousePosition().first,
         //                    Input::GetMousePosition().second);
 
@@ -156,7 +157,7 @@ namespace SIMPEngine
 
     void RenderingLayer::OnRender()
     {
-
+        PROFILE_SCOPE("RenderingLayer/Render");
         auto scene = m_SceneManager->GetActiveScene();
 
         if (scene)
@@ -198,7 +199,7 @@ namespace SIMPEngine
                                                      { return false; });
 
         dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent &ev)
-                                               {
+                                               { 
         int width = ev.GetWidth();
         int height = ev.GetHeight();
 

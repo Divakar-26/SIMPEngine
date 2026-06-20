@@ -28,6 +28,7 @@ public:
     void ShowDetailsInViewport();
     void DrawSelectionOutline();
     void DrawGridDots();
+    void DrawCartesianLines();
     void FocusOnSelectedEntity();
 
 

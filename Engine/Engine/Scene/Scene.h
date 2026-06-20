@@ -24,7 +24,7 @@ namespace SIMPEngine
     class Entity;
     
     class EntityBuilder
-    {
+    { 
     public:
         EntityBuilder(entt::registry& registry, Entity entity) 
             : m_Registry(registry), m_Entity(entity) {}

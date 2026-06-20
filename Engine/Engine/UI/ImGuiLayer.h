@@ -15,14 +15,14 @@ namespace SIMPEngine
 {
 
     class ImGuiLayer : public Layer
-    {
+    { 
     public:
         ImGuiLayer();
         ~ImGuiLayer();
 
         void OnAttach() override;                  // Called when layer is pushed
         void OnDetach() override;                  // Called when layer is popped
-        void OnUpdate(class TimeStep ts) override; // Called every frame to update ImGui
+        void OnUpdate(class TimeStep ts) override; // Called every frame to update ImGui 
         void OnRender() override;                  // Called every frame to update ImGui
         void OnEvent(Event &event) override;
         void OnSDLEvent(SDL_Event &e);

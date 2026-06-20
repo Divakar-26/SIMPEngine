@@ -9,13 +9,13 @@ namespace SIMPEngine
     //this is actual layerstack which will be owned by our application.
     //this is where we will push our layer
     class LayerStack
-    {
+    { 
     public:
         LayerStack() {}
         ~LayerStack()
         {
             //delete the layer
-            for (Layer *layer : m_Layers)
+            for (Layer *layer : m_Layers) 
             {
                 delete layer;
             }

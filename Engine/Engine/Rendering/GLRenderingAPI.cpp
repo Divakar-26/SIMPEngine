@@ -1,6 +1,7 @@
 #include <Engine/Rendering/GLRenderingAPI.h>
 #include <Engine/Rendering/Shaders/SpriteShader.h>
 #include <Engine/Rendering/Shaders/ShapeShader.h>
+#include <Engine/Rendering/Shaders/LineShader.h>
 
 #include <Engine/Core/Profiler/EngineProfiler.h>
 
@@ -40,13 +41,15 @@ namespace SIMPEngine
 
     void GLRenderingAPI::Init()
     {
-        glEnable(GL_DEPTH_TEST); // layering
-        glDepthFunc(GL_LESS);    // blending
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
 
         m_Shader = std::make_unique<Shader>(
             Shaders::SPRITE_VERT,
             Shaders::SPRITE_FRAG);
+
+        m_LineShader = std::make_unique<Shader>(
+            Shaders::LINE_VERT,
+            Shaders::LINE_FRAG);
 
         // ------ QUAD BATCHING SETUP ------
         float vertices[] = {
@@ -192,9 +195,12 @@ namespace SIMPEngine
         if (m_QuadBatch.empty())
             return;
 
-        for (size_t i = 0; i < m_QuadBatch.size(); i++)
         {
-            GenerateQuadVertices(&m_VertexData[i * 4], m_QuadBatch[i]);
+            PROFILE_SCOPE("FlushQuads/GenerateVertices");
+            for (size_t i = 0; i < m_QuadBatch.size(); i++)
+            {
+                GenerateQuadVertices(&m_VertexData[i * 4], m_QuadBatch[i]);
+            }
         }
 
         m_Shader->Bind();
@@ -203,14 +209,18 @@ namespace SIMPEngine
         m_Shader->SetUniformMat4("uVP", mvp);
         m_Shader->SetUniform1i("uUseTexture", 0);
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, m_QuadBatch.size() * 4 * sizeof(BatchVertex), m_VertexData.data());
+        {
+            PROFILE_SCOPE("FlushQuads/Upload");
+            glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+            glBufferSubData(GL_ARRAY_BUFFER, 0, m_QuadBatch.size() * 4 * sizeof(BatchVertex), m_VertexData.data());
+        }
 
-        glBindVertexArray(m_VAO);
-        glDrawElements(GL_TRIANGLES, m_QuadBatch.size() * 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
-        m_Shader->Unbind();
+        {
+            PROFILE_SCOPE("FlushQuads/Draw");
+            glBindVertexArray(m_VAO);
+            glDrawElements(GL_TRIANGLES, m_QuadBatch.size() * 6, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
 
         m_QuadBatch.clear();
         m_IsBatchDirty = false;
@@ -272,16 +282,15 @@ namespace SIMPEngine
 
         float vertices[] = {x1, y1, x2, y2};
 
-        m_Shader->Bind();
-
+        m_LineShader->Bind();
         glm::mat4 mvp = m_Projection * m_ViewMatrix;
-        m_Shader->SetUniformMat4("uVP", mvp);
-        // m_Shader->SetUniform4f("uColor",
-        //                        color.r / 255.0f,
-        //                        color.g / 255.0f,
-        //                        color.b / 255.0f,
-        //                        color.a / 255.0f);
-        m_Shader->SetUniform1i("uUseTexture", 0);
+        m_LineShader->SetUniformMat4("uVP", mvp);
+        m_LineShader->SetUniform4f(
+            "uColor",
+            color.r / 255.0f,
+            color.g / 255.0f,
+            color.b / 255.0f,
+            color.a / 255.0f);
 
         glBindVertexArray(m_LineVAO);
         glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO);
@@ -290,8 +299,7 @@ namespace SIMPEngine
         glDrawArrays(GL_LINES, 0, 2);
 
         glBindVertexArray(0);
-
-        m_Shader->Unbind();
+        m_LineShader->Unbind();
     }
 
     void GLRenderingAPI::DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect *srcRect)
@@ -324,11 +332,10 @@ namespace SIMPEngine
             float u2 = (srcRect->x + srcRect->w) / texWidth;
             float v2 = (srcRect->y + srcRect->h) / texHeight;
 
-            // Override UVs
-            tempVerts[0].texCoord = glm::vec2(u1, v2); // Top-left
-            tempVerts[1].texCoord = glm::vec2(u2, v2); // Top-right
-            tempVerts[2].texCoord = glm::vec2(u2, v1); // Bottom-right
-            tempVerts[3].texCoord = glm::vec2(u1, v1); // Bottom-left
+            tempVerts[0].texCoord = glm::vec2(u1, v2);
+            tempVerts[1].texCoord = glm::vec2(u2, v2);
+            tempVerts[2].texCoord = glm::vec2(u2, v1);
+            tempVerts[3].texCoord = glm::vec2(u1, v1);
         }
 
         m_Shader->Bind();
@@ -337,9 +344,14 @@ namespace SIMPEngine
         m_Shader->SetUniformMat4("uVP", mvp);
         m_Shader->SetUniform1i("uUseTexture", 1);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture->GetID());
-        m_Shader->SetUniform1i("uTexture", 0);
+        GLuint texID = texture->GetID();
+        if (m_LastBoundTexture != texID)
+        {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, texID);
+            m_Shader->SetUniform1i("uTexture", 0);
+            m_LastBoundTexture = texID;
+        }
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
         glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(BatchVertex), tempVerts);
@@ -349,9 +361,6 @@ namespace SIMPEngine
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         glBindVertexArray(0);
         glDepthMask(GL_TRUE);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-        m_Shader->Unbind();
     }
 
     void GLRenderingAPI::UpdateShapeQuad(float x0, float y0, float x1, float y1)
@@ -374,27 +383,22 @@ namespace SIMPEngine
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verts), verts);
     }
 
-    void GLRenderingAPI::DrawCircle(float cx, float cy, float radius,
-                                    SDL_Color color, float aa, float zIndex)
+    void GLRenderingAPI::DrawCircle(float cx, float cy, float radius, SDL_Color color, float aa, float zIndex)
     {
         PROFILE_FUNCTION();
 
-        Flush(); // flush any pending quads first
+        Flush();
 
         float pad = aa * 2.0f;
-        UpdateShapeQuad(cx - radius - pad, cy - radius - pad,
-                        cx + radius + pad, cy + radius + pad);
-
+        UpdateShapeQuad(cx - radius - pad, cy - radius - pad, cx + radius + pad, cy + radius + pad);
         BindShapeUniforms(0, color, aa);
 
-        GLuint id = m_ShapeShader->GetID();
-        glUniform2f(glGetUniformLocation(id, "u_circleCenter"), cx, cy);
-        glUniform1f(glGetUniformLocation(id, "u_circleRadius"), radius);
+        glUniform2f(m_ShapeShader->GetUniformLocation("u_circleCenter"), cx, cy);
+        glUniform1f(m_ShapeShader->GetUniformLocation("u_circleRadius"), radius);
 
         glBindVertexArray(m_ShapeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
-
         m_ShapeShader->Unbind();
     }
 
@@ -412,10 +416,9 @@ namespace SIMPEngine
 
         BindShapeUniforms(1, color, aa);
 
-        GLuint id = m_ShapeShader->GetID();
-        glUniform2f(glGetUniformLocation(id, "u_rectCenter"), cx, cy);
-        glUniform2f(glGetUniformLocation(id, "u_rectHalfSize"), halfW, halfH);
-        glUniform1f(glGetUniformLocation(id, "u_rectRadius"), cornerRadius);
+        glUniform2f(m_ShapeShader->GetUniformLocation("u_rectCenter"), cx, cy);
+        glUniform2f(m_ShapeShader->GetUniformLocation("u_rectHalfSize"), halfW, halfH);
+        glUniform1f(m_ShapeShader->GetUniformLocation("u_rectRadius"), cornerRadius);
 
         glBindVertexArray(m_ShapeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -440,10 +443,9 @@ namespace SIMPEngine
 
         BindShapeUniforms(2, color, aa);
 
-        GLuint id = m_ShapeShader->GetID();
-        glUniform2f(glGetUniformLocation(id, "u_lineA"), x1, y1);
-        glUniform2f(glGetUniformLocation(id, "u_lineB"), x2, y2);
-        glUniform1f(glGetUniformLocation(id, "u_lineWidth"), width);
+        glUniform2f(m_ShapeShader->GetUniformLocation("u_lineA"), x1, y1);
+        glUniform2f(m_ShapeShader->GetUniformLocation("u_lineB"), x2, y2);
+        glUniform1f(m_ShapeShader->GetUniformLocation("u_lineWidth"), width);
 
         glBindVertexArray(m_ShapeVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -456,7 +458,7 @@ namespace SIMPEngine
     {
         glm::mat4 mvp = m_Projection * m_ViewMatrix;
         m_ShapeShader->Bind();
-        m_ShapeShader->SetUniformMat4("uVP", mvp); 
+        m_ShapeShader->SetUniformMat4("uVP", mvp);
 
         GLint shapeTypeLoc = m_ShapeShader->GetUniformLocation("u_shapeType");
         GLint colorLoc = m_ShapeShader->GetUniformLocation("u_color");
@@ -516,6 +518,7 @@ namespace SIMPEngine
 
         m_QuadBatch.clear();
         m_IsBatchDirty = false;
+        m_LastBoundTexture = 0;
     }
 
     void GLRenderingAPI::EndFrame()
@@ -542,10 +545,6 @@ namespace SIMPEngine
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
 
-        glGenRenderbuffers(1, &m_RBO);
-        glBindRenderbuffer(GL_RENDERBUFFER, m_RBO);
-        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-        glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, m_RBO);
         if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
             std::cerr << "Framebuffer is not complete!" << std::endl;
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -574,8 +573,9 @@ namespace SIMPEngine
 
     void GLRenderingAPI::Clear()
     {
+        PROFILE_SCOPE("GL/Clear");
         glClearColor(m_ClearColor[0], m_ClearColor[1], m_ClearColor[2], m_ClearColor[3]);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
     }
 
     void GLRenderingAPI::Present() {}

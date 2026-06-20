@@ -24,7 +24,7 @@ namespace SIMPEngine
 
     void ImGuiLayer::OnAttach()
     {
-        CORE_INFO("ImGuiLayer Attached");
+        CORE_INFO("ImGuiLayer Attached"); 
 
         auto &window = Application::Get().GetWindow();
         m_Window = window.GetNativeWindow();
@@ -140,7 +140,7 @@ namespace SIMPEngine
         // ImGui::ShowDemoWindow();
     }
 
-    void ImGuiLayer::End()
+    void ImGuiLayer::End() 
     {
         ImGuiIO &io = ImGui::GetIO();
 

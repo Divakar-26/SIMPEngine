@@ -20,8 +20,8 @@ public:
                                  .Build();
 
         // Get the entity and bind the script
-        auto &sc = scene1->GetRegistry().emplace<ScriptComponent>(constellation);
-        sc.Bind<ConstellationScript>();
+        // auto &sc = scene1->GetRegistry().emplace<ScriptComponent>(constellation);
+        // sc.Bind<ConstellationScript>();
 
         SIMPEngine::SceneSerializer serializer(scene1.get());
         serializer.Serialize("assets://scenes/Level2.yaml");

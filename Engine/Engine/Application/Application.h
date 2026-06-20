@@ -21,7 +21,7 @@ namespace SIMPEngine
 
         void Run();
         void OnEvent(Event &e);
-        void SDLEventToEngine(SDL_Event &event);
+        void SDLEventToEngine(SDL_Event &event); 
 
         void PushLayer(Layer *layer);
         void PushOverlay(Layer *overlay);

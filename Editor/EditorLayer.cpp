@@ -12,7 +12,7 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     this->m_RenderingLayer = renderingLayer;
 
     m_EditorContext.Scene = &renderingLayer->GetScene();
-    m_EditorContext.Viewport = &m_ViewportPanel;
+    m_EditorContext.Viewport = &m_ViewportPanel; 
 
     m_AssetManager = std::make_unique<SIMPEngine::AssetManager>();
     m_AssetManager->Init("assets", "assets/registry.asset");

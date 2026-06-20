@@ -60,7 +60,7 @@
             }
 
             // Enable V-Sync ()
-            SDL_GL_SetSwapInterval(1);
+            SDL_GL_SetSwapInterval(0);
 
             //Prepare renderer
             // SDL_PropertiesID props = SDL_CreateProperties();

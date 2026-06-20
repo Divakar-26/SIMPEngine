@@ -9,7 +9,7 @@ public:
         EditorContext& ctx,
         const std::string& name);
 
-    static void DeleteEntity(
+    static void DeleteEntity( 
         EditorContext& ctx,
         SIMPEngine::Entity entity);
 

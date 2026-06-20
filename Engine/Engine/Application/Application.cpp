@@ -70,22 +70,43 @@ namespace SIMPEngine
 
             // Rendering
             {
+                {
+                    PROFILE_SCOPE("Render/SetClearColor");
+                    Renderer::SetClearColor(0.329f,
+                                            0.329f,
+                                            0.329f,
+                                            1.0f);
+                }
+                {
+                    PROFILE_SCOPE("Render/ClearCall");
+                    Renderer::Clear();
+                }
+                {
+                    PROFILE_SCOPE("Render/ImGuiBegin");
+                    m_ImGuiLayer->Begin();
+                }
+                {
+                    PROFILE_SCOPE("Render/Layers");
+                    for (Layer *layer : m_LayerStack)
+                        layer->OnRender();
+                }
 
-                PROFILE_SCOPE("Render");
-                Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
-                Renderer::Clear();
+                // #ifdef NO_EDITOR
+                // EngineProfiler::Profiler::Get().DrawImGui();
+                // #endif
 
-                m_ImGuiLayer->Begin();
-
-                for (Layer *layer : m_LayerStack)
-                    layer->OnRender();
-
-                m_ImGuiLayer->End();
+                {
+                    PROFILE_SCOPE("Render/ImGuiEnd");
+                    m_ImGuiLayer->End();
+                }
             }
 
             // Renderer::Present();
             // SDL_GL_SwapWindow(m_Window.GetNativeWindow());
-            m_Window.OnUpdate();
+            {
+                PROFILE_SCOPE("Render/Swap");
+                m_Window.OnUpdate();
+            }
             PROFILE_FRAME_END();
         }
     }

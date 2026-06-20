@@ -5,3 +5,32 @@ Entities:
       position: [0, 0]
       rotation: 0
       scale: [1, 1]
+  - Tag: Ball2
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      scale: [1, 1]
+    Render:
+      color: [0, 255, 0, 255]
+      size: [40, 40]
+    Animation:
+      texture: assets://textures/coin.png
+      frame_width: 16
+      frame_height: 16
+      frame_count: 12
+      frame_duration: 0.1
+      looping: true
+    Camera:
+      primary: false
+    Physics:
+      shape: AABB
+      position: [-1000, 0]
+      rotation: 2
+      inverse_mass: 1
+      half_size: [20, 20]
+      velocity: [0, 0]
+      restitution: 2
+      static_friction: 0
+      dynamic_friction: 0
+      lock_rotation: true
+      lock_position: false

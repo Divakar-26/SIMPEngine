@@ -6,7 +6,7 @@
 #include<Engine/Events/Event.h>
 #include<Engine/Core/TimeStep.h>
 #include<SDL3/SDL_events.h>
-
+ 
 
 
 namespace SIMPEngine{
@@ -14,7 +14,7 @@ namespace SIMPEngine{
     // making all the game , UI, HUD, Pause play will be very hard. so we will seperate all this using layers, each layer will have thier own Render, update, Event function. This is really helpful because we can seperate the responsibilies. Example -> renderingLayer will handel rendering
     // UIlayer -> this will handle the UI of the editor
     // we can stop event at any layer but doing e.handled = true. this will prevent other layer to get the event like. if i press WASD in editor but the game will be not affected because UI layer is always at the top, it will handle the WASD so that lower level do not get them.
-    
+     
     // this is base class for Layer
     class Layer{
         public:

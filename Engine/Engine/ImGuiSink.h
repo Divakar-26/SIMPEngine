@@ -12,7 +12,7 @@ namespace SIMPEngine
     {
     private:
         static constexpr size_t MAX_LOGS = 10000; // Prevent unbounded growth
-
+ 
     public:
         std::vector<std::string> Logs;
 

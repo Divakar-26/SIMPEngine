@@ -11,7 +11,7 @@ struct EditorContext
 {
     SIMPEngine::Scene *Scene = nullptr;
 
-    SIMPEngine::Entity SelectedEntity;
+    SIMPEngine::Entity SelectedEntity; 
     SIMPEngine::Entity HoveredEntity{};
 
     ViewportPanel *Viewport = nullptr;

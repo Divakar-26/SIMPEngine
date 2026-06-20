@@ -17,13 +17,13 @@ namespace SIMPEngine
         m_Registry.on_destroy<PhysicsComponent>().connect<&Scene::OnPhysicsComponentDestroyed>(this);
         m_Registry.on_destroy<AnimatedSpriteComponent>().connect<&Scene::OnAnimatedSpriteComponentDestroyed>(this);
         m_Registry.on_destroy<HierarchyComponent>().connect<&Scene::OnHierarchyComponentDestroyed>(this);
-    }
+    } 
 
     void Scene::DestroyEntity(Entity entity)
     {
         if (!entity || !m_Registry.valid(entity.GetHandle()))
             return;
-        m_Registry.destroy(entity.GetHandle());
+        m_Registry.destroy(entity.GetHandle()); 
     }
 
     Entity Scene::CreateEntity(const std::string &name)

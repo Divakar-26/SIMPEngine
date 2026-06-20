@@ -15,7 +15,7 @@
 
 class EditorLayer : public SIMPEngine::Layer
 {
-public:
+public: 
     EditorLayer(SIMPEngine::RenderingLayer *renderingLayer);
     ~EditorLayer() override = default;
 

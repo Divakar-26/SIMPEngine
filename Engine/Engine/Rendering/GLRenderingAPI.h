@@ -16,7 +16,7 @@ namespace SIMPEngine
         float rotation;
         SDL_Color color;
         float zIndex;
-    };
+    }; 
 
     struct BatchVertex
     {
@@ -25,7 +25,7 @@ namespace SIMPEngine
         glm::vec2 size;
         float rotation;
         glm::vec2 texCoord;
-        glm::vec4 color;
+        glm::vec4 color; 
     };
 
     class GLRenderingAPI : public RenderingAPI
@@ -92,6 +92,8 @@ namespace SIMPEngine
         GLuint m_ShapeVAO = 0;
         GLuint m_ShapeVBO = 0;
 
+        std::unique_ptr<Shader> m_LineShader;
+
         glm::mat4 m_Projection = glm::mat4(1.0f);
         glm::mat4 m_ViewMatrix = glm::mat4(1.0f);
 
@@ -111,5 +113,7 @@ namespace SIMPEngine
         std::vector<BatchVertex> m_VertexData;
         unsigned int m_CurrentQuadCount = 0;
         bool m_IsBatchDirty = false;
+
+        GLuint m_LastBoundTexture = 0;
     };
 }

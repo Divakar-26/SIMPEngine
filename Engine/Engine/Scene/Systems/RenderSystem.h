@@ -15,4 +15,4 @@ namespace SIMPEngine{
             std::vector<std::pair<entt::entity, float>> m_QuadSortBuffer;
             std::vector<std::pair<entt::entity, float>> m_SpriteSortBuffer;
     };
-}
+} 

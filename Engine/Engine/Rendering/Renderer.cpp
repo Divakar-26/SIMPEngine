@@ -18,12 +18,12 @@ namespace SIMPEngine
     {
         s_RenderingAPI = std::move(api);
         m_WindowWidth = w;
-        m_WindowHeight = h;
+        m_WindowHeight = h; 
         s_RenderingAPI->ResizeViewport(w, h);
         s_RenderingAPI->Init();
     }
 
-    void Renderer::SetClearColor(float r, float g, float b, float a)
+    void Renderer::SetClearColor(float r, float g, float b, float a) 
     {
         s_RenderingAPI->SetClearColor(r, g, b, a);
     }

@@ -17,6 +17,7 @@ void ViewportPanel::OnAttach()
 
 void ViewportPanel::OnImGuiRender()
 {
+    PROFILE_SCOPE("Viewport/Render");
     ImGui::Begin("Viewport");
 
     m_ViewportPos = ImGui::GetCursorScreenPos();
@@ -34,10 +35,11 @@ void ViewportPanel::OnImGuiRender()
     m_RenderingLayer->GetCamera().SetViewportSize(viewportSize.x, viewportSize.y);
 
     SIMPEngine::Renderer::Clear();
+    DrawCartesianLines();
     m_RenderingLayer->OnRender();
 
     // DrawGridDots();
-    
+
     api->EndFrame();
 
     ImTextureID texID = (ImTextureID)(intptr_t)api->GetViewportTexture();
@@ -288,63 +290,32 @@ void ViewportPanel::DrawSelectionOutline()
 
 void ViewportPanel::DrawGridDots()
 {
-    auto& camera = m_RenderingLayer->GetCamera();
+}
 
-    glm::vec2 tl =
-        camera.ScreenToWorld({0.0f, 0.0f});
+void ViewportPanel::DrawCartesianLines()
+{
+    auto &camera = m_RenderingLayer->GetCamera();
 
-    glm::vec2 br =
-        camera.ScreenToWorld(
-        {
-            m_ViewportSize.x,
-            m_ViewportSize.y
-        });
+    glm::vec2 tl = camera.ScreenToWorld({0.0f, 0.0f});
+    glm::vec2 br = camera.ScreenToWorld({m_ViewportSize.x, m_ViewportSize.y});
 
     float left   = std::min(tl.x, br.x);
     float right  = std::max(tl.x, br.x);
     float bottom = std::min(tl.y, br.y);
     float top    = std::max(tl.y, br.y);
 
-    float zoom = camera.GetZoom();
+    SDL_Color xAxis{190, 70, 70, 255};
+    SDL_Color yAxis{120, 210, 120, 255};
+    SDL_Color viewRect{110, 140, 255, 255};
 
-    float gridSize = 1.0f;
+    SIMPEngine::Renderer::DrawLine(left, 0.0f, right, 0.0f, xAxis);
+    SIMPEngine::Renderer::DrawLine(0.0f, bottom, 0.0f, top, yAxis);
 
-    if (zoom < 0.5f)  gridSize = 2.0f;
-    if (zoom < 0.25f) gridSize = 4.0f;
-    if (zoom < 0.12f) gridSize = 8.0f;
-    if (zoom < 0.06f) gridSize = 16.0f;
-
-    int startX = (int)std::floor(left / gridSize);
-    int endX   = (int)std::ceil(right / gridSize);
-
-    int startY = (int)std::floor(bottom / gridSize);
-    int endY   = (int)std::ceil(top / gridSize);
-
-    for (int y = startY; y <= endY; y++)
-    {
-        for (int x = startX; x <= endX; x++)
-        {
-            bool major =
-                (x % 8 == 0) &&
-                (y % 8 == 0);
-
-            float size =
-                major ? 0.08f : 0.04f;
-
-            SDL_Color color =
-                major
-                ? SDL_Color{120,120,120,255}
-                : SDL_Color{70,70,70,180};
-
-            SIMPEngine::Renderer::DrawQuad(
-                x * gridSize,
-                y * gridSize,
-                size,
-                size,
-                0.0f,
-                color,
-                true,
-                -999.0f);
-        }
-    }
+    SIMPEngine::Renderer::DrawQuad(
+        0.0f, 0.0f,
+        SIMPEngine::Renderer::m_WindowWidth,
+        SIMPEngine::Renderer::m_WindowHeight,
+        0.0f,
+        viewRect,
+        false);
 }
