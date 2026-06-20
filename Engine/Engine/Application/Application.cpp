@@ -2,8 +2,7 @@
 #include <Engine/Application/Application.h>
 #include <Engine/Core/FileSystem.h>
 #include <Engine/Core/VFS.h>
-#include <Engine/Core/Profiler.h>
-#include <Engine/Core/ProfilingUtils.h>
+#include <Engine/Core/Profiler/EngineProfiler.h>
 
 namespace SIMPEngine
 {
@@ -12,11 +11,6 @@ namespace SIMPEngine
     Application::Application()
     {
 
-        // std::string exePath = FileSystem::Normalise(FileSystem::Join(FileSystem::GetExecutableDir(), ".."));
-        // std::string assetsPath = FileSystem::Join(exePath, "assets");
-
-        VFS::Mount("assets", "../assets");
-        CORE_INFO("Mounted assets VFS at {}", "../assets");
         s_Instance = this;
         m_Window.Init("SIMPEngine", 1920, 1080);
 
@@ -48,26 +42,36 @@ namespace SIMPEngine
         // actual gameloop
         while (m_Running)
         {
+            PROFILE_FRAME_BEGIN();
+
             uint64_t currentFrameTime = SDL_GetPerformanceCounter();
             float deltaTime = (float)((currentFrameTime - lastFrameTime) / (float)freq);
             lastFrameTime = currentFrameTime;
 
-            SDL_Event sdlEvent;
-            while (SDL_PollEvent(&sdlEvent))
             {
-                if (m_ImGuiLayer)
-                    m_ImGuiLayer->OnSDLEvent(sdlEvent); // LOOKAT
-                SDLEventToEngine(sdlEvent);
+                PROFILE_SCOPE("Events");
+
+                SDL_Event sdlEvent;
+                while (SDL_PollEvent(&sdlEvent))
+                {
+                    if (m_ImGuiLayer)
+                        m_ImGuiLayer->OnSDLEvent(sdlEvent); // LOOKAT
+                    SDLEventToEngine(sdlEvent);
+                }
             }
 
             // update all layers
-            for (Layer *layer : m_LayerStack)
-                layer->OnUpdate(TimeStep(deltaTime));
+            {
+                PROFILE_SCOPE("LayerUpdate");
+
+                for (Layer *layer : m_LayerStack)
+                    layer->OnUpdate(TimeStep(deltaTime));
+            }
 
             // Rendering
             {
-                
-                // ProfileTimer timer("Render");
+
+                PROFILE_SCOPE("Render");
                 Renderer::SetClearColor(0.298039f, 0.298039f, 0.298039f, 1.0f);
                 Renderer::Clear();
 
@@ -78,11 +82,11 @@ namespace SIMPEngine
 
                 m_ImGuiLayer->End();
             }
-            
 
             // Renderer::Present();
             // SDL_GL_SwapWindow(m_Window.GetNativeWindow());
             m_Window.OnUpdate();
+            PROFILE_FRAME_END();
         }
     }
 

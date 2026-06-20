@@ -54,7 +54,7 @@ public:
         d.y      = y;
         d.vx     = rv(m_Rng) * DOT_SPEED;
         d.vy     = rv(m_Rng) * DOT_SPEED;
-        d.radius = rv(m_Rng) * DOT_RADIUS + 2;
+        d.radius = rv(m_Rng) * DOT_RADIUS + 3;
         d.color  = m_Palette[rc(m_Rng)];
         return d;
     }
@@ -125,6 +125,7 @@ public:
         {
             SIMPEngine::Renderer::DrawCircle(
                 d.x, d.y, d.radius, d.color, AA);
+            // SIMPEngine::Renderer::DrawQuad(d.x, d.y, d.radius, d.radius);
         }
 
         // --- lines on top ---

@@ -4,7 +4,6 @@
 #include <Engine/Scene/TilemapUtils.h>
 #include <Engine/Scene/SceneSerializer.h>
 #include <Engine/Scene/Loaders/TiledLoader.h>
-#include <Engine/Core/ProfilingUtils.h>
 #include <Engine/Core/EngineDimensions.h>
 #include <Engine/PCH.h>
 
@@ -157,7 +156,6 @@ namespace SIMPEngine
 
     void RenderingLayer::OnRender()
     {
-        PROFILE_RENDER_SYSTEM();
 
         auto scene = m_SceneManager->GetActiveScene();
 

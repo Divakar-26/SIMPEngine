@@ -1,6 +1,7 @@
 #pragma once
 #include <Scene/Component.h>
 #include <entt/entt.hpp>
+#include <Engine/Core/Profiler/EngineProfiler.h>
 
 namespace SIMPEngine
 {
@@ -10,7 +11,9 @@ namespace SIMPEngine
 
     public:
         void Update(entt::registry &registry, float deltaTime = 0.0f)
-        {
+        {   
+            PROFILE_FUNCTION();
+
             auto view = registry.view<TransformComponent>();
 
             for (auto entity : view)

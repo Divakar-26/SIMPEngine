@@ -1,7 +1,5 @@
-#include <Engine/SIMPEngine.h>
+#include <Engine/PCH.h>
 #include "ConstellationScript.h"
-#include "leftPlayerMoveScript.h"
-#include "rightPlayerMoveScript.h"
 
 #ifndef NO_EDITOR
 #include "EditorLayer.h"
@@ -16,7 +14,6 @@ public:
 
         sceneManager->LoadScene("Level1", "assets://scenes/Level1.yaml");
         auto scene1 = sceneManager->GetActiveScene();
-
 
         auto constellation = scene1->BuildEntity("constellation")
                                  .At(0, 0)
@@ -47,6 +44,8 @@ int main()
 {
     SIMPEngine::Log::Init();
     CORE_INFO("Engine Starting up....");
+    SIMPEngine::VFS::Mount("assets", "../assets");
+    CORE_INFO("Mounted assets VFS at {}", "../assets");
     auto app = SIMPEngine::CreateApplication();
     app->Run();
     delete app;

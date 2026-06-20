@@ -1,6 +1,9 @@
 #include <Engine/Rendering/GLRenderingAPI.h>
 #include <Engine/Rendering/Shaders/SpriteShader.h>
 #include <Engine/Rendering/Shaders/ShapeShader.h>
+
+#include <Engine/Core/Profiler/EngineProfiler.h>
+
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -184,6 +187,8 @@ namespace SIMPEngine
 
     void GLRenderingAPI::FlushQuads()
     {
+        PROFILE_FUNCTION();
+
         if (m_QuadBatch.empty())
             return;
 
@@ -213,6 +218,8 @@ namespace SIMPEngine
 
     void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, float rotation, SDL_Color color, bool fill, float zIndex)
     {
+        PROFILE_FUNCTION();
+
         if (!fill)
         {
             FlushQuads();
@@ -289,6 +296,8 @@ namespace SIMPEngine
 
     void GLRenderingAPI::DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect *srcRect)
     {
+        PROFILE_FUNCTION();
+
         FlushQuads();
 
         if (!texture)
@@ -368,6 +377,8 @@ namespace SIMPEngine
     void GLRenderingAPI::DrawCircle(float cx, float cy, float radius,
                                     SDL_Color color, float aa, float zIndex)
     {
+        PROFILE_FUNCTION();
+
         Flush(); // flush any pending quads first
 
         float pad = aa * 2.0f;
@@ -391,6 +402,7 @@ namespace SIMPEngine
                                          float cornerRadius, SDL_Color color,
                                          float aa, float zIndex)
     {
+        PROFILE_FUNCTION();
         Flush();
 
         float pad = aa * 2.0f;
@@ -416,6 +428,7 @@ namespace SIMPEngine
                                          float width, SDL_Color color,
                                          float aa, float zIndex)
     {
+        PROFILE_FUNCTION();
         Flush();
 
         float pad = aa * 2.0f;
@@ -443,15 +456,15 @@ namespace SIMPEngine
     {
         glm::mat4 mvp = m_Projection * m_ViewMatrix;
         m_ShapeShader->Bind();
-        m_ShapeShader->SetUniformMat4("uVP", mvp);
+        m_ShapeShader->SetUniformMat4("uVP", mvp); 
 
-        // shapeType, color, aa — set directly via glad since Shader doesn't have vec4 setter
-        GLuint id = m_ShapeShader->GetID();
-        glUniform1i(glGetUniformLocation(id, "u_shapeType"), shapeType);
-        glUniform4f(glGetUniformLocation(id, "u_color"),
-                    color.r / 255.f, color.g / 255.f,
-                    color.b / 255.f, color.a / 255.f);
-        glUniform1f(glGetUniformLocation(id, "u_aa"), aa);
+        GLint shapeTypeLoc = m_ShapeShader->GetUniformLocation("u_shapeType");
+        GLint colorLoc = m_ShapeShader->GetUniformLocation("u_color");
+        GLint aaLoc = m_ShapeShader->GetUniformLocation("u_aa");
+
+        glUniform1i(shapeTypeLoc, shapeType);
+        glUniform4f(colorLoc, color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
+        glUniform1f(aaLoc, aa);
     }
 
     void GLRenderingAPI::Flush()

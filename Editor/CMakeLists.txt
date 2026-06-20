@@ -14,6 +14,8 @@ add_library(Editor STATIC
     Panels/InspectorPanel/PhysicsSection.cpp
 )
 
+target_compile_definitions(Editor PRIVATE ENGINE_PROFILER_ENABLE_IMGUI)
+
 target_include_directories(Editor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Panels

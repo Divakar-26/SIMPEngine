@@ -89,10 +89,12 @@ namespace SIMPEngine
 
     int Shader::GetUniformLocation(const std::string &name) const
     {
-        int location = glGetUniformLocation(m_ID, name.c_str());
-        if (location == -1)
-            CORE_WARN("Uniform '{}' not found in shader!", name);
+        auto it = m_UniformCache.find(name);
+        if (it != m_UniformCache.end())
+            return it->second;
 
-        return location;
+        GLint loc = glGetUniformLocation(m_ID, name.c_str());
+        m_UniformCache[name] = loc; 
+        return loc;
     }
 }

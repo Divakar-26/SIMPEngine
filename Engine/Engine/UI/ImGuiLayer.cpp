@@ -137,7 +137,7 @@ namespace SIMPEngine
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
         ImGuizmo::BeginFrame();
-        ImGui::ShowDemoWindow();
+        // ImGui::ShowDemoWindow();
     }
 
     void ImGuiLayer::End()

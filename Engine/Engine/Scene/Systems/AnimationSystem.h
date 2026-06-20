@@ -2,6 +2,7 @@
 
 #include <entt/entt.hpp>
 #include <Engine/Scene/Component.h>
+#include <Engine/Core/Profiler/EngineProfiler.h>
 
 namespace SIMPEngine
 {
@@ -10,6 +11,8 @@ namespace SIMPEngine
     public:
         void Update(entt::registry &m_Registry, float deltaTime)
         {
+            PROFILE_FUNCTION();
+
             auto animView = m_Registry.view<AnimatedSpriteComponent>();
             for (auto entity : animView)
             {

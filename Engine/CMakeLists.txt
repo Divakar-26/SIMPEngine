@@ -4,9 +4,6 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Log.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/FileSystem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/VFS.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Profiler.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/TracyProfiler.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/tracy_public/TracyClient.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/AssetRegistry.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/TextureImporter.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/Importers.cpp
@@ -51,6 +48,7 @@
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/tracy_public
     )
 
+    target_compile_definitions(Engine PUBLIC ENGINE_PROFILER_ENABLE_IMGUI)
     target_precompile_headers(Engine PRIVATE Engine/PCH.h)
 
 

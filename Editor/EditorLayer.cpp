@@ -4,6 +4,8 @@
 #include "ImGuiSink.h"
 #include <Engine/Core/FileSystem.h>
 
+#include <Engine/Core/Profiler/EngineProfiler.h>
+
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     : Layer("EditorLayer"), m_ViewportPanel(renderingLayer, &m_EditorContext), m_HieararchyPanel(&m_EditorContext), serializer(&renderingLayer->GetScene()), m_InspectorPanel(&m_EditorContext)
 {
@@ -119,6 +121,8 @@ void EditorLayer::OnRender()
     m_ContentBrowser->OnImGuiRender();
     m_AssetPicker->OnImGuiRender();
     m_AnimationMakerPanel->OnImGuiRender();
+
+    EngineProfiler::Profiler::Get().DrawImGui();
 
     if (showLogs)
         ShowLogs();
