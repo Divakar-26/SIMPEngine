@@ -17,8 +17,8 @@ namespace SIMPEngine
             for (auto entity : animView)
             {
                 auto &anim = animView.get<AnimatedSpriteComponent>(entity);
-                if (anim.animation)
-                    anim.animation->Update(deltaTime);
+                if (anim.controller)
+                    anim.controller->Update(deltaTime);
             }
         }
 

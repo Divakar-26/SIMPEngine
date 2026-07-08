@@ -7,12 +7,16 @@
 
 class ViewportPanel;
 
+enum class SceneState { Edit, Play, Pause };
+
 struct EditorContext
 {
     SIMPEngine::Scene *Scene = nullptr;
 
     SIMPEngine::Entity SelectedEntity; 
     SIMPEngine::Entity HoveredEntity{};
+
+    SceneState State = SceneState::Edit;
 
     ViewportPanel *Viewport = nullptr;
     bool ViewportHovered = false;

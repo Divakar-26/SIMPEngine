@@ -14,7 +14,9 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/GLRenderingAPI.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Shader.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/RenderingAPI.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SVGDocument.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Animation.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/AnimationController.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Tileset.cpp
         # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SpriteAtlas.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Sprite.cpp
@@ -41,6 +43,7 @@
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
         PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine    # D:/SIMPEngine/Engine/Engine
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/entt/src
+        PUBLIC ${CMAKE_SOURCE_DIR}/vendor/nanosvg/src
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad/include
         PUBLIC ${CMAKE_SOURCE_DIR}/vendor/yaml-cpp/include

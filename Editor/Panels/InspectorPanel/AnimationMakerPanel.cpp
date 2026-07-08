@@ -396,8 +396,8 @@ void AnimationMakerPanel::OnImGuiRender()
                 float u0 =  fx      * m_FrameWidth  / (float)texW;
                 float u1 = (fx + 1) * m_FrameWidth  / (float)texW;
                 // Flip V for OpenGL convention (origin at bottom-left)
-                float v0 = 1.0f - (fy + 1) * m_FrameHeight / (float)texH;
-                float v1 = 1.0f -  fy      * m_FrameHeight / (float)texH;
+                float v0 = (fy + 1) * m_FrameHeight / (float)texH;
+                float v1 = fy      * m_FrameHeight / (float)texH;
 
                 dl->AddImage(
                     (ImTextureID)(intptr_t)m_SpriteSheetTexture->GetID(),

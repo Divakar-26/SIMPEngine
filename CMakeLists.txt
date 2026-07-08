@@ -68,6 +68,7 @@ target_include_directories(imgui PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/imgui/backends
     ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo
     ${CMAKE_SOURCE_DIR}/vendor/json
+    ${CMAKE_SOURCE_DIR}/vendor/nanosvg
 )
 
 # glad

@@ -2,6 +2,7 @@
 #include <Engine/Rendering/Texture.h>
 #include <Engine/Rendering/Sprite.h>
 #include <Engine/Rendering/Animation.h>
+#include <Engine/Rendering/AnimationController.h>
 #include <Engine/Rendering/Tileset.h>
 #include <Engine/Math/Camera2D.h>
 
@@ -111,6 +112,8 @@ struct PhysicsComponent
 struct AnimatedSpriteComponent
 { 
     std::unique_ptr<SIMPEngine::Animation> animation;
+
+    std::unique_ptr<SIMPEngine::AnimationController> controller;
 };
 
 struct HierarchyComponent
