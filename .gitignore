@@ -1,73 +1,70 @@
-# Build directories
+# Personal notes
+ROADMAP.md
 
+# Build output
 build/
-build-*/
-cmake-build-*/
 out/
+cmake-build-*/
 bin/
 lib/
-
-# CMake generated
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+_deps/
 install_manifest.txt
-Makefile
 compile_commands.json
 
-
-# Vendor build output
-
-
-vendor/*/build/
-vendor/*/cmake-build-*/
-vendor/*/CMakeFiles/
-
-
-# CLion / JetBrains
-
-
-.idea/
-*.iml
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/**/usage.statistics.xml
-.idea/**/shelf/
-
-
-# Compiler / tooling
-
-
+# Compiled objects and binaries
 *.o
 *.obj
 *.a
+*.lib
 *.so
 *.dll
 *.dylib
 *.exe
 *.pdb
 *.ilk
+*.exp
+*.pch
+*.gch
 
-
-# OS junk
-
-
-.DS_Store
-Thumbs.db
-
-
-# Temporary/editor files
-
-
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+.cache/
+.clangd/
+*.user
+*.suo
+*.sln.docstates
 *.swp
 *.swo
 *~
+CMakeUserPresets.json
+
+# Runtime-generated files
+imgui.ini
+*.log
+
+# Profiling / debug output
+*.tracy
+*.etl
+*.dmp
+*.stackdump
+core
+vgcore.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
 *.tmp
 *.bak
-*.bak
-
-
-# Logs
-
-
-*.log
+*.orig
+*.rej
+*.zip
