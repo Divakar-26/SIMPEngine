@@ -60,9 +60,9 @@ namespace SIMPEngine
             return *this;
         }
 
-        EntityBuilder& Rotation(float radians)
+        EntityBuilder& Rotation(float degrees)
         {
-            m_Registry.get<TransformComponent>(m_Entity.GetHandle()).rotation = radians;
+            m_Registry.get<TransformComponent>(m_Entity.GetHandle()).rotation = degrees;
             return *this;
         }
 

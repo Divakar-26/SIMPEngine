@@ -33,10 +33,21 @@
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/PhysicsSystem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/RenderSystem.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/TilemapSystem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/AnimationSystem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/CollisionSystem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/HierarchySystem.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/LifetimeSystem.cpp
 
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneSerializer.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Loaders/TiledLoader.cpp
-        # ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c
+            Engine/Rendering/SvgTextureCache.h
+            Engine/Rendering/SvgTextureCache.cpp
+            Engine/Scene/Systems/AnimationSystem.cpp
+            Engine/Scene/Systems/CollisionSystem.cpp
+            Engine/Scene/Systems/HierarchySystem.cpp
+            Engine/Scene/Systems/LifetimeSystem.cpp
+            Engine/Scene/Systems/MovementSystem.cpp
+            # ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c
     )
 
     target_include_directories(Engine

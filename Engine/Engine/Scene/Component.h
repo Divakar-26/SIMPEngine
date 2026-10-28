@@ -30,7 +30,7 @@ struct TransformComponent
     glm::vec2 scale{1, 1};
     float zIndex = 0;
 
-    glm::mat4 worldTransform;
+    glm::mat4 worldTransform{1.0f};
 
     bool dirty = true;
 

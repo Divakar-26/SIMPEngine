@@ -1,5 +1,7 @@
 #include <Engine/Rendering/Animation.h>
 
+#include <algorithm>
+
 namespace SIMPEngine
 {
 
@@ -19,7 +21,7 @@ namespace SIMPEngine
 
     void Animation::Update(float deltaTime)
     {
-        if (m_Finished || !m_Texture || m_FrameCount <= 1)
+        if (m_Finished || !m_Texture || m_FrameCount <= 1 || m_FrameDuration <= 0.0f)
             return;
 
         m_ElapsedTime += deltaTime;
@@ -46,11 +48,11 @@ namespace SIMPEngine
     void Animation::Draw(float x, float y, float width, float height,
                          SDL_Color tint, float rotation)
     {
-        if (!m_Texture)
+        if (!m_Texture || m_FrameWidth <= 0 || m_FrameHeight <= 0)
             return;
 
         int texW = m_Texture->GetWidth();
-        int framesPerRow = texW / m_FrameWidth;
+        int framesPerRow = std::max(1, texW / m_FrameWidth);
 
         int frameX = m_CurrentFrame % framesPerRow;
         int frameY = m_CurrentFrame / framesPerRow;

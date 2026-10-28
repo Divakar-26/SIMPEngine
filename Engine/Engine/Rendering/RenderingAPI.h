@@ -8,6 +8,17 @@
 
 namespace SIMPEngine
 {
+    // Lightweight per-frame counters, reset in BeginFrame().
+    // Exposed so tooling (e.g. the profiler / ImGui panels) can show
+    // batching efficiency instead of just wall-clock time.
+    struct RenderStats
+    {
+        int drawCalls = 0;
+        int quadCount = 0;
+        int lineSegmentCount = 0;
+        int shapeCount = 0;
+        int textureSwitches = 0;
+    };
 
     class RenderingAPI
     {
@@ -45,5 +56,7 @@ namespace SIMPEngine
         virtual unsigned int GetViewportTexture() = 0;
 
         virtual void Flush() = 0;
+
+        virtual const RenderStats &GetStats() const = 0;
     };
 }

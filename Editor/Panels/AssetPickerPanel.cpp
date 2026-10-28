@@ -206,10 +206,6 @@ void AssetPickerPanel::DrawEntry(const std::string &vpath, bool isDir)
 
     if (isDir)
     {
-        CORE_INFO("Picker folder: {}x{}",
-                  m_FolderIcon.GetWidth(),
-                  m_FolderIcon.GetHeight());
-
         if (m_FolderIcon.GetID())
         {
             if (EditorUI::DrawThumbnailButton("##folder", m_FolderIcon, 72.0f, m_SelectedVPath == vpath))

@@ -13,8 +13,6 @@ namespace SIMPEngine
             if (m_Registry.any_of<SpriteComponent>(entity) ||
                 m_Registry.any_of<AnimatedSpriteComponent>(entity))
             {
-                // auto &sprite = m_Registry.get<SpriteComponent>(entity);
-                // if (sprite.texture && sprite.texture->GetID() != 0)
                 continue;
             }
 

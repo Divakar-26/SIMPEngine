@@ -163,7 +163,7 @@ namespace SIMPEngine
             size * aspect,
             -size,
             size,
-            -1.0f, 1.0f);
+            -1000.0f, 1000.0f);
     }
 
     void Camera2D::SetViewportSize(float width, float height)

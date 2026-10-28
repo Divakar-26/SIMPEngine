@@ -48,7 +48,6 @@ void InspectorPanel::DrawSpriteSection(SIMPEngine::Entity &m_SelectedEntity)
                                                ImGui::Button("Drop Texture Here");
                                                if (ImGui::BeginDragDropTarget())
                                                {
-                                                   CORE_ERROR("TARGET HOVERED");
                                                    if (const ImGuiPayload *payload =
                                                            ImGui::AcceptDragDropPayload("TEXTURE_ASSET"))
                                                    {
@@ -101,12 +100,8 @@ void InspectorPanel::DrawSpriteSection(SIMPEngine::Entity &m_SelectedEntity)
 
 void AcceptPayload(const ImGuiPayload *payload, SpriteComponent & sc )
 {
-    CORE_ERROR("PAYLOAD ACCEPTED");
-
     const char *vpath =
         static_cast<const char *>(payload->Data);
-
-    CORE_ERROR("VPATH = {}", vpath);
 
     auto texture =
         std::make_shared<SIMPEngine::Texture>();
@@ -120,18 +115,12 @@ void AcceptPayload(const ImGuiPayload *payload, SpriteComponent & sc )
         return;
     }
 
-    CORE_ERROR("REAL PATH = {}", *real);
-
     if (!texture->LoadFromFile(real->c_str()))
     {
         CORE_ERROR("LOAD FAILED");
         return;
     }
 
-    CORE_ERROR("LOAD SUCCEEDED");
-
     texture->SetVFSPath(vpath);
     sc.texture = texture;
-
-    CORE_ERROR("TEXTURE ASSIGNED");
 }

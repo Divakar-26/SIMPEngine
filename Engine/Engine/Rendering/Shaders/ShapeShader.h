@@ -2,40 +2,62 @@
 
 namespace SIMPEngine::Shaders {
 
+// Instanced SDF shapes: a single static unit-quad (divisor 0) combined
+// with a per-instance attribute stream (divisor 1) so any number of
+// circles/rounded-rects/capsules draw in ONE glDrawArraysInstanced call
+// instead of one flush+draw per shape.
 static constexpr const char* SHAPE_VERT = R"(
 #version 330 core
-layout (location = 0) in vec2 aPos;
 
-out vec2 vPos;
+layout(location=0) in vec2 aUnit;          // static unit quad, [-1,1]
+layout(location=1) in vec2 iBoundsCenter;  // per-instance
+layout(location=2) in vec2 iBoundsHalf;
+layout(location=3) in vec2 iDataA;
+layout(location=4) in vec2 iDataB;
+layout(location=5) in float iRadius;
+layout(location=6) in float iShapeType;
+layout(location=7) in float iAA;
+layout(location=8) in vec4 iColor;
 
 uniform mat4 uVP;
 
-void main() {
-    vPos = aPos;
-    gl_Position = uVP * vec4(aPos, 0.0, 1.0);
-}
-)";
+out vec2 vPos;
+flat out vec2 vDataA;
+flat out vec2 vDataB;
+flat out float vRadius;
+flat out float vShapeType;
+flat out float vAA;
+out vec4 vColor;
+
+void main()
+{
+    vec2 world = iBoundsCenter + aUnit * iBoundsHalf;
+    gl_Position = uVP * vec4(world, 0.0, 1.0);
+
+    vPos = world;
+    vDataA = iDataA;
+    vDataB = iDataB;
+    vRadius = iRadius;
+    vShapeType = iShapeType;
+    vAA = iAA;
+    vColor = iColor;
+})";
 
 static constexpr const char* SHAPE_FRAG = R"(
 #version 330 core
 out vec4 FragColor;
 
 in vec2 vPos;
+in vec4 vColor;
+flat in vec2 vDataA;
+flat in vec2 vDataB;
+flat in float vRadius;
+flat in float vShapeType;
+flat in float vAA;
 
-uniform int   u_shapeType;   // 0=circle, 1=roundedrect, 2=capsule
-uniform vec4  u_color;
-uniform float u_aa;
-
-uniform vec2  u_circleCenter;
-uniform float u_circleRadius;
-
-uniform vec2  u_rectCenter;
-uniform vec2  u_rectHalfSize;
-uniform float u_rectRadius;
-
-uniform vec2  u_lineA;
-uniform vec2  u_lineB;
-uniform float u_lineWidth;
+// 0=circle (vDataA=center, vRadius=radius)
+// 1=roundedrect (vDataA=center, vDataB=halfSize, vRadius=cornerRadius)
+// 2=capsule (vDataA=pointA, vDataB=pointB, vRadius=lineWidth)
 
 float sdCircle(vec2 p, vec2 center, float r) {
     return length(p - center) - r;
@@ -55,15 +77,16 @@ float sdCapsule(vec2 p, vec2 a, vec2 b, float r) {
 
 void main() {
     float d = 1e9;
+    int shapeType = int(vShapeType + 0.5);
 
-    if      (u_shapeType == 0) d = sdCircle(vPos, u_circleCenter, u_circleRadius);
-    else if (u_shapeType == 1) d = sdRoundedRect(vPos, u_rectCenter, u_rectHalfSize, u_rectRadius);
-    else if (u_shapeType == 2) d = sdCapsule(vPos, u_lineA, u_lineB, u_lineWidth);
+    if      (shapeType == 0) d = sdCircle(vPos, vDataA, vRadius);
+    else if (shapeType == 1) d = sdRoundedRect(vPos, vDataA, vDataB, vRadius);
+    else if (shapeType == 2) d = sdCapsule(vPos, vDataA, vDataB, vRadius);
 
-    float alpha = 1.0 - smoothstep(-u_aa, u_aa, d);
+    float alpha = 1.0 - smoothstep(-vAA, vAA, d);
     if (alpha < 0.001) discard;
 
-    FragColor = vec4(u_color.rgb, u_color.a * alpha);
+    FragColor = vec4(vColor.rgb, vColor.a * alpha);
 }
 )";
 

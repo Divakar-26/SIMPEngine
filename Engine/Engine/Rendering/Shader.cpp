@@ -13,6 +13,10 @@ namespace SIMPEngine
 
         if (!vert || !frag)
         {
+            if (vert)
+                glDeleteShader(vert);
+            if (frag)
+                glDeleteShader(frag);
             CORE_ERROR("Shader compilation failed!");
             m_ID = 0;
             return;
@@ -30,6 +34,7 @@ namespace SIMPEngine
             char infoLog[1024];
             glGetProgramInfoLog(m_ID, 1024, nullptr, infoLog);
             CORE_ERROR("Shader linking failed: {}", infoLog);
+            glDeleteProgram(m_ID);
             m_ID = 0;
         }
 

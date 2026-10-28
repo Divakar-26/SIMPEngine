@@ -2,6 +2,8 @@
 #include <Engine/Core/FileSystem.h>
 #include <filesystem>
 
+#include "Log.h"
+
 using namespace std;
 namespace SIMPEngine
 {
@@ -14,6 +16,7 @@ namespace SIMPEngine
                 .string();
 
         CORE_INFO("Mounted {} -> {}", alias, s_Mounts[alias]);
+
     }
 
     bool VFS::UnMount(const string &alias)

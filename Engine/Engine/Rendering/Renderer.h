@@ -8,6 +8,7 @@
 
 namespace SIMPEngine
 {
+    class SvgDocument; // see Engine/Rendering/SVGDocument.h
 
     class Renderer
     {
@@ -32,18 +33,28 @@ namespace SIMPEngine
         static void DrawCapsuleLine(float x1, float y1, float x2, float y2,
                                     float width, SDL_Color color,
                                     float aa = 1.0f, float zIndex = 0.0f);
+
+        // Draws an SvgDocument as a texture, rasterizing (and caching) it at
+        // the requested pixel size on first use. Subsequent calls at the same
+        // size reuse the cached texture, so this batches through DrawTexture
+        // like any other sprite -- fine to call every frame for UI icons etc.
+        static void DrawSvg(SvgDocument &doc, float x, float y, float width, float height,
+                            SDL_Color tint = {255, 255, 255, 255}, float rotation = 0.0f, float zIndex = 0.0f);
+
         static void Present();
 
         static void SetViewMatrix(const glm::mat4 &view);
         static const glm::mat4 &GetViewMatrix();
         static glm::vec2 GetViewportSize();
 
+        static const RenderStats &GetStats();
+
         static void Flush();
         static void BeginFrame() { s_RenderingAPI->BeginFrame(); }
         static void EndFrame() { s_RenderingAPI->EndFrame(); }
         static int m_WindowWidth, m_WindowHeight;
 
-    private: 
+    private:
         static std::unique_ptr<RenderingAPI> s_RenderingAPI;
         static glm::mat4 s_ViewMatrix;
     };

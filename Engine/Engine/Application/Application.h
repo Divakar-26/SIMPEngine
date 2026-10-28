@@ -23,8 +23,8 @@ namespace SIMPEngine
         void OnEvent(Event &e);
         void SDLEventToEngine(SDL_Event &event); 
 
-        void PushLayer(Layer *layer);
-        void PushOverlay(Layer *overlay);
+        void PushLayer(std::unique_ptr<Layer> layer);
+        void PushOverlay(std::unique_ptr<Layer> overlay);
 
         Window &GetWindow() { return m_Window; }
 
@@ -38,7 +38,7 @@ namespace SIMPEngine
         bool m_Running = true;
 
         LayerStack m_LayerStack;
-        ImGuiLayer *m_ImGuiLayer;
+        ImGuiLayer *m_ImGuiLayer = nullptr;
 
         static Application *s_Instance;
     };

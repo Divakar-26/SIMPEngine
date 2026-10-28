@@ -13,7 +13,7 @@ namespace
 {
     static ImVec2 FitSizeInside(float srcW, float srcH, float maxW, float maxH)
     {
-        if (srcW <= 0.0f || srcH <= 0.0f || maxW <= 0.0f | maxH <= 0.0f)
+        if (srcW <= 0.0f || srcH <= 0.0f || maxW <= 0.0f || maxH <= 0.0f)
             return ImVec2(0.0f, 0.0f);
         float scale = std::min(maxW / srcW, maxH / srcH);
         return ImVec2(srcW * scale, srcH * scale);
@@ -395,9 +395,9 @@ void AnimationMakerPanel::OnImGuiRender()
 
                 float u0 =  fx      * m_FrameWidth  / (float)texW;
                 float u1 = (fx + 1) * m_FrameWidth  / (float)texW;
-                // Flip V for OpenGL convention (origin at bottom-left)
-                float v0 = (fy + 1) * m_FrameHeight / (float)texH;
-                float v1 = fy      * m_FrameHeight / (float)texH;
+                // Textures are stored vertically flipped: image row 0 is at V = 1
+                float v0 = 1.0f - fy      * m_FrameHeight / (float)texH;
+                float v1 = 1.0f - (fy + 1) * m_FrameHeight / (float)texH;
 
                 dl->AddImage(
                     (ImTextureID)(intptr_t)m_SpriteSheetTexture->GetID(),

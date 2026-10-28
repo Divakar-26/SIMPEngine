@@ -4,12 +4,15 @@
 #include <Engine/Rendering/Shaders/LineShader.h>
 
 #include <Engine/Core/Profiler/EngineProfiler.h>
+#include <Engine/Core/Log.h>
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <algorithm>
+#include <cmath>
+#include <cstddef>
 
 namespace SIMPEngine
 {
@@ -17,6 +20,8 @@ namespace SIMPEngine
     {
         m_QuadBatch.reserve(MAX_BATCH_QUADS);
         m_VertexData.resize(MAX_VERTICES);
+        m_LineVertices.reserve(MAX_LINE_VERTICES);
+        m_ShapeInstances.reserve(MAX_SHAPE_INSTANCES);
     }
 
     GLRenderingAPI::~GLRenderingAPI()
@@ -35,8 +40,18 @@ namespace SIMPEngine
             glDeleteBuffers(1, &m_LineVBO);
         if (m_ShapeVAO)
             glDeleteVertexArrays(1, &m_ShapeVAO);
-        if (m_ShapeVBO)
-            glDeleteBuffers(1, &m_ShapeVBO);
+        if (m_ShapeUnitVBO)
+            glDeleteBuffers(1, &m_ShapeUnitVBO);
+        if (m_ShapeInstanceVBO)
+            glDeleteBuffers(1, &m_ShapeInstanceVBO);
+        if (m_WhiteTexture)
+            glDeleteTextures(1, &m_WhiteTexture);
+        if (m_ColorAttachment)
+            glDeleteTextures(1, &m_ColorAttachment);
+        if (m_RBO)
+            glDeleteRenderbuffers(1, &m_RBO);
+        if (m_Framebuffer)
+            glDeleteFramebuffers(1, &m_Framebuffer);
     }
 
     void GLRenderingAPI::Init()
@@ -51,14 +66,19 @@ namespace SIMPEngine
             Shaders::LINE_VERT,
             Shaders::LINE_FRAG);
 
-        // ------ QUAD BATCHING SETUP ------
-        float vertices[] = {
-            // pos       //uv
-            -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-            0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
-            0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f};
+        m_ShapeShader = std::make_unique<Shader>(
+            Shaders::SHAPE_VERT,
+            Shaders::SHAPE_FRAG);
 
+        GLint maxUnits = 0;
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxUnits);
+        if (maxUnits < MAX_TEXTURE_SLOTS)
+        {
+            CORE_ERROR("GPU reports only {} fragment texture units; sprite batching is limited to {} instead of {}.",
+                       maxUnits, maxUnits, MAX_TEXTURE_SLOTS);
+        }
+
+        // ------ QUAD BATCHING SETUP (colored fills + textured sprites, unified) ------
         std::vector<unsigned int> indices(MAX_INDICES);
         for (unsigned int i = 0; i < MAX_BATCH_QUADS; i++)
         {
@@ -110,50 +130,159 @@ namespace SIMPEngine
                               (void *)offsetof(BatchVertex, rotation));
         glEnableVertexAttribArray(3);
 
-        // color
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
-                              (void *)offsetof(BatchVertex, color));
+        // uv
+        glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
+                              (void *)offsetof(BatchVertex, texCoord));
         glEnableVertexAttribArray(4);
 
-        // uv
-        glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
-                              (void *)offsetof(BatchVertex, texCoord));
+        // texture slot index
+        glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
+                              (void *)offsetof(BatchVertex, texIndex));
         glEnableVertexAttribArray(5);
+
+        // color
+        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
+                              (void *)offsetof(BatchVertex, color));
+        glEnableVertexAttribArray(6);
 
         glBindVertexArray(0);
 
-        // ------ LINE SETUP ------
+        // ------ LINE BATCH SETUP ------
         glGenVertexArrays(1, &m_LineVAO);
         glGenBuffers(1, &m_LineVBO);
 
         glBindVertexArray(m_LineVAO);
         glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 4, nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, MAX_LINE_VERTICES * sizeof(LineVertex), nullptr, GL_DYNAMIC_DRAW);
 
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(LineVertex), (void *)offsetof(LineVertex, pos));
         glEnableVertexAttribArray(0);
+
+        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(LineVertex), (void *)offsetof(LineVertex, color));
+        glEnableVertexAttribArray(1);
 
         glBindVertexArray(0);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        m_ShapeShader = std::make_unique<Shader>(
-            Shaders::SHAPE_VERT,
-            Shaders::SHAPE_FRAG);
+        // ------ SHAPE BATCH SETUP (instanced SDF shapes) ------
+        float unitQuad[] = {
+            -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
+            -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
 
         glGenVertexArrays(1, &m_ShapeVAO);
-        glGenBuffers(1, &m_ShapeVBO);
+        glGenBuffers(1, &m_ShapeUnitVBO);
+        glGenBuffers(1, &m_ShapeInstanceVBO);
 
         glBindVertexArray(m_ShapeVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeVBO);
-        // 6 verts * 2 floats, updated every draw call
-        glBufferData(GL_ARRAY_BUFFER, 6 * 2 * sizeof(float), nullptr, GL_DYNAMIC_DRAW);
 
+        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeUnitVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(unitQuad), unitQuad, GL_STATIC_DRAW);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
         glEnableVertexAttribArray(0);
+        glVertexAttribDivisor(0, 0);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeInstanceVBO);
+        glBufferData(GL_ARRAY_BUFFER, MAX_SHAPE_INSTANCES * sizeof(ShapeInstance), nullptr, GL_DYNAMIC_DRAW);
+
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, boundsCenter));
+        glEnableVertexAttribArray(1);
+        glVertexAttribDivisor(1, 1);
+
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, boundsHalf));
+        glEnableVertexAttribArray(2);
+        glVertexAttribDivisor(2, 1);
+
+        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, dataA));
+        glEnableVertexAttribArray(3);
+        glVertexAttribDivisor(3, 1);
+
+        glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, dataB));
+        glEnableVertexAttribArray(4);
+        glVertexAttribDivisor(4, 1);
+
+        glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, radius));
+        glEnableVertexAttribArray(5);
+        glVertexAttribDivisor(5, 1);
+
+        glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, shapeType));
+        glEnableVertexAttribArray(6);
+        glVertexAttribDivisor(6, 1);
+
+        glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, aa));
+        glEnableVertexAttribArray(7);
+        glVertexAttribDivisor(7, 1);
+
+        glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, color));
+        glEnableVertexAttribArray(8);
+        glVertexAttribDivisor(8, 1);
 
         glBindVertexArray(0);
+
+        // ------ WHITE FALLBACK TEXTURE + SAMPLER ARRAY ------
+        CreateWhiteTexture();
+        ResetTextureSlots();
+
+        m_Shader->Bind();
+        int samplers[MAX_TEXTURE_SLOTS];
+        for (int i = 0; i < MAX_TEXTURE_SLOTS; i++)
+            samplers[i] = i;
+        glUniform1iv(m_Shader->GetUniformLocation("uTextures"), MAX_TEXTURE_SLOTS, samplers);
+        m_Shader->Unbind();
+    }
+
+    void GLRenderingAPI::CreateWhiteTexture()
+    {
+        glGenTextures(1, &m_WhiteTexture);
+        glBindTexture(GL_TEXTURE_2D, m_WhiteTexture);
+        unsigned char pixel[4] = {255, 255, 255, 255};
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixel);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    void GLRenderingAPI::ResetTextureSlots()
+    {
+        m_TextureSlots[0] = m_WhiteTexture;
+        m_UsedTextureSlots = 1;
+    }
+
+    float GLRenderingAPI::AcquireTextureSlot(GLuint texID)
+    {
+        if (texID == 0)
+            return 0.0f;
+
+        for (int i = 1; i < m_UsedTextureSlots; i++)
+        {
+            if (m_TextureSlots[i] == texID)
+                return (float)i;
+        }
+
+        if (m_UsedTextureSlots >= MAX_TEXTURE_SLOTS)
+        {
+            // Out of slots for this batch: draw what we have so far (if
+            // anything is pending) and start a fresh slot table.
+            if (!m_QuadBatch.empty())
+                FlushQuads();
+            else
+                ResetTextureSlots();
+        }
+
+        m_TextureSlots[m_UsedTextureSlots] = texID;
+        m_Stats.textureSwitches++;
+        return (float)(m_UsedTextureSlots++);
+    }
+
+    void GLRenderingAPI::FlushAllExcept(BatchCategory keepPending)
+    {
+        if (keepPending != BatchCategory::Quad)
+            FlushQuads();
+        if (keepPending != BatchCategory::Line)
+            FlushLines();
+        if (keepPending != BatchCategory::Shape)
+            FlushShapes();
     }
 
     void GLRenderingAPI::GenerateQuadVertices(
@@ -167,7 +296,10 @@ namespace SIMPEngine
             {-0.5f, -0.5f}};
 
         glm::vec2 uv[4] = {
-            {0, 1}, {1, 1}, {1, 0}, {0, 0}};
+            {q.uvRect.x, q.uvRect.y},
+            {q.uvRect.z, q.uvRect.y},
+            {q.uvRect.z, q.uvRect.w},
+            {q.uvRect.x, q.uvRect.w}};
 
         glm::vec4 c(
             q.color.r / 255.f,
@@ -183,9 +315,23 @@ namespace SIMPEngine
             v[i].center = q.position;
             v[i].size = q.size;
             v[i].rotation = rotRad;
-            v[i].color = c;
             v[i].texCoord = uv[i];
+            v[i].texIndex = q.texIndex;
+            v[i].color = c;
         }
+    }
+
+    void GLRenderingAPI::SubmitQuad(BatchQuad quad, GLuint textureID)
+    {
+        FlushAllExcept(BatchCategory::Quad);
+
+        if (m_QuadBatch.size() >= MAX_BATCH_QUADS)
+            FlushQuads();
+
+        quad.texIndex = AcquireTextureSlot(textureID);
+
+        m_QuadBatch.push_back(quad);
+        m_IsBatchDirty = true;
     }
 
     void GLRenderingAPI::FlushQuads()
@@ -194,6 +340,14 @@ namespace SIMPEngine
 
         if (m_QuadBatch.empty())
             return;
+
+        if (m_SortByZIndex)
+        {
+            PROFILE_SCOPE("FlushQuads/Sort");
+            std::stable_sort(m_QuadBatch.begin(), m_QuadBatch.end(),
+                              [](const BatchQuad &a, const BatchQuad &b)
+                              { return a.zIndex < b.zIndex; });
+        }
 
         {
             PROFILE_SCOPE("FlushQuads/GenerateVertices");
@@ -207,7 +361,15 @@ namespace SIMPEngine
 
         glm::mat4 mvp = m_Projection * m_ViewMatrix;
         m_Shader->SetUniformMat4("uVP", mvp);
-        m_Shader->SetUniform1i("uUseTexture", 0);
+
+        {
+            PROFILE_SCOPE("FlushQuads/BindTextures");
+            for (int i = 0; i < m_UsedTextureSlots; i++)
+            {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, m_TextureSlots[i]);
+            }
+        }
 
         {
             PROFILE_SCOPE("FlushQuads/Upload");
@@ -218,51 +380,42 @@ namespace SIMPEngine
         {
             PROFILE_SCOPE("FlushQuads/Draw");
             glBindVertexArray(m_VAO);
-            glDrawElements(GL_TRIANGLES, m_QuadBatch.size() * 6, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, (GLsizei)(m_QuadBatch.size() * 6), GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
         }
 
+        m_Stats.drawCalls++;
+        m_Stats.quadCount += (int)m_QuadBatch.size();
+
         m_QuadBatch.clear();
         m_IsBatchDirty = false;
+        ResetTextureSlots();
     }
 
     void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, float rotation, SDL_Color color, bool fill, float zIndex)
     {
-        PROFILE_FUNCTION();
-
         if (!fill)
         {
-            FlushQuads();
+            // Wireframe outline: four line segments through the line batch
+            // instead of an immediate GL_LINE_LOOP draw.
+            float rad = glm::radians(rotation);
+            float c = std::cos(rad);
+            float s = std::sin(rad);
+            glm::vec2 half(width * 0.5f, height * 0.5f);
+            glm::vec2 local[4] = {
+                {-half.x, half.y}, {half.x, half.y}, {half.x, -half.y}, {-half.x, -half.y}};
 
-            BatchQuad tempQuad;
-            tempQuad.position = glm::vec3(x, y, zIndex);
-            tempQuad.size = glm::vec2(width, height);
-            tempQuad.rotation = rotation;
-            tempQuad.color = color;
+            glm::vec2 world[4];
+            for (int i = 0; i < 4; i++)
+            {
+                glm::vec2 r(local[i].x * c - local[i].y * s, local[i].x * s + local[i].y * c);
+                world[i] = r + glm::vec2(x, y);
+            }
 
-            BatchVertex tempVerts[4];
-            GenerateQuadVertices(tempVerts, tempQuad);
+            for (int i = 0; i < 4; i++)
+                AddLineToBatch(world[i].x, world[i].y, world[(i + 1) % 4].x, world[(i + 1) % 4].y, color);
 
-            m_Shader->Bind();
-
-            glm::mat4 mvp = m_Projection * m_ViewMatrix;
-            m_Shader->SetUniformMat4("uVP", mvp);
-            m_Shader->SetUniform1i("uUseTexture", 0);
-
-            glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(BatchVertex), tempVerts);
-
-            glBindVertexArray(m_VAO);
-            glDrawArrays(GL_LINE_LOOP, 0, 4);
-            glBindVertexArray(0);
-
-            m_Shader->Unbind();
             return;
-        }
-
-        if (m_QuadBatch.size() >= MAX_BATCH_QUADS)
-        {
-            FlushQuads();
         }
 
         BatchQuad quad;
@@ -271,56 +424,67 @@ namespace SIMPEngine
         quad.rotation = rotation;
         quad.color = color;
         quad.zIndex = zIndex;
+        quad.uvRect = glm::vec4(0.0f, 1.0f, 1.0f, 0.0f);
 
-        m_QuadBatch.push_back(quad);
-        m_IsBatchDirty = true;
+        SubmitQuad(quad, 0);
+    }
+
+    void GLRenderingAPI::AddLineToBatch(float x1, float y1, float x2, float y2, SDL_Color color)
+    {
+        FlushAllExcept(BatchCategory::Line);
+
+        if (m_LineVertices.size() + 2 > MAX_LINE_VERTICES)
+            FlushLines();
+
+        glm::vec4 c(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
+        m_LineVertices.push_back({{x1, y1}, c});
+        m_LineVertices.push_back({{x2, y2}, c});
     }
 
     void GLRenderingAPI::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
     {
-        FlushQuads();
+        AddLineToBatch(x1, y1, x2, y2, color);
+    }
 
-        float vertices[] = {x1, y1, x2, y2};
+    void GLRenderingAPI::FlushLines()
+    {
+        PROFILE_FUNCTION();
+
+        if (m_LineVertices.empty())
+            return;
 
         m_LineShader->Bind();
         glm::mat4 mvp = m_Projection * m_ViewMatrix;
         m_LineShader->SetUniformMat4("uVP", mvp);
-        m_LineShader->SetUniform4f(
-            "uColor",
-            color.r / 255.0f,
-            color.g / 255.0f,
-            color.b / 255.0f,
-            color.a / 255.0f);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, m_LineVertices.size() * sizeof(LineVertex), m_LineVertices.data());
 
         glBindVertexArray(m_LineVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
-        glDrawArrays(GL_LINES, 0, 2);
-
+        glDrawArrays(GL_LINES, 0, (GLsizei)m_LineVertices.size());
         glBindVertexArray(0);
+
         m_LineShader->Unbind();
+
+        m_Stats.drawCalls++;
+        m_Stats.lineSegmentCount += (int)(m_LineVertices.size() / 2);
+
+        m_LineVertices.clear();
     }
 
     void GLRenderingAPI::DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect *srcRect)
     {
-        PROFILE_FUNCTION();
-
-        FlushQuads();
-
         if (!texture)
         {
             return;
         }
 
-        BatchQuad tempQuad;
-        tempQuad.position = glm::vec3(x, y, zIndex);
-        tempQuad.size = glm::vec2(width, height);
-        tempQuad.rotation = rotation;
-        tempQuad.color = color;
-
-        BatchVertex tempVerts[4];
-        GenerateQuadVertices(tempVerts, tempQuad);
+        BatchQuad quad;
+        quad.position = glm::vec3(x, y, zIndex);
+        quad.size = glm::vec2(width, height);
+        quad.rotation = rotation;
+        quad.color = color;
+        quad.zIndex = zIndex;
 
         if (srcRect)
         {
@@ -332,149 +496,117 @@ namespace SIMPEngine
             float u2 = (srcRect->x + srcRect->w) / texWidth;
             float v2 = (srcRect->y + srcRect->h) / texHeight;
 
-            tempVerts[0].texCoord = glm::vec2(u1, v2);
-            tempVerts[1].texCoord = glm::vec2(u2, v2);
-            tempVerts[2].texCoord = glm::vec2(u2, v1);
-            tempVerts[3].texCoord = glm::vec2(u1, v1);
+            // Textures are uploaded vertically flipped, so image-space Y is inverted here.
+            quad.uvRect = glm::vec4(u1, 1.0f - v1, u2, 1.0f - v2);
         }
-
-        m_Shader->Bind();
-
-        glm::mat4 mvp = m_Projection * m_ViewMatrix;
-        m_Shader->SetUniformMat4("uVP", mvp);
-        m_Shader->SetUniform1i("uUseTexture", 1);
-
-        GLuint texID = texture->GetID();
-        if (m_LastBoundTexture != texID)
+        else
         {
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, texID);
-            m_Shader->SetUniform1i("uTexture", 0);
-            m_LastBoundTexture = texID;
+            quad.uvRect = glm::vec4(0.0f, 1.0f, 1.0f, 0.0f);
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, 4 * sizeof(BatchVertex), tempVerts);
-
-        glDepthMask(GL_FALSE);
-        glBindVertexArray(m_VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-        glDepthMask(GL_TRUE);
+        SubmitQuad(quad, texture->GetID());
     }
 
-    void GLRenderingAPI::UpdateShapeQuad(float x0, float y0, float x1, float y1)
+    void GLRenderingAPI::PushShapeInstance(const ShapeInstance &instance)
     {
-        float verts[] = {
-            x0,
-            y0,
-            x1,
-            y0,
-            x1,
-            y1,
-            x0,
-            y0,
-            x1,
-            y1,
-            x0,
-            y1,
-        };
-        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeVBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(verts), verts);
+        FlushAllExcept(BatchCategory::Shape);
+
+        if (m_ShapeInstances.size() >= MAX_SHAPE_INSTANCES)
+            FlushShapes();
+
+        m_ShapeInstances.push_back(instance);
     }
 
     void GLRenderingAPI::DrawCircle(float cx, float cy, float radius, SDL_Color color, float aa, float zIndex)
     {
-        PROFILE_FUNCTION();
-
-        Flush();
-
         float pad = aa * 2.0f;
-        UpdateShapeQuad(cx - radius - pad, cy - radius - pad, cx + radius + pad, cy + radius + pad);
-        BindShapeUniforms(0, color, aa);
 
-        glUniform2f(m_ShapeShader->GetUniformLocation("u_circleCenter"), cx, cy);
-        glUniform1f(m_ShapeShader->GetUniformLocation("u_circleRadius"), radius);
+        ShapeInstance inst{};
+        inst.boundsCenter = {cx, cy};
+        inst.boundsHalf = {radius + pad, radius + pad};
+        inst.dataA = {cx, cy};
+        inst.dataB = {0.0f, 0.0f};
+        inst.radius = radius;
+        inst.shapeType = 0.0f;
+        inst.aa = aa;
+        inst.color = {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
 
-        glBindVertexArray(m_ShapeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
-        m_ShapeShader->Unbind();
+        PushShapeInstance(inst);
     }
 
     void GLRenderingAPI::DrawRoundedRect(float cx, float cy, float halfW, float halfH,
                                          float cornerRadius, SDL_Color color,
                                          float aa, float zIndex)
     {
-        PROFILE_FUNCTION();
-        Flush();
-
         float pad = aa * 2.0f;
-        float ex = halfW + cornerRadius + pad;
-        float ey = halfH + cornerRadius + pad;
-        UpdateShapeQuad(cx - ex, cy - ey, cx + ex, cy + ey);
 
-        BindShapeUniforms(1, color, aa);
+        ShapeInstance inst{};
+        inst.boundsCenter = {cx, cy};
+        inst.boundsHalf = {halfW + cornerRadius + pad, halfH + cornerRadius + pad};
+        inst.dataA = {cx, cy};
+        inst.dataB = {halfW, halfH};
+        inst.radius = cornerRadius;
+        inst.shapeType = 1.0f;
+        inst.aa = aa;
+        inst.color = {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
 
-        glUniform2f(m_ShapeShader->GetUniformLocation("u_rectCenter"), cx, cy);
-        glUniform2f(m_ShapeShader->GetUniformLocation("u_rectHalfSize"), halfW, halfH);
-        glUniform1f(m_ShapeShader->GetUniformLocation("u_rectRadius"), cornerRadius);
-
-        glBindVertexArray(m_ShapeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-        glBindVertexArray(0);
-
-        m_ShapeShader->Unbind();
+        PushShapeInstance(inst);
     }
 
     void GLRenderingAPI::DrawCapsuleLine(float x1, float y1, float x2, float y2,
                                          float width, SDL_Color color,
                                          float aa, float zIndex)
     {
-        PROFILE_FUNCTION();
-        Flush();
-
         float pad = aa * 2.0f;
         float minX = std::min(x1, x2) - width - pad;
         float minY = std::min(y1, y2) - width - pad;
         float maxX = std::max(x1, x2) + width + pad;
         float maxY = std::max(y1, y2) + width + pad;
-        UpdateShapeQuad(minX, minY, maxX, maxY);
 
-        BindShapeUniforms(2, color, aa);
+        ShapeInstance inst{};
+        inst.boundsCenter = {(minX + maxX) * 0.5f, (minY + maxY) * 0.5f};
+        inst.boundsHalf = {(maxX - minX) * 0.5f, (maxY - minY) * 0.5f};
+        inst.dataA = {x1, y1};
+        inst.dataB = {x2, y2};
+        inst.radius = width;
+        inst.shapeType = 2.0f;
+        inst.aa = aa;
+        inst.color = {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
 
-        glUniform2f(m_ShapeShader->GetUniformLocation("u_lineA"), x1, y1);
-        glUniform2f(m_ShapeShader->GetUniformLocation("u_lineB"), x2, y2);
-        glUniform1f(m_ShapeShader->GetUniformLocation("u_lineWidth"), width);
+        PushShapeInstance(inst);
+    }
+
+    void GLRenderingAPI::FlushShapes()
+    {
+        PROFILE_FUNCTION();
+
+        if (m_ShapeInstances.empty())
+            return;
+
+        m_ShapeShader->Bind();
+        glm::mat4 mvp = m_Projection * m_ViewMatrix;
+        m_ShapeShader->SetUniformMat4("uVP", mvp);
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeInstanceVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, m_ShapeInstances.size() * sizeof(ShapeInstance), m_ShapeInstances.data());
 
         glBindVertexArray(m_ShapeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)m_ShapeInstances.size());
         glBindVertexArray(0);
 
         m_ShapeShader->Unbind();
-    }
 
-    void GLRenderingAPI::BindShapeUniforms(int shapeType, SDL_Color color, float aa)
-    {
-        glm::mat4 mvp = m_Projection * m_ViewMatrix;
-        m_ShapeShader->Bind();
-        m_ShapeShader->SetUniformMat4("uVP", mvp);
+        m_Stats.drawCalls++;
+        m_Stats.shapeCount += (int)m_ShapeInstances.size();
 
-        GLint shapeTypeLoc = m_ShapeShader->GetUniformLocation("u_shapeType");
-        GLint colorLoc = m_ShapeShader->GetUniformLocation("u_color");
-        GLint aaLoc = m_ShapeShader->GetUniformLocation("u_aa");
-
-        glUniform1i(shapeTypeLoc, shapeType);
-        glUniform4f(colorLoc, color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f);
-        glUniform1f(aaLoc, aa);
+        m_ShapeInstances.clear();
     }
 
     void GLRenderingAPI::Flush()
     {
-        if (!m_QuadBatch.empty())
-        {
-            FlushQuads();
-        }
+        FlushQuads();
+        FlushLines();
+        FlushShapes();
     }
 
     void GLRenderingAPI::ApplyCommonSpriteState(
@@ -482,6 +614,8 @@ namespace SIMPEngine
         float rotation, float zIndex,
         SDL_Color color, bool useTexture)
     {
+        // Legacy helper predating the batch pipeline. Not called internally
+        // anymore -- DrawQuad/DrawTexture both go through SubmitQuad now.
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
         model = glm::rotate(model, glm::radians(rotation), glm::vec3(0, 0, 1));
         model = glm::scale(model, glm::vec3(width, height, 1.0f));
@@ -490,13 +624,7 @@ namespace SIMPEngine
 
         m_Shader->Bind();
         m_Shader->SetUniformMat4("uVP", mvp);
-        m_Shader->SetUniform4f(
-            "uColor",
-            color.r / 255.0f,
-            color.g / 255.0f,
-            color.b / 255.0f,
-            color.a / 255.0f);
-        m_Shader->SetUniform1i("uUseTexture", useTexture ? 1 : 0);
+        (void)useTexture; // uUseTexture no longer exists in the unified shader
     }
 
     void GLRenderingAPI::SetViewMatrix(const glm::mat4 &view)
@@ -517,8 +645,12 @@ namespace SIMPEngine
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
 
         m_QuadBatch.clear();
+        m_LineVertices.clear();
+        m_ShapeInstances.clear();
         m_IsBatchDirty = false;
-        m_LastBoundTexture = 0;
+        ResetTextureSlots();
+
+        m_Stats = RenderStats{};
     }
 
     void GLRenderingAPI::EndFrame()

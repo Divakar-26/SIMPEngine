@@ -15,14 +15,14 @@ namespace SIMPEngine
 {
 
     class ImGuiLayer : public Layer
-    { 
+    {
     public:
         ImGuiLayer();
         ~ImGuiLayer();
 
         void OnAttach() override;                  // Called when layer is pushed
         void OnDetach() override;                  // Called when layer is popped
-        void OnUpdate(class TimeStep ts) override; // Called every frame to update ImGui 
+        void OnUpdate(class TimeStep ts) override; // Called every frame to update ImGui
         void OnRender() override;                  // Called every frame to update ImGui
         void OnEvent(Event &event) override;
         void OnSDLEvent(SDL_Event &e);
@@ -31,17 +31,23 @@ namespace SIMPEngine
 
         bool viewportFocused = false;
 
-        void SetBlockEvent(bool block) {m_BlockEvent = block;}
+        void SetBlockEvent(bool block) { m_BlockEvent = block; }
+
     private:
+        void ApplyModernTheme(); // Seamless flat IDE-style theme
+        void LoadFonts();        // Loads Inter/JetBrains Sans, falls back to default
+
         bool showLogWindow = false; // toggle for log window
 
         SDL_Window *m_Window = nullptr;
         SDL_Renderer *m_Renderer = nullptr;
 
-        SIMPEngine::Entity  selectedEntity;
+        SIMPEngine::Entity selectedEntity;
 
-        bool m_BlockEvent;              
+        bool m_BlockEvent = false;
 
+        ImFont *m_FontRegular = nullptr;
+        ImFont *m_FontBold = nullptr;
     };
 
 }

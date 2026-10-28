@@ -81,10 +81,8 @@ void HierarchyPanel::OnImGuiRender()
                 entity.AddComponent<CollisionComponent>();
             if (m_AddRender)
                 entity.AddComponent<RenderComponent>();
-            if (m_AddScript)
-                //
-                if (m_AddPhysics)
-                    entity.AddComponent<PhysicsComponent>();
+            if (m_AddPhysics)
+                entity.AddComponent<PhysicsComponent>();
             if (m_AddAnimatedSprite)
                 entity.AddComponent<AnimatedSpriteComponent>();
             if (m_AddLifetime)
@@ -93,6 +91,8 @@ void HierarchyPanel::OnImGuiRender()
                 entity.AddComponent<TilemapComponent>();
 
             m_AddVelocity = m_AddSprite = m_AddCamera = m_AddCollision = false;
+            m_AddRender = m_AddScript = m_AddPhysics = false;
+            m_AddAnimatedSprite = m_AddLifetime = m_AddTilemap = false;
             strcpy(m_EntityNameBuffer, "New Entity");
 
             // for script

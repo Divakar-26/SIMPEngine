@@ -58,7 +58,7 @@ namespace
             dl->AddImage(
                 (ImTextureID)(intptr_t)tex->GetID(),
                 cellMin, cellMax,
-                ImVec2(u0, v0), ImVec2(u1, v1));
+                ImVec2(u0, v1), ImVec2(u1, v0));
             dl->AddRect(cellMin, cellMax, IM_COL32(80, 80, 90, 180));
         }
 

@@ -20,18 +20,6 @@ namespace SIMPEngine
         {
             if (line.empty() || line[0] == '#')
                 continue;
-            AssetMetadata md;
-            string typeStr, importedStrl;
-            stringstream ls(line);
-            getline(ls, (line = string()), '\n');
-        }
-
-        ss.clear();
-        ss.str(*txt);
-        while (getline(ss, line))
-        {
-            if (line.empty() || line[0] == '#')
-                continue;
             string handleStr, typeStr, vp, rp, imp;
             stringstream ls(line);
             if (!getline(ls, handleStr, '|'))
@@ -46,8 +34,15 @@ namespace SIMPEngine
                 imp = "0";
 
             AssetMetadata md;
-            md.handle = std::stoull(handleStr);
-            md.type = static_cast<AssetType>(std::stoul(typeStr));
+            try
+            {
+                md.handle = std::stoull(handleStr);
+                md.type = static_cast<AssetType>(std::stoul(typeStr));
+            }
+            catch (const std::exception &)
+            {
+                continue; // skip malformed line
+            }
             md.virtualPath = vp;
             md.sourcePath = rp;
             md.imported = (imp == "1");

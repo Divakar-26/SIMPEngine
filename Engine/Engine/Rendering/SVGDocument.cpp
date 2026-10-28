@@ -2,6 +2,7 @@
 #include <Engine/Core/Log.h>
 #include <Engine/Core/VFS.h>
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <vector>

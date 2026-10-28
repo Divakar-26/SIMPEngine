@@ -14,7 +14,7 @@ namespace SIMPEngine
 
         return SDL_FRect{
             (float)(col * m_TileWidth),
-            (float)(col * m_TileHeight),
+            (float)(row * m_TileHeight),
             (float)m_TileWidth,
             (float)m_TileHeight
         };

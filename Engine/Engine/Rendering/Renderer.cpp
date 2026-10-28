@@ -1,5 +1,9 @@
 #include <Engine/Rendering/Renderer.h>
+#include <Engine/Rendering/SvgTextureCache.h>
+#include <Engine/Rendering/SVGDocument.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <algorithm>
+#include <cmath>
 
 namespace SIMPEngine
 {
@@ -18,12 +22,12 @@ namespace SIMPEngine
     {
         s_RenderingAPI = std::move(api);
         m_WindowWidth = w;
-        m_WindowHeight = h; 
+        m_WindowHeight = h;
         s_RenderingAPI->ResizeViewport(w, h);
         s_RenderingAPI->Init();
     }
 
-    void Renderer::SetClearColor(float r, float g, float b, float a) 
+    void Renderer::SetClearColor(float r, float g, float b, float a)
     {
         s_RenderingAPI->SetClearColor(r, g, b, a);
     }
@@ -45,7 +49,7 @@ namespace SIMPEngine
 
     void Renderer::Flush()
     {
-        // s_RenderingAPI->Flush();
+        s_RenderingAPI->Flush();
     }
 
     void Renderer::SetViewMatrix(const glm::mat4 &view)
@@ -85,8 +89,26 @@ namespace SIMPEngine
         s_RenderingAPI->DrawCapsuleLine(x1, y1, x2, y2, width, color, aa, zIndex);
     }
 
+    void Renderer::DrawSvg(SvgDocument &doc, float x, float y, float width, float height,
+                           SDL_Color tint, float rotation, float zIndex)
+    {
+        int texW = std::max(1, (int)std::ceil(width));
+        int texH = std::max(1, (int)std::ceil(height));
+
+        auto tex = SvgTextureCache::GetOrCreate(doc, texW, texH);
+        if (!tex)
+            return;
+
+        DrawTexture(tex, x, y, width, height, tint, rotation, zIndex);
+    }
+
     glm::vec2 Renderer::GetViewportSize()
     {
         return s_RenderingAPI->GetViewportSize();
+    }
+
+    const RenderStats &Renderer::GetStats()
+    {
+        return s_RenderingAPI->GetStats();
     }
 }

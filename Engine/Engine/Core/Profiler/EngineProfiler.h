@@ -810,7 +810,9 @@ namespace EngineProfiler
 #ifndef ENGINE_PROFILER_DISABLED
     #define PROFILE_FRAME_BEGIN()   ::EngineProfiler::Profiler::Get().BeginFrame()
     #define PROFILE_FRAME_END()     ::EngineProfiler::Profiler::Get().EndFrame()
-    #define PROFILE_SCOPE(name)     ::EngineProfiler::ScopeTimer _profScope_##__LINE__(name)
+    #define ENGINE_PROFILER_CONCAT_INNER(a, b) a##b
+    #define ENGINE_PROFILER_CONCAT(a, b)       ENGINE_PROFILER_CONCAT_INNER(a, b)
+    #define PROFILE_SCOPE(name)     ::EngineProfiler::ScopeTimer ENGINE_PROFILER_CONCAT(_profScope_, __LINE__)(name)
     #define PROFILE_FUNCTION()      PROFILE_SCOPE(__FUNCTION__)
 #else
     #define PROFILE_FRAME_BEGIN()   do {} while(0)

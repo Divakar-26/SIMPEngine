@@ -1,4 +1,5 @@
 #include <Engine/PCH.h>
+
 #include "ConstellationScript.h"
 
 #ifndef NO_EDITOR
@@ -11,26 +12,51 @@ public:
     MyGame()
     {
         auto sceneManager = std::make_shared<SIMPEngine::SceneManager>();
-
-        sceneManager->LoadScene("Level1", "assets://scenes/Level1.yaml");
+        sceneManager->LoadScene(
+            "Level1",
+            "assets://scenes/Level1.yaml"
+        );
         auto scene1 = sceneManager->GetActiveScene();
+        auto constellation =
+            scene1->BuildEntity("constellation")
+                .At(0, 0)
+                .Build();
 
-        auto constellation = scene1->BuildEntity("constellation")
-                                 .At(0, 0)
-                                 .Build();
-
-        // Get the entity and bind the script
-        // auto &sc = scene1->GetRegistry().emplace<ScriptComponent>(constellation);
-        // sc.Bind<ConstellationScript>();
-
+        // Bind the script to the entity.
+        auto &sc =
+            scene1->GetRegistry().emplace<ScriptComponent>(
+                constellation
+            );
+        sc.Bind<ConstellationScript>();
         SIMPEngine::SceneSerializer serializer(scene1.get());
         serializer.Serialize("assets://scenes/Level2.yaml");
+        // --------------------------------------------------------
+        // Rendering layer
+        //
+        // LayerStack now OWNS layers through unique_ptr.
+        // We temporarily keep a raw pointer because EditorLayer
+        // needs to reference the RenderingLayer but must NOT own it.
+        // --------------------------------------------------------
+        auto renderingLayer =
+            std::make_unique<SIMPEngine::RenderingLayer>(
+                sceneManager
+            );
 
-        auto renderingLayer = new SIMPEngine::RenderingLayer(sceneManager);
-        PushOverlay(renderingLayer);
+        SIMPEngine::RenderingLayer *renderingLayerPtr =
+            renderingLayer.get();
+
+        PushOverlay(std::move(renderingLayer));
 
 #ifndef NO_EDITOR
-        PushOverlay(new EditorLayer(renderingLayer));
+
+        // EditorLayer does not own RenderingLayer.
+        // LayerStack owns both layers.
+        PushOverlay(
+            std::make_unique<EditorLayer>(
+                renderingLayerPtr
+            )
+        );
+
 #endif
     }
 };
@@ -44,9 +70,16 @@ int main()
 {
     SIMPEngine::Log::Init();
     CORE_INFO("Engine Starting up....");
-    SIMPEngine::VFS::Mount("assets", "../assets");
-    CORE_INFO("Mounted assets VFS at {}", "../assets");
-    auto app = SIMPEngine::CreateApplication();
+    SIMPEngine::VFS::Mount(
+        "assets",
+        "../assets"
+    );
+    CORE_INFO(
+        "Mounted assets VFS at {}",
+        "../assets"
+    );
+    auto *app = SIMPEngine::CreateApplication();
     app->Run();
     delete app;
+    return 0;
 }

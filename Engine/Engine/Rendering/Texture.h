@@ -32,8 +32,8 @@ namespace SIMPEngine
 
     private:
         GLuint m_TextureID = 0;
-        int m_Width;
-        int m_Height;
+        int m_Width = 0;
+        int m_Height = 0;
 
         std::string m_Path = "";
         std::string m_VFSPath = "";

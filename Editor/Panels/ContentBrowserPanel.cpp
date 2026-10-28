@@ -244,6 +244,7 @@ SIMPEngine::Texture *LoadTextureFromVirtual(const std::string &vpath)
     // }
 
     // return m_AssetManager->Get<SIMPEngine::Texture2D>(handle);
+    return nullptr;
 }
 
 // TODO -> Make this load scaled down image, not the full one.

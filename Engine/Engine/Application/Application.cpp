@@ -4,8 +4,18 @@
 #include <Engine/Core/VFS.h>
 #include <Engine/Core/Profiler/EngineProfiler.h>
 
+#include "Events/ApplicationEvent.h"
+#include "Events/EventDispatcher.h"
+#include "Events/KeyEvent.h"
+#include "Events/MouseEvent.h"
+#include "Input/Input.h"
+#include "Rendering/GLRenderingAPI.h"
+
 namespace SIMPEngine
 {
+    class KeyReleasedEvent;
+    class KeyPressedEvent;
+    class WindowCloseEvent;
     Application *Application::s_Instance = nullptr;
 
     Application::Application()
@@ -18,9 +28,11 @@ namespace SIMPEngine
         SDL_GetWindowSize(m_Window.GetNativeWindow(), &w, &h);
         Renderer::Init(std::make_unique<GLRenderingAPI>(), w, h);
 
-        m_ImGuiLayer = new ImGuiLayer();
+        auto imguiLayer = std::make_unique<ImGuiLayer>();
 
-        PushOverlay(m_ImGuiLayer);
+        m_ImGuiLayer = imguiLayer.get();
+
+        PushOverlay(std::move(imguiLayer));
 
         CORE_INFO("Entt version {}", ENTT_VERSION);
     }
@@ -28,7 +40,9 @@ namespace SIMPEngine
     Application::~Application()
     {
         ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
-        m_Window.ShutDown();
+        // The window (and its GL context) is shut down by m_Window's own destructor,
+        // which runs after m_LayerStack has been destroyed, so layers can still
+        // free their GL resources.
         s_Instance = nullptr;
     }
 
@@ -64,7 +78,7 @@ namespace SIMPEngine
             {
                 PROFILE_SCOPE("LayerUpdate");
 
-                for (Layer *layer : m_LayerStack)
+                for (auto & layer : m_LayerStack)
                     layer->OnUpdate(TimeStep(deltaTime));
             }
 
@@ -87,7 +101,7 @@ namespace SIMPEngine
                 }
                 {
                     PROFILE_SCOPE("Render/Layers");
-                    for (Layer *layer : m_LayerStack)
+                    for (auto & layer : m_LayerStack)
                         layer->OnRender();
                 }
 
@@ -111,14 +125,14 @@ namespace SIMPEngine
         }
     }
 
-    void Application::PushLayer(Layer *layer)
+    void Application::PushLayer(std::unique_ptr<Layer> layer)
     {
-        m_LayerStack.PushLayer(layer);
+        m_LayerStack.PushLayer(std::move(layer));
     }
 
-    void Application::PushOverlay(Layer *overlay)
+    void Application::PushOverlay(std::unique_ptr<Layer> overlay)
     {
-        m_LayerStack.PushOverlay(overlay);
+        m_LayerStack.PushOverlay(std::move(overlay));
     }
 
     void Application::SDLEventToEngine(SDL_Event &sdlEvent)

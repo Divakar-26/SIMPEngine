@@ -26,6 +26,13 @@ void ViewportPanel::OnImGuiRender()
 
     ImVec2 viewportSize = ImGui::GetContentRegionAvail();
     UpdateFocusState();
+
+    if (viewportSize.x < 1.0f || viewportSize.y < 1.0f)
+    {
+        ImGui::End();
+        return;
+    }
+
     m_RenderingLayer->GetCamera().SetAllowZoom(m_Context->ViewportHovered);
     ResizeViewportIfNeeded(viewportSize);
 

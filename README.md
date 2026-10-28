@@ -21,9 +21,21 @@ A modern, modular 2D game engine built with C++20, SDL3, OpenGL, and EnTT ECS. D
 ### Building the Engine
 
 ```bash
-cd build
-cmake ..
-make -j$(nproc)
+cmake --preset dev
+cmake --build --preset dev
+```
+
+For a release build:
+
+```bash
+cmake --preset release
+cmake --build --preset release
+```
+
+Run the game:
+
+```bash
+./build/dev/bin/GameApp
 ```
 
 ### Creating a Simple Game
@@ -141,12 +153,12 @@ Layers provide modular scene organization:
 
 ### Build Options
 
-```cmake
-# Debug build with optimizations
-cmake -DCMAKE_BUILD_TYPE=Debug ..
+```bash
+# Debug build
+cmake --preset dev
 
 # Release build
-cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --preset release
 ```
 
 ## Editor Features

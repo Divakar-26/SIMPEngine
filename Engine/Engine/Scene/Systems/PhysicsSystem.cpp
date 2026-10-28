@@ -25,7 +25,7 @@ namespace SIMPEngine{
             if (!phys.body)
                 continue;
             transform.position = {phys.body->position.x, phys.body->position.y};
-            transform.rotation = phys.body->orientation * (180.0f / 3.14159f);
+            transform.rotation = glm::degrees(phys.body->orientation);
         }
   }
 
@@ -58,10 +58,8 @@ namespace SIMPEngine{
 
 
   void PhysicsSystem::DestroyBodies(){
-    for(auto body : bodies)
-    {
-      delete body;
-    }
+    // The bodies are owned by their PhysicsComponent (unique_ptr); deleting them
+    // here as well caused a double free when the registry was cleared.
     bodies.clear();
   }
 

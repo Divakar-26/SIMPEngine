@@ -23,6 +23,6 @@ private:
   AccelEngine::World physicsWorld;
   AccelEngine::ForceRegistry physicsRegistry;
 
-  int substep;
+  int substep = 1;
 }; 
 } // namespace SIMPEngine

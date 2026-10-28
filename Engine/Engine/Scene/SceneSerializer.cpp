@@ -189,7 +189,6 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       out << YAML::Key << "lock_position" << YAML::Value << body->lockPosition;
 
       out << YAML::EndMap;
-        out << YAML::EndMap;
       }
     }
 
@@ -199,7 +198,16 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
   out << YAML::EndSeq;
   out << YAML::EndMap;
 
+  if (!out.good()) {
+    CORE_ERROR("Scene serialization failed: {}", out.GetLastError());
+    return false;
+  }
+
   std::ofstream fout(realPath);
+  if (!fout.is_open()) {
+    CORE_ERROR("Could not open '{}' for writing", realPath);
+    return false;
+  }
   fout << out.c_str();
 
   return true;
@@ -216,7 +224,13 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
   if (!stream.is_open())
     return false;
 
-  YAML::Node data = YAML::Load(stream);
+  YAML::Node data;
+  try {
+    data = YAML::Load(stream);
+  } catch (const YAML::Exception &e) {
+    CORE_ERROR("Failed to parse scene '{}': {}", realPath, e.what());
+    return false;
+  }
   if (!data["Scene"])
     return false;
 

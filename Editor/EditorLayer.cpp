@@ -12,7 +12,7 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     this->m_RenderingLayer = renderingLayer;
 
     m_EditorContext.Scene = &renderingLayer->GetScene();
-    m_EditorContext.Viewport = &m_ViewportPanel; 
+    m_EditorContext.Viewport = &m_ViewportPanel;
 
     m_AssetManager = std::make_unique<SIMPEngine::AssetManager>();
     m_AssetManager->Init("assets", "assets/registry.asset");
@@ -32,8 +32,12 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
 
 void EditorLayer::OnAttach()
 {
-    ImGuiStyle &style = ImGui::GetStyle();
-    style.Colors[ImGuiCol_Tab] = ImVec4(0.2f, 0.2f, 0.25f, 1.0f);
+    // NOTE: no per-widget style overrides here anymore — ImGuiLayer::
+    // ApplyModernTheme() owns every color/rounding/spacing value now.
+    // Overriding a single color locally (as this used to do for
+    // ImGuiCol_Tab) desyncs it from the rest of the theme the moment
+    // the theme changes, and specifically broke the "active tab fuses
+    // with the panel below it" seamless look.
 
     m_ViewportPanel.OnAttach();
 
@@ -72,6 +76,10 @@ void EditorLayer::OnRender()
     window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
+    // Zero padding/rounding/border on the dockspace HOST window specifically
+    // (separate from the general theme) — this is what lets the first row
+    // of docked panels sit flush against the menu bar and screen edges
+    // instead of leaving a themed-but-visible gap around the whole layout.
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -88,8 +96,13 @@ void EditorLayer::OnRender()
         {
             if (ImGui::MenuItem("Save Scene"))
                 serializer.Serialize("assets/scene.simpscene");
-            if (ImGui::MenuItem("Load Scene"))
+            if (ImGui::MenuItem("Load Scene") &&
+                SIMPEngine::FileSystem::Exists("assets/scene.simpscene"))
+            {
+                m_EditorContext.SelectedEntity = {};
+                m_EditorContext.Scene->Clear();
                 serializer.Deserialize("assets/scene.simpscene");
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("View"))

@@ -1,3 +1,73 @@
-vendor/
+# Build directories
+
 build/
-docs/
+build-*/
+cmake-build-*/
+out/
+bin/
+lib/
+
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+Makefile
+compile_commands.json
+
+
+# Vendor build output
+
+
+vendor/*/build/
+vendor/*/cmake-build-*/
+vendor/*/CMakeFiles/
+
+
+# CLion / JetBrains
+
+
+.idea/
+*.iml
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/shelf/
+
+
+# Compiler / tooling
+
+
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
+*.pdb
+*.ilk
+
+
+# OS junk
+
+
+.DS_Store
+Thumbs.db
+
+
+# Temporary/editor files
+
+
+*.swp
+*.swo
+*~
+*.tmp
+*.bak
+*.bak
+
+
+# Logs
+
+
+*.log
