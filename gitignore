@@ -1,0 +1,69 @@
+# Personal notes
+ROADMAP.md
+
+# Build output
+build/
+out/
+cmake-build-*/
+bin/
+lib/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+_deps/
+install_manifest.txt
+compile_commands.json
+
+# Compiled objects and binaries
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.pch
+*.gch
+
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+.cache/
+.clangd/
+*.user
+*.suo
+*.sln.docstates
+*.swp
+*.swo
+*~
+CMakeUserPresets.json
+
+# Runtime-generated files
+imgui.ini
+*.log
+
+# Profiling / debug output
+*.tracy
+*.etl
+*.dmp
+*.stackdump
+core
+vgcore.*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.bak
+*.orig
+*.rej
