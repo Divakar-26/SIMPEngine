@@ -57,7 +57,7 @@ namespace SIMPEngine
         ss << "# handle|type|virtualPath|realPath|imported\n";
         for (auto &[h, md] : m_Map)
         {
-            ss << h << '|' << (unsigned)md.type << '|' << md.virtualPath << '|' << md.sourcePath << '|' << (md.imported ? 1 : 0) << '\n';
+            ss << h << '|' << static_cast<unsigned>(md.type) << '|' << md.virtualPath << '|' << md.sourcePath << '|' << (md.imported ? 1 : 0) << '\n';
         }
         return FileSystem::WriteText(path, ss.str());
     }

@@ -24,7 +24,7 @@ namespace
     std::string NextName(SIMPEngine::Scene &scene, const std::string &name)
     {
         std::string base = name;
-        while (!base.empty() && std::isdigit((unsigned char)base.back()))
+        while (!base.empty() && std::isdigit(static_cast<unsigned char>(base.back())))
             base.pop_back();
         if (base.empty())
             base = name;
@@ -86,8 +86,8 @@ SIMPEngine::Entity EditorCommands::CreateSprite(EditorContext &ctx, const std::s
 
     auto &sprite = entity.AddComponent<SpriteComponent>();
     sprite.texture = texture;
-    sprite.width = (float)texture->GetWidth();
-    sprite.height = (float)texture->GetHeight();
+    sprite.width = static_cast<float>(texture->GetWidth());
+    sprite.height = static_cast<float>(texture->GetHeight());
     return entity;
 }
 

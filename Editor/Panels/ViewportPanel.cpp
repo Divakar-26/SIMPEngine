@@ -20,7 +20,7 @@ namespace
 
     SDL_Color ToSDL(const ImVec4 &c, float alpha = 1.0f)
     {
-        return {(Uint8)(c.x * 255.0f), (Uint8)(c.y * 255.0f), (Uint8)(c.z * 255.0f), (Uint8)(c.w * alpha * 255.0f)};
+        return {static_cast<Uint8>(c.x * 255.0f), static_cast<Uint8>(c.y * 255.0f), static_cast<Uint8>(c.z * 255.0f), static_cast<Uint8>(c.w * alpha * 255.0f)};
     }
 
     float DistanceToSegment(const ImVec2 &p, const ImVec2 &a, const ImVec2 &b)
@@ -102,7 +102,7 @@ void ViewportPanel::OnImGuiRender()
     RenderScene();
 
     ImDrawList *dl = ImGui::GetWindowDrawList();
-    dl->AddImage((ImTextureID)(intptr_t)m_Framebuffer->GetColorAttachment(), m_CanvasPos, m_CanvasPos + m_CanvasSize, ImVec2(0, 1), ImVec2(1, 0));
+    dl->AddImage(EditorUI::TextureId(m_Framebuffer->GetColorAttachment()), m_CanvasPos, m_CanvasPos + m_CanvasSize, ImVec2(0, 1), ImVec2(1, 0));
 
     ImGui::InvisibleButton("##canvas", m_CanvasSize, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight | ImGuiButtonFlags_MouseButtonMiddle);
     m_CanvasHovered = ImGui::IsItemHovered();
@@ -140,7 +140,7 @@ void ViewportPanel::DrawToolbar()
     };
     for (const auto &t : tools)
     {
-        ImGui::PushID((int)t.Tool);
+        ImGui::PushID(static_cast<int>(t.Tool));
         if (IconButton("##tool", t.Icon, t.Tip, m_Context->Tool == t.Tool))
             m_Context->Tool = t.Tool;
         ImGui::PopID();
@@ -186,18 +186,18 @@ void ViewportPanel::DrawToolbar()
 
 void ViewportPanel::RenderScene()
 {
-    int w = (int)m_CanvasSize.x;
-    int h = (int)m_CanvasSize.y;
+    int w = static_cast<int>(m_CanvasSize.x);
+    int h = static_cast<int>(m_CanvasSize.y);
 
     if (!m_Framebuffer)
         m_Framebuffer = std::make_unique<SIMPEngine::Framebuffer>(w, h);
     else
         m_Framebuffer->Resize(w, h);
 
-    m_Camera.SetViewport((float)w, (float)h);
+    m_Camera.SetViewport(static_cast<float>(w), static_cast<float>(h));
     if (!m_CameraInitialized)
     {
-        m_Camera.SetZoom((float)h / 1300.0f);
+        m_Camera.SetZoom(static_cast<float>(h) / 1300.0f);
         m_CameraInitialized = true;
     }
 
@@ -266,7 +266,7 @@ void ViewportPanel::DrawCameraFrame()
     SIMPEngine::Scene &scene = *m_Context->Scene;
     auto &camera = scene.GetActiveCamera();
     auto [vw, vh] = camera.GetViewportSize();
-    float aspect = (vw > 0 && vh > 0) ? (float)vw / (float)vh : 16.0f / 9.0f;
+    float aspect = (vw > 0 && vh > 0) ? static_cast<float>(vw) / static_cast<float>(vh) : 16.0f / 9.0f;
     float hh = 540.0f * camera.GetZoom();
     float hw = hh * aspect;
     glm::vec2 p = camera.GetPosition();
@@ -546,7 +546,7 @@ void ViewportPanel::HandleDrop()
 
     if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("TEXTURE_ASSET"))
     {
-        std::string vpath((const char *)payload->Data);
+        std::string vpath(static_cast<const char *>(payload->Data));
         glm::vec2 world = GetMouseWorldPosition();
         if (EditorUI::Settings().Snap)
             world = {SnapTo(world.x, EditorUI::Settings().SnapMove), SnapTo(world.y, EditorUI::Settings().SnapMove)};

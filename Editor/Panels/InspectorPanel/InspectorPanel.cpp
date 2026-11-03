@@ -101,7 +101,7 @@ void InspectorPanel::DrawHeader(SIMPEngine::Entity &entity)
     }
 
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
-    ImGui::Text("%s  ·  id %u", v.Type, (unsigned)entt::to_entity(entity.GetHandle()));
+    ImGui::Text("%s  ·  id %u", v.Type, static_cast<unsigned>(entt::to_entity(entity.GetHandle())));
     ImGui::PopStyleColor();
     ImGui::Dummy(ImVec2(0, 2));
 }
@@ -151,7 +151,7 @@ void InspectorPanel::DrawCoreComponents(SIMPEngine::Entity &entity)
         {
             if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
             {
-                std::string path((const char *)payload->Data);
+                std::string path(static_cast<const char *>(payload->Data));
                 std::string ext = EditorUI::LowerExtension(path);
                 if (ext == ".ttf" || ext == ".otf")
                 {

@@ -23,11 +23,16 @@ namespace EditorUI
         const ImVec4 &Color() const { return *Tint; }
     };
 
+    inline std::filesystem::path Utf8Path(const std::string &utf8)
+    {
+        return std::filesystem::path(std::u8string(reinterpret_cast<const char8_t *>(utf8.data()), utf8.size()));
+    }
+
     inline std::string LowerExtension(const std::filesystem::path &path)
     {
         std::string ext = path.extension().string();
         std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c)
-                       { return (char)std::tolower(c); });
+                       { return static_cast<char>(std::tolower(c)); });
         return ext;
     }
 

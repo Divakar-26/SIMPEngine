@@ -28,7 +28,7 @@ namespace SIMPEngine
             Layer *ptr = layer.get();
 
             m_Layers.insert(
-                m_Layers.begin() + m_LayerInsertIndex,
+                m_Layers.begin() + static_cast<std::ptrdiff_t>(m_LayerInsertIndex),
                 std::move(layer)
             );
 

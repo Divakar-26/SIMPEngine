@@ -37,7 +37,7 @@ SceneSnapshot EditorHistory::Capture() const
         if (auto *sc = registry.try_get<ScriptComponent>(entities[i]); sc && sc->InstantiateScript)
             snapshot.Scripts.emplace_back(i, sc->InstantiateScript);
         if (m_Context->IsSelected(entities[i]))
-            snapshot.SelectedIndex = (int)i;
+            snapshot.SelectedIndex = static_cast<int>(i);
     }
     return snapshot;
 }
@@ -64,7 +64,7 @@ void EditorHistory::Restore(const SceneSnapshot &snapshot, int selectIndex)
     }
 
     int index = selectIndex == -2 ? snapshot.SelectedIndex : selectIndex;
-    if (index >= 0 && (size_t)index < created.size())
+    if (index >= 0 && static_cast<size_t>(index) < created.size())
         m_Context->SelectedEntity = SIMPEngine::Entity(created[index], &scene);
 }
 

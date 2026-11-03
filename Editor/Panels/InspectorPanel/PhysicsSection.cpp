@@ -21,7 +21,7 @@ static void CreateBody(EditorContext &ctx, SIMPEngine::Entity &entity, BodyPrese
     if (auto size = SIMPEngine::GetEntityLocalSize(entity))
         half = glm::max(*size * 0.5f * glm::abs(entity.GetComponent<TransformComponent>().scale), glm::vec2(0.5f));
 
-    phys.body->entityID = (uint32_t)entity.GetHandle();
+    phys.body->entityID = static_cast<uint32_t>(entity.GetHandle());
     phys.body->restitution = 0.3f;
     phys.body->staticFriction = 0.5f;
     phys.body->dynamicFriction = 0.3f;

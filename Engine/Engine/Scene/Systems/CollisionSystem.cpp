@@ -2,6 +2,7 @@
 
 void SIMPEngine::CollisionSystem::Update(entt::registry &r, float dt)
 {
+    (void)dt;
     auto collidable = r.view<TransformComponent, CollisionComponent>();
 
     for (auto entityA : collidable)

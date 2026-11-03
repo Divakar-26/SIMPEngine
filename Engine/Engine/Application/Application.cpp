@@ -57,14 +57,14 @@ namespace SIMPEngine
         Input::ResetAllKeys();
 
         uint64_t lastFrameTime = SDL_GetPerformanceCounter();
-        const double freq = (double)SDL_GetPerformanceFrequency();
+        const double freq = static_cast<double>(SDL_GetPerformanceFrequency());
 
         while (m_Running)
         {
             PROFILE_FRAME_BEGIN();
 
             uint64_t currentFrameTime = SDL_GetPerformanceCounter();
-            float deltaTime = (float)((currentFrameTime - lastFrameTime) / (float)freq);
+            float deltaTime = static_cast<float>(static_cast<double>(currentFrameTime - lastFrameTime) / freq);
             lastFrameTime = currentFrameTime;
 
             Input::BeginFrame();
@@ -153,13 +153,13 @@ namespace SIMPEngine
         case SDL_EVENT_KEY_DOWN:
         {
             bool repeat = (sdlEvent.key.repeat != 0);
-            KeyPressedEvent e(sdlEvent.key.key, repeat);
+            KeyPressedEvent e(static_cast<int>(sdlEvent.key.key), repeat);
             OnEvent(e);
             break;
         }
         case SDL_EVENT_KEY_UP:
         {
-            KeyReleasedEvent e(sdlEvent.key.key);
+            KeyReleasedEvent e(static_cast<int>(sdlEvent.key.key));
             OnEvent(e);
             break;
         }
@@ -204,7 +204,7 @@ namespace SIMPEngine
 
         EventDispatcher dispatcher(e);
 
-        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &ev)
+        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &)
                                               {
         m_Running = false;
         return true; });
@@ -237,7 +237,7 @@ namespace SIMPEngine
 
         dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
                                              {
-        Input::OnMouseMoved(ev.GetX(), ev.GetY());
+        Input::OnMouseMoved(static_cast<int>(ev.GetX()), static_cast<int>(ev.GetY()));
         return false; });
 
         dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)

@@ -56,14 +56,14 @@ namespace SIMPEngine
     glm::vec2 Input::GetMouseViewportPosition()
     {
         if (!s_HasViewport)
-            return {(float)s_MouseX, (float)s_MouseY};
-        return {(float)s_MouseX - s_Viewport.x, (float)s_MouseY - s_Viewport.y};
+            return {static_cast<float>(s_MouseX), static_cast<float>(s_MouseY)};
+        return {static_cast<float>(s_MouseX) - s_Viewport.x, static_cast<float>(s_MouseY) - s_Viewport.y};
     }
 
     glm::vec2 Input::GetViewportSize()
     {
         if (!s_HasViewport)
-            return {(float)Renderer::m_WindowWidth, (float)Renderer::m_WindowHeight};
+            return {static_cast<float>(Renderer::m_WindowWidth), static_cast<float>(Renderer::m_WindowHeight)};
         return {s_Viewport.z, s_Viewport.w};
     }
 
@@ -120,7 +120,7 @@ namespace SIMPEngine
         s_KeysJustPressed.clear();
         s_MouseButtonsPressed.clear();
         s_MouseButtonsJustPressed.clear();
-        s_MouseWheel = 0;
+        s_MouseWheel = 0.0f;
     }
 
     float Input::GetMouseWheel()

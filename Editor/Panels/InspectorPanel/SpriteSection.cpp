@@ -12,7 +12,7 @@ namespace
         {
             if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("TEXTURE_ASSET"))
             {
-                if (auto texture = EditorCommands::LoadTexture((const char *)payload->Data))
+                if (auto texture = EditorCommands::LoadTexture(static_cast<const char *>(payload->Data)))
                 {
                     EditorCommands::RecordEdit(ctx);
                     sc.texture = texture;
@@ -44,8 +44,8 @@ namespace
         if (sc.texture && sc.texture->GetID())
         {
             DrawCheckerboard(dl, pos, max, 8.0f);
-            DrawImageFit(dl, (ImTextureID)(intptr_t)sc.texture->GetID(),
-                         ImVec2((float)sc.texture->GetWidth(), (float)sc.texture->GetHeight()),
+            DrawImageFit(dl, EditorUI::TextureId(sc.texture->GetID()),
+                         ImVec2(static_cast<float>(sc.texture->GetWidth()), static_cast<float>(sc.texture->GetHeight())),
                          ImVec2(pos.x + 4, pos.y + 4), ImVec2(max.x - 4, max.y - 4));
         }
         else
@@ -105,8 +105,8 @@ void InspectorPanel::DrawSpriteSection(SIMPEngine::Entity &m_SelectedEntity)
             if (Button("Use texture size", ButtonKind::Ghost, ImVec2(-FLT_MIN, 0)))
             {
                 EditorCommands::RecordEdit(ctx);
-                sc.width = (float)sc.texture->GetWidth();
-                sc.height = (float)sc.texture->GetHeight();
+                sc.width = static_cast<float>(sc.texture->GetWidth());
+                sc.height = static_cast<float>(sc.texture->GetHeight());
             }
         }
 

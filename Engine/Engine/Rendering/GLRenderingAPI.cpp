@@ -99,22 +99,22 @@ namespace SIMPEngine
         glBindVertexArray(m_VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER, MAX_VERTICES * sizeof(Vertex2D), nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(MAX_VERTICES * sizeof(Vertex2D)), nullptr, GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(indices.size() * sizeof(unsigned int)), indices.data(), GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Position));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), reinterpret_cast<const void *>(offsetof(Vertex2D, Position)));
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, UV));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), reinterpret_cast<const void *>(offsetof(Vertex2D, UV)));
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Color));
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), reinterpret_cast<const void *>(offsetof(Vertex2D, Color)));
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Local));
+        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), reinterpret_cast<const void *>(offsetof(Vertex2D, Local)));
         glEnableVertexAttribArray(3);
-        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Shape));
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), reinterpret_cast<const void *>(offsetof(Vertex2D, Shape)));
         glEnableVertexAttribArray(4);
-        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Misc));
+        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), reinterpret_cast<const void *>(offsetof(Vertex2D, Misc)));
         glEnableVertexAttribArray(5);
 
         glBindVertexArray(0);
@@ -186,7 +186,7 @@ namespace SIMPEngine
         float c = std::cos(p.Rotation);
         float s = std::sin(p.Rotation);
         glm::vec4 shape(p.HalfSize.x, p.HalfSize.y, p.CornerRadius, p.Stroke);
-        glm::vec3 misc(slot, (float)p.Mode, p.Softness);
+        glm::vec3 misc(slot, static_cast<float>(p.Mode), p.Softness);
 
         for (int i = 0; i < 4; i++)
         {
@@ -227,15 +227,15 @@ namespace SIMPEngine
 
         for (int i = 0; i < m_UsedTextureSlots; i++)
         {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, m_TextureSlots[i]);
+            glActiveTexture(GL_TEXTURE0 + static_cast<GLenum>(i));
+            glBindTexture(GL_TEXTURE_2D, m_TextureSlots[static_cast<size_t>(i)]);
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, m_QuadCount * 4 * sizeof(Vertex2D), m_Vertices.data());
+        glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(m_QuadCount * 4 * sizeof(Vertex2D)), m_Vertices.data());
 
         glBindVertexArray(m_VAO);
-        glDrawElements(GL_TRIANGLES, (GLsizei)(m_QuadCount * 6), GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_QuadCount * 6), GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
 
         m_Stats.drawCalls++;
@@ -278,7 +278,7 @@ namespace SIMPEngine
                 int found = -1;
                 for (int i = 1; i < m_UsedTextureSlots; i++)
                 {
-                    if (m_TextureSlots[i] == p.Texture)
+                    if (m_TextureSlots[static_cast<size_t>(i)] == p.Texture)
                     {
                         found = i;
                         break;
@@ -290,10 +290,10 @@ namespace SIMPEngine
                     if (m_UsedTextureSlots >= MAX_TEXTURE_SLOTS)
                         DrawBatch();
                     found = m_UsedTextureSlots++;
-                    m_TextureSlots[found] = p.Texture;
+                    m_TextureSlots[static_cast<size_t>(found)] = p.Texture;
                     m_Stats.textureSwitches++;
                 }
-                slot = (float)found;
+                slot = static_cast<float>(found);
             }
 
             WriteQuad(p, slot);
@@ -359,8 +359,8 @@ namespace SIMPEngine
     glm::vec2 GLRenderingAPI::GetViewportSize()
     {
         if (m_Target)
-            return {(float)m_Target->GetWidth(), (float)m_Target->GetHeight()};
-        return {(float)m_BackbufferWidth, (float)m_BackbufferHeight};
+            return {static_cast<float>(m_Target->GetWidth()), static_cast<float>(m_Target->GetHeight())};
+        return {static_cast<float>(m_BackbufferWidth), static_cast<float>(m_BackbufferHeight)};
     }
 
     void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)

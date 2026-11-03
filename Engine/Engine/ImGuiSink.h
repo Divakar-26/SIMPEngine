@@ -53,7 +53,7 @@ namespace SIMPEngine
 
             m_Entries.push_back(std::move(entry));
             if (m_Entries.size() > MAX_LOGS)
-                m_Entries.erase(m_Entries.begin(), m_Entries.begin() + (m_Entries.size() - MAX_LOGS / 2));
+                m_Entries.erase(m_Entries.begin(), m_Entries.begin() + static_cast<std::ptrdiff_t>(m_Entries.size() - MAX_LOGS / 2));
         }
 
         void flush_() override {}

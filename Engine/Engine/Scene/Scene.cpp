@@ -87,7 +87,7 @@ namespace SIMPEngine
             auto &pc = m_Registry.get<PhysicsComponent>(entity);
             if (!pc.body)
                 continue;
-            pc.body->entityID = (uint32_t)entity;
+            pc.body->entityID = static_cast<uint32_t>(entity);
             physicsSystem.GetWorld().addBody(pc.body.get());
             physicsSystem.bodies.push_back(pc.body.get());
         }

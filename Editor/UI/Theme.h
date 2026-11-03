@@ -6,7 +6,7 @@ namespace EditorUI
 {
     constexpr ImVec4 Hex(unsigned int rgb, float a = 1.0f)
     {
-        return ImVec4(((rgb >> 16) & 0xFF) / 255.0f, ((rgb >> 8) & 0xFF) / 255.0f, (rgb & 0xFF) / 255.0f, a);
+        return ImVec4(static_cast<float>((rgb >> 16) & 0xFFu) / 255.0f, static_cast<float>((rgb >> 8) & 0xFFu) / 255.0f, static_cast<float>(rgb & 0xFFu) / 255.0f, a);
     }
 
     namespace Colors

@@ -48,6 +48,7 @@ namespace SIMPEngine
 
     void Camera2D::OnEvent(Event &e)
     {
+        (void)e;
     }
 
     void Camera2D::Update(float deltaTime)
@@ -76,9 +77,10 @@ namespace SIMPEngine
         if (m_AllowZoom && wheelDelta != 0.0f)
             SetZoom(m_ManualZoom + 0.1f * wheelDelta);
 
+        const std::pair<int, int> mouse = Input::GetMousePosition();
         glm::vec2 mousePixel(
-            Input::GetMousePosition().first,
-            Input::GetMousePosition().second);
+            static_cast<float>(mouse.first),
+            static_cast<float>(mouse.second));
 
         if (Input::IsMouseButtonPressed(SIMPK_MOUSE_MIDDLE))
         {
@@ -96,7 +98,7 @@ namespace SIMPEngine
 
                 float scale =
                     (540.0f * m_ManualZoom) /
-                    (float)m_ViewportHeight;
+                    static_cast<float>(m_ViewportHeight);
 
                 glm::vec2 worldDelta =
                     pixelDelta * scale;
@@ -142,8 +144,8 @@ namespace SIMPEngine
     glm::mat4 Camera2D::GetProjectionMatrix() const
     {
         float aspect =
-            (float)m_ViewportWidth /
-            (float)m_ViewportHeight;
+            static_cast<float>(m_ViewportWidth) /
+            static_cast<float>(m_ViewportHeight);
 
         float size = 540.0f * m_ManualZoom;
 
@@ -157,8 +159,8 @@ namespace SIMPEngine
 
     void Camera2D::SetViewportSize(float width, float height)
     {
-        m_ViewportWidth = width;
-        m_ViewportHeight = height;
+        m_ViewportWidth = static_cast<int>(width);
+        m_ViewportHeight = static_cast<int>(height);
 
         float zoomX = width / m_TargetWidth;
         float zoomY = height / m_TargetHeight;
@@ -180,10 +182,10 @@ namespace SIMPEngine
             clip /= clip.w;
 
         float px =
-            (clip.x + 1.0f) * 0.5f * m_ViewportWidth;
+            (clip.x + 1.0f) * 0.5f * static_cast<float>(m_ViewportWidth);
 
         float py =
-            (1.0f - clip.y) * 0.5f * m_ViewportHeight;
+            (1.0f - clip.y) * 0.5f * static_cast<float>(m_ViewportHeight);
 
         return {px, py};
     }
@@ -195,10 +197,10 @@ namespace SIMPEngine
             return {0, 0};
 
         float ndcX =
-            (2.0f * pixel.x) / m_ViewportWidth - 1.0f;
+            (2.0f * pixel.x) / static_cast<float>(m_ViewportWidth) - 1.0f;
 
         float ndcY =
-            1.0f - (2.0f * pixel.y) / m_ViewportHeight;
+            1.0f - (2.0f * pixel.y) / static_cast<float>(m_ViewportHeight);
 
         glm::vec4 clip(ndcX, ndcY, 0, 1);
 
@@ -213,8 +215,10 @@ namespace SIMPEngine
 
     void Camera2D::GetVisibleWorldBounds(float &left, float &right, float &top, float &bottom) const
     {
-        glm::vec2 bottomLeft = ScreenToWorld(glm::vec2(0, m_ViewportHeight));
-        glm::vec2 topRight = ScreenToWorld(glm::vec2(m_ViewportWidth, 0));
+        const float viewportW = static_cast<float>(m_ViewportWidth);
+        const float viewportH = static_cast<float>(m_ViewportHeight);
+        glm::vec2 bottomLeft = ScreenToWorld(glm::vec2(0.0f, viewportH));
+        glm::vec2 topRight = ScreenToWorld(glm::vec2(viewportW, 0.0f));
 
         left = bottomLeft.x;
         right = topRight.x;

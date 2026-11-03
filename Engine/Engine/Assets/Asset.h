@@ -11,7 +11,7 @@ namespace SIMPEngine
         uint64_t h = 1469598103934665603ull;
         for (unsigned char c : p)
         {
-            h ^= c;
+            h ^= static_cast<uint64_t>(c);
             h *= 1099511628211ull;
         }
         return h ? h : 1;

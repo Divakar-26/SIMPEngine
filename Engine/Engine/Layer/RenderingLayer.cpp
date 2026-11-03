@@ -7,6 +7,9 @@
 #include <Engine/Core/EngineDimensions.h>
 #include <Engine/PCH.h>
 
+#include <cstdlib>
+#include <ctime>
+
 #include "Events/ApplicationEvent.h"
 #include "Events/EventDispatcher.h"
 #include "Events/MouseEvent.h"
@@ -19,7 +22,7 @@ namespace SIMPEngine
 
     void RenderingLayer::OnAttach()
     {
-        srand(time(NULL));
+        std::srand(static_cast<unsigned int>(std::time(nullptr)));
     }
 
     void RenderingLayer::OnDetach()
@@ -66,7 +69,7 @@ namespace SIMPEngine
         auto &camera = scene->GetActiveCamera();
         auto [cw, ch] = camera.GetViewportSize();
         if (cw != Renderer::m_WindowWidth || ch != Renderer::m_WindowHeight)
-            camera.SetViewportSize((float)Renderer::m_WindowWidth, (float)Renderer::m_WindowHeight);
+            camera.SetViewportSize(static_cast<float>(Renderer::m_WindowWidth), static_cast<float>(Renderer::m_WindowHeight));
 
         const glm::vec4 &bg = scene->GetBackgroundColor();
         Renderer::SetClearColor(bg.r, bg.g, bg.b, bg.a);
@@ -79,7 +82,7 @@ namespace SIMPEngine
     void RenderingLayer::OnEvent(Event &e)
     {
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent &ev)
+        dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &)
                                                      { return false; });
 
         dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent &ev)
@@ -91,7 +94,7 @@ namespace SIMPEngine
         EngineDimensions::SetDimensions(width, height);
 
         auto &camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
-        camera.SetViewportSize(width, height);
+        camera.SetViewportSize(static_cast<float>(width), static_cast<float>(height));
 
         CORE_INFO("Viewport resized: {}x{}", width, height);
         return false; });

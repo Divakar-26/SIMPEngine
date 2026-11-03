@@ -57,10 +57,10 @@ namespace SIMPEngine
         int frameY = m_CurrentFrame / framesPerRow;
 
         SDL_FRect src;
-        src.x = float(frameX * m_FrameWidth);
-        src.y = float(frameY * m_FrameHeight);
-        src.w = float(m_FrameWidth);
-        src.h = float(m_FrameHeight);
+        src.x = static_cast<float>(frameX * m_FrameWidth);
+        src.y = static_cast<float>(frameY * m_FrameHeight);
+        src.w = static_cast<float>(m_FrameWidth);
+        src.h = static_cast<float>(m_FrameHeight);
 
         Sprite tempSprite(m_Texture, src);
         tempSprite.Draw(x, y, width, height, tint, rotation, zIndex);

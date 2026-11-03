@@ -50,7 +50,7 @@ namespace SIMPEngine
         {
             auto &ac = entity.GetComponent<AnimatedSpriteComponent>();
             if (ac.animation && ac.animation->GetTexture())
-                return glm::vec2((float)ac.animation->GetFrameWidth(), (float)ac.animation->GetFrameHeight());
+                return glm::vec2(static_cast<float>(ac.animation->GetFrameWidth()), static_cast<float>(ac.animation->GetFrameHeight()));
         }
         if (entity.HasComponent<TextComponent>())
         {
@@ -99,7 +99,7 @@ namespace SIMPEngine
             {-half.x, half.y}, {half.x, half.y}, {half.x, -half.y}, {-half.x, -half.y}};
 
         std::array<glm::vec2, 4> corners;
-        for (int i = 0; i < 4; ++i)
+        for (size_t i = 0; i < 4; ++i)
         {
             glm::vec2 p = local[i] + offset;
             corners[i] = w.Position + glm::vec2(p.x * c - p.y * s, p.x * s + p.y * c);
@@ -131,7 +131,7 @@ namespace SIMPEngine
 
         const auto &c = *corners;
         bool sign = false;
-        for (int i = 0; i < 4; ++i)
+        for (size_t i = 0; i < 4; ++i)
         {
             glm::vec2 a = c[i], b = c[(i + 1) % 4];
             float cross = (b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x);

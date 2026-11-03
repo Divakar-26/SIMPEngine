@@ -34,11 +34,11 @@ namespace
 
         int framesPerRow = std::max(1, texW / fw);
 
-        float cellW = stripHeight * (float)fw / (float)fh;
+        float cellW = stripHeight * static_cast<float>(fw) / static_cast<float>(fh);
         float gap = 2.0f;
         float panelW = ImGui::GetContentRegionAvail().x;
 
-        int visible = std::max(1, (int)((panelW - 24.0f) / (cellW + gap)));
+        int visible = std::max(1, static_cast<int>((panelW - 24.0f) / (cellW + gap)));
         visible = std::min(visible, fc);
         int current = anim->GetCurrentFrame();
 
@@ -50,16 +50,16 @@ namespace
             int fx = i % framesPerRow;
             int fy = i / framesPerRow;
 
-            float u0 = fx * fw / (float)texW;
-            float u1 = (fx + 1) * fw / (float)texW;
-            float v0 = 1.0f - (fy + 1) * fh / (float)texH;
-            float v1 = 1.0f - fy * fh / (float)texH;
+            float u0 = static_cast<float>(fx * fw) / static_cast<float>(texW);
+            float u1 = static_cast<float>((fx + 1) * fw) / static_cast<float>(texW);
+            float v0 = 1.0f - static_cast<float>((fy + 1) * fh) / static_cast<float>(texH);
+            float v1 = 1.0f - static_cast<float>(fy * fh) / static_cast<float>(texH);
 
-            ImVec2 cellMin(cursor.x + i * (cellW + gap), cursor.y);
+            ImVec2 cellMin(cursor.x + static_cast<float>(i) * (cellW + gap), cursor.y);
             ImVec2 cellMax(cellMin.x + cellW, cellMin.y + stripHeight);
 
             DrawCheckerboard(dl, cellMin, cellMax, 5.0f);
-            dl->AddImage((ImTextureID)(intptr_t)tex->GetID(), cellMin, cellMax, ImVec2(u0, v1), ImVec2(u1, v0));
+            dl->AddImage(EditorUI::TextureId(tex->GetID()), cellMin, cellMax, ImVec2(u0, v1), ImVec2(u1, v0));
             dl->AddRect(cellMin, cellMax, U32(i == current ? Colors::Accent : Colors::Border), 0.0f, 0, i == current ? 1.5f : 1.0f);
         }
 
@@ -68,7 +68,7 @@ namespace
             char more[16];
             std::snprintf(more, sizeof(more), "+%d", fc - visible);
             ImVec2 ts = ImGui::CalcTextSize(more);
-            dl->AddText(ImVec2(cursor.x + visible * (cellW + gap) + 4.0f, cursor.y + (stripHeight - ts.y) * 0.5f), U32(Colors::TextFaint), more);
+            dl->AddText(ImVec2(cursor.x + static_cast<float>(visible) * (cellW + gap) + 4.0f, cursor.y + (stripHeight - ts.y) * 0.5f), U32(Colors::TextFaint), more);
         }
 
         ImGui::Dummy(ImVec2(panelW, stripHeight));
@@ -148,7 +148,7 @@ void InspectorPanel::DrawAnimationSection(SIMPEngine::Entity &m_SelectedEntity)
             }
 
             char total[48];
-            std::snprintf(total, sizeof(total), "%.2f s  ·  %s", fc * dur, anim->isFinished() ? "finished" : (anim->IsLooping() ? "looping" : "playing"));
+            std::snprintf(total, sizeof(total), "%.2f s  ·  %s", static_cast<float>(fc) * dur, anim->isFinished() ? "finished" : (anim->IsLooping() ? "looping" : "playing"));
             PropertyValue("Length", total, &Colors::TextDim);
 
             PropertyLabel("Frames");

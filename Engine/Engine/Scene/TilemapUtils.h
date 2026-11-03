@@ -22,7 +22,7 @@ inline int mod(int a, int b)
 
 inline int64_t ChunkKey(int cx, int cy)
 {
-    return ((int64_t)cx << 32) | (uint32_t)cy;
+    return (static_cast<int64_t>(cx) << 32) | static_cast<int64_t>(static_cast<uint32_t>(cy));
 }
 
 inline void SetTile(TilemapComponent &tm, int tileX, int tileY, int id)
@@ -37,7 +37,7 @@ inline void SetTile(TilemapComponent &tm, int tileX, int tileY, int id)
 
     TileChunk &chunk = tm.chunks[key];
 
-    chunk.tiles[localY * CHUNK_SIZE + localX].id = id;
+    chunk.tiles[static_cast<size_t>(localY * CHUNK_SIZE + localX)].id = id;
 }
 
 inline Tile* GetTile(TilemapComponent &tm, int tileX, int tileY)
@@ -54,6 +54,6 @@ inline Tile* GetTile(TilemapComponent &tm, int tileX, int tileY)
     if (it == tm.chunks.end())
         return nullptr;
 
-    return &it->second.tiles[localY * CHUNK_SIZE + localX];
+    return &it->second.tiles[static_cast<size_t>(localY * CHUNK_SIZE + localX)];
 }
 }

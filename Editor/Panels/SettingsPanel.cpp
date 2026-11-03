@@ -26,7 +26,7 @@ void SettingsPanel::OnImGuiRender()
     if (BeginSection("appearance", "Appearance"))
     {
         static const char *themes[] = {"Graphite", "Godot", "Light"};
-        int theme = (int)s.Theme;
+        int theme = static_cast<int>(s.Theme);
         if (PropertySegmented("Theme", &theme, themes, 3))
         {
             s.Theme = (ThemeId)theme;
@@ -34,7 +34,7 @@ void SettingsPanel::OnImGuiRender()
         }
 
         static const char *fonts[] = {"Inter", "JetBrains Mono"};
-        int font = (int)s.Font;
+        int font = static_cast<int>(s.Font);
         if (PropertySegmented("Interface font", &font, fonts, 2))
         {
             s.Font = (UIFont)font;

@@ -65,7 +65,7 @@ void ConsolePanel::OnImGuiRender()
 
     sink->ForEach([&](const std::vector<SIMPEngine::LogEntry> &entries)
                   {
-        for (int index = 0; index < (int)entries.size(); ++index)
+        for (int index = 0; index < static_cast<int>(entries.size()); ++index)
         {
             const auto &e = entries[index];
             int bucket = 1;
@@ -132,12 +132,12 @@ void ConsolePanel::OnImGuiRender()
             float loggerW = ImGui::CalcTextSize("ENGINE").x;
 
             ImGuiListClipper clipper;
-            clipper.Begin((int)rows.size(), rowH);
+            clipper.Begin(static_cast<int>(rows.size()), rowH);
             while (clipper.Step())
             {
                 for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
                 {
-                    if (rows[i] >= (int)entries.size())
+                    if (rows[i] >= static_cast<int>(entries.size()))
                         continue;
                     const SIMPEngine::LogEntry &e = entries[rows[i]];
                     const ImVec4 &color = LevelColor(e.Level);

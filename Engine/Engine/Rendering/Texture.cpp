@@ -19,7 +19,7 @@ namespace SIMPEngine
     {
         Destroy();
 
-        m_Path = (std::string)path;
+        m_Path = path;
 
         stbi_set_flip_vertically_on_load(true);
         int channel;
@@ -47,7 +47,7 @@ namespace SIMPEngine
         }
 
         glBindTexture(GL_TEXTURE_2D, m_TextureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(format), m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, data);
 
         GLenum error = glGetError();
         if (error != GL_NO_ERROR)

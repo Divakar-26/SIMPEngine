@@ -17,7 +17,7 @@ namespace SIMPEngine
 
         std::string ToString() const override
         {
-            return std::string(GetName()) + ": " + std::to_string((int)m_MouseX) + ", " + std::to_string((int)m_MouseY);
+            return std::string(GetName()) + ": " + std::to_string(static_cast<int>(m_MouseX)) + ", " + std::to_string(static_cast<int>(m_MouseY));
         }
 
     private:
@@ -39,7 +39,7 @@ namespace SIMPEngine
 
         std::string ToString() const override
         {
-            return std::string(GetName()) + ": " + std::to_string((int)m_XOffset) + ", " + std::to_string((int)m_YOffset);
+            return std::string(GetName()) + ": " + std::to_string(static_cast<int>(m_XOffset)) + ", " + std::to_string(static_cast<int>(m_YOffset));
         }
 
     private:

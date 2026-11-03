@@ -21,19 +21,19 @@ namespace SIMPEngine
         constexpr int AtlasHeight = 1024;
         constexpr int SdfPadding = 8;
         constexpr unsigned char OnEdge = 128;
-        constexpr float DistScale = 128.0f / SdfPadding;
+        constexpr float DistScale = 128.0f / static_cast<float>(SdfPadding);
     }
 
     unsigned int DecodeUtf8(const char *&p, const char *end)
     {
-        unsigned char c = (unsigned char)*p++;
+        unsigned char c = static_cast<unsigned char>(*p++);
         if (c < 0x80)
             return c;
 
         int extra = (c >= 0xF0) ? 3 : (c >= 0xE0) ? 2 : (c >= 0xC0) ? 1 : 0;
-        unsigned int cp = c & (0x3F >> extra);
+        unsigned int cp = static_cast<unsigned int>(c & (0x3F >> extra));
         for (int i = 0; i < extra && p < end; ++i)
-            cp = (cp << 6) | ((unsigned char)*p++ & 0x3F);
+            cp = (cp << 6) | static_cast<unsigned int>(static_cast<unsigned char>(*p++) & 0x3F);
         return cp;
     }
 
@@ -70,15 +70,15 @@ namespace SIMPEngine
         m_Scale = stbtt_ScaleForPixelHeight(info, m_BaseSize);
         int ascent = 0, descent = 0, lineGap = 0;
         stbtt_GetFontVMetrics(info, &ascent, &descent, &lineGap);
-        m_Ascent = ascent * m_Scale;
-        m_LineHeight = (ascent - descent + lineGap) * m_Scale;
+        m_Ascent = static_cast<float>(ascent) * m_Scale;
+        m_LineHeight = static_cast<float>(ascent - descent + lineGap) * m_Scale;
 
-        std::vector<unsigned char> atlas(AtlasWidth * AtlasHeight, 0);
+        std::vector<unsigned char> atlas(static_cast<size_t>(AtlasWidth) * static_cast<size_t>(AtlasHeight), 0);
         int penX = 1, penY = 1, rowH = 0;
 
         auto bake = [&](unsigned int cp)
         {
-            int glyphIndex = stbtt_FindGlyphIndex(info, (int)cp);
+            int glyphIndex = stbtt_FindGlyphIndex(info, static_cast<int>(cp));
             if (glyphIndex == 0 && cp != ' ')
                 return;
 
@@ -86,7 +86,7 @@ namespace SIMPEngine
             stbtt_GetGlyphHMetrics(info, glyphIndex, &advance, &lsb);
 
             Glyph g;
-            g.Advance = advance * m_Scale;
+            g.Advance = static_cast<float>(advance) * m_Scale;
 
             int w = 0, h = 0, xoff = 0, yoff = 0;
             unsigned char *sdf = stbtt_GetGlyphSDF(info, m_Scale, glyphIndex, SdfPadding, OnEdge, DistScale, &w, &h, &xoff, &yoff);
@@ -101,16 +101,16 @@ namespace SIMPEngine
                 if (penY + h + 1 < AtlasHeight)
                 {
                     for (int y = 0; y < h; ++y)
-                        std::memcpy(&atlas[(penY + y) * AtlasWidth + penX], &sdf[y * w], w);
+                        std::memcpy(&atlas[static_cast<size_t>((penY + y) * AtlasWidth + penX)], &sdf[y * w], static_cast<size_t>(w));
 
-                    g.U0 = (float)penX / AtlasWidth;
-                    g.V0 = (float)penY / AtlasHeight;
-                    g.U1 = (float)(penX + w) / AtlasWidth;
-                    g.V1 = (float)(penY + h) / AtlasHeight;
-                    g.Width = (float)w;
-                    g.Height = (float)h;
-                    g.OffsetX = (float)xoff;
-                    g.OffsetY = (float)yoff;
+                    g.U0 = static_cast<float>(penX) / static_cast<float>(AtlasWidth);
+                    g.V0 = static_cast<float>(penY) / static_cast<float>(AtlasHeight);
+                    g.U1 = static_cast<float>(penX + w) / static_cast<float>(AtlasWidth);
+                    g.V1 = static_cast<float>(penY + h) / static_cast<float>(AtlasHeight);
+                    g.Width = static_cast<float>(w);
+                    g.Height = static_cast<float>(h);
+                    g.OffsetX = static_cast<float>(xoff);
+                    g.OffsetY = static_cast<float>(yoff);
 
                     penX += w + 1;
                     rowH = std::max(rowH, h);
@@ -189,7 +189,7 @@ namespace SIMPEngine
         auto it = m_Glyphs.find(codepoint);
         if (it != m_Glyphs.end())
             return &it->second;
-        it = m_Glyphs.find('?');
+        it = m_Glyphs.find(static_cast<unsigned int>('?'));
         return it != m_Glyphs.end() ? &it->second : nullptr;
     }
 
@@ -197,7 +197,7 @@ namespace SIMPEngine
     {
         if (!m_Info)
             return 0.0f;
-        return stbtt_GetCodepointKernAdvance(static_cast<stbtt_fontinfo *>(m_Info), (int)left, (int)right) * m_Scale;
+        return static_cast<float>(stbtt_GetCodepointKernAdvance(static_cast<stbtt_fontinfo *>(m_Info), static_cast<int>(left), static_cast<int>(right))) * m_Scale;
     }
 
     float Font::MeasureLine(const char *begin, const char *end, float size) const
@@ -237,6 +237,6 @@ namespace SIMPEngine
                 start = p + 1;
             }
         }
-        return {maxW, lines * m_LineHeight * s};
+        return {maxW, static_cast<float>(lines) * m_LineHeight * s};
     }
 }

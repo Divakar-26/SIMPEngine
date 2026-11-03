@@ -119,10 +119,10 @@ namespace SIMPEngine
         NSVGrasterizer *rast = nsvgCreateRasterizer();
 
         std::vector<unsigned char> pixels(
-            width * height * 4);
+            static_cast<size_t>(width) * static_cast<size_t>(height) * 4);
 
-        float scaleX = width / m_Image->width;
-        float scaleY = height / m_Image->height;
+        float scaleX = static_cast<float>(width) / m_Image->width;
+        float scaleY = static_cast<float>(height) / m_Image->height;
 
         float scale = std::min(scaleX, scaleY);
 

@@ -50,7 +50,7 @@ std::vector<ContentBrowserPanel::Item> ContentBrowserPanel::ListItems(const std:
 
     for (auto &e : SIMPEngine::FileSystem::List(*real))
     {
-        std::string name = std::filesystem::u8path(e.path).filename().string();
+        std::string name = EditorUI::Utf8Path(e.path).filename().string();
         if (name.empty() || name[0] == '.')
             continue;
         items.push_back({name, ToVirtualChild(vdir, name), e.isDirectory});
@@ -191,7 +191,7 @@ void ContentBrowserPanel::DrawDirectory(const std::string &vdir)
     if (!real)
         return;
 
-    std::string label = std::filesystem::u8path(*real).filename().string();
+    std::string label = EditorUI::Utf8Path(*real).filename().string();
     if (label.empty() || vdir == m_Root)
         label = m_Root.substr(0, m_Root.find("://"));
 
@@ -236,7 +236,7 @@ void ContentBrowserPanel::HandleDropInto(const std::string &vdir)
 
     if (payload)
     {
-        const char *srcVPath = (const char *)payload->Data;
+        const char *srcVPath = static_cast<const char *>(payload->Data);
         auto srcReal = SIMPEngine::VFS::Resolve(srcVPath);
         auto dstReal = SIMPEngine::VFS::Resolve(vdir);
 
@@ -294,8 +294,8 @@ void ContentBrowserPanel::DrawItems()
         {
             Visual v = FileVisual(item.Name, item.IsDirectory);
             SIMPEngine::Texture *thumb = item.IsDirectory ? nullptr : GetThumbnail(item.VPath);
-            ImTextureID tex = thumb ? (ImTextureID)(intptr_t)thumb->GetID() : (ImTextureID)0;
-            ImVec2 texSize = thumb ? ImVec2((float)thumb->GetWidth(), (float)thumb->GetHeight()) : ImVec2(0, 0);
+            ImTextureID tex = thumb ? EditorUI::TextureId(thumb->GetID()) : ImTextureID{};
+            ImVec2 texSize = thumb ? ImVec2(static_cast<float>(thumb->GetWidth()), static_cast<float>(thumb->GetHeight())) : ImVec2(0, 0);
 
             if (AssetRow(item.VPath.c_str(), tex, texSize, v.Icon, v.Color(), item.Name.c_str(), v.Type, m_Selected == item.VPath))
                 m_Selected = item.VPath;
@@ -327,8 +327,8 @@ void ContentBrowserPanel::DrawItems()
     {
         float spacing = 4.0f;
         float avail = ImGui::GetContentRegionAvail().x;
-        int columns = std::max(1, (int)((avail + spacing) / (m_TileSize + spacing)));
-        float tile = std::floor((avail - spacing * (columns - 1)) / columns);
+        int columns = std::max(1, static_cast<int>((avail + spacing) / (m_TileSize + spacing)));
+        float tile = std::floor((avail - spacing * static_cast<float>(columns - 1)) / static_cast<float>(columns));
         tile = std::min(tile, m_TileSize * 1.3f);
 
         ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
@@ -341,8 +341,8 @@ void ContentBrowserPanel::DrawItems()
 
             Visual v = FileVisual(item.Name, item.IsDirectory);
             SIMPEngine::Texture *thumb = item.IsDirectory ? nullptr : GetThumbnail(item.VPath);
-            ImTextureID tex = thumb ? (ImTextureID)(intptr_t)thumb->GetID() : (ImTextureID)0;
-            ImVec2 texSize = thumb ? ImVec2((float)thumb->GetWidth(), (float)thumb->GetHeight()) : ImVec2(0, 0);
+            ImTextureID tex = thumb ? EditorUI::TextureId(thumb->GetID()) : ImTextureID{};
+            ImVec2 texSize = thumb ? ImVec2(static_cast<float>(thumb->GetWidth()), static_cast<float>(thumb->GetHeight())) : ImVec2(0, 0);
 
             auto r = AssetTile(item.VPath.c_str(), tex, texSize, v.Icon, v.Color(), item.Name.c_str(), m_Selected == item.VPath, tile);
             if (r.Clicked)

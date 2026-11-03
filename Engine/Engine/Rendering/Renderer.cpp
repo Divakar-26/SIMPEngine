@@ -20,7 +20,7 @@ namespace SIMPEngine
     {
         glm::vec4 ToVec4(SDL_Color c)
         {
-            return {c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f};
+            return {static_cast<float>(c.r) / 255.0f, static_cast<float>(c.g) / 255.0f, static_cast<float>(c.b) / 255.0f, static_cast<float>(c.a) / 255.0f};
         }
     }
 
@@ -170,8 +170,8 @@ namespace SIMPEngine
         float u0 = 0.0f, vTop = 1.0f, u1 = 1.0f, vBottom = 0.0f;
         if (desc.SourceRect)
         {
-            float tw = (float)desc.TextureRef->GetWidth();
-            float th = (float)desc.TextureRef->GetHeight();
+            float tw = static_cast<float>(desc.TextureRef->GetWidth());
+            float th = static_cast<float>(desc.TextureRef->GetHeight());
             if (tw > 0.0f && th > 0.0f)
             {
                 u0 = desc.SourceRect->x / tw;
@@ -389,8 +389,8 @@ namespace SIMPEngine
     void Renderer::DrawSvg(SvgDocument &doc, float x, float y, float width, float height,
                            SDL_Color tint, float rotation, float zIndex)
     {
-        int texW = std::max(1, (int)std::ceil(width));
-        int texH = std::max(1, (int)std::ceil(height));
+        int texW = std::max(1, static_cast<int>(std::ceil(width)));
+        int texH = std::max(1, static_cast<int>(std::ceil(height)));
 
         auto tex = SvgTextureCache::GetOrCreate(doc, texW, texH);
         if (!tex)

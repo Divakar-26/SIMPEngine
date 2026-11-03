@@ -6,6 +6,8 @@
 #include <imgui.h>
 #include <SDL3/SDL_pixels.h>
 #include <cfloat>
+#include <cstdint>
+#include <type_traits>
 #include <cstddef>
 #include <functional>
 #include <string>
@@ -19,6 +21,15 @@ namespace EditorUI
         Ghost,
         Danger
     };
+
+    template <typename T>
+    inline ImTextureID TextureId(T id)
+    {
+        if constexpr (std::is_pointer_v<ImTextureID>)
+            return reinterpret_cast<ImTextureID>(static_cast<std::uintptr_t>(id));
+        else
+            return static_cast<ImTextureID>(id);
+    }
 
     void SetEditHook(std::function<void()> hook);
     void NotifyEdit();
@@ -36,6 +47,7 @@ namespace EditorUI
     void EmptyState(const char *title, const char *subtitle = nullptr);
     void VerticalSeparator(float height = 0.0f);
     void IconText(const char *icon, const ImVec4 &iconColor, const char *text);
+    bool IconMenuItem(const char *icon, const ImVec4 &iconColor, const char *label);
 
     struct TreeRowOptions
     {

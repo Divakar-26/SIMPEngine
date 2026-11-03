@@ -94,7 +94,7 @@ void HierarchyPanel::OnImGuiRender()
             opt.Leaf = true;
             opt.Selected = m_Context->IsSelected(handle);
             char id[32];
-            std::snprintf(id, sizeof(id), "##s%u", (unsigned)handle);
+            std::snprintf(id, sizeof(id), "##s%u", static_cast<unsigned>(handle));
             auto row = TreeRow(id, v.Icon, v.Color(), tag.c_str(), opt);
             if (row.Clicked)
                 m_Context->SelectedEntity = entity;
@@ -268,7 +268,7 @@ void HierarchyPanel::DrawEntityNode(SIMPEngine::Entity entity)
         opt.Trailing = ICON_LC_SCROLL_TEXT;
 
     char id[32];
-    std::snprintf(id, sizeof(id), "##e%u", (unsigned)handle);
+    std::snprintf(id, sizeof(id), "##e%u", static_cast<unsigned>(handle));
     const std::string &tag = entity.GetComponent<TagComponent>().Tag;
     auto row = TreeRow(id, v.Icon, v.Color(), tag.empty() ? "(unnamed)" : tag.c_str(), opt);
 

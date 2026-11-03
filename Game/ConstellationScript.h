@@ -91,7 +91,7 @@ public:
 
     void OnRender() override
     {
-        int count = (int)m_Dots.size();
+        const size_t count = m_Dots.size();
 
         for (auto& d : m_Dots)
         {
@@ -99,9 +99,9 @@ public:
                 d.x, d.y, d.radius, d.color, AA);
         }
 
-        for (int i = 0; i < count; i++)
+        for (size_t i = 0; i < count; i++)
         {
-            for (int j = i + 1; j < count; j++)
+            for (size_t j = i + 1; j < count; j++)
             {
                 float dx   = m_Dots[j].x - m_Dots[i].x;
                 float dy   = m_Dots[j].y - m_Dots[i].y;
@@ -110,7 +110,7 @@ public:
                 if (dist < CONNECT_DIST)
                 {
                     float t = 1.0f - (dist / CONNECT_DIST);
-                    SDL_Color lc = {200, 200, 220, (Uint8)(t * 160.0f)};
+                    SDL_Color lc = {200, 200, 220, static_cast<Uint8>(t * 160.0f)};
                     SIMPEngine::Renderer::DrawCapsuleLine(
                         m_Dots[i].x, m_Dots[i].y,
                         m_Dots[j].x, m_Dots[j].y,

@@ -103,7 +103,7 @@ namespace EditorUI
 
         void *SettingsReadOpen(ImGuiContext *, ImGuiSettingsHandler *, const char *name)
         {
-            return std::strcmp(name, "Editor") == 0 ? (void *)&s_Settings : nullptr;
+            return std::strcmp(name, "Editor") == 0 ? static_cast<void *>(&s_Settings) : nullptr;
         }
 
         void SettingsReadLine(ImGuiContext *, ImGuiSettingsHandler *, void *, const char *line)
@@ -142,7 +142,7 @@ namespace EditorUI
             const EditorSettings &s = s_Settings;
             buf->appendf("[%s][Editor]\n", handler->TypeName);
             buf->appendf("Theme=%d\nFont=%d\nScale=%.2f\nVSync=%d\nGrid=%d\nStats=%d\nGridSize=%.2f\nSnap=%d\nSnapMove=%.2f\nSnapRotate=%.2f\n\n",
-                         (int)s.Theme, (int)s.Font, s.Scale, s.VSync ? 1 : 0, s.ShowGrid ? 1 : 0, s.ShowStats ? 1 : 0,
+                         static_cast<int>(s.Theme), static_cast<int>(s.Font), s.Scale, s.VSync ? 1 : 0, s.ShowGrid ? 1 : 0, s.ShowStats ? 1 : 0,
                          s.GridSize, s.Snap ? 1 : 0, s.SnapMove, s.SnapRotate);
         }
     }

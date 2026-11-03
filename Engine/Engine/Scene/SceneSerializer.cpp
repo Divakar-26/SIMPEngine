@@ -18,17 +18,18 @@
 namespace SIMPEngine {
 namespace {
 void EmitColor(YAML::Emitter &out, const SDL_Color &c) {
-  out << YAML::Flow << YAML::BeginSeq << (int)c.r << (int)c.g << (int)c.b
-      << (int)c.a << YAML::EndSeq;
+  out << YAML::Flow << YAML::BeginSeq << static_cast<int>(c.r)
+      << static_cast<int>(c.g) << static_cast<int>(c.b)
+      << static_cast<int>(c.a) << YAML::EndSeq;
 }
 
 bool ReadColor(const YAML::Node &node, SDL_Color &c) {
   if (!node || !node.IsSequence() || node.size() < 4)
     return false;
-  c.r = (Uint8)node[0].as<int>();
-  c.g = (Uint8)node[1].as<int>();
-  c.b = (Uint8)node[2].as<int>();
-  c.a = (Uint8)node[3].as<int>();
+  c.r = static_cast<Uint8>(std::clamp(node[0].as<int>(), 0, 255));
+  c.g = static_cast<Uint8>(std::clamp(node[1].as<int>(), 0, 255));
+  c.b = static_cast<Uint8>(std::clamp(node[2].as<int>(), 0, 255));
+  c.a = static_cast<Uint8>(std::clamp(node[3].as<int>(), 0, 255));
   return true;
 }
 
@@ -158,7 +159,7 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
         out << YAML::Key << "frame_count" << YAML::Value
             << anim->GetFrameNumber();
         out << YAML::Key << "frame_duration" << YAML::Value
-            << (float)anim->GetFrameDuration();
+            << static_cast<float>(anim->GetFrameDuration());
         out << YAML::Key << "looping" << YAML::Value << anim->IsLooping();
         out << YAML::Key << "current_frame" << YAML::Value
             << anim->GetCurrentFrame();
@@ -231,7 +232,7 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       for (const auto &[key, chunk] : tilemap.chunks) {
         const auto packed = static_cast<std::uint64_t>(key);
         const auto chunkX = static_cast<std::int32_t>(packed >> 32);
-        const auto chunkY = static_cast<std::int32_t>(packed & 0xffffffffu);
+        const auto chunkY = static_cast<std::int32_t>(static_cast<std::uint32_t>(packed));
 
         out << YAML::BeginMap;
         out << YAML::Key << "x" << YAML::Value << chunkX;
@@ -239,7 +240,7 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
         out << YAML::Key << "tiles" << YAML::BeginSeq;
         for (int localY = 0; localY < CHUNK_SIZE; ++localY) {
           for (int localX = 0; localX < CHUNK_SIZE; ++localX) {
-            const int tileId = chunk.tiles[localY * CHUNK_SIZE + localX].id;
+            const int tileId = chunk.tiles[static_cast<size_t>(localY * CHUNK_SIZE + localX)].id;
             if (tileId >= 0)
               out << YAML::Flow << YAML::BeginSeq << localX << localY << tileId
                   << YAML::EndSeq;
@@ -522,9 +523,9 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
 
     component("Animation", [&](const YAML::Node &a) {
       std::string path;
-      int fw, fh, fn;
-      float fd;
-      bool loop;
+      int fw = 0, fh = 0, fn = 0;
+      float fd = 0.0f;
+      bool loop = false;
 
       if (!TryGet(a, "texture", path) || !TryGet(a, "frame_width", fw) ||
           !TryGet(a, "frame_height", fh) || !TryGet(a, "frame_count", fn) ||
@@ -605,17 +606,17 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
       if (!ReadVec2(p["position"], px, py))
         return;
 
-      float invMass;
+      float invMass = 0.0f;
       if (!TryGet(p, "inverse_mass", invMass))
         return;
 
       auto body = std::make_unique<AccelEngine::RigidBody>();
-      body->entityID = (uint32_t)entity.GetHandle();
+      body->entityID = static_cast<uint32_t>(entity.GetHandle());
       body->position = {px, py};
       body->inverseMass = invMass;
 
       if (shape == "CIRCLE") {
-        float radius;
+        float radius = 0.0f;
         if (!TryGet(p, "radius", radius))
           return;
         body->shapeType = AccelEngine::ShapeType::CIRCLE;

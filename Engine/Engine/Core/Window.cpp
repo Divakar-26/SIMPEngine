@@ -45,7 +45,9 @@
             }
 
             SDL_GL_MakeCurrent(m_Window, m_GLContext);
-            if(!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)){
+            auto glLoader = [](const char *procName) -> void *
+            { return reinterpret_cast<void *>(SDL_GL_GetProcAddress(procName)); };
+            if(!gladLoadGLLoader(glLoader)){
                 CORE_ERROR("Failed to intilaize glad");
                 SDL_GL_DestroyContext(m_GLContext);
                 SDL_DestroyWindow(m_Window);

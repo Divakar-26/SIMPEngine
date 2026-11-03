@@ -38,21 +38,21 @@ namespace
 
         drawList->AddRect(min, max, borderCol, 0.0f, 0, 1.5f);
 
-        float scaleX = (max.x - min.x) / (float)texW;
-        float scaleY = (max.y - min.y) / (float)texH;
+        float scaleX = (max.x - min.x) / static_cast<float>(texW);
+        float scaleY = (max.y - min.y) / static_cast<float>(texH);
 
         int cols = std::max(1, texW / frameW);
         int rows = std::max(1, texH / frameH);
 
         for (int c = 1; c < cols; ++c)
         {
-            float x = min.x + c * frameW * scaleX;
+            float x = min.x + static_cast<float>(c * frameW) * scaleX;
             drawList->AddLine(ImVec2(x, min.y), ImVec2(x, max.y), gridCol, 1.0f);
         }
 
         for (int r = 1; r < rows; ++r)
         {
-            float y = min.y + r * frameH * scaleY;
+            float y = min.y + static_cast<float>(r * frameH) * scaleY;
             drawList->AddLine(ImVec2(min.x, y), ImVec2(max.x, y), gridCol, 1.0f);
         }
 
@@ -61,10 +61,10 @@ namespace
             int fc = highlightFrame % cols;
             int fr = highlightFrame / cols;
 
-            ImVec2 hMin(min.x + fc * frameW * scaleX,
-                        min.y + fr * frameH * scaleY);
-            ImVec2 hMax(hMin.x + frameW * scaleX,
-                        hMin.y + frameH * scaleY);
+            ImVec2 hMin(min.x + static_cast<float>(fc * frameW) * scaleX,
+                        min.y + static_cast<float>(fr * frameH) * scaleY);
+            ImVec2 hMax(hMin.x + static_cast<float>(frameW) * scaleX,
+                        hMin.y + static_cast<float>(frameH) * scaleY);
 
             drawList->AddRect(hMin, hMax, highlightC, 0.0f, 0, 2.0f);
             drawList->AddRectFilled(hMin, hMax, EditorUI::U32(EditorUI::Colors::Accent, 0.15f));
@@ -181,7 +181,7 @@ void AnimationMakerPanel::OnImGuiRender()
             char grid[64];
             std::snprintf(grid, sizeof(grid), "%d x %d cells", cols, rows);
             PropertyValue("Grid", grid, &Colors::TextDim);
-            std::snprintf(grid, sizeof(grid), "%.2f s", m_FrameCount * m_FrameDuration);
+            std::snprintf(grid, sizeof(grid), "%.2f s", static_cast<float>(m_FrameCount) * m_FrameDuration);
             PropertyValue("Length", grid, &Colors::TextDim);
         }
 
@@ -278,7 +278,7 @@ void AnimationMakerPanel::OnImGuiRender()
             if (area.x < 10.0f) area.x = 10.0f;
             if (area.y < 10.0f) area.y = 10.0f;
 
-            ImVec2 imgSize = FitSizeInside((float)texW, (float)texH, area.x, area.y);
+            ImVec2 imgSize = FitSizeInside(static_cast<float>(texW), static_cast<float>(texH), area.x, area.y);
 
             ImVec2 cursor  = ImGui::GetCursorScreenPos();
             ImVec2 imgMin(std::floor(cursor.x + (area.x - imgSize.x) * 0.5f),
@@ -290,7 +290,7 @@ void AnimationMakerPanel::OnImGuiRender()
             DrawCheckerboard(dl, imgMin, imgMax, 8.0f);
 
             dl->AddImage(
-                (ImTextureID)(intptr_t)m_SpriteSheetTexture->GetID(),
+                EditorUI::TextureId(m_SpriteSheetTexture->GetID()),
                 imgMin, imgMax,
                 ImVec2(0, 1), ImVec2(1, 0));
 
@@ -314,7 +314,7 @@ void AnimationMakerPanel::OnImGuiRender()
             if (area.y < 4.0f) area.y = 4.0f;
 
             ImVec2 frameDispSize = FitSizeInside(
-                (float)m_FrameWidth, (float)m_FrameHeight,
+                static_cast<float>(m_FrameWidth), static_cast<float>(m_FrameHeight),
                 area.x, area.y);
 
             const float maxFrameDisp = std::min(area.y - 4.0f, 220.0f);
@@ -339,13 +339,13 @@ void AnimationMakerPanel::OnImGuiRender()
                 int fx = m_PreviewFrame % framesPerRow;
                 int fy = m_PreviewFrame / framesPerRow;
 
-                float u0 =  fx      * m_FrameWidth  / (float)texW;
-                float u1 = (fx + 1) * m_FrameWidth  / (float)texW;
-                float v0 = 1.0f - fy      * m_FrameHeight / (float)texH;
-                float v1 = 1.0f - (fy + 1) * m_FrameHeight / (float)texH;
+                float u0 = static_cast<float>(fx * m_FrameWidth) / static_cast<float>(texW);
+                float u1 = static_cast<float>((fx + 1) * m_FrameWidth) / static_cast<float>(texW);
+                float v0 = 1.0f - static_cast<float>(fy * m_FrameHeight) / static_cast<float>(texH);
+                float v1 = 1.0f - static_cast<float>((fy + 1) * m_FrameHeight) / static_cast<float>(texH);
 
                 dl->AddImage(
-                    (ImTextureID)(intptr_t)m_SpriteSheetTexture->GetID(),
+                    EditorUI::TextureId(m_SpriteSheetTexture->GetID()),
                     fMin, fMax,
                     ImVec2(u0, v0), ImVec2(u1, v1));
             }

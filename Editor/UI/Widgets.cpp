@@ -119,7 +119,7 @@ namespace EditorUI
         for (const char *h = haystack; *h; ++h)
         {
             size_t i = 0;
-            while (i < nl && h[i] && std::tolower((unsigned char)h[i]) == std::tolower((unsigned char)needle[i]))
+            while (i < nl && h[i] && std::tolower(static_cast<unsigned char>(h[i])) == std::tolower(static_cast<unsigned char>(needle[i])))
                 ++i;
             if (i == nl)
                 return true;
@@ -275,6 +275,28 @@ namespace EditorUI
         ImGui::PopStyleColor();
         ImGui::SameLine(0.0f, 6.0f);
         ImGui::TextUnformatted(text);
+    }
+
+    bool IconMenuItem(const char *icon, const ImVec4 &iconColor, const char *label)
+    {
+        ImGuiStyle &style = ImGui::GetStyle();
+        float fs = ImGui::GetFontSize();
+        float gutter = std::floor(fs * 1.6f);
+        float textW = ImGui::CalcTextSize(label).x;
+        float width = gutter + textW + style.ItemSpacing.x * 2.0f;
+
+        ImGui::PushID(label);
+        bool pressed = ImGui::Selectable("##item", false, ImGuiSelectableFlags_SpanAvailWidth, ImVec2(width, 0.0f));
+        ImGui::PopID();
+
+        ImVec2 min = ImGui::GetItemRectMin();
+        ImVec2 max = ImGui::GetItemRectMax();
+        ImDrawList *dl = ImGui::GetWindowDrawList();
+        float midY = (min.y + max.y) * 0.5f;
+
+        DrawIcon(dl, icon, ImVec2(min.x + gutter * 0.5f, midY), U32(iconColor), fs);
+        dl->AddText(ImVec2(min.x + gutter, std::floor(midY - fs * 0.5f)), ImGui::GetColorU32(ImGuiCol_Text), label);
+        return pressed;
     }
 
     TreeRowResult TreeRow(const char *id, const char *icon, const ImVec4 &iconColor, const char *label, const TreeRowOptions &options)
@@ -550,10 +572,10 @@ namespace EditorUI
         float rgba[4] = {color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f};
         if (!PropertyColor(label, rgba))
             return false;
-        color.r = (Uint8)std::lround(rgba[0] * 255.0f);
-        color.g = (Uint8)std::lround(rgba[1] * 255.0f);
-        color.b = (Uint8)std::lround(rgba[2] * 255.0f);
-        color.a = (Uint8)std::lround(rgba[3] * 255.0f);
+        color.r = static_cast<Uint8>(std::lround(rgba[0] * 255.0f));
+        color.g = static_cast<Uint8>(std::lround(rgba[1] * 255.0f));
+        color.b = static_cast<Uint8>(std::lround(rgba[2] * 255.0f));
+        color.a = static_cast<Uint8>(std::lround(rgba[3] * 255.0f));
         return true;
     }
 
@@ -604,7 +626,7 @@ namespace EditorUI
         ImDrawList *dl = window->DrawList;
         dl->AddRectFilled(frame.Min, frame.Max, U32(Colors::Frame), Metrics::FrameRounding);
 
-        float segW = w / (float)count;
+        float segW = w / static_cast<float>(count);
         bool changed = false;
         for (int i = 0; i < count; ++i)
         {
@@ -645,7 +667,7 @@ namespace EditorUI
         ImU32 light = IM_COL32(68, 68, 68, 255);
         for (float y = min.y; y < max.y; y += cell)
         {
-            int row = (int)((y - min.y) / cell);
+            int row = static_cast<int>((y - min.y) / cell);
             for (float x = min.x + ((row & 1) ? cell : 0.0f); x < max.x; x += cell * 2.0f)
                 drawList->AddRectFilled(ImVec2(x, y), ImVec2(std::min(x + cell, max.x), std::min(y + cell, max.y)), light);
         }
@@ -800,7 +822,7 @@ namespace EditorUI
             ImGui::SameLine(0.0f, 0.0f);
 
             accum += (i == 0 ? "" : "/") + parts[i];
-            ImGui::PushID((int)i);
+            ImGui::PushID(static_cast<int>(i));
             if (Button(parts[i].c_str(), ButtonKind::Ghost))
             {
                 outClicked = accum;

@@ -34,8 +34,8 @@ void GameViewPanel::OnImGuiRender()
 
     ImVec2 pos = ImGui::GetCursorScreenPos();
     ImVec2 size = ImGui::GetContentRegionAvail();
-    int w = (int)size.x;
-    int h = (int)size.y;
+    int w = static_cast<int>(size.x);
+    int h = static_cast<int>(size.y);
     if (w < 2 || h < 2)
     {
         ImGui::End();
@@ -49,7 +49,7 @@ void GameViewPanel::OnImGuiRender()
 
     SIMPEngine::Scene &scene = *m_Context->Scene;
     auto &camera = scene.GetActiveCamera();
-    camera.SetViewportSize((float)w, (float)h);
+    camera.SetViewportSize(static_cast<float>(w), static_cast<float>(h));
 
     SIMPEngine::Renderer::ResetStats();
     SIMPEngine::Renderer::BeginRenderTarget(*m_Framebuffer);
@@ -61,7 +61,7 @@ void GameViewPanel::OnImGuiRender()
     m_Stats = SIMPEngine::Renderer::GetStats();
     SIMPEngine::Renderer::EndRenderTarget();
 
-    ImGui::Image((ImTextureID)(intptr_t)m_Framebuffer->GetColorAttachment(), size, ImVec2(0, 1), ImVec2(1, 0));
+    ImGui::Image(EditorUI::TextureId(m_Framebuffer->GetColorAttachment()), size, ImVec2(0, 1), ImVec2(1, 0));
     bool hovered = ImGui::IsItemHovered();
 
     SIMPEngine::Input::SetViewport(pos.x, pos.y, size.x, size.y);

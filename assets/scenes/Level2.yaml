@@ -3,37 +3,12 @@ Settings:
   background: [0.329, 0.329, 0.329, 1]
 Entities:
   - ID: 1
-    Tag: Ball
+    Tag: Ball 2
     Transform:
       position: [0, 0]
       rotation: 0
       zIndex: 0
-      scale: [1, 1]
-    Render:
-      color: [0, 255, 0, 255]
-      size: [40, 40]
-    Camera:
-      primary: false
-      zoom: 1
-    Physics:
-      shape: AABB
-      position: [0, 0]
-      rotation: 0
-      inverse_mass: 1
-      half_size: [20, 20]
-      velocity: [0, 0]
-      restitution: 1
-      static_friction: 0
-      dynamic_friction: 0
-      lock_rotation: false
-      lock_position: false
-  - ID: 2
-    Tag: Ball3
-    Transform:
-      position: [500, 0]
-      rotation: 0
-      zIndex: 0
-      scale: [1, 1]
+      scale: [4, 4]
     Render:
       color: [255, 255, 0, 255]
       size: [40, 40]
@@ -42,52 +17,45 @@ Entities:
       zoom: 1
     Physics:
       shape: AABB
-      position: [500, 0]
+      position: [-264, -208]
       rotation: 0
       inverse_mass: 1
-      half_size: [20, 20]
+      half_size: [80, 80]
       velocity: [0, 0]
-      restitution: 1
-      static_friction: 0
-      dynamic_friction: 0
-      lock_rotation: false
+      restitution: 0.3
+      static_friction: 0.5
+      dynamic_friction: 0.3
+      lock_rotation: true
       lock_position: false
-  - ID: 3
-    Tag: Ball2
+  - ID: 2
+    Tag: Ball3
     Transform:
-      position: [0, 0]
+      position: [-270, -50]
       rotation: 0
       zIndex: 0
       scale: [1, 1]
     Render:
-      color: [0, 255, 0, 255]
+      color: [255, 255, 0, 255]
       size: [40, 40]
-    Animation:
-      texture: assets://textures/coin.png
-      frame_width: 16
-      frame_height: 16
-      frame_count: 12
-      frame_duration: 0.1
-      looping: true
-      current_frame: 0
-      elapsed_time: 0
-      finished: false
+    Collision:
+      size: [53, -42]
+      offset: [0, 0]
     Camera:
       primary: false
       zoom: 1
     Physics:
       shape: AABB
-      position: [-1000, 0]
-      rotation: 2
+      position: [-270, -50]
+      rotation: 0
       inverse_mass: 1
       half_size: [20, 20]
-      velocity: [0, 0]
-      restitution: 2
-      static_friction: 0
-      dynamic_friction: 0
-      lock_rotation: true
+      velocity: [50, 0]
+      restitution: 0.3
+      static_friction: 0.5
+      dynamic_friction: 0.3
+      lock_rotation: false
       lock_position: false
-  - ID: 4
+  - ID: 3
     Tag: constellation
     Transform:
       position: [0, 0]

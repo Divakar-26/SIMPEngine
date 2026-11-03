@@ -13,10 +13,10 @@ namespace SIMPEngine
         int row = tileID / m_Columns;
 
         return SDL_FRect{
-            (float)(col * m_TileWidth),
-            (float)(row * m_TileHeight),
-            (float)m_TileWidth,
-            (float)m_TileHeight
+            static_cast<float>(col * m_TileWidth),
+            static_cast<float>(row * m_TileHeight),
+            static_cast<float>(m_TileWidth),
+            static_cast<float>(m_TileHeight)
         };
     }
 }

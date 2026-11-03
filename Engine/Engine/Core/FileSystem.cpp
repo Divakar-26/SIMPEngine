@@ -6,36 +6,44 @@
 using namespace std;
 namespace fs = std::filesystem;
 
+namespace
+{
+    fs::path ToPath(const std::string &utf8)
+    {
+        return fs::path(std::u8string(reinterpret_cast<const char8_t *>(utf8.data()), utf8.size()));
+    }
+}
+
 namespace SIMPEngine
 {
     bool FileSystem::Exists(const string &path)
     {
-        return fs::exists(fs::u8path(path));
+        return fs::exists(ToPath(path));
     }
 
     bool FileSystem::IsDirectory(const string &path)
     {
-        return fs::is_directory(fs::u8path(path));
+        return fs::is_directory(ToPath(path));
     }
 
     bool FileSystem::CreateDirectories(const string &path)
     {
         std::error_code ec;
-        fs::create_directories(fs::u8path(path), ec);
+        fs::create_directories(ToPath(path), ec);
         return !ec;
     }
 
     bool FileSystem::Remove(const string &path)
     {
         std::error_code ec;
-        fs::remove_all(fs::u8path(path), ec);
+        fs::remove_all(ToPath(path), ec);
         return !ec;
     }
 
     bool FileSystem::Rename(const string &from, const string &to)
     {
         std::error_code ec;
-        fs::rename(fs::u8path(from), fs::u8path(to), ec);
+        fs::rename(ToPath(from), ToPath(to), ec);
         return !ec;
     }
 
@@ -43,7 +51,7 @@ namespace SIMPEngine
     {
         if (!Exists(path))
             return std::nullopt;
-        ifstream f(fs::u8path(path), ios::binary);
+        ifstream f(ToPath(path), ios::binary);
         return string((istreambuf_iterator<char>(f)), istreambuf_iterator<char>());
     }
 
@@ -51,9 +59,9 @@ namespace SIMPEngine
     {
         if (createDirs)
         {
-            CreateDirectories(fs::u8path(path).parent_path().string());
+            CreateDirectories(ToPath(path).parent_path().string());
         }
-        ofstream f(fs::u8path(path), ios::binary);
+        ofstream f(ToPath(path), ios::binary);
         if (!f)
             return false;
         f << text;
@@ -66,7 +74,7 @@ namespace SIMPEngine
         if (!IsDirectory(dir))
             return out;
 
-        for (auto &e : fs::directory_iterator(fs::u8path(dir)))
+        for (auto &e : fs::directory_iterator(ToPath(dir)))
         {
             out.push_back({e.path().string(), e.is_directory()});
         }
@@ -76,13 +84,13 @@ namespace SIMPEngine
 
     string FileSystem::Join(const string &a, const string &b)
     {
-        return (fs::u8path(a) / fs::u8path(b)).string();
+        return (ToPath(a) / ToPath(b)).string();
     }
 
     string FileSystem::Normalise(const string &p)
     {
         std::error_code ec;
-        auto np = fs::weakly_canonical(fs::u8path(p), ec);
-        return ec ? fs::u8path(p).lexically_normal().string() : np.string();
+        auto np = fs::weakly_canonical(ToPath(p), ec);
+        return ec ? ToPath(p).lexically_normal().string() : np.string();
     }
 }

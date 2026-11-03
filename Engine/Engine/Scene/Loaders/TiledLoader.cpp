@@ -59,7 +59,7 @@ bool TiledLoader::Load(
         return false;
     }
 
-    tilemap.tileSize = tileWidth;
+    tilemap.tileSize = static_cast<float>(tileWidth);
 
     if (!mapData.contains("tilesets") || mapData["tilesets"].empty())
     {
@@ -146,7 +146,7 @@ bool TiledLoader::Load(
         for (int x = 0; x < mapWidth; x++)
         {
             int index  = y * mapWidth + x;
-            int tileID = tileArray[index];
+            int tileID = tileArray[static_cast<size_t>(index)];
 
             if (tileID == 0)
                 continue;
@@ -159,8 +159,8 @@ bool TiledLoader::Load(
         }
     }
 
-    float worldWidth  = mapWidth  * tilemap.tileSize;
-    float worldHeight = mapHeight * tilemap.tileSize;
+    float worldWidth  = static_cast<float>(mapWidth)  * tilemap.tileSize;
+    float worldHeight = static_cast<float>(mapHeight) * tilemap.tileSize;
 
     transform.position.x = -worldWidth  * 0.5f;
     transform.position.y = -worldHeight * 0.5f;

@@ -29,7 +29,7 @@ namespace SIMPEngine{
   }
 
   void PhysicsSystem::Update(entt::registry & m_Registry, float dt){
-      float subdt = dt / substep;
+      float subdt = dt / static_cast<float>(substep);
       for(int i = 0; i < substep; i++)
       {
         physicsRegistry.updateForces(subdt);
@@ -38,8 +38,8 @@ namespace SIMPEngine{
 
       for (auto &ev : physicsWorld.GetCollisionEvents())
         {
-            entt::entity ea = (entt::entity)ev.a->entityID;
-            entt::entity eb = (entt::entity)ev.b->entityID;
+            entt::entity ea = static_cast<entt::entity>(ev.a->entityID);
+            entt::entity eb = static_cast<entt::entity>(ev.b->entityID);
 
             if (!m_Registry.valid(ea) || !m_Registry.valid(eb))
                 continue;

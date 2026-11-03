@@ -24,14 +24,14 @@ namespace SIMPEngine
 
             for (auto &[key, chunk] : tilemap.chunks)
             {
-                int chunkX = (int)(key >> 32);
-                int chunkY = (int)(key & 0xffffffff);
+                int chunkX = static_cast<int>(key >> 32);
+                int chunkY = static_cast<int>(static_cast<uint32_t>(key));
 
                 for (int localY = 0; localY < CHUNK_SIZE; localY++)
                 {
                     for (int localX = 0; localX < CHUNK_SIZE; localX++)
                     {
-                        Tile &tile = chunk.tiles[localY * CHUNK_SIZE + localX];
+                        Tile &tile = chunk.tiles[static_cast<size_t>(localY * CHUNK_SIZE + localX)];
 
                         if (tile.id < 0)
                             continue;
@@ -39,8 +39,8 @@ namespace SIMPEngine
                         int tileX = chunkX * CHUNK_SIZE + localX;
                         int tileY = chunkY * CHUNK_SIZE + localY;
 
-                        float worldX = transform.position.x + tileX * tilemap.tileSize;
-                        float worldY = transform.position.y + tileY * tilemap.tileSize;
+                        float worldX = transform.position.x + static_cast<float>(tileX) * tilemap.tileSize;
+                        float worldY = transform.position.y + static_cast<float>(tileY) * tilemap.tileSize;
 
                         float centerX = worldX + tilemap.tileSize * 0.5f;
                         float centerY = worldY + tilemap.tileSize * 0.5f;

@@ -245,7 +245,7 @@ void AssetPickerPanel::DrawFiles(const std::string &vdir)
     float spacing = 10.0f;
     float tileW = 108.0f;
     float avail = ImGui::GetContentRegionAvail().x;
-    int columns = std::max(1, (int)((avail + spacing) / (tileW + spacing)));
+    int columns = std::max(1, static_cast<int>((avail + spacing) / (tileW + spacing)));
     tileW = std::floor((avail - spacing * (columns - 1)) / columns);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
@@ -258,8 +258,8 @@ void AssetPickerPanel::DrawFiles(const std::string &vdir)
 
         Visual v = FileVisual(item.Name, item.IsDirectory);
         SIMPEngine::Texture *thumb = item.IsDirectory ? nullptr : GetThumbnailFor(item.VPath);
-        ImTextureID tex = thumb ? (ImTextureID)(intptr_t)thumb->GetID() : (ImTextureID)0;
-        ImVec2 texSize = thumb ? ImVec2((float)thumb->GetWidth(), (float)thumb->GetHeight()) : ImVec2(0, 0);
+        ImTextureID tex = thumb ? EditorUI::TextureId(thumb->GetID()) : ImTextureID{};
+        ImVec2 texSize = thumb ? ImVec2(static_cast<float>(thumb->GetWidth()), static_cast<float>(thumb->GetHeight())) : ImVec2(0, 0);
 
         auto r = AssetTile(item.VPath.c_str(), tex, texSize, v.Icon, v.Color(), item.Name.c_str(), m_SelectedVPath == item.VPath, tileW);
         if (r.Clicked && !item.IsDirectory)
@@ -305,7 +305,7 @@ void AssetPickerPanel::DrawPreview()
         dl->PushClipRect(pos, max, true);
         DrawCheckerboard(dl, pos, max, 8.0f);
         dl->PopClipRect();
-        DrawImageFit(dl, (ImTextureID)(intptr_t)tex->GetID(), ImVec2((float)tex->GetWidth(), (float)tex->GetHeight()), ImVec2(pos.x + 6, pos.y + 6), ImVec2(max.x - 6, max.y - 6));
+        DrawImageFit(dl, EditorUI::TextureId(tex->GetID()), ImVec2(static_cast<float>(tex->GetWidth()), static_cast<float>(tex->GetHeight())), ImVec2(pos.x + 6, pos.y + 6), ImVec2(max.x - 6, max.y - 6));
     }
     else
     {
