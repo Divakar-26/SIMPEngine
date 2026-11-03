@@ -36,8 +36,6 @@ namespace SIMPEngine
 
         const NSVGimage* GetImage() const { return m_Image; }
 
-        // Later: implement actual rasterization here.
-        // For now this is the API hook you asked for.
         std::shared_ptr<Texture> RasterizeToTexture(
             int width,
             int height,

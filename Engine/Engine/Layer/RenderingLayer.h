@@ -10,8 +10,6 @@
 #include <Engine/Math/Camera2D.h>
 
 #include <SDL3/SDL_pixels.h>
-#include <queue> 
-#include <functional>
 
 namespace SIMPEngine
 {
@@ -24,7 +22,7 @@ namespace SIMPEngine
         ~RenderingLayer() override = default;
 
         void OnAttach() override;
-        void OnDetach() override; 
+        void OnDetach() override;
         void OnUpdate(class TimeStep ts) override;
         void OnRender() override;
         void OnEvent(Event &e) override;
@@ -40,9 +38,6 @@ namespace SIMPEngine
         }
 
     private:
-        Scene m_Scene;
         std::shared_ptr<SceneManager> m_SceneManager;
-
-        Animation *anim = nullptr;
     };
 }

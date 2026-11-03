@@ -8,7 +8,6 @@
 
 namespace SIMPEngine
 {
-
     class TextureManager
     {
     public:
@@ -20,11 +19,10 @@ namespace SIMPEngine
         void UnloadTexture(const std::string &id);
         void UnloadAll();
 
-    private:    
+    private:
         TextureManager() = default;
         ~TextureManager();
 
         std::unordered_map<std::string, std::shared_ptr<Texture>> m_TextureMap;
     };
-
 }

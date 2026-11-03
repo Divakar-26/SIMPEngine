@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 #include <string>
 
-// Forward declaration for use in templates
 namespace SIMPEngine
 {
     class Scene;
@@ -22,7 +21,7 @@ namespace SIMPEngine
         template<typename T>
         T& GetComponent();
 
-        template<typename T> 
+        template<typename T>
         bool HasComponent();
 
         template<typename T>
@@ -30,7 +29,7 @@ namespace SIMPEngine
 
         entt::entity GetHandle() const { return m_EntityHandle; }
 
-        operator bool() const { return m_EntityHandle != entt::null; }
+        operator bool() const;
         operator entt::entity() const { return m_EntityHandle; }
 
     private:
@@ -40,4 +39,3 @@ namespace SIMPEngine
 }
 
 #include <Engine/Scene/Scene.h>
-#include <Engine/Scene/Entity-inl.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Engine/Layer/Layer.h> // Your base Layer class
+#include <Engine/Layer/Layer.h>
 #include <Engine/Core/TimeStep.h>
 #include <Engine/Scene/Entity.h>
 #include <Engine/Scene/Scene.h>
@@ -13,17 +13,16 @@ struct SDL_Renderer;
 
 namespace SIMPEngine
 {
-
     class ImGuiLayer : public Layer
     {
     public:
         ImGuiLayer();
         ~ImGuiLayer();
 
-        void OnAttach() override;                  // Called when layer is pushed
-        void OnDetach() override;                  // Called when layer is popped
-        void OnUpdate(class TimeStep ts) override; // Called every frame to update ImGui
-        void OnRender() override;                  // Called every frame to update ImGui
+        void OnAttach() override;
+        void OnDetach() override;
+        void OnUpdate(class TimeStep ts) override;
+        void OnRender() override;
         void OnEvent(Event &event) override;
         void OnSDLEvent(SDL_Event &e);
         void Begin();
@@ -34,10 +33,10 @@ namespace SIMPEngine
         void SetBlockEvent(bool block) { m_BlockEvent = block; }
 
     private:
-        void ApplyModernTheme(); // Seamless flat IDE-style theme
-        void LoadFonts();        // Loads Inter/JetBrains Sans, falls back to default
+        void ApplyModernTheme();
+        void LoadFonts();
 
-        bool showLogWindow = false; // toggle for log window
+        bool showLogWindow = false;
 
         SDL_Window *m_Window = nullptr;
         SDL_Renderer *m_Renderer = nullptr;
@@ -49,5 +48,4 @@ namespace SIMPEngine
         ImFont *m_FontRegular = nullptr;
         ImFont *m_FontBold = nullptr;
     };
-
 }

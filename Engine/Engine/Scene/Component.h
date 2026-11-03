@@ -6,7 +6,6 @@
 #include <Engine/Rendering/Tileset.h>
 #include <Engine/Math/Camera2D.h>
 
-
 #include <AccelEngine/world.h>
 
 #include <SDL3/SDL_rect.h>
@@ -110,7 +109,7 @@ struct PhysicsComponent
 };
 
 struct AnimatedSpriteComponent
-{ 
+{
     std::unique_ptr<SIMPEngine::Animation> animation;
 
     std::unique_ptr<SIMPEngine::AnimationController> controller;
@@ -120,7 +119,7 @@ struct HierarchyComponent
 {
     entt::entity parent = entt::null;
     std::vector<entt::entity> children;
-}; 
+};
 
 struct LifetimeComponent
 {

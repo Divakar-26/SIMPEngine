@@ -24,4 +24,3 @@ namespace SIMPEngine
         Camera2D &GetMainCamera() { return m_MainCamera; }
     };
 }
-

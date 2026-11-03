@@ -1,7 +1,3 @@
-//
-// Created by divakar on 9/14/26.
-//
-
 #include "HierarchySystem.h"
 
 void SIMPEngine::HierarchySystem::Update(entt::registry &registry, float deltaTime)

@@ -21,4 +21,4 @@ namespace SIMPEngine
             return false;
         }
     };
-} // namespace SIMPEngine
+}

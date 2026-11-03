@@ -15,7 +15,7 @@
 
 class EditorLayer : public SIMPEngine::Layer
 {
-public: 
+public:
     EditorLayer(SIMPEngine::RenderingLayer *renderingLayer);
     ~EditorLayer() override = default;
 
@@ -26,7 +26,7 @@ public:
     void OnRender() override;
 
     void ShowLogs();
-    
+
 private:
 
     EditorContext m_EditorContext;

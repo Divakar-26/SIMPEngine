@@ -10,5 +10,4 @@ namespace SIMPEngine
     public:
         void Update(entt::registry &r, float dt);
     };
-
 }

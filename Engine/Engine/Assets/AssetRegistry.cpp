@@ -41,7 +41,7 @@ namespace SIMPEngine
             }
             catch (const std::exception &)
             {
-                continue; // skip malformed line
+                continue;
             }
             md.virtualPath = vp;
             md.sourcePath = rp;
@@ -102,5 +102,4 @@ namespace SIMPEngine
         }
         return h;
     }
-
 }

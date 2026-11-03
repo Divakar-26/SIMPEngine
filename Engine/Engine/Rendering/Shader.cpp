@@ -99,7 +99,7 @@ namespace SIMPEngine
             return it->second;
 
         GLint loc = glGetUniformLocation(m_ID, name.c_str());
-        m_UniformCache[name] = loc; 
+        m_UniformCache[name] = loc;
         return loc;
     }
 }

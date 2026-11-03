@@ -53,8 +53,8 @@ namespace SIMPEngine
 
     private:
         glm::vec2 m_Position;
-        float m_BaseZoom = 1.0f;   // zoom to fit scene
-        float m_ManualZoom = 1.0f; // zoom from Q/E keys
+        float m_BaseZoom = 1.0f;
+        float m_ManualZoom = 1.0f;
 
         float m_Rotation;
 
@@ -87,6 +87,5 @@ namespace SIMPEngine
         glm::vec2 m_LastMousePixel{0.0f};
 
         bool m_AllowZoom = true;
-
     };
 }

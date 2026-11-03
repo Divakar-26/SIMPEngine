@@ -1,4 +1,4 @@
-#pragma once 
+#pragma once
 #include "AccelEngine/ForceRegistry.h"
 #include "entt/entity/fwd.hpp"
 #include <AccelEngine/body.h>
@@ -24,5 +24,5 @@ private:
   AccelEngine::ForceRegistry physicsRegistry;
 
   int substep = 1;
-}; 
-} // namespace SIMPEngine
+};
+}

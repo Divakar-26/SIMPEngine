@@ -60,21 +60,18 @@ namespace
         int cols = std::max(1, texW / frameW);
         int rows = std::max(1, texH / frameH);
 
-        // Vertical lines
         for (int c = 1; c < cols; ++c)
         {
             float x = min.x + c * frameW * scaleX;
             drawList->AddLine(ImVec2(x, min.y), ImVec2(x, max.y), gridCol, 1.0f);
         }
 
-        // Horizontal lines
         for (int r = 1; r < rows; ++r)
         {
             float y = min.y + r * frameH * scaleY;
             drawList->AddLine(ImVec2(min.x, y), ImVec2(max.x, y), gridCol, 1.0f);
         }
 
-        // Highlight the current animated frame
         if (highlightFrame >= 0)
         {
             int fc = highlightFrame % cols;
@@ -141,7 +138,6 @@ void AnimationMakerPanel::OnImGuiRender()
 
     ImGui::OpenPopup("Animation Maker");
 
-    // Large enough to be useful; user can resize
     ImGui::SetNextWindowSizeConstraints(ImVec2(740, 480), ImVec2(1400, 960));
     ImGui::SetNextWindowSize(ImVec2(900, 580), ImGuiCond_FirstUseEver);
 
@@ -163,7 +159,6 @@ void AnimationMakerPanel::OnImGuiRender()
     const ImVec2 avail         = ImGui::GetContentRegionAvail();
     const float  childHeight   = avail.y - 4.0f;
 
-    //  LEFT — Control
     ImGui::BeginChild("##anim_controls", ImVec2(controlsWidth, childHeight), true);
     {
         ImGui::TextUnformatted("Frame Settings");
@@ -181,7 +176,6 @@ void AnimationMakerPanel::OnImGuiRender()
 
         ImGui::Spacing();
 
-        // Clamp after drag
         ImGui::DragInt("Frame Width",    &m_FrameWidth,    1.0f, 1, 4096);
         ImGui::DragInt("Frame Height",   &m_FrameHeight,   1.0f, 1, 4096);
         ImGui::DragInt("Frame Count",    &m_FrameCount,    1.0f, 1, 100000);
@@ -193,7 +187,6 @@ void AnimationMakerPanel::OnImGuiRender()
         m_FrameCount    = std::max(1, m_FrameCount);
         m_FrameDuration = std::max(0.005f, m_FrameDuration);
 
-        // Derived info
         if (m_SpriteSheetTexture && m_FrameWidth > 0 && m_FrameHeight > 0)
         {
             int cols = std::max(1, m_SpriteSheetTexture->GetWidth()  / m_FrameWidth);
@@ -224,7 +217,6 @@ void AnimationMakerPanel::OnImGuiRender()
 
         ImGui::Spacing();
 
-        // Manual frame scrubber
         ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.8f, 1.0f));
         ImGui::Text("Frame  %d / %d", m_PreviewFrame, std::max(0, m_FrameCount - 1));
         ImGui::PopStyleColor();
@@ -303,7 +295,6 @@ void AnimationMakerPanel::OnImGuiRender()
 
         ImVec2 rightAvail = ImGui::GetContentRegionAvail();
 
-        // Split vertically: sheet gets ~65 %, live preview ~35 %
         const float previewPanelH = std::max(120.0f, rightAvail.y * 0.32f);
         const float sheetPanelH   = rightAvail.y - previewPanelH - 10.0f;
 
@@ -364,12 +355,10 @@ void AnimationMakerPanel::OnImGuiRender()
             if (area.x < 4.0f) area.x = 4.0f;
             if (area.y < 4.0f) area.y = 4.0f;
 
-            // Show only the current frame, centred and aspect-correct
             ImVec2 frameDispSize = FitSizeInside(
                 (float)m_FrameWidth, (float)m_FrameHeight,
                 area.x, area.y);
 
-            // Clamp to a reasonable max so it doesn't look blurry on tiny frames
             const float maxFrameDisp = std::min(area.y - 4.0f, 200.0f);
             if (frameDispSize.x > maxFrameDisp || frameDispSize.y > maxFrameDisp)
             {
@@ -386,7 +375,6 @@ void AnimationMakerPanel::OnImGuiRender()
             ImDrawList* dl = ImGui::GetWindowDrawList();
             DrawCheckerBackground(dl, fMin, fMax, 6.0f);
 
-            // Compute UV for the current frame
             if (texW > 0 && texH > 0 && m_FrameWidth > 0 && m_FrameHeight > 0)
             {
                 int framesPerRow = std::max(1, texW / m_FrameWidth);
@@ -395,7 +383,6 @@ void AnimationMakerPanel::OnImGuiRender()
 
                 float u0 =  fx      * m_FrameWidth  / (float)texW;
                 float u1 = (fx + 1) * m_FrameWidth  / (float)texW;
-                // Textures are stored vertically flipped: image row 0 is at V = 1
                 float v0 = 1.0f - fy      * m_FrameHeight / (float)texH;
                 float v1 = 1.0f - (fy + 1) * m_FrameHeight / (float)texH;
 
@@ -405,7 +392,6 @@ void AnimationMakerPanel::OnImGuiRender()
                     ImVec2(u0, v0), ImVec2(u1, v1));
             }
 
-            // Thin border
             dl->AddRect(fMin, fMax, IM_COL32(255, 210, 60, 160), 0.0f, 0, 1.5f);
 
             ImGui::Dummy(area);

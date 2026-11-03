@@ -1,4 +1,3 @@
-// ContentBrowserPanel.cpp
 #include "ContentBrowserPanel.h"
 #include <Engine/Core/VFS.h>
 #include <Engine/Core/FileSystem.h>
@@ -18,17 +17,14 @@ std::string ContentBrowserPanel::ToVirtualChild(const std::string &parent, const
 void ContentBrowserPanel::OnImGuiRender()
 {
     ImGui::Begin("Content Browser");
-    // left tree
     ImGui::BeginChild("##tree", ImVec2(220, 0), true);
     DrawDirectory(m_Root);
     ImGui::EndChild();
 
     ImGui::SameLine();
 
-    // right grid
     ImGui::BeginChild("##grid", ImVec2(0, 0), true);
 
-    // make this droppable
     if (ImGui::BeginDragDropTarget())
     {
         if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -89,7 +85,6 @@ void ContentBrowserPanel::DrawDirectory(const std::string &vdir)
         label = vdir;
     ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanFullWidth;
 
-    // Pass c_str() to ImGui
     bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
 
     if (ImGui::IsItemClicked())
@@ -112,7 +107,6 @@ void ContentBrowserPanel::DrawDirectory(const std::string &vdir)
 
                 try
                 {
-                    // This works for both files and folders
                     std::filesystem::rename(srcPath, dstPath);
                     CORE_INFO("Moved: {} -> {}", srcPath.string(), dstPath.string());
                 }
@@ -227,27 +221,9 @@ void ContentBrowserPanel::DrawEntry(const std::string &vpath, bool isDir)
 
 SIMPEngine::Texture *LoadTextureFromVirtual(const std::string &vpath)
 {
-    // resolve virtual path to real OS path
-    // auto real = SIMPEngine::VFS::Resolve(vpath);
-    // if (!real)
-    // {
-    //     SIMPEngine::Log::Error("VFS: Cannot resolve path %s", vpath.c_str());
-    //     return nullptr;
-    // }
-
-    // // delegate to asset manager
-    // SIMPEngine::AssetHandle handle = m_AssetManager->ImportIfNeeded(vpath, SIMPEngine::AssetType::Texture2D);
-    // if (handle == SIMPEngine::AssetHandle::Invalid)
-    // {
-    //     SIMPEngine::Log::Error("Failed to import texture %s", vpath.c_str());
-    //     return nullptr;
-    // }
-
-    // return m_AssetManager->Get<SIMPEngine::Texture2D>(handle);
     return nullptr;
 }
 
-// TODO -> Make this load scaled down image, not the full one.
 SIMPEngine::Texture &ContentBrowserPanel::GetIconFor(const std::string &vpath, bool isDir)
 {
     if (isDir)
@@ -265,19 +241,15 @@ SIMPEngine::Texture &ContentBrowserPanel::GetIconFor(const std::string &vpath, b
     std::string ext = std::filesystem::u8path(*real).extension().string();
     if (ext == ".png" || ext == ".jpg" || ext == ".jpeg")
     {
-        // CORE_INFO("Trying to load: {}", *real);
         auto it = m_TextureCache.find(*real);
         if (it != m_TextureCache.end())
         {
-            // CORE_ERROR("Found in cache");
             return it->second;
         }
 
-        // CORE_INFO("Loading new texture");
         m_TextureCache[*real] = SIMPEngine::Texture();
         if (m_TextureCache[*real].LoadFromFile(real->c_str()))
         {
-            // CORE_INFO("Successfully loaded texture");
             return m_TextureCache[*real];
         }
         else

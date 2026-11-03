@@ -5,7 +5,6 @@ namespace SIMPEngine
 {
     enum SIMP_Keys
     {
-        // Engine Specific Key Codes so that in future it can be easily replaced.
         SIMPK_W = SDLK_W,
         SIMPK_A = SDLK_A,
         SIMPK_S = SDLK_S,
@@ -33,7 +32,6 @@ namespace SIMPEngine
         SIMPK_J = SDLK_J,
         SIMPK_K = SDLK_K,
 
-        // Number keys
         SIMPK_0 = SDLK_0,
         SIMPK_1 = SDLK_1,
         SIMPK_2 = SDLK_2,
@@ -45,7 +43,6 @@ namespace SIMPEngine
         SIMPK_8 = SDLK_8,
         SIMPK_9 = SDLK_9,
 
-        // Special keys
         SIMPK_MINUS = SDLK_MINUS,
         SIMPK_LEFTBRACKET = SDLK_LEFTBRACKET,
         SIMPK_RIGHTBRACKET = SDLK_RIGHTBRACKET,
@@ -94,7 +91,6 @@ namespace SIMPEngine
         SIMPK_GRAVE = SDLK_GRAVE,
         SIMPK_TILDE = SDLK_TILDE,
 
-        // Function keys
         SIMPK_F1 = SDLK_F1,
         SIMPK_F2 = SDLK_F2,
         SIMPK_F3 = SDLK_F3,
@@ -108,7 +104,6 @@ namespace SIMPEngine
         SIMPK_F11 = SDLK_F11,
         SIMPK_F12 = SDLK_F12,
 
-        // mouse buttons
         SIMPK_MOUSE_LEFT = SDL_BUTTON_LEFT,
         SIMPK_MOUSE_RIGHT = SDL_BUTTON_RIGHT,
         SIMPK_MOUSE_MIDDLE = SDL_BUTTON_MIDDLE,
@@ -116,6 +111,5 @@ namespace SIMPEngine
         SIMPK_MOUSE_X2 = SDL_BUTTON_X2,
         SIMPK_MOUSE_WHEEL_UP = -1001,
         SIMPK_MOUSE_WHEEL_DOWN = -1002,
-
     };
 }

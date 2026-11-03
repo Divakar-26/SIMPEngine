@@ -7,7 +7,7 @@
 #include <Engine/Core/Profiler/EngineProfiler.h>
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer, &m_EditorContext), m_HieararchyPanel(&m_EditorContext), serializer(&renderingLayer->GetScene()), m_InspectorPanel(&m_EditorContext)
+    : Layer("EditorLayer"), m_ViewportPanel(renderingLayer, &m_EditorContext), m_HieararchyPanel(&m_EditorContext), m_InspectorPanel(&m_EditorContext), serializer(&renderingLayer->GetScene())
 {
     this->m_RenderingLayer = renderingLayer;
 
@@ -32,13 +32,6 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
 
 void EditorLayer::OnAttach()
 {
-    // NOTE: no per-widget style overrides here anymore — ImGuiLayer::
-    // ApplyModernTheme() owns every color/rounding/spacing value now.
-    // Overriding a single color locally (as this used to do for
-    // ImGuiCol_Tab) desyncs it from the rest of the theme the moment
-    // the theme changes, and specifically broke the "active tab fuses
-    // with the panel below it" seamless look.
-
     m_ViewportPanel.OnAttach();
 
     m_RenderingLayer->OnAttach();
@@ -76,10 +69,6 @@ void EditorLayer::OnRender()
     window_flags |= ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
     window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 
-    // Zero padding/rounding/border on the dockspace HOST window specifically
-    // (separate from the general theme) — this is what lets the first row
-    // of docked panels sit flush against the menu bar and screen edges
-    // instead of leaving a themed-but-visible gap around the whole layout.
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));

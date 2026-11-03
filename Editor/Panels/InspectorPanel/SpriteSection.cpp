@@ -4,7 +4,10 @@ void AcceptPayload(const ImGuiPayload *payload, SpriteComponent & sc );
 
 void InspectorPanel::DrawSpriteSection(SIMPEngine::Entity &m_SelectedEntity)
 {
-    DrawComponentCard<SpriteComponent>("Sprite", m_SelectedEntity, [this](auto &sc)
+    SIMPEngine::Scene *const selectedScene = m_Context->Scene;
+    const entt::entity selectedHandle = m_SelectedEntity.GetHandle();
+
+    DrawComponentCard<SpriteComponent>("Sprite", m_SelectedEntity, [this, selectedScene, selectedHandle](auto &sc)
                                        {
                                            ImGui::DragFloat("Width", &sc.width, 0.1f);
                                            ImGui::DragFloat("Height", &sc.height, 0.1f);
@@ -63,8 +66,14 @@ void InspectorPanel::DrawSpriteSection(SIMPEngine::Entity &m_SelectedEntity)
                                                m_AssetPicker->Open(
                                                    "Select Texture",
                                                    "assets://",
-                                                   [&](const std::string &vpath)
+                                                   [this, selectedScene, selectedHandle](const std::string &vpath)
                                                    {
+                                                       if (m_Context->Scene != selectedScene)
+                                                           return;
+                                                       SIMPEngine::Entity selected(selectedHandle, selectedScene);
+                                                       if (!selected || !selected.HasComponent<SpriteComponent>())
+                                                           return;
+
                                                        auto texture =
                                                            std::make_shared<SIMPEngine::Texture>();
 
@@ -89,12 +98,9 @@ void InspectorPanel::DrawSpriteSection(SIMPEngine::Entity &m_SelectedEntity)
 
                                                        texture->SetVFSPath(vpath);
 
-                                                       sc.texture = texture;
+                                                       selected.GetComponent<SpriteComponent>().texture = texture;
                                                    });
                                            }
-
-                                           // later:
-                                           // drag-drop texture assignment
                                        });
 }
 

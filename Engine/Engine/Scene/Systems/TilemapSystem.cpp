@@ -6,7 +6,6 @@
 
 namespace SIMPEngine
 {
-    
     void TilemapSystem::Render(entt::registry &registry)
     {
         auto view = registry.view<TilemapComponent, TransformComponent>();
@@ -63,4 +62,4 @@ namespace SIMPEngine
             }
         }
     }
-} // namespace SIMPEngine
+}

@@ -4,15 +4,12 @@
 
 namespace SIMPEngine
 {
-
     TextureManager &TextureManager::Get()
     {
         static TextureManager instance;
         return instance;
     }
 
-    // i will pass mounted, like "assets:://etc.png"
-    // TODO: I need to resolve the path here
     std::shared_ptr<Texture> TextureManager::LoadTexture(const std::string &id, const std::string &filePath)
     {
         auto it = m_TextureMap.find(id);
@@ -37,12 +34,10 @@ namespace SIMPEngine
         m_TextureMap[id] = texture;
         m_TextureMap[id]->SetVFSPath(filePath);
         LOG_INFO("Loaded texture: {}", id);
-        // SDL_SetTextureScaleMode(texture->GetSDLTexture(), SDL_SCALEMODE_NEAREST);
 
         return texture;
     }
 
-    // get the texture from id like "snake", "ball" etc etc
     std::shared_ptr<Texture> TextureManager::GetTexture(const std::string &id)
     {
         auto it = m_TextureMap.find(id);
@@ -70,5 +65,4 @@ namespace SIMPEngine
     {
         UnloadAll();
     }
-
 }

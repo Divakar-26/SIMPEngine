@@ -12,24 +12,15 @@
 #include "Events/MouseEvent.h"
 #include "Input/Input.h"
 #include "Input/SIMP_Keys.h"
-#include "Rendering/TextureManager.h"
 
 namespace SIMPEngine
 {
     class WindowResizeEvent;
-    std::shared_ptr<Texture> m_TestGrass; 
 
     void RenderingLayer::OnAttach()
     {
         Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
-
-        auto scene = m_SceneManager->GetActiveScene();
-
-
-        m_TestGrass = TextureManager::Get().LoadTexture(
-            "assets://textures/Grass.png",
-            "assets://textures/Grass.png");
     }
 
     void RenderingLayer::OnDetach()
@@ -63,9 +54,6 @@ namespace SIMPEngine
         if (scene)
             scene->OnRender();
 
-        int width = Renderer::m_WindowWidth;
-        int height = Renderer::m_WindowHeight;
-
         Renderer::Flush();
     }
 
@@ -76,7 +64,7 @@ namespace SIMPEngine
                                                      { return false; });
 
         dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent &ev)
-                                               { 
+                                               {
         int width = ev.GetWidth();
         int height = ev.GetHeight();
 
@@ -89,5 +77,4 @@ namespace SIMPEngine
         CORE_INFO("Viewport resized: {}x{}", width, height);
         return false; });
     }
-
 }

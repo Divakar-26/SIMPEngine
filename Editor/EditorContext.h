@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <Engine/Scene/Scene.h>
@@ -13,7 +12,7 @@ struct EditorContext
 {
     SIMPEngine::Scene *Scene = nullptr;
 
-    SIMPEngine::Entity SelectedEntity; 
+    SIMPEngine::Entity SelectedEntity;
     SIMPEngine::Entity HoveredEntity{};
 
     SceneState State = SceneState::Edit;

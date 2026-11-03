@@ -64,7 +64,6 @@ void InspectorPanel::OnImGuiRender()
 
     if (widthChanged || heightChanged)
     {
-        // Use m_SelectedEntity directly (captured in lambda)
         if (m_SelectedEntity.HasComponent<SpriteComponent>())
         {
             auto &sprite = m_SelectedEntity.GetComponent<SpriteComponent>();
@@ -74,7 +73,7 @@ void InspectorPanel::OnImGuiRender()
     } });
 
         DrawComponentCard<VelocityComponent>("Velocity", m_SelectedEntity, [](auto &vc)
-                                         { ImGui::DragFloat("Velocity X", &vc.vx, 0.1f); 
+                                         { ImGui::DragFloat("Velocity X", &vc.vx, 0.1f);
                                             ImGui::DragFloat("Velocity Y", &vc.vy, 0.1f); });
 
         DrawComponentCard<CameraComponent>("Camera", m_SelectedEntity, [](auto &cc)
@@ -87,7 +86,6 @@ void InspectorPanel::OnImGuiRender()
                                               ImGui::DragFloat("Offset X", &col.offsetX, 0.1f);
                                               ImGui::DragFloat("Offset Y", &col.offsetY, 0.1f); });
 
-        // sprite section
         DrawSpriteSection(m_SelectedEntity);
 
         DrawComponentCard<LifetimeComponent>("Lifetime",
@@ -102,12 +100,9 @@ void InspectorPanel::OnImGuiRender()
                                                  10000.0f);
                                          });
 
-        // animation
         DrawAnimationSection(m_SelectedEntity);
 
-        // Physics 
-        DrawPhysicsSection(m_SelectedEntity);        
-
+        DrawPhysicsSection(m_SelectedEntity);
     }
 
     ImGui::End();

@@ -5,7 +5,6 @@
 #include <Engine/Assets/Importers.h>
 
 namespace SIMPEngine {
-
 void AssetManager::Init(const std::string& rootAssetsDir, const std::string& registryPath){
     m_Root = rootAssetsDir;
     m_RegistryPath = registryPath;
@@ -19,7 +18,6 @@ AssetHandle AssetManager::ImportIfNeeded(const std::string& vpath, AssetType typ
     auto real = VFS::Resolve(vpath);
     if (!real) return 0;
 
-    // Registry keeps both paths
     auto handle = m_Registry.GetOrCreateForVirtualPath(vpath, type, *real);
 
     CORE_INFO("Importing asset vpath={} real={}", vpath, *real);

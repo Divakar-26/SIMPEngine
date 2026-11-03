@@ -9,21 +9,26 @@
 
 namespace SIMPEngine
 {
+    Entity::operator bool() const
+    {
+        return m_Scene != nullptr && m_EntityHandle != entt::null &&
+               m_Scene->GetRegistry().valid(m_EntityHandle);
+    }
+
     Scene::Scene(const std::string &name) : m_Name(name)
     {
         physicsSystem.SetSubstep(20);
 
         m_Registry.on_destroy<ScriptComponent>().connect<&Scene::OnScriptComponentDestroyed>(this);
         m_Registry.on_destroy<PhysicsComponent>().connect<&Scene::OnPhysicsComponentDestroyed>(this);
-        m_Registry.on_destroy<AnimatedSpriteComponent>().connect<&Scene::OnAnimatedSpriteComponentDestroyed>(this);
         m_Registry.on_destroy<HierarchyComponent>().connect<&Scene::OnHierarchyComponentDestroyed>(this);
-    } 
+    }
 
     void Scene::DestroyEntity(Entity entity)
     {
         if (!entity || !m_Registry.valid(entity.GetHandle()))
             return;
-        m_Registry.destroy(entity.GetHandle()); 
+        m_Registry.destroy(entity.GetHandle());
     }
 
     Entity Scene::CreateEntity(const std::string &name)
@@ -60,7 +65,6 @@ namespace SIMPEngine
 
     void Scene::OnUpdate(float deltaTime)
     {
-        // start phycsis frame
         physicsSystem.startFrame(deltaTime);
         physicsSystem.UpdateTransform(m_Registry);
 
@@ -88,14 +92,11 @@ namespace SIMPEngine
             sc.Instance->OnUpdate(deltaTime);
         }
 
-        // update physics
         physicsSystem.Update(m_Registry, deltaTime);
 
-        // upgrading all animation
         animationSystem.Update(m_Registry, deltaTime);
     }
 
-    // TODO -> Z INDEX SYSTEM -> DONE
     void Scene::OnRender()
     {
         cameraSystem.OnRender(m_Registry);
@@ -116,11 +117,9 @@ namespace SIMPEngine
 
     void Scene::Clear()
     {
-        // Destroy physics bodies
         physicsSystem.DestroyBodies();
         physicsSystem.DestroyWorld();
 
-        // Destroy all ECS entities
         m_Registry.clear();
     }
 
@@ -143,7 +142,6 @@ namespace SIMPEngine
         if (scriptComponent.Instance)
         {
             scriptComponent.Instance->OnDestroy();
-            // unique_ptr automatically destroys on component removal
         }
     }
 
@@ -155,13 +153,6 @@ namespace SIMPEngine
 
         auto &bodies = physicsSystem.bodies;
         bodies.erase(std::remove(bodies.begin(), bodies.end(), physicsComponent.body.get()), bodies.end());
-        // unique_ptr automatically destroys body on component removal
-    }
-
-    void Scene::OnAnimatedSpriteComponentDestroyed(entt::registry &registry, entt::entity entity)
-    {
-        auto &animatedSprite = registry.get<AnimatedSpriteComponent>(entity);
-        // unique_ptr automatically destroys animation on component removal
     }
 
     void Scene::OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity)
@@ -186,5 +177,4 @@ namespace SIMPEngine
                 childHierarchy.parent = entt::null;
         }
     }
-
-} // namespace SIMPEngine
+}

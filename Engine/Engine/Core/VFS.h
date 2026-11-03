@@ -5,15 +5,14 @@
 
 namespace SIMPEngine{
     class VFS
-    {   
+    {
         public:
-            static void Mount(const std::string & alias, const std::string & realPath); //this is where the virtual path will be mounted
+            static void Mount(const std::string & alias, const std::string & realPath);
 
             static bool UnMount(const std::string & alias);
             static std::optional<std::string> Resolve(const std::string & virtualPath);
             static const std::unordered_map<std::string , std::string> & Mounts();
 
-            static std::unordered_map<std::string, std::string> s_Mounts; //all the virutal path will be stored here
+            static std::unordered_map<std::string, std::string> s_Mounts;
     };
-    
 };

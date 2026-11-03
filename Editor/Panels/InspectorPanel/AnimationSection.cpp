@@ -64,7 +64,6 @@ namespace
 
         if (fc > visible)
         {
-            // Ellipsis indicator
             ImVec2 dotMin(cursor.x + visible * (cellW + 2.0f), cursor.y);
             ImVec2 dotMax(dotMin.x + 20.0f, dotMin.y + stripHeight);
             dl->AddRectFilled(dotMin, dotMax, IM_COL32(30, 30, 35, 180));
@@ -79,9 +78,12 @@ namespace
 
 void InspectorPanel::DrawAnimationSection(SIMPEngine::Entity& m_SelectedEntity)
 {
+    SIMPEngine::Scene *const selectedScene = m_Context->Scene;
+    const entt::entity selectedHandle = m_SelectedEntity.GetHandle();
+
     DrawComponentCard<AnimatedSpriteComponent>(
         "Animated Sprite", m_SelectedEntity,
-        [this, &m_SelectedEntity](AnimatedSpriteComponent& ac)
+        [this, selectedScene, selectedHandle, &m_SelectedEntity](AnimatedSpriteComponent& ac)
         {
             SIMPEngine::Animation* anim = ac.animation.get();
 
@@ -98,9 +100,14 @@ void InspectorPanel::DrawAnimationSection(SIMPEngine::Entity& m_SelectedEntity)
                     m_AssetPicker->Open(
                         "Select Sprite Sheet",
                         "assets://",
-                        [this, &m_SelectedEntity](const std::string& vpath)
+                        [this, selectedScene, selectedHandle](const std::string& vpath)
                         {
-                            m_AnimationMaker->Open(m_SelectedEntity, vpath);
+                            if (m_Context->Scene != selectedScene)
+                                return;
+                            SIMPEngine::Entity selected(selectedHandle, selectedScene);
+                            if (!selected || !selected.HasComponent<AnimatedSpriteComponent>())
+                                return;
+                            m_AnimationMaker->Open(selected, vpath);
                         });
                 }
                 return;
@@ -142,7 +149,6 @@ void InspectorPanel::DrawAnimationSection(SIMPEngine::Entity& m_SelectedEntity)
 
                 if (changed)
                 {
-                    // Rebuild animation in-place with new parameters
                     ac.animation = std::make_unique<SIMPEngine::Animation>(
                         tex,
                         std::max(1, fw),
@@ -199,9 +205,14 @@ void InspectorPanel::DrawAnimationSection(SIMPEngine::Entity& m_SelectedEntity)
                 m_AssetPicker->Open(
                     "Replace Sprite Sheet",
                     "assets://",
-                    [this, &m_SelectedEntity](const std::string& vpath)
+                    [this, selectedScene, selectedHandle](const std::string& vpath)
                     {
-                        m_AnimationMaker->Open(m_SelectedEntity, vpath);
+                        if (m_Context->Scene != selectedScene)
+                            return;
+                        SIMPEngine::Entity selected(selectedHandle, selectedScene);
+                        if (!selected || !selected.HasComponent<AnimatedSpriteComponent>())
+                            return;
+                        m_AnimationMaker->Open(selected, vpath);
                     });
             }
 

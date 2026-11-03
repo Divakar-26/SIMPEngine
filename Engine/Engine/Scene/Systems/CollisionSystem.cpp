@@ -1,7 +1,3 @@
-//
-// Created by divakar on 9/14/26.
-//
-
 #include "CollisionSystem.h"
 
 void SIMPEngine::CollisionSystem::Update(entt::registry &r, float dt)

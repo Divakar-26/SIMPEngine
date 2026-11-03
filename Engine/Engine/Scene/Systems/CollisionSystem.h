@@ -1,4 +1,3 @@
-// Scene/Systems/CollisionSystem.h
 #pragma once
 #include <Engine/Scene/Component.h>
 
@@ -8,11 +7,9 @@
 
 namespace SIMPEngine
 {
-
     class CollisionSystem
     {
     public:
         void Update(entt::registry &r, float dt);
     };
-
 }

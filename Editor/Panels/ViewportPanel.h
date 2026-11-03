@@ -31,8 +31,6 @@ public:
     void DrawCartesianLines();
     void FocusOnSelectedEntity();
 
-
-
 private:
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
     EditorContext *m_Context = nullptr;

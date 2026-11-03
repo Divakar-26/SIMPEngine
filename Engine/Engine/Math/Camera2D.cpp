@@ -10,14 +10,14 @@
 namespace SIMPEngine
 {
     Camera2D::Camera2D(float zoom, const glm::vec2 &position) : m_Position(position),
-                                                                m_TargetPosition(position),
                                                                 m_ManualZoom(zoom),
                                                                 m_Rotation(0.0f),
+                                                                m_Dirty(true),
+                                                                m_ViewMatrix(1.0f),
+                                                                m_TargetPosition(position),
                                                                 m_SmoothFactor(10.0f),
                                                                 m_MoveSpeed(200.0f),
-                                                                m_ZoomSpeed(15.0f),
-                                                                m_Dirty(true),
-                                                                m_ViewMatrix(1.0f)
+                                                                m_ZoomSpeed(15.0f)
     {
     }
 
@@ -72,18 +72,9 @@ namespace SIMPEngine
 
         Move(moveDelta);
 
-        int wheelDelta = Input::GetMouseWheel();
-
-        if (m_AllowZoom)
-        {
-            if (wheelDelta > 0)
-                m_ManualZoom += 0.1f * wheelDelta;
-
-            if (wheelDelta < 0)
-                m_ManualZoom -= 0.1f * -wheelDelta;
-
-            m_ManualZoom = glm::clamp(m_ManualZoom, 0.1f, 10.0f);
-        }
+        const float wheelDelta = Input::GetMouseWheel();
+        if (m_AllowZoom && wheelDelta != 0.0f)
+            SetZoom(m_ManualZoom + 0.1f * wheelDelta);
 
         glm::vec2 mousePixel(
             Input::GetMousePosition().first,
@@ -135,13 +126,11 @@ namespace SIMPEngine
     {
         glm::mat4 view(1.0f);
 
-        // Move world opposite to camera
         view = glm::translate(view,
                               glm::vec3(-m_Position.x,
                                         -m_Position.y,
                                         0.0f));
 
-        // Rotate world opposite to camera
         view = glm::rotate(view,
                            glm::radians(-m_Rotation),
                            glm::vec3(0, 0, 1));
@@ -205,7 +194,6 @@ namespace SIMPEngine
         if (m_ViewportWidth == 0 || m_ViewportHeight == 0)
             return {0, 0};
 
-        // pixel → NDC (-1 to 1)
         float ndcX =
             (2.0f * pixel.x) / m_ViewportWidth - 1.0f;
 

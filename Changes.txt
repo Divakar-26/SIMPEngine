@@ -4,3 +4,18 @@ Akshat
         2. commented out the font section in Imgui
     6:50 - 15/02/2026
         1. Seperated AnimationSystem from the main Scene                MERGED
+
+28/10/2026
+    1. Serializer: Z-index, camera zoom, hierarchy, tilemap tiles/tileset, animation state
+    2. SceneManager: failed load no longer registers an empty scene
+    3. SpriteComponent size drives sprite size, flush batch on view matrix change
+    4. Float mouse wheel delta, reset every frame, window size refresh on resize
+    5. Layers detach in reverse, caches/renderer cleared before GL context dies
+    6. Removed duplicate CMake sources, -Wall -Wextra, VFS mounts relative to exe
+    7. Entity validity check, picker callbacks re-fetch components
+    8. GL debug callback in Debug, asan preset
+
+04/11/2026
+    1. Fixed build: SDL_GetBasePath const, Entity/Scene include cycle
+    2. Removed dead code and comments, CMake cleanup
+    3. Fixed -Wreorder, unused vars, PROFILE_SCOPE clash with AccelEngine

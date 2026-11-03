@@ -411,7 +411,7 @@ bool clicked = SIMPEngine::Input::IsMouseButtonPressed(SDL_BUTTON_LEFT);
 auto [x, y] = SIMPEngine::Input::GetMousePosition();
 
 // Mouse wheel
-int scroll = SIMPEngine::Input::GetMouseWheel();
+float scroll = SIMPEngine::Input::GetMouseWheel();
 
 // Reset state (called automatically each frame)
 SIMPEngine::Input::ResetAllKeys();

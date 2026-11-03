@@ -13,7 +13,7 @@ namespace SIMPEngine{
         bool Has(AssetHandle h) const{
             return m_Map.count(h)>0;
         }
-        
+
         AssetMetadata * Get(AssetHandle h);
         const AssetMetadata * Get(AssetHandle h) const;
 

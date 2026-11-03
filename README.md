@@ -10,7 +10,7 @@ A modern, modular 2D game engine built with C++20, SDL3, OpenGL, and EnTT ECS. D
 - **Physics Integration** - Rigid body physics via AccelEngine library
 - **Animation System** - Sprite animation with frame-based timing
 - **Tilemap Support** - Tiled map format support for level design
-- **Input Handling** - Keyboard, mouse, and gamepad input management
+- **Input Handling** - Keyboard and mouse input management
 - **Asset Management** - Centralized texture, shader, and resource loading
 - **Layer System** - Modular layer-based architecture for scene organization
 - **Integrated Editor** - Real-time game editor with viewport, hierarchy, and inspector panels
@@ -35,7 +35,7 @@ cmake --build --preset release
 Run the game:
 
 ```bash
-./build/dev/bin/GameApp
+./build/dev/Game/GameApp
 ```
 
 ### Creating a Simple Game
@@ -54,8 +54,8 @@ public:
         sceneManager->AddScene("Level1", scene);
         sceneManager->SetActiveScene("Level1");
         
-        auto renderingLayer = new SIMPEngine::RenderingLayer(sceneManager);
-        PushOverlay(renderingLayer);
+        auto renderingLayer = std::make_unique<SIMPEngine::RenderingLayer>(sceneManager);
+        PushOverlay(std::move(renderingLayer));
     }
 };
 
@@ -170,36 +170,15 @@ The integrated editor provides:
 - **Content Browser** - Asset management and preview
 - **Gizmo System** - Transform manipulation tools
 
-## Performance Profiling (Tracy)
+## Performance Profiling
 
-Tracy Profiler is integrated for real-time performance analysis. Profiling is **zero-cost when disabled**.
+A built-in CPU profiler (`Engine/Core/Profiler/EngineProfiler.h`) records frame times and per-scope statistics and shows them in an ImGui panel.
 
-### Usage
-
-**Terminal 1 - Start Tracy GUI:**
-```bash
-./tracy
-```
-
-**Terminal 2 - Run game (auto-connects to Tracy):**
-```bash
-./build/bin/GameApp
-```
-
-The game automatically sends frame data to `localhost:8086`. View frame timeline, zones, memory, and statistics in real-time.
-
-### Build Options
-
-```bash
-cd build
-cmake .. -DENABLE_TRACY_PROFILING=ON   # Enable profiling
-make -j$(nproc)
-```
-
-Default is OFF (zero overhead). Profiling macros:
-- `PROFILE_FRAME()` - Frame boundary
+- `PROFILE_FRAME_BEGIN()` / `PROFILE_FRAME_END()` - Frame boundary
 - `PROFILE_SCOPE("name")` - Scoped timing
 - `PROFILE_FUNCTION()` - Function timing
+
+Define `ENGINE_PROFILER_DISABLED` to compile all profiling macros out.
 
 ## License
 

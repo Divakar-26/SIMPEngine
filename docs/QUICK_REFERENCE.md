@@ -120,7 +120,7 @@ if (SIMPEngine::Input::IsMouseButtonPressed(SDL_BUTTON_LEFT)) {
 auto [x, y] = SIMPEngine::Input::GetMousePosition();
 
 // Mouse scroll
-int = SIMPEngine::Input::GetMouseWheel();  // -1, 0, or 1
+float scroll = SIMPEngine::Input::GetMouseWheel();  // -1, 0, or 1
 ```
 
 ## Key Codes

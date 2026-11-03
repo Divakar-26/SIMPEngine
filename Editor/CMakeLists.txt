@@ -1,4 +1,3 @@
-# Create Editor library
 add_library(Editor STATIC
     EditorLayer.cpp
     EditorCommands.cpp
@@ -19,15 +18,8 @@ target_compile_definitions(Editor PRIVATE ENGINE_PROFILER_ENABLE_IMGUI)
 target_include_directories(Editor PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/Panels
-    # ${CMAKE_CURRENT_SOURCE_DIR}/icons
-    ${CMAKE_SOURCE_DIR}/Engine 
-    ${CMAKE_SOURCE_DIR}/Editor
+    ${CMAKE_SOURCE_DIR}/Engine
 )
-
-target_sources(imgui PRIVATE
-    ${CMAKE_SOURCE_DIR}/vendor/ImGuizmo/ImGuizmo.cpp
-)
-
 
 target_link_libraries(Editor
     PUBLIC Engine

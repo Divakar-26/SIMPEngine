@@ -36,7 +36,6 @@ void ViewportPanel::OnImGuiRender()
     m_RenderingLayer->GetCamera().SetAllowZoom(m_Context->ViewportHovered);
     ResizeViewportIfNeeded(viewportSize);
 
-    // Render scene
     auto api = SIMPEngine::Renderer::GetAPI();
     api->BeginFrame();
     m_RenderingLayer->GetCamera().SetViewportSize(viewportSize.x, viewportSize.y);
@@ -44,8 +43,6 @@ void ViewportPanel::OnImGuiRender()
     SIMPEngine::Renderer::Clear();
     DrawCartesianLines();
     m_RenderingLayer->OnRender();
-
-    // DrawGridDots();
 
     api->EndFrame();
 
@@ -63,7 +60,7 @@ void ViewportPanel::OnImGuiRender()
 
     if (m_Context->ViewportFocused && ImGui::IsKeyDown(ImGuiKey_F))
     {
-        FocusOnSelectedEntity(); // inside ViewportUtility.cpp
+        FocusOnSelectedEntity();
     }
 
     ShowDetailsInViewport();
@@ -288,10 +285,10 @@ void ViewportPanel::DrawSelectionOutline()
     drawList->AddRect(
         min,
         max,
-        IM_COL32(255, 0, 0, 255), // yellow
-        0.0f,                     // rounding
+        IM_COL32(255, 0, 0, 255),
+        0.0f,
         0,
-        2.0f // thickness
+        2.0f
     );
 }
 

@@ -3,7 +3,6 @@
 
 namespace SIMPEngine
 {
-
     class MouseMovedEvent : public Event
     {
     public:
@@ -86,5 +85,4 @@ namespace SIMPEngine
             return std::string(GetName()) + ": " + std::to_string(m_Button);
         }
     };
-
-} // namespace SIMPEngine
+}

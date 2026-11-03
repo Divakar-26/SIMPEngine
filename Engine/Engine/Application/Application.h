@@ -7,12 +7,10 @@
 #include <Engine/Math/Camera2D.h>
 #include <Engine/Scene/SceneManager.h>
 
-
 #include <functional>
 
 namespace SIMPEngine
 {
-
     class Application
     {
     public:
@@ -21,7 +19,7 @@ namespace SIMPEngine
 
         void Run();
         void OnEvent(Event &e);
-        void SDLEventToEngine(SDL_Event &event); 
+        void SDLEventToEngine(SDL_Event &event);
 
         void PushLayer(std::unique_ptr<Layer> layer);
         void PushOverlay(std::unique_ptr<Layer> overlay);
@@ -29,7 +27,6 @@ namespace SIMPEngine
         Window &GetWindow() { return m_Window; }
 
         static Application &Get() { return *s_Instance; }
-        // RenderingLayer* GetRenderingLayer() { return m_RenderingLayer; }
 
         ImGuiLayer *GetImGuiLayer() { return m_ImGuiLayer; }
 
@@ -43,6 +40,5 @@ namespace SIMPEngine
         static Application *s_Instance;
     };
 
-    // To be defined by the client (game)
     Application *CreateApplication();
 }

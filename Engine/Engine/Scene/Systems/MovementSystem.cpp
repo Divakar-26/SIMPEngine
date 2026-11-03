@@ -1,7 +1,3 @@
-//
-// Created by divakar on 9/14/26.
-//
-
 #include "MovementSystem.h"
 
 void SIMPEngine::MovementSystem::Update(entt::registry &r, float dt)

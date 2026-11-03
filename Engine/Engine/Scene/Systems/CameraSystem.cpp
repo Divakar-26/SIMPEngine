@@ -3,7 +3,6 @@
 
 namespace SIMPEngine
 {
-
     void CameraSystem::OnUpdate(entt::registry &registry, float dt)
     {
         auto cameraView = registry.view<CameraComponent, TransformComponent>();

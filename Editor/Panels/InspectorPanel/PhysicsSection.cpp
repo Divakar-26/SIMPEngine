@@ -2,10 +2,6 @@
 #include <AccelEngine/world.h>
 #include <imgui.h>
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
 static const char* ShapeLabel(AccelEngine::ShapeType t)
 {
     switch (t)
@@ -65,7 +61,6 @@ static void DrawBodyCreator(SIMPEngine::Entity& entity)
 
     ImGui::Spacing();
 
-    // Static (infinite mass) convenience shortcut
     if (ImGui::Button("Add Static AABB Body", ImVec2(-1, 28)))
     {
         if (!entity.HasComponent<PhysicsComponent>())
@@ -77,7 +72,7 @@ static void DrawBodyCreator(SIMPEngine::Entity& entity)
         phys.body->entityID   = (uint32_t)entity.GetHandle();
         phys.body->shapeType  = AccelEngine::ShapeType::AABB;
         phys.body->aabb.halfSize = { 0.5f, 0.5f };
-        phys.body->inverseMass   = 0.0f;   // static
+        phys.body->inverseMass   = 0.0f;
         phys.body->restitution   = 0.3f;
         phys.body->staticFriction  = 0.8f;
         phys.body->dynamicFriction = 0.6f;
@@ -89,9 +84,6 @@ static void DrawBodyCreator(SIMPEngine::Entity& entity)
 
 static void DrawBodyControls(AccelEngine::RigidBody* body)
 {
-    // ------------------------------------------------------------------
-    // Shape info (read-only label + shape-specific size)
-    // ------------------------------------------------------------------
     ImGui::TextUnformatted("Shape");
     ImGui::Separator();
     ImGui::Spacing();
@@ -113,9 +105,6 @@ static void DrawBodyControls(AccelEngine::RigidBody* body)
     ImGui::Spacing();
     ImGui::Spacing();
 
-    // ------------------------------------------------------------------
-    // Transform
-    // ------------------------------------------------------------------
     ImGui::TextUnformatted("Transform");
     ImGui::Separator();
     ImGui::Spacing();
@@ -126,16 +115,12 @@ static void DrawBodyControls(AccelEngine::RigidBody* body)
     ImGui::Spacing();
     ImGui::Spacing();
 
-    // ------------------------------------------------------------------
-    // Motion
-    // ------------------------------------------------------------------
     ImGui::TextUnformatted("Motion");
     ImGui::Separator();
     ImGui::Spacing();
 
     ImGui::DragFloat2("Velocity",    &body->velocity.x,    0.01f);
 
-    // Display mass as a friendlier value; 0 inverse mass = static
     float mass = (body->inverseMass > 0.0f) ? (1.0f / body->inverseMass) : 0.0f;
     if (ImGui::DragFloat("Mass", &mass, 0.1f, 0.0f, 100000.0f, "%.3f"))
     {
@@ -148,9 +133,6 @@ static void DrawBodyControls(AccelEngine::RigidBody* body)
     ImGui::Spacing();
     ImGui::Spacing();
 
-    // ------------------------------------------------------------------
-    // Material
-    // ------------------------------------------------------------------
     ImGui::TextUnformatted("Material");
     ImGui::Separator();
     ImGui::Spacing();
@@ -162,9 +144,6 @@ static void DrawBodyControls(AccelEngine::RigidBody* body)
     ImGui::Spacing();
     ImGui::Spacing();
 
-    // ------------------------------------------------------------------
-    // Constraints
-    // ------------------------------------------------------------------
     ImGui::TextUnformatted("Constraints");
     ImGui::Separator();
     ImGui::Spacing();
@@ -176,9 +155,6 @@ static void DrawBodyControls(AccelEngine::RigidBody* body)
     ImGui::Spacing();
     ImGui::Spacing();
 
-    // ------------------------------------------------------------------
-    // Runtime controls
-    // ------------------------------------------------------------------
     ImGui::TextUnformatted("Runtime");
     ImGui::Separator();
     ImGui::Spacing();
@@ -194,15 +170,8 @@ static void DrawBodyControls(AccelEngine::RigidBody* body)
     }
 }
 
-// ---------------------------------------------------------------------------
-// Public entry point called from InspectorPanel::OnImGuiRender
-// ---------------------------------------------------------------------------
-
 void InspectorPanel::DrawPhysicsSection(SIMPEngine::Entity& m_SelectedEntity)
 {
-    // If the entity has no PhysicsComponent at all, show a lightweight
-    // "Add Component" section outside of DrawComponentCard so it always
-    // appears even when the component is absent.
     if (!m_SelectedEntity.HasComponent<PhysicsComponent>())
     {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
@@ -228,7 +197,6 @@ void InspectorPanel::DrawPhysicsSection(SIMPEngine::Entity& m_SelectedEntity)
         return;
     }
 
-    // Component exists — use the standard card.
     DrawComponentCard<PhysicsComponent>(
         "Physics",
         m_SelectedEntity,
@@ -236,7 +204,6 @@ void InspectorPanel::DrawPhysicsSection(SIMPEngine::Entity& m_SelectedEntity)
         {
             if (!pc.body)
             {
-                // Component exists but body was never constructed (edge case).
                 DrawBodyCreator(m_SelectedEntity);
                 return;
             }
@@ -247,7 +214,6 @@ void InspectorPanel::DrawPhysicsSection(SIMPEngine::Entity& m_SelectedEntity)
             ImGui::Separator();
             ImGui::Spacing();
 
-            // Destroy body (keeps component, just nulls the body)
             ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.55f, 0.18f, 0.18f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.72f, 0.22f, 0.22f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.42f, 0.14f, 0.14f, 1.0f));

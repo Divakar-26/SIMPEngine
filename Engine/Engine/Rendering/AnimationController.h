@@ -5,7 +5,6 @@
 #include <memory>
 #include <vector>
 
-
 namespace SIMPEngine
 {
     class AnimationController{
@@ -28,5 +27,5 @@ namespace SIMPEngine
 
             std::string m_CurrentName;
             Animation * m_Current = nullptr;
-    }; 
-} // namespace SIMPEngine
+    };
+}

@@ -85,5 +85,4 @@ namespace SIMPEngine
         auto np = fs::weakly_canonical(fs::u8path(p), ec);
         return ec ? fs::u8path(p).lexically_normal().string() : np.string();
     }
-
 }

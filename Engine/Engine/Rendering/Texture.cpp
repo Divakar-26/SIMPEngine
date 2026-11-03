@@ -8,7 +8,6 @@
 
 namespace SIMPEngine
 {
-
     Texture::Texture() {}
 
     Texture::~Texture()
@@ -19,13 +18,11 @@ namespace SIMPEngine
     bool Texture::LoadFromFile(const char *path)
     {
         Destroy();
-        
+
         m_Path = (std::string)path;
 
         stbi_set_flip_vertically_on_load(true);
         int channel;
-        // Always decode to RGBA: avoids unpack-alignment problems with 3-channel rows
-        // and lets grayscale images load too.
         unsigned char *data = stbi_load(path, &m_Width, &m_Height, &channel, 4);
         if (!data)
         {
@@ -33,7 +30,6 @@ namespace SIMPEngine
             return false;
         }
 
-        // Validate dimensions
         if (m_Width <= 0 || m_Height <= 0)
         {
             CORE_ERROR("Invalid image dimensions: {}x{} ch={}", m_Width, m_Height, channel);
@@ -52,8 +48,7 @@ namespace SIMPEngine
 
         glBindTexture(GL_TEXTURE_2D, m_TextureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, m_Width, m_Height, 0, format, GL_UNSIGNED_BYTE, data);
-        
-        // Verify texture upload succeeded
+
         GLenum error = glGetError();
         if (error != GL_NO_ERROR)
         {
@@ -64,9 +59,6 @@ namespace SIMPEngine
             return false;
         }
 
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        // setting up the properties of the texture, like wrapping and filtering
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -90,7 +82,7 @@ namespace SIMPEngine
     {
         Destroy();
         stbi_set_flip_vertically_on_load(true);
-        
+
         int width, height, channels;
         unsigned char *pixels = stbi_load_from_memory(data, static_cast<int>(size), &width, &height, &channels, 4);
         if (!pixels)
@@ -118,5 +110,4 @@ namespace SIMPEngine
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
-
 }

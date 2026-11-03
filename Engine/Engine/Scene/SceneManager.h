@@ -15,7 +15,6 @@ namespace SIMPEngine
         SceneManager() = default;
         ~SceneManager() = default;
 
-        
         void AddScene(const std::string & name, std::shared_ptr<Scene> scene)
         {
             m_Scenes[name] = std::move(scene);
@@ -44,24 +43,27 @@ namespace SIMPEngine
             }
         }
 
-        void LoadScene(const std::string& name, const std::string& filepath)
+        bool LoadScene(const std::string& name, const std::string& filepath)
         {
             if (HasScene(name)) {
                 SetActiveScene(name);
-                return;
+                return true;
             }
-            
+
             auto scene = std::make_shared<Scene>(name);
+            SceneSerializer serializer(scene.get());
+            if (!serializer.Deserialize(filepath))
+                return false;
+
             AddScene(name, scene);
             SetActiveScene(name);
-            SceneSerializer serializer(scene.get());
-            serializer.Deserialize(filepath);
+            return true;
         }
 
         std::shared_ptr<Scene> GetActiveScene() { return m_ActiveScene; }
         std::shared_ptr<const Scene> GetActiveScene() const { return m_ActiveScene; }
 
-        bool HasScene(const std::string name) const
+        bool HasScene(const std::string &name) const
         {
             return m_Scenes.find(name) != m_Scenes.end();
         }

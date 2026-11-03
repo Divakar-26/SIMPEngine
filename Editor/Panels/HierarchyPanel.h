@@ -9,7 +9,6 @@
 #include <../EditorCommands.h>
 #include <EditorPanel.h>
 
-
 class HierarchyPanel : public EditorPanel
 {
 public:
@@ -20,7 +19,7 @@ public:
 
 private:
 
-    EditorContext* m_Context;   
+    EditorContext* m_Context;
     char m_EntityNameBuffer[128] = "New Entity";
     bool m_OpenAddPopup = false;
 
@@ -35,6 +34,4 @@ private:
     bool m_AddAnimatedSprite = false;
     bool m_AddLifetime = false;
     bool m_AddTilemap = false;
-
-    // internal components are tag and hierarchy
 };

@@ -27,6 +27,22 @@ namespace SIMPEngine
         s_RenderingAPI->Init();
     }
 
+    void Renderer::SetWindowSize(int w, int h)
+    {
+        m_WindowWidth = std::max(0, w);
+        m_WindowHeight = std::max(0, h);
+    }
+
+    void Renderer::Shutdown()
+    {
+        if (s_RenderingAPI)
+            s_RenderingAPI->Flush();
+        s_RenderingAPI.reset();
+        s_ViewMatrix = glm::mat4(1.0f);
+        m_WindowWidth = 0;
+        m_WindowHeight = 0;
+    }
+
     void Renderer::SetClearColor(float r, float g, float b, float a)
     {
         s_RenderingAPI->SetClearColor(r, g, b, a);

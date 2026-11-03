@@ -1,4 +1,3 @@
-// ContentBrowserPanel.h
 #pragma once
 #include <string>
 #include <Engine/Assets/AssetManager.h>

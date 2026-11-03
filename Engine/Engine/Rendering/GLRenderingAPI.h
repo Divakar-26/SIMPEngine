@@ -10,7 +10,6 @@
 
 namespace SIMPEngine
 {
-    // ---- Quad batch (colored fills + textured sprites, unified) ----
     struct BatchQuad
     {
         glm::vec3 position;
@@ -18,8 +17,8 @@ namespace SIMPEngine
         float rotation;
         SDL_Color color;
         float zIndex;
-        glm::vec4 uvRect = {0.0f, 1.0f, 1.0f, 0.0f}; // (uTopLeft, vTopLeft, uBottomRight, vBottomRight)
-        float texIndex = 0.0f;                        // resolved texture slot at submission time (0 = white/no texture)
+        glm::vec4 uvRect = {0.0f, 1.0f, 1.0f, 0.0f};
+        float texIndex = 0.0f;
     };
 
     struct BatchVertex
@@ -33,14 +32,12 @@ namespace SIMPEngine
         glm::vec4 color;
     };
 
-    // ---- Line batch ----
     struct LineVertex
     {
         glm::vec2 pos;
         glm::vec4 color;
     };
 
-    // ---- Shape batch (instanced SDF shapes) ----
     struct ShapeInstance
     {
         glm::vec2 boundsCenter;
@@ -48,7 +45,7 @@ namespace SIMPEngine
         glm::vec2 dataA;
         glm::vec2 dataB;
         float radius;
-        float shapeType; // 0=circle, 1=roundedrect, 2=capsule
+        float shapeType;
         float aa;
         float _pad = 0.0f;
         glm::vec4 color;
@@ -95,9 +92,6 @@ namespace SIMPEngine
 
         const RenderStats &GetStats() const override { return m_Stats; }
 
-        // -- helper functions----
-        // Legacy single-draw uniform setup. No longer used by the batch
-        // pipeline (kept for source compatibility in case other code calls it).
         void ApplyCommonSpriteState(
             float x, float y, float width, float height,
             float rotation, float zIndex,
@@ -109,7 +103,6 @@ namespace SIMPEngine
     private:
         enum class BatchCategory { Quad, Line, Shape };
 
-        // Quad / texture batching
         void FlushQuads();
         void GenerateQuadVertices(BatchVertex *vertices, const BatchQuad &quad);
         void SubmitQuad(BatchQuad quad, GLuint textureID);
@@ -117,49 +110,42 @@ namespace SIMPEngine
         void ResetTextureSlots();
         void CreateWhiteTexture();
 
-        // Line batching
         void FlushLines();
         void AddLineToBatch(float x1, float y1, float x2, float y2, SDL_Color color);
 
-        // Shape batching
         void FlushShapes();
         void PushShapeInstance(const ShapeInstance &instance);
 
-        // Ensures categories flush in submission order relative to each other
-        // while still batching consecutive calls within the same category.
         void FlushAllExcept(BatchCategory keepPending);
 
         float m_ClearColor[4] = {0.1f, 0.1f, 0.1f, 1.0f};
 
-        // -- Quad/sprite pipeline --
         unsigned int m_VAO = 0, m_VBO = 0, m_EBO = 0;
         std::unique_ptr<Shader> m_Shader;
 
         static constexpr size_t MAX_BATCH_QUADS = 1000;
         static constexpr size_t MAX_VERTICES = MAX_BATCH_QUADS * 4;
         static constexpr size_t MAX_INDICES = MAX_BATCH_QUADS * 6;
-        static constexpr int MAX_TEXTURE_SLOTS = 16; // slot 0 reserved for the white fallback texture
+        static constexpr int MAX_TEXTURE_SLOTS = 16;
 
         std::vector<BatchQuad> m_QuadBatch;
         std::vector<BatchVertex> m_VertexData;
         bool m_IsBatchDirty = false;
-        bool m_SortByZIndex = true; // stable-sorts quads by zIndex before each flush for correct alpha blending
+        bool m_SortByZIndex = true;
 
         GLuint m_WhiteTexture = 0;
         std::array<GLuint, MAX_TEXTURE_SLOTS> m_TextureSlots{};
-        int m_UsedTextureSlots = 1; // slot 0 = white texture, always present
+        int m_UsedTextureSlots = 1;
 
-        // -- Line pipeline --
         unsigned int m_LineVAO = 0, m_LineVBO = 0;
         std::unique_ptr<Shader> m_LineShader;
-        static constexpr size_t MAX_LINE_VERTICES = 4096; // 2048 segments
+        static constexpr size_t MAX_LINE_VERTICES = 4096;
         std::vector<LineVertex> m_LineVertices;
 
-        // -- Shape pipeline (instanced) --
         std::unique_ptr<Shader> m_ShapeShader;
         GLuint m_ShapeVAO = 0;
-        GLuint m_ShapeUnitVBO = 0;     // static unit quad, divisor 0
-        GLuint m_ShapeInstanceVBO = 0; // per-instance data, divisor 1
+        GLuint m_ShapeUnitVBO = 0;
+        GLuint m_ShapeInstanceVBO = 0;
         static constexpr size_t MAX_SHAPE_INSTANCES = 2000;
         std::vector<ShapeInstance> m_ShapeInstances;
 

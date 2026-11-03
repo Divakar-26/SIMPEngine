@@ -1,11 +1,6 @@
 #pragma once
 
 namespace SIMPEngine::Shaders {
-
-    // NOTE: requires a GL 4.0+ context (see GLRenderingAPI::Init comments).
-    // Per-fragment dynamic indexing into a sampler array lets colored quads
-    // and textured sprites (including rasterized SVG icons) share one batch
-    // and one draw call, instead of texture switches forcing a flush.
     static constexpr const char* SPRITE_VERT = R"(
 #version 400 core
 
@@ -63,5 +58,4 @@ void main()
     FragColor = texColor * vColor;
 }
 )";
-
 }

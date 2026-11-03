@@ -6,7 +6,6 @@
 
 namespace EditorUI
 {
-
     constexpr float Padding = 4.0f;
 
     inline ImVec2 CalculateFitSize(const SIMPEngine::Texture &tex, float boxSize)
@@ -28,7 +27,6 @@ namespace EditorUI
         bool selected = false,
         const ImVec4 &tintCol = ImVec4(1, 1, 1, 1))
     {
-
         ImVec2 cellSize(boxSize, boxSize);
 
         ImVec2 start = ImGui::GetCursorScreenPos();

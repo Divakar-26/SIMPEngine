@@ -7,16 +7,14 @@
 
 namespace SIMPEngine
 {
-    // ImGui sink for capturing logs with bounded storage
     class ImGuiSink : public spdlog::sinks::base_sink<std::mutex>
     {
     private:
-        static constexpr size_t MAX_LOGS = 10000; // Prevent unbounded growth
- 
+        static constexpr size_t MAX_LOGS = 10000;
+
     public:
         std::vector<std::string> Logs;
 
-        // Clear old logs to prevent memory exhaustion
         void ClearOldLogs()
         {
             if (Logs.size() > MAX_LOGS)

@@ -10,6 +10,3 @@
 #include <Engine/Input/Input.h>
 #include <Engine/Input/SIMP_Keys.h>
 #include <Engine/Rendering/TextureManager.h>
-
-
-

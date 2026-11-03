@@ -1,9 +1,6 @@
 #pragma once
 
 namespace SIMPEngine::Shaders {
-
-    // Color moved from a uniform to a per-vertex attribute so many
-    // differently-colored segments can share a single GL_LINES draw call.
     static constexpr const char* LINE_VERT = R"(
 #version 330 core
 layout(location = 0) in vec2 aPos;

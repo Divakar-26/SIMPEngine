@@ -10,6 +10,9 @@
 #include "Events/MouseEvent.h"
 #include "Input/Input.h"
 #include "Rendering/GLRenderingAPI.h"
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Rendering/SvgTextureCache.h>
+#include <Engine/Rendering/TextureManager.h>
 
 namespace SIMPEngine
 {
@@ -20,7 +23,6 @@ namespace SIMPEngine
 
     Application::Application()
     {
-
         s_Instance = this;
         m_Window.Init("SIMPEngine", 1920, 1080);
 
@@ -40,9 +42,11 @@ namespace SIMPEngine
     Application::~Application()
     {
         ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
-        // The window (and its GL context) is shut down by m_Window's own destructor,
-        // which runs after m_LayerStack has been destroyed, so layers can still
-        // free their GL resources.
+        m_LayerStack.Clear();
+        Renderer::Flush();
+        SvgTextureCache::Clear();
+        TextureManager::Get().UnloadAll();
+        Renderer::Shutdown();
         s_Instance = nullptr;
     }
 
@@ -53,7 +57,6 @@ namespace SIMPEngine
         uint64_t lastFrameTime = SDL_GetPerformanceCounter();
         const double freq = (double)SDL_GetPerformanceFrequency();
 
-        // actual gameloop
         while (m_Running)
         {
             PROFILE_FRAME_BEGIN();
@@ -62,6 +65,8 @@ namespace SIMPEngine
             float deltaTime = (float)((currentFrameTime - lastFrameTime) / (float)freq);
             lastFrameTime = currentFrameTime;
 
+            Input::BeginFrame();
+
             {
                 PROFILE_SCOPE("Events");
 
@@ -69,12 +74,11 @@ namespace SIMPEngine
                 while (SDL_PollEvent(&sdlEvent))
                 {
                     if (m_ImGuiLayer)
-                        m_ImGuiLayer->OnSDLEvent(sdlEvent); // LOOKAT
+                        m_ImGuiLayer->OnSDLEvent(sdlEvent);
                     SDLEventToEngine(sdlEvent);
                 }
             }
 
-            // update all layers
             {
                 PROFILE_SCOPE("LayerUpdate");
 
@@ -82,7 +86,6 @@ namespace SIMPEngine
                     layer->OnUpdate(TimeStep(deltaTime));
             }
 
-            // Rendering
             {
                 {
                     PROFILE_SCOPE("Render/SetClearColor");
@@ -105,18 +108,12 @@ namespace SIMPEngine
                         layer->OnRender();
                 }
 
-                // #ifdef NO_EDITOR
-                // EngineProfiler::Profiler::Get().DrawImGui();
-                // #endif
-
                 {
                     PROFILE_SCOPE("Render/ImGuiEnd");
                     m_ImGuiLayer->End();
                 }
             }
 
-            // Renderer::Present();
-            // SDL_GL_SwapWindow(m_Window.GetNativeWindow());
             {
                 PROFILE_SCOPE("Render/Swap");
                 m_Window.OnUpdate();
@@ -166,7 +163,7 @@ namespace SIMPEngine
         }
         case SDL_EVENT_TEXT_INPUT:
         {
-            KeyTypedEvent e(sdlEvent.text.text[0]); // first char for simplicity
+            KeyTypedEvent e(sdlEvent.text.text[0]);
             OnEvent(e);
             break;
         }
@@ -210,45 +207,39 @@ namespace SIMPEngine
         m_Running = false;
         return true; });
 
+        dispatcher.Dispatch<WindowResizeEvent>([](WindowResizeEvent &ev)
+                                               {
+                                                   Renderer::SetWindowSize(ev.GetWidth(), ev.GetHeight());
+                                                   return false;
+                                               });
+
         dispatcher.Dispatch<KeyPressedEvent>([](KeyPressedEvent &ev)
                                              {
-                                                //  CORE_INFO("KeyPressedEvent keycode = {}", ev.GetKeyCode());
                                                  Input::OnKeyPressed(ev.GetKeyCode());
                                                  return false; });
 
         dispatcher.Dispatch<KeyReleasedEvent>([](KeyReleasedEvent &ev)
                                               {
-                                                //  CORE_INFO("{}", ev.ToString());
-
         Input::OnKeyReleased(ev.GetKeyCode());
         return false; });
 
         dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &ev)
                                                      {
-                                                //  CORE_INFO("{}", ev.ToString());
-
         Input::OnMouseButtonPressed(ev.GetMouseButton());
         return false; });
 
         dispatcher.Dispatch<MouseButtonReleasedEvent>([](MouseButtonReleasedEvent &ev)
                                                       {
-
-                                                //  CORE_INFO("{}", ev.ToString());
-
         Input::OnMouseButtonReleased(ev.GetMouseButton());
         return false; });
 
         dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
                                              {
-
-                                                //  CORE_INFO("{}", ev.ToString());
-
         Input::OnMouseMoved(ev.GetX(), ev.GetY());
         return false; });
 
         dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)
                                                 {
-    // CORE_INFO("Mouse wheel delta: {}", ev.GetYOffset());
     Input::OnMouseWheel(ev.GetYOffset());
     return false; });
 

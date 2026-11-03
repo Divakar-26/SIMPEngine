@@ -1,6 +1,8 @@
 #include <Engine/Core/VFS.h>
 #include <Engine/Core/FileSystem.h>
 #include <filesystem>
+#include <system_error>
+#include <SDL3/SDL.h>
 
 #include "Log.h"
 
@@ -10,13 +12,45 @@ namespace SIMPEngine
     unordered_map<string, string> VFS::s_Mounts;
     void VFS::Mount(const std::string &alias, const std::string &realPath)
     {
-        s_Mounts[alias] =
-            std::filesystem::weakly_canonical(
-                std::filesystem::absolute(realPath))
-                .string();
+        namespace fs = std::filesystem;
+        fs::path requested(realPath);
+        fs::path resolved;
+
+        if (requested.is_absolute())
+        {
+            resolved = requested;
+        }
+        else
+        {
+            const char *basePath = SDL_GetBasePath();
+            if (basePath)
+            {
+                fs::path ancestor = fs::path(basePath).lexically_normal();
+
+                for (int depth = 0; depth < 8; ++depth)
+                {
+                    fs::path candidate = (ancestor / requested).lexically_normal();
+                    std::error_code ec;
+                    if (fs::exists(candidate, ec) && !ec)
+                    {
+                        resolved = candidate;
+                        break;
+                    }
+
+                    const fs::path parent = ancestor.parent_path();
+                    if (parent.empty() || parent == ancestor)
+                        break;
+                    ancestor = parent;
+                }
+            }
+
+            if (resolved.empty())
+                resolved = fs::absolute(requested);
+        }
+
+        s_Mounts[alias] = fs::weakly_canonical(resolved).string();
 
         CORE_INFO("Mounted {} -> {}", alias, s_Mounts[alias]);
-
     }
 
     bool VFS::UnMount(const string &alias)

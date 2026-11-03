@@ -1,7 +1,3 @@
-//
-// Created by divakar on 9/14/26.
-//
-
 #include "AnimationSystem.h"
 
 void SIMPEngine::AnimationSystem::Update(entt::registry &m_Registry, float deltaTime)

@@ -5,32 +5,20 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# === Profiling Options ===
-option(ENABLE_TRACY_PROFILING "Enable Tracy Profiler for detailed performance analysis" OFF)
-if(ENABLE_TRACY_PROFILING)
-    add_compile_definitions(ENABLE_TRACY_PROFILING)
-    message(STATUS "Tracy Profiler enabled - connect with Tracy client for visualization")
-else()
-    message(STATUS "Tracy Profiler disabled - all profiling macros are zero-cost")
-endif()
-
-# Windows-specific settings
 if(WIN32)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     add_compile_options(/permissive- /W4)
+else()
+    add_compile_options(-Wall -Wextra)
 endif()
 
-# Set output directories consistently across platforms
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
-# === Third-party libraries (vendor builds) ===
 add_subdirectory(vendor/SDL EXCLUDE_FROM_ALL)
 
-# OS-specific options
 if(WIN32)
-    set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
     set(SDLIMAGE_VENDORED OFF CACHE BOOL "" FORCE)
 endif()
 
@@ -43,11 +31,9 @@ add_subdirectory(vendor/yaml-cpp EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/AccelEngine)
 add_subdirectory(vendor/json)
 
-
-# ImGui wrapper (manual CMake target)
 add_library(imgui STATIC
     vendor/imgui/imgui.cpp
-    vendor/imgui/imgui_draw.cpp             
+    vendor/imgui/imgui_draw.cpp
     vendor/imgui/imgui_tables.cpp
     vendor/imgui/imgui_widgets.cpp
     vendor/imgui/imgui_demo.cpp
@@ -71,7 +57,6 @@ target_include_directories(imgui PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/nanosvg
 )
 
-# glad
 add_library(glad STATIC vendor/glad/src/glad.c)
 
 target_include_directories(glad PUBLIC
@@ -82,7 +67,6 @@ set_target_properties(glad PROPERTIES LINKER_LANGUAGE C)
 
 target_link_libraries(imgui PUBLIC SDL3::SDL3 spdlog)
 
-# === Engine, Editor, Game ===
 add_subdirectory(Engine)
 add_subdirectory(Editor)
 add_subdirectory(Game)

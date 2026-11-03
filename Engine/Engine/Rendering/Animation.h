@@ -7,13 +7,12 @@
 
 namespace SIMPEngine
 {
-
     class Animation
     {
     public:
         Animation() = default;
         Animation(std::shared_ptr<Texture> spritesheet,
-                  int frameWidth, int frameHeight, 
+                  int frameWidth, int frameHeight,
                   int frameCount, float frameDuration,
                   bool loop = true);
 
@@ -32,6 +31,10 @@ namespace SIMPEngine
         }
         bool IsLooping() { return m_Loop; }
         std::shared_ptr<Texture> GetTexture() { return m_Texture; }
+        int GetCurrentFrame() const { return m_CurrentFrame; }
+        float GetElapsedTime() const { return m_ElapsedTime; }
+        bool IsFinished() const { return m_Finished; }
+        void SetPlaybackState(int currentFrame, float elapsedTime, bool finished);
         bool &GetLooping()
         {
             return m_Loop;
@@ -40,7 +43,6 @@ namespace SIMPEngine
         void Reset();
         void SetLooping(bool loop);
         bool isFinished();
-        
 
     private:
         std::shared_ptr<Texture> m_Texture = nullptr;

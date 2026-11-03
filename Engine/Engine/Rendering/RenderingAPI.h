@@ -8,9 +8,6 @@
 
 namespace SIMPEngine
 {
-    // Lightweight per-frame counters, reset in BeginFrame().
-    // Exposed so tooling (e.g. the profiler / ImGui panels) can show
-    // batching efficiency instead of just wall-clock time.
     struct RenderStats
     {
         int drawCalls = 0;

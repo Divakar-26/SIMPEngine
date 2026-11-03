@@ -22,11 +22,11 @@
 namespace SIMPEngine
 {
     class Entity;
-    
+
     class EntityBuilder
-    { 
+    {
     public:
-        EntityBuilder(entt::registry& registry, Entity entity) 
+        EntityBuilder(entt::registry& registry, Entity entity)
             : m_Registry(registry), m_Entity(entity) {}
 
         template<typename T, typename... Args>
@@ -130,10 +130,6 @@ namespace SIMPEngine
 
         void SetParent(entt::entity child, entt::entity parent);
 
-
-        
-        // temp
-
     private:
         std::string m_Name;
         entt::registry m_Registry;
@@ -148,10 +144,10 @@ namespace SIMPEngine
         RenderSystem renderSystem;
         TilemapSystem tilemapSystem;
 
-        // 
         void OnPhysicsComponentDestroyed(entt::registry &registry, entt::entity entity);
-        void OnAnimatedSpriteComponentDestroyed(entt::registry &registry, entt::entity entity);
         void OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity);
         void OnScriptComponentDestroyed(entt::registry &registry, entt::entity entity);
     };
 }
+
+#include <Engine/Scene/Entity-inl.h>

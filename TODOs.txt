@@ -25,3 +25,16 @@
 8. Tiles
 9. Parralax 
 10. Dirty in transform and Hierarchy
+
+-------------------------
+Stability (before 1.0)
+1.  Add .gitmodules for vendor (fresh clone does not build)
+2.  Tests + serializer round trip (save -> load -> save same yaml)
+3.  CI for Linux + Windows
+4.  Play / Stop with scene clone
+5.  Undo / redo + save prompt
+6.  One texture / asset path
+7.  VFS picks empty build/assets, AssetManager uses cwd paths
+8.  Script component serialised
+9.  Fixed timestep
+10. NO_EDITOR release build with profiler off

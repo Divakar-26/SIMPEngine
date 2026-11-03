@@ -5,10 +5,8 @@
 
 namespace SIMPEngine
 {
-
     class HierarchySystem
     {
-
     public:
         void Update(entt::registry &registry, float deltaTime = 0.0f);
     };

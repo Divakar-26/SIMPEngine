@@ -16,6 +16,30 @@
 
 namespace SIMPEngine
 {
+#ifndef NDEBUG
+    namespace
+    {
+        void APIENTRY EngineGLDebugCallback(GLenum source, GLenum type, GLuint id,
+                                            GLenum severity, GLsizei length,
+                                            const GLchar *message, const void *userParam)
+        {
+            (void)source;
+            (void)type;
+            (void)id;
+            (void)length;
+            (void)userParam;
+
+            if (severity == GL_DEBUG_SEVERITY_NOTIFICATION)
+                return;
+
+            if (severity == GL_DEBUG_SEVERITY_HIGH || severity == GL_DEBUG_SEVERITY_MEDIUM)
+                CORE_ERROR("OpenGL debug message: {}", message ? message : "(no message)");
+            else
+                CORE_WARN("OpenGL debug message: {}", message ? message : "(no message)");
+        }
+    }
+#endif
+
     GLRenderingAPI::GLRenderingAPI()
     {
         m_QuadBatch.reserve(MAX_BATCH_QUADS);
@@ -58,6 +82,15 @@ namespace SIMPEngine
     {
         glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
 
+#ifndef NDEBUG
+        if (glDebugMessageCallback)
+        {
+            glEnable(GL_DEBUG_OUTPUT);
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+            glDebugMessageCallback(EngineGLDebugCallback, nullptr);
+        }
+#endif
+
         m_Shader = std::make_unique<Shader>(
             Shaders::SPRITE_VERT,
             Shaders::SPRITE_FRAG);
@@ -78,7 +111,6 @@ namespace SIMPEngine
                        maxUnits, maxUnits, MAX_TEXTURE_SLOTS);
         }
 
-        // ------ QUAD BATCHING SETUP (colored fills + textured sprites, unified) ------
         std::vector<unsigned int> indices(MAX_INDICES);
         for (unsigned int i = 0; i < MAX_BATCH_QUADS; i++)
         {
@@ -110,44 +142,36 @@ namespace SIMPEngine
                      indices.data(),
                      GL_STATIC_DRAW);
 
-        // local pos
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
                               (void *)offsetof(BatchVertex, localPos));
         glEnableVertexAttribArray(0);
 
-        // center
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
                               (void *)offsetof(BatchVertex, center));
         glEnableVertexAttribArray(1);
 
-        // size
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
                               (void *)offsetof(BatchVertex, size));
         glEnableVertexAttribArray(2);
 
-        // rotation
         glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
                               (void *)offsetof(BatchVertex, rotation));
         glEnableVertexAttribArray(3);
 
-        // uv
         glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
                               (void *)offsetof(BatchVertex, texCoord));
         glEnableVertexAttribArray(4);
 
-        // texture slot index
         glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
                               (void *)offsetof(BatchVertex, texIndex));
         glEnableVertexAttribArray(5);
 
-        // color
         glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
                               (void *)offsetof(BatchVertex, color));
         glEnableVertexAttribArray(6);
 
         glBindVertexArray(0);
 
-        // ------ LINE BATCH SETUP ------
         glGenVertexArrays(1, &m_LineVAO);
         glGenBuffers(1, &m_LineVBO);
 
@@ -166,7 +190,6 @@ namespace SIMPEngine
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        // ------ SHAPE BATCH SETUP (instanced SDF shapes) ------
         float unitQuad[] = {
             -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
             -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
@@ -220,7 +243,6 @@ namespace SIMPEngine
 
         glBindVertexArray(0);
 
-        // ------ WHITE FALLBACK TEXTURE + SAMPLER ARRAY ------
         CreateWhiteTexture();
         ResetTextureSlots();
 
@@ -262,8 +284,6 @@ namespace SIMPEngine
 
         if (m_UsedTextureSlots >= MAX_TEXTURE_SLOTS)
         {
-            // Out of slots for this batch: draw what we have so far (if
-            // anything is pending) and start a fresh slot table.
             if (!m_QuadBatch.empty())
                 FlushQuads();
             else
@@ -396,8 +416,6 @@ namespace SIMPEngine
     {
         if (!fill)
         {
-            // Wireframe outline: four line segments through the line batch
-            // instead of an immediate GL_LINE_LOOP draw.
             float rad = glm::radians(rotation);
             float c = std::cos(rad);
             float s = std::sin(rad);
@@ -496,7 +514,6 @@ namespace SIMPEngine
             float u2 = (srcRect->x + srcRect->w) / texWidth;
             float v2 = (srcRect->y + srcRect->h) / texHeight;
 
-            // Textures are uploaded vertically flipped, so image-space Y is inverted here.
             quad.uvRect = glm::vec4(u1, 1.0f - v1, u2, 1.0f - v2);
         }
         else
@@ -614,8 +631,6 @@ namespace SIMPEngine
         float rotation, float zIndex,
         SDL_Color color, bool useTexture)
     {
-        // Legacy helper predating the batch pipeline. Not called internally
-        // anymore -- DrawQuad/DrawTexture both go through SubmitQuad now.
         glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
         model = glm::rotate(model, glm::radians(rotation), glm::vec3(0, 0, 1));
         model = glm::scale(model, glm::vec3(width, height, 1.0f));
@@ -624,19 +639,19 @@ namespace SIMPEngine
 
         m_Shader->Bind();
         m_Shader->SetUniformMat4("uVP", mvp);
-        (void)useTexture; // uUseTexture no longer exists in the unified shader
+        (void)useTexture;
     }
 
     void GLRenderingAPI::SetViewMatrix(const glm::mat4 &view)
     {
-        m_ViewMatrix = view;
         Flush();
+        m_ViewMatrix = view;
     }
 
     void GLRenderingAPI::SetProjectionMatrix(const glm::mat4 &proj)
     {
-        m_Projection = proj;
         Flush();
+        m_Projection = proj;
     }
 
     void GLRenderingAPI::BeginFrame()

@@ -13,25 +13,21 @@ using json = nlohmann::json;
 
 namespace SIMPEngine
 {
-
 bool TiledLoader::Load(
     const std::string& mapPath,
     TilemapComponent& tilemap,
     TransformComponent& transform)
 {
-
     std::string realMapPath;
 
-    // get the actual path from the VFS path
     if (auto resolved = VFS::Resolve(mapPath))
-        realMapPath = *resolved; 
+        realMapPath = *resolved;
     else
     {
         CORE_ERROR("Failed to resolve VFS path '{}'", mapPath);
         return false;
     }
 
-    // open the JSON file
     std::ifstream mapFile(realMapPath);
     if (!mapFile.is_open())
     {
@@ -39,11 +35,9 @@ bool TiledLoader::Load(
         return false;
     }
 
-    // get the map data from the json
     json mapData;
     mapFile >> mapData;
     mapFile.close();
-
 
     if (!mapData.contains("width") ||
         !mapData.contains("height") ||
@@ -61,12 +55,11 @@ bool TiledLoader::Load(
 
     if (tileWidth != tileHeight)
     {
-        CORE_ERROR("Non-square tiles not supported yet."); 
+        CORE_ERROR("Non-square tiles not supported yet.");
         return false;
     }
-    
-    tilemap.tileSize = tileWidth;
 
+    tilemap.tileSize = tileWidth;
 
     if (!mapData.contains("tilesets") || mapData["tilesets"].empty())
     {
@@ -84,11 +77,9 @@ bool TiledLoader::Load(
 
     std::string tilesetRelative = tilesetInfo["source"];
 
-    // Extract map directory
     std::string mapDir =
         realMapPath.substr(0, realMapPath.find_last_of("/\\"));
 
-    // Build full tileset path
     std::string fullTilesetPath = mapDir + "/" + tilesetRelative;
 
     std::ifstream tsFile(fullTilesetPath);
@@ -160,16 +151,13 @@ bool TiledLoader::Load(
             if (tileID == 0)
                 continue;
 
-            // Tiled starts at 1
             tileID -= 1;
 
-            // Flip Y because Tiled = top-left origin
             int flippedY = mapHeight - 1 - y;
 
             SetTile(tilemap, x, flippedY, tileID);
         }
     }
-
 
     float worldWidth  = mapWidth  * tilemap.tileSize;
     float worldHeight = mapHeight * tilemap.tileSize;
@@ -181,5 +169,4 @@ bool TiledLoader::Load(
 
     return true;
 }
-
 }

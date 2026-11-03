@@ -13,6 +13,8 @@ namespace SIMPEngine
         SDL_FRect GetTileRect(int tileID) const;
 
         int GetCloumns() const { return m_Columns; }
+        int GetTileWidth() const { return m_TileWidth; }
+        int GetTileHeight() const { return m_TileHeight; }
 
         std::shared_ptr<Texture> GetTexture() const { return m_Texture; }
 

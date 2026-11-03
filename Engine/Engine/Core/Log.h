@@ -6,8 +6,6 @@
 
 namespace SIMPEngine
 {
-    //for the loggin we are using spdlog
-    
     class Log
     {
     public:
@@ -22,7 +20,6 @@ namespace SIMPEngine
         static std::shared_ptr<spdlog::logger> s_ClientLogger;
         static std::shared_ptr<ImGuiSink> s_ImGuiSink;
     };
-
 }
 
 #define CORE_TRACE(...) ::SIMPEngine::Log::GetCoreLogger()->trace(__VA_ARGS__)

@@ -16,19 +16,16 @@ namespace SIMPEngine
         void ShutDown();
         void OnUpdate();
 
-        // Get window dimensions
         int GetWidth() const { return m_Width; }
         int GetHeight() const { return m_Height; }
 
-        //return the window for others to use like appplication
         SDL_Window *GetNativeWindow() { return m_Window; }
 
-        //same as GetNativeWindow
-        SDL_Renderer *GetRenderer() { return m_Renderer; } // this might not be used
+        SDL_Renderer *GetRenderer() { return m_Renderer; }
         SDL_GLContext GetGLContetext(){return m_GLContext;}
 
     private:
-        bool m_Initialized = false; //chekc if window is Initialized correctly or not
+        bool m_Initialized = false;
         SDL_Window *m_Window = nullptr;
         SDL_Renderer *m_Renderer = nullptr;
         SDL_GLContext m_GLContext = nullptr;

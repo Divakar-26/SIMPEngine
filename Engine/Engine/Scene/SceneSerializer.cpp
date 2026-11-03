@@ -5,11 +5,15 @@
 #include <Engine/Scene/Component.h>
 #include <Engine/Scene/Entity.h>
 #include <Engine/Scene/SceneSerializer.h>
+#include <Engine/Scene/TilemapUtils.h>
 
+#include <cstdint>
 #include <fstream>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 namespace SIMPEngine {
-
 bool SceneSerializer::Serialize(const std::string &filepath) {
   std::string realPath = filepath;
   if (auto resolved = VFS::Resolve(filepath))
@@ -17,22 +21,27 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
   else
     CORE_WARN("Failed to resolve VFS path '{}'", filepath);
 
+  std::unordered_map<entt::entity, std::uint64_t> entityIds;
+  std::uint64_t nextEntityId = 1;
+  auto entityView = m_Scene->GetRegistry().view<TagComponent>();
+  for (auto entityHandle : entityView)
+    entityIds.emplace(entityHandle, nextEntityId++);
+
   YAML::Emitter out;
   out << YAML::BeginMap;
 
   out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
   out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-  m_Scene->GetRegistry().view<TagComponent>().each([&](auto entityHandle,
-                                                       auto &tag) {
+  entityView.each([&](auto entityHandle, auto &tag) {
     Entity entity{entityHandle, m_Scene};
 
     out << YAML::BeginMap;
 
-    // Tag
+    out << YAML::Key << "ID" << YAML::Value << entityIds.at(entityHandle);
+
     out << YAML::Key << "Tag" << YAML::Value << tag.Tag;
 
-    // Transform
     if (entity.HasComponent<TransformComponent>()) {
       auto &tc = entity.GetComponent<TransformComponent>();
 
@@ -40,12 +49,12 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       out << YAML::Key << "position" << YAML::Value << YAML::Flow
           << YAML::BeginSeq << tc.position.x << tc.position.y << YAML::EndSeq;
       out << YAML::Key << "rotation" << YAML::Value << tc.rotation;
+      out << YAML::Key << "zIndex" << YAML::Value << tc.zIndex;
       out << YAML::Key << "scale" << YAML::Value << YAML::Flow << YAML::BeginSeq
           << tc.scale.x << tc.scale.y << YAML::EndSeq;
       out << YAML::EndMap;
     }
 
-    // Render
     if (entity.HasComponent<RenderComponent>()) {
       auto &rc = entity.GetComponent<RenderComponent>();
 
@@ -58,7 +67,6 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       out << YAML::EndMap;
     }
 
-    // Sprite
     if (entity.HasComponent<SpriteComponent>()) {
       auto &sc = entity.GetComponent<SpriteComponent>();
       if (sc.texture) {
@@ -71,7 +79,6 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       }
     }
 
-    // Animation
     if (entity.HasComponent<AnimatedSpriteComponent>()) {
       auto &ac = entity.GetComponent<AnimatedSpriteComponent>();
       auto *anim = ac.animation.get();
@@ -79,7 +86,6 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       if (!anim || !anim->GetTexture()) {
         CORE_WARN("Skipping animation serialization for '{}' due to missing animation/texture", tag.Tag);
       } else {
-
         out << YAML::Key << "Animation" << YAML::BeginMap;
         out << YAML::Key << "texture" << YAML::Value
             << anim->GetTexture()->GetVFSPath();
@@ -91,11 +97,16 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
         out << YAML::Key << "frame_duration" << YAML::Value
             << (float)anim->GetFrameDuration();
         out << YAML::Key << "looping" << YAML::Value << anim->IsLooping();
+        out << YAML::Key << "current_frame" << YAML::Value
+            << anim->GetCurrentFrame();
+        out << YAML::Key << "elapsed_time" << YAML::Value
+            << anim->GetElapsedTime();
+        out << YAML::Key << "finished" << YAML::Value
+            << anim->IsFinished();
         out << YAML::EndMap;
       }
     }
 
-    // Collision
     if (entity.HasComponent<CollisionComponent>()) {
       auto &cc = entity.GetComponent<CollisionComponent>();
 
@@ -107,7 +118,6 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       out << YAML::EndMap;
     }
 
-    // Velocity
     if (entity.HasComponent<VelocityComponent>()) {
       auto &vc = entity.GetComponent<VelocityComponent>();
 
@@ -117,12 +127,65 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       out << YAML::EndMap;
     }
 
-    // Camera
     if (entity.HasComponent<CameraComponent>()) {
       auto &cam = entity.GetComponent<CameraComponent>();
 
       out << YAML::Key << "Camera" << YAML::BeginMap;
       out << YAML::Key << "primary" << YAML::Value << cam.primary;
+      out << YAML::Key << "zoom" << YAML::Value << cam.Camera.GetZoom();
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<HierarchyComponent>()) {
+      const auto &hierarchy = entity.GetComponent<HierarchyComponent>();
+      std::uint64_t parentId = 0;
+      if (hierarchy.parent != entt::null) {
+        auto parent = entityIds.find(hierarchy.parent);
+        if (parent != entityIds.end())
+          parentId = parent->second;
+      }
+
+      out << YAML::Key << "Hierarchy" << YAML::BeginMap;
+      out << YAML::Key << "parent_id" << YAML::Value << parentId;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<TilemapComponent>()) {
+      const auto &tilemap = entity.GetComponent<TilemapComponent>();
+      out << YAML::Key << "Tilemap" << YAML::BeginMap;
+      out << YAML::Key << "tile_size" << YAML::Value << tilemap.tileSize;
+
+      if (tilemap.tileset && tilemap.tileset->GetTexture()) {
+        out << YAML::Key << "texture" << YAML::Value
+            << tilemap.tileset->GetTexture()->GetVFSPath();
+        out << YAML::Key << "tile_width" << YAML::Value
+            << tilemap.tileset->GetTileWidth();
+        out << YAML::Key << "tile_height" << YAML::Value
+            << tilemap.tileset->GetTileHeight();
+      }
+
+      out << YAML::Key << "chunks" << YAML::Value << YAML::BeginSeq;
+      for (const auto &[key, chunk] : tilemap.chunks) {
+        const auto packed = static_cast<std::uint64_t>(key);
+        const auto chunkX = static_cast<std::int32_t>(packed >> 32);
+        const auto chunkY = static_cast<std::int32_t>(packed & 0xffffffffu);
+
+        out << YAML::BeginMap;
+        out << YAML::Key << "x" << YAML::Value << chunkX;
+        out << YAML::Key << "y" << YAML::Value << chunkY;
+        out << YAML::Key << "tiles" << YAML::BeginSeq;
+        for (int localY = 0; localY < CHUNK_SIZE; ++localY) {
+          for (int localX = 0; localX < CHUNK_SIZE; ++localX) {
+            const int tileId = chunk.tiles[localY * CHUNK_SIZE + localX].id;
+            if (tileId >= 0)
+              out << YAML::Flow << YAML::BeginSeq << localX << localY << tileId
+                  << YAML::EndSeq;
+          }
+        }
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+      }
+      out << YAML::EndSeq;
       out << YAML::EndMap;
     }
 
@@ -133,7 +196,6 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       out << YAML::EndMap;
     }
 
-    // Physics
     if (entity.HasComponent<PhysicsComponent>()) {
       auto &phys = entity.GetComponent<PhysicsComponent>();
       auto *body = phys.body.get();
@@ -141,17 +203,14 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       if (!body) {
         CORE_WARN("Skipping physics serialization for '{}' due to missing body", tag.Tag);
       } else {
-
         out << YAML::Key << "Physics" << YAML::BeginMap;
 
-      // Shape
       std::string shape = (body->shapeType == AccelEngine::ShapeType::CIRCLE)
                               ? "CIRCLE"
                               : "AABB";
 
       out << YAML::Key << "shape" << YAML::Value << shape;
- 
-      // Transform-like data
+
       out << YAML::Key << "position" << YAML::Value << YAML::Flow
           << YAML::BeginSeq << body->position.x << body->position.y
           << YAML::EndSeq;
@@ -160,7 +219,6 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
 
       out << YAML::Key << "inverse_mass" << YAML::Value << body->inverseMass;
 
-      // Shape specific
       if (shape == "CIRCLE") {
         out << YAML::Key << "radius" << YAML::Value << body->circle.radius;
       } else {
@@ -169,12 +227,10 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
             << YAML::EndSeq;
       }
 
-      // Motion
       out << YAML::Key << "velocity" << YAML::Value << YAML::Flow
           << YAML::BeginSeq << body->velocity.x << body->velocity.y
           << YAML::EndSeq;
 
-      // Material
       out << YAML::Key << "restitution" << YAML::Value << body->restitution;
 
       out << YAML::Key << "static_friction" << YAML::Value
@@ -183,7 +239,6 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       out << YAML::Key << "dynamic_friction" << YAML::Value
           << body->dynamicFriction;
 
-      // Constraints
       out << YAML::Key << "lock_rotation" << YAML::Value << body->lockRotation;
 
       out << YAML::Key << "lock_position" << YAML::Value << body->lockPosition;
@@ -238,6 +293,10 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
   if (TryGet(data, "Scene", sceneName))
     m_Scene->SetName(sceneName);
 
+  std::unordered_map<std::uint64_t, entt::entity> entityIds;
+  std::vector<std::pair<std::uint64_t, YAML::Node>> serializedEntities;
+  std::uint64_t nextFallbackId = 1;
+
   auto entities = data["Entities"];
   if (!entities)
     return true;
@@ -248,7 +307,13 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
       if (!TryGet(entityNode, "Tag", tag))
         continue;
 
+      std::uint64_t serializedId = nextFallbackId++;
+      if (entityNode["ID"])
+        serializedId = entityNode["ID"].as<std::uint64_t>();
+
       Entity entity = m_Scene->CreateEntity(tag);
+      entityIds[serializedId] = entity.GetHandle();
+      serializedEntities.emplace_back(serializedId, entityNode);
 
       if (auto t = entityNode["Transform"]) {
         auto &tc = entity.GetComponent<TransformComponent>();
@@ -262,6 +327,8 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
         }
 
         TryGet(t, "rotation", tc.rotation);
+        if (t["zIndex"])
+          TryGet(t, "zIndex", tc.zIndex);
 
         if (scale && scale.size() >= 2) {
           tc.scale.x = scale[0].as<float>();
@@ -330,7 +397,11 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
         if (!TryGet(cam, "primary", primary))
           continue;
 
-        auto &cc = entity.AddComponent<CameraComponent>();
+        float zoom = 1.0f;
+        if (cam["zoom"])
+          TryGet(cam, "zoom", zoom);
+
+        auto &cc = entity.AddComponent<CameraComponent>(zoom);
         cc.primary = primary;
       }
 
@@ -359,6 +430,63 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
 
         auto &ac = entity.AddComponent<AnimatedSpriteComponent>();
         ac.animation = std::make_unique<Animation>(tex, fw, fh, fn, fd, loop);
+        int currentFrame = 0;
+        float elapsedTime = 0.0f;
+        bool finished = false;
+        if (a["current_frame"])
+          TryGet(a, "current_frame", currentFrame);
+        if (a["elapsed_time"])
+          TryGet(a, "elapsed_time", elapsedTime);
+        if (a["finished"])
+          TryGet(a, "finished", finished);
+        ac.animation->SetPlaybackState(currentFrame, elapsedTime, finished);
+      }
+
+      if (auto tilemapNode = entityNode["Tilemap"]) {
+        auto &tilemap = entity.AddComponent<TilemapComponent>();
+        if (tilemapNode["tile_size"])
+          TryGet(tilemapNode, "tile_size", tilemap.tileSize);
+
+        std::string texturePath;
+        int tileWidth = 0;
+        int tileHeight = 0;
+        const bool hasTileset = tilemapNode["texture"] &&
+                                tilemapNode["tile_width"] &&
+                                tilemapNode["tile_height"];
+        if (hasTileset) {
+          TryGet(tilemapNode, "texture", texturePath);
+          TryGet(tilemapNode, "tile_width", tileWidth);
+          TryGet(tilemapNode, "tile_height", tileHeight);
+        }
+        if (hasTileset && tileWidth > 0 && tileHeight > 0) {
+          auto texture = TextureManager::Get().LoadTexture(texturePath, texturePath);
+          if (texture)
+            tilemap.tileset = std::make_shared<Tileset>(texture, tileWidth, tileHeight);
+        }
+
+        if (auto chunks = tilemapNode["chunks"]; chunks && chunks.IsSequence()) {
+          for (const auto &chunkNode : chunks) {
+            int chunkX = 0;
+            int chunkY = 0;
+            if (!TryGet(chunkNode, "x", chunkX) || !TryGet(chunkNode, "y", chunkY))
+              continue;
+            auto tiles = chunkNode["tiles"];
+            if (!tiles || !tiles.IsSequence())
+              continue;
+            for (const auto &tileNode : tiles) {
+              if (!tileNode.IsSequence() || tileNode.size() < 3)
+                continue;
+              const int localX = tileNode[0].as<int>();
+              const int localY = tileNode[1].as<int>();
+              const int tileId = tileNode[2].as<int>();
+              if (localX < 0 || localX >= CHUNK_SIZE || localY < 0 ||
+                  localY >= CHUNK_SIZE || tileId < 0)
+                continue;
+              SetTile(tilemap, chunkX * CHUNK_SIZE + localX,
+                      chunkY * CHUNK_SIZE + localY, tileId);
+            }
+          }
+        }
       }
 
       if (auto p = entityNode["Physics"]) {
@@ -391,7 +519,7 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
           phys.body->shapeType = AccelEngine::ShapeType::CIRCLE;
           phys.body->circle.radius = radius;
         } else {
-          auto hs = p["half_size"]; 
+          auto hs = p["half_size"];
           if (!hs || hs.size() < 2)
             continue;
 
@@ -422,7 +550,25 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
     }
   }
 
+  for (const auto &[childId, entityNode] : serializedEntities) {
+    (void)childId;
+    auto hierarchyNode = entityNode["Hierarchy"];
+    if (!hierarchyNode || !hierarchyNode["parent_id"])
+      continue;
+
+    std::uint64_t parentId = 0;
+    if (!TryGet(hierarchyNode, "parent_id", parentId) || parentId == 0)
+      continue;
+
+    auto childIt = entityIds.find(childId);
+    auto parentIt = entityIds.find(parentId);
+    if (childIt == entityIds.end() || parentIt == entityIds.end() ||
+        childIt->second == parentIt->second)
+      continue;
+
+    m_Scene->SetParent(childIt->second, parentIt->second);
+  }
+
   return true;
 }
-
-} // namespace SIMPEngine
+}

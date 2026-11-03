@@ -1,4 +1,3 @@
-// ConstellationScript.h
 #pragma once
 #include <Engine/Scene/ScriptableEntity.h>
 #include <Engine/Input/Input.h>
@@ -27,11 +26,11 @@ public:
     static constexpr float AA           = 0.5f;
     static constexpr float WORLD_W      = 960.0f;
     static constexpr float WORLD_H      = 540.0f;
-    static constexpr int   SPAWN_COUNT  = 5;   // dots added per click
+    static constexpr int   SPAWN_COUNT  = 5;
 
     std::vector<Dot> m_Dots;
     std::mt19937     m_Rng{42};
-    bool             m_WasPressed = false;  // edge detection
+    bool             m_WasPressed = false;
 
     std::array<SDL_Color, 6> m_Palette = {{
         {100, 220, 255, 255},
@@ -42,8 +41,6 @@ public:
         {255, 255, 255, 255},
     }};
     static constexpr int PALETTE_SIZE = 6;
-
-    // ---- helpers ----
 
     Dot MakeDot(float x, float y)
     {
@@ -59,36 +56,28 @@ public:
         return d;
     }
 
-    // converts raw screen pixel → world space
-    // Camera uses 540*zoom half-height, origin at center
     glm::vec2 ScreenToWorld(float px, float py)
     {
         float hw = (float)SIMPEngine::Renderer::m_WindowWidth;
         float hh = (float)SIMPEngine::Renderer::m_WindowHeight;
-        // NDC
         float nx =  (px / hw) * 2.0f - 1.0f;
         float ny = -(py / hh) * 2.0f + 1.0f;
-        // world (at zoom=1, half-height=540)
         float worldX = nx * (540.0f * (hw / hh));
         float worldY = ny * 540.0f;
         return {worldX, worldY};
     }
-
-    // ---- lifecycle ----
 
     void OnCreate() override
     {
         std::uniform_real_distribution<float> rx(-WORLD_W, WORLD_W);
         std::uniform_real_distribution<float> ry(-WORLD_H, WORLD_H);
 
-        // start with 80 random dots
         for (int i = 0; i < 80; i++)
             m_Dots.push_back(MakeDot(rx(m_Rng), ry(m_Rng)));
     }
 
     void OnUpdate(float dt) override
     {
-        // --- simulate movement ---
         for (auto& d : m_Dots)
         {
             d.x += d.vx * dt;
@@ -100,7 +89,6 @@ public:
             if (d.y >  WORLD_H) { d.y =  WORLD_H; d.vy *= -1; }
         }
 
-        // --- click to spawn (edge triggered, not held) ---
         bool pressed = SIMPEngine::Input::IsMouseButtonPressed(SIMPEngine::SIMP_Keys::SIMPK_MOUSE_LEFT);
         if (pressed && !m_WasPressed)
         {
@@ -120,15 +108,12 @@ public:
     {
         int count = (int)m_Dots.size();
 
-        // --- dots first ---
         for (auto& d : m_Dots)
         {
             SIMPEngine::Renderer::DrawCircle(
                 d.x, d.y, d.radius, d.color, AA);
-            // SIMPEngine::Renderer::DrawQuad(d.x, d.y, d.radius, d.radius);
         }
 
-        // --- lines on top ---
         for (int i = 0; i < count; i++)
         {
             for (int j = i + 1; j < count; j++)

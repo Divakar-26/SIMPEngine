@@ -1,4 +1,3 @@
-# Create GameApp executable
 add_executable(GameApp
     main.cpp
 )

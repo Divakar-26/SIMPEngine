@@ -1,4 +1,3 @@
-// Renderer.h
 #pragma once
 #include <Engine/Rendering/RenderingAPI.h>
 #include <Engine/Rendering/Texture.h>
@@ -8,14 +7,15 @@
 
 namespace SIMPEngine
 {
-    class SvgDocument; // see Engine/Rendering/SVGDocument.h
+    class SvgDocument;
 
     class Renderer
     {
     public:
         static void Init(std::unique_ptr<RenderingAPI> api, int w, int h);
+        static void SetWindowSize(int w, int h);
+        static void Shutdown();
 
-        // Renderer.h
         static RenderingAPI *GetAPI();
 
         static void SetClearColor(float r, float g, float b, float a);
@@ -34,10 +34,6 @@ namespace SIMPEngine
                                     float width, SDL_Color color,
                                     float aa = 1.0f, float zIndex = 0.0f);
 
-        // Draws an SvgDocument as a texture, rasterizing (and caching) it at
-        // the requested pixel size on first use. Subsequent calls at the same
-        // size reuse the cached texture, so this batches through DrawTexture
-        // like any other sprite -- fine to call every frame for UI icons etc.
         static void DrawSvg(SvgDocument &doc, float x, float y, float width, float height,
                             SDL_Color tint = {255, 255, 255, 255}, float rotation = 0.0f, float zIndex = 0.0f);
 
@@ -58,5 +54,4 @@ namespace SIMPEngine
         static std::unique_ptr<RenderingAPI> s_RenderingAPI;
         static glm::mat4 s_ViewMatrix;
     };
-
 }

@@ -21,7 +21,7 @@ namespace SIMPEngine
         }
 
         std::sort(m_QuadSortBuffer.begin(), m_QuadSortBuffer.end(),
-                  [](const auto &a, const auto &b) 
+                  [](const auto &a, const auto &b)
                   { return a.second < b.second; });
 
         for (const auto &[entity, zIndex] : m_QuadSortBuffer)
@@ -41,12 +41,10 @@ namespace SIMPEngine
     {
         m_SpriteSortBuffer.clear();
 
-        // Collect all entities that have a Sprite or Animation
         auto view = m_Registry.view<TransformComponent>();
 
         for (auto entity : view)
         {
-            // Must have Transform + (Sprite OR Animation)
             if (m_Registry.any_of<SpriteComponent>(entity) ||
                 m_Registry.any_of<AnimatedSpriteComponent>(entity))
             {
@@ -55,12 +53,10 @@ namespace SIMPEngine
             }
         }
 
-        // Sort by zIndex (lower first → back to front)
         std::sort(m_SpriteSortBuffer.begin(), m_SpriteSortBuffer.end(),
                   [](const auto &a, const auto &b)
                   { return a.second < b.second; });
 
-        // Render in correct order
         for (const auto &[entity, zIndex] : m_SpriteSortBuffer)
         {
             auto &transform = m_Registry.get<TransformComponent>(entity);
@@ -72,6 +68,13 @@ namespace SIMPEngine
                 auto &render = m_Registry.get<RenderComponent>(entity);
                 width = render.width * transform.scale.x;
                 height = render.height * transform.scale.y;
+            }
+
+            if (m_Registry.any_of<SpriteComponent>(entity))
+            {
+                const auto &sprite = m_Registry.get<SpriteComponent>(entity);
+                width = sprite.width * transform.scale.x;
+                height = sprite.height * transform.scale.y;
             }
 
             if (m_Registry.any_of<AnimatedSpriteComponent>(entity))

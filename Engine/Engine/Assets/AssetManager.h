@@ -10,7 +10,7 @@ public:
     void Shutdown();
 
     AssetHandle ImportIfNeeded(const std::string& vpath, AssetType type);
-    void* Get(AssetHandle handle); // raw object (texture*, etc)
+    void* Get(AssetHandle handle);
     template<typename T> T* GetAs(AssetHandle h){ return static_cast<T*>(Get(h)); }
 
     const AssetRegistry& Registry() const { return m_Registry; }

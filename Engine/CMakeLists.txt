@@ -1,78 +1,67 @@
-    add_library(Engine STATIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Window.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/EngineDimensions.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/Log.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/FileSystem.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/VFS.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/AssetRegistry.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/TextureImporter.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/Importers.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Assets/AssetManager.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Application/Application.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/UI/ImGuiLayer.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Renderer.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/GLRenderingAPI.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Shader.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/RenderingAPI.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SVGDocument.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Animation.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/AnimationController.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Tileset.cpp
-        # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/SpriteAtlas.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Sprite.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/Texture.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Rendering/TextureManager.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Layer/RenderingLayer.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Input/Input.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Math/Camera2D.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Math/EntityUtility.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Scene.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneManager.cpp
-        # ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/ScriptableEntity.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/CameraSystem.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/PhysicsSystem.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/RenderSystem.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/TilemapSystem.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/AnimationSystem.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/CollisionSystem.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/HierarchySystem.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Systems/LifetimeSystem.cpp
+add_library(Engine STATIC
+    Engine/Core/Window.cpp
+    Engine/Core/EngineDimensions.cpp
+    Engine/Core/Log.cpp
+    Engine/Core/FileSystem.cpp
+    Engine/Core/VFS.cpp
+    Engine/Assets/AssetRegistry.cpp
+    Engine/Assets/TextureImporter.cpp
+    Engine/Assets/Importers.cpp
+    Engine/Assets/AssetManager.cpp
+    Engine/Application/Application.cpp
+    Engine/UI/ImGuiLayer.cpp
+    Engine/Rendering/Renderer.cpp
+    Engine/Rendering/GLRenderingAPI.cpp
+    Engine/Rendering/Shader.cpp
+    Engine/Rendering/RenderingAPI.cpp
+    Engine/Rendering/SVGDocument.cpp
+    Engine/Rendering/Animation.cpp
+    Engine/Rendering/AnimationController.cpp
+    Engine/Rendering/Tileset.cpp
+    Engine/Rendering/Sprite.cpp
+    Engine/Rendering/Texture.cpp
+    Engine/Rendering/TextureManager.cpp
+    Engine/Layer/RenderingLayer.cpp
+    Engine/Input/Input.cpp
+    Engine/Math/Camera2D.cpp
+    Engine/Math/EntityUtility.cpp
+    Engine/Scene/Scene.cpp
+    Engine/Scene/SceneManager.cpp
+    Engine/Scene/Systems/CameraSystem.cpp
+    Engine/Scene/Systems/PhysicsSystem.cpp
+    Engine/Scene/Systems/RenderSystem.cpp
+    Engine/Scene/Systems/TilemapSystem.cpp
+    Engine/Scene/Systems/AnimationSystem.cpp
+    Engine/Scene/Systems/CollisionSystem.cpp
+    Engine/Scene/Systems/HierarchySystem.cpp
+    Engine/Scene/Systems/LifetimeSystem.cpp
+    Engine/Scene/SceneSerializer.cpp
+    Engine/Scene/Loaders/TiledLoader.cpp
+    Engine/Rendering/SvgTextureCache.cpp
+    Engine/Scene/Systems/MovementSystem.cpp
+)
 
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/SceneSerializer.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Scene/Loaders/TiledLoader.cpp
-            Engine/Rendering/SvgTextureCache.h
-            Engine/Rendering/SvgTextureCache.cpp
-            Engine/Scene/Systems/AnimationSystem.cpp
-            Engine/Scene/Systems/CollisionSystem.cpp
-            Engine/Scene/Systems/HierarchySystem.cpp
-            Engine/Scene/Systems/LifetimeSystem.cpp
-            Engine/Scene/Systems/MovementSystem.cpp
-            # ${CMAKE_SOURCE_DIR}/vendor/glad/src/glad.c
-    )
+target_include_directories(Engine
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/entt/src
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/nanosvg/src
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad/include
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/yaml-cpp/include
+    PUBLIC ${CMAKE_SOURCE_DIR}/vendor/AccelEngine/include
+)
 
-    target_include_directories(Engine
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine    # D:/SIMPEngine/Engine/Engine
-        PUBLIC ${CMAKE_SOURCE_DIR}/vendor/entt/src
-        PUBLIC ${CMAKE_SOURCE_DIR}/vendor/nanosvg/src
-        PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glm
-        PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glad/include
-        PUBLIC ${CMAKE_SOURCE_DIR}/vendor/yaml-cpp/include
-        PUBLIC ${CMAKE_SOURCE_DIR}/vendor/AccelEngine/include
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Engine/Core/tracy_public
-    )
+target_compile_definitions(Engine PUBLIC ENGINE_PROFILER_ENABLE_IMGUI)
+target_precompile_headers(Engine PRIVATE Engine/PCH.h)
 
-    target_compile_definitions(Engine PUBLIC ENGINE_PROFILER_ENABLE_IMGUI)
-    target_precompile_headers(Engine PRIVATE Engine/PCH.h)
-
-
-    target_link_libraries(Engine
-        PUBLIC SDL3::SDL3
-        PUBLIC SDL3_image::SDL3_image
-        PUBLIC spdlog
-        PUBLIC imgui
-        PUBLIC glad
-        PUBLIC stb
-        PUBLIC yaml-cpp
-        PUBLIC AccelEngine
-    )
+target_link_libraries(Engine
+    PUBLIC SDL3::SDL3
+    PUBLIC SDL3_image::SDL3_image
+    PUBLIC spdlog
+    PUBLIC imgui
+    PUBLIC glad
+    PUBLIC stb
+    PUBLIC yaml-cpp
+    PUBLIC AccelEngine
+)

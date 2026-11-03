@@ -3,7 +3,6 @@
 
 namespace SIMPEngine
 {
-
 inline int floor_div(int a, int b)
 {
     int q = a / b;
@@ -36,7 +35,7 @@ inline void SetTile(TilemapComponent &tm, int tileX, int tileY, int id)
 
     int64_t key = ChunkKey(chunkX, chunkY);
 
-    TileChunk &chunk = tm.chunks[key]; // auto-create chunk
+    TileChunk &chunk = tm.chunks[key];
 
     chunk.tiles[localY * CHUNK_SIZE + localX].id = id;
 }
@@ -57,5 +56,4 @@ inline Tile* GetTile(TilemapComponent &tm, int tileX, int tileY)
 
     return &it->second.tiles[localY * CHUNK_SIZE + localX];
 }
-
 }

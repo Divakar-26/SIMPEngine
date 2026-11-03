@@ -42,7 +42,7 @@ namespace SIMPEngine
                 m_Texture,
                 x, y, width, height,
                 tint, rotation, 0.0f,
-                &m_SourceRect // ← FIXED
+                &m_SourceRect
             );
         }
         else
@@ -51,9 +51,8 @@ namespace SIMPEngine
                 m_Texture,
                 x, y, width, height,
                 tint, rotation, 0.0f,
-                nullptr // ← FIXED
+                nullptr
             );
         }
     }
-
 }

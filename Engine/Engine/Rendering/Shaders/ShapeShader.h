@@ -1,11 +1,6 @@
 #pragma once
 
 namespace SIMPEngine::Shaders {
-
-// Instanced SDF shapes: a single static unit-quad (divisor 0) combined
-// with a per-instance attribute stream (divisor 1) so any number of
-// circles/rounded-rects/capsules draw in ONE glDrawArraysInstanced call
-// instead of one flush+draw per shape.
 static constexpr const char* SHAPE_VERT = R"(
 #version 330 core
 
@@ -89,5 +84,4 @@ void main() {
     FragColor = vec4(vColor.rgb, vColor.a * alpha);
 }
 )";
-
-} // namespace SIMPEngine::Shaders
+}

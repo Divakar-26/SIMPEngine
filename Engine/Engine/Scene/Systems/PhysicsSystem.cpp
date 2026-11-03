@@ -4,17 +4,16 @@
 #include <Engine/Core/Log.h>
 
 namespace SIMPEngine{
-
   void PhysicsSystem::startFrame(float dt)
   {
         (void)dt;
-        
+
         for(int i = 0; i < substep; i++)
         {
           physicsWorld.startFrame();
         }
   }
- 
+
   void PhysicsSystem::UpdateTransform(entt::registry & registry){
         auto view2 = registry.view<TransformComponent, PhysicsComponent>();
         for (auto entity : view2)
@@ -30,14 +29,13 @@ namespace SIMPEngine{
   }
 
   void PhysicsSystem::Update(entt::registry & m_Registry, float dt){
-      float subdt = dt / substep; 
+      float subdt = dt / substep;
       for(int i = 0; i < substep; i++)
-      { 
+      {
         physicsRegistry.updateForces(subdt);
         physicsWorld.step(subdt, 1);
       }
 
-      // collision checking
       for (auto &ev : physicsWorld.GetCollisionEvents())
         {
             entt::entity ea = (entt::entity)ev.a->entityID;
@@ -46,25 +44,15 @@ namespace SIMPEngine{
             if (!m_Registry.valid(ea) || !m_Registry.valid(eb))
                 continue;
 
-            // Entity A{ea, this};
-            // Entity B{eb, this};
-
             CORE_TRACE("Collision detected between entities {} and {}", static_cast<uint32_t>(ea), static_cast<uint32_t>(eb));
-
         }
-
-     
   }
 
-
   void PhysicsSystem::DestroyBodies(){
-    // The bodies are owned by their PhysicsComponent (unique_ptr); deleting them
-    // here as well caused a double free when the registry was cleared.
     bodies.clear();
   }
 
   void PhysicsSystem::DestroyWorld(){
-    physicsWorld.clear();     
+    physicsWorld.clear();
   }
-
-} 
+}

@@ -42,12 +42,10 @@ void HierarchyPanel::OnImGuiRender()
 
     if (ImGui::BeginPopupModal("AddEntityPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
-        // Input entity name
         ImGui::InputText("Entity Name", m_EntityNameBuffer, sizeof(m_EntityNameBuffer));
 
         ImGui::Dummy(ImVec2(0,4));
 
-        // Component checkboxes
         ImGui::Text("Select Components:");
         ImGui::Checkbox("Sprite", &m_AddSprite);
         ImGui::Checkbox("Camera", &m_AddCamera);
@@ -64,8 +62,6 @@ void HierarchyPanel::OnImGuiRender()
 
         if (ImGui::Button("Add"))
         {
-            auto &registry = m_Context->Scene->GetRegistry();
-
             SIMPEngine::Entity entity =
                 EditorCommands::CreateEntity(
                     *m_Context,
@@ -95,8 +91,6 @@ void HierarchyPanel::OnImGuiRender()
             m_AddAnimatedSprite = m_AddLifetime = m_AddTilemap = false;
             strcpy(m_EntityNameBuffer, "New Entity");
 
-            // for script
-
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
@@ -118,7 +112,7 @@ void HierarchyPanel::OnImGuiRender()
 
     if (ImGui::IsItemClicked())
         m_Context->SelectedEntity = entity;
-              
+
     if (ImGui::BeginPopupContextItem())
     {
         if (ImGui::BeginMenu("Add Component"))
@@ -141,19 +135,14 @@ void HierarchyPanel::OnImGuiRender()
             if (!entity.HasComponent<CollisionComponent>() && ImGui::MenuItem("Collision"))
                 entity.AddComponent<CollisionComponent>();
 
-                
-                if (!entity.HasComponent<PhysicsComponent>() && ImGui::MenuItem("Physics"))
+            if (!entity.HasComponent<PhysicsComponent>() && ImGui::MenuItem("Physics"))
                 entity.AddComponent<PhysicsComponent>();
-                
-                if (!entity.HasComponent<AnimatedSpriteComponent>() && ImGui::MenuItem("Animated Sprite"))
+
+            if (!entity.HasComponent<AnimatedSpriteComponent>() && ImGui::MenuItem("Animated Sprite"))
                 entity.AddComponent<AnimatedSpriteComponent>();
-                
-                if (!entity.HasComponent<LifetimeComponent>() && ImGui::MenuItem("Lifetime"))
+
+            if (!entity.HasComponent<LifetimeComponent>() && ImGui::MenuItem("Lifetime"))
                 entity.AddComponent<LifetimeComponent>();
-
-                // if (!entity.HasComponent<ScriptComponent>() && ImGui::MenuItem("Script"))
-                //     entity.AddComponent<ScriptComponent>();
-
 
             ImGui::EndMenu();
         }
@@ -164,7 +153,6 @@ void HierarchyPanel::OnImGuiRender()
         }
 
         if(ImGui::MenuItem("Add Script")){
-
         }
 
         ImGui::EndPopup();

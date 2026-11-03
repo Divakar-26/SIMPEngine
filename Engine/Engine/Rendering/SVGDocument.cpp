@@ -76,7 +76,6 @@ namespace SIMPEngine
 
         auto buffer = MakeMutableBuffer(m_Source);
 
-        // NanoSVG parses the document; rasterization comes later.
         m_Image = nsvgParse(buffer.data(), "px", 96.0f);
         if (!m_Image)
         {

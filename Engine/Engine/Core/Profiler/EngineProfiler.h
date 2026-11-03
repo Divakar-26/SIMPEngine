@@ -1,65 +1,3 @@
-// EngineProfiler.h
-// Drop-in CPU frame/scope profiler for a C++ game engine.
-//
-// Features:
-//   - RAII scope timing (zero overhead when disabled)
-//   - Nested call tree via scope depth
-//   - Rolling frame time / FPS history (configurable window)
-//   - Per-scope statistics: min / max / avg / total / call count
-//   - Per-scope rolling call-count-per-frame graph
-//   - ImGui viewer with:
-//       * Frame time line graph
-//       * FPS line graph
-//       * Per-scope avg-ms bar chart (top N hotspots)
-//       * Per-scope calls/frame bar chart
-//       * Sortable stats table
-//       * Collapsible current-frame call tree
-//   - Thread-safe (single mutex, low contention path via thread_local)
-//   - C++17, header-only
-//
-// Usage:
-//   1. #include "EngineProfiler.h" everywhere you need timing macros.
-//   2. Optionally #define ENGINE_PROFILER_ENABLE_IMGUI before the include
-//      (or set it project-wide) to compile the ImGui panel.
-//   3. In your main loop:
-//
-//        PROFILE_FRAME_BEGIN();
-//        // ... your frame work ...
-//        PROFILE_FRAME_END();
-//
-//   4. Inside any function or block:
-//
-//        void MySystem::Update()
-//        {
-//            PROFILE_FUNCTION();      // uses __FUNCTION__ as the label
-//            // ...
-//            {
-//                PROFILE_SCOPE("Physics::BroadPhase");
-//                // ...
-//            }
-//        }
-//
-//   5. Render the ImGui window once per frame (after EndFrame):
-//
-//        #ifdef ENGINE_PROFILER_ENABLE_IMGUI
-//            EngineProfiler::Profiler::Get().DrawImGui();
-//        #endif
-//
-//   6. Optional configuration (call once at startup):
-//
-//        EngineProfiler::Config cfg;
-//        cfg.MaxFrames         = 300;   // rolling history length
-//        cfg.TopScopeCount     = 10;    // hotspot bar chart entries
-//        cfg.CaptureStats      = true;
-//        EngineProfiler::Profiler::Get().SetConfig(cfg);
-//
-// Disable ALL profiling (zero overhead) by defining ENGINE_PROFILER_DISABLED:
-//   #define ENGINE_PROFILER_DISABLED
-//
-// Requirements:
-//   - C++17 or newer
-//   - ImGui only if ENGINE_PROFILER_ENABLE_IMGUI is defined
-
 #pragma once
 
 #include <algorithm>
@@ -77,15 +15,11 @@
 #include <vector>
 
 #ifdef ENGINE_PROFILER_ENABLE_IMGUI
-// Adjust this path to wherever imgui.h lives in your project.
 #include "imgui.h"
 #endif
 
 namespace EngineProfiler
 {
-    // -------------------------------------------------------------------------
-    // Time helpers
-    // -------------------------------------------------------------------------
     using Clock      = std::chrono::steady_clock;
     using Nanoseconds = std::chrono::nanoseconds;
 
@@ -97,10 +31,6 @@ namespace EngineProfiler
 
     inline double NsToMs(uint64_t ns)  { return static_cast<double>(ns) / 1'000'000.0; }
     inline double MsToFps(double ms)   { return (ms > 0.0) ? (1000.0 / ms) : 0.0; }
-
-    // -------------------------------------------------------------------------
-    // Data structures
-    // -------------------------------------------------------------------------
 
     struct ScopeEvent
     {
@@ -115,7 +45,6 @@ namespace EngineProfiler
         double   DurationMs() const { return NsToMs(DurationNs()); }
     };
 
-    // Lifetime (all-time) statistics per named scope.
     struct ScopeStats
     {
         uint64_t Calls   = 0;
@@ -123,10 +52,8 @@ namespace EngineProfiler
         uint64_t MinNs   = std::numeric_limits<uint64_t>::max();
         uint64_t MaxNs   = 0;
 
-        // Rolling per-frame data (calls and avg-ms per frame, for graphs).
-        // Size is capped to Config::MaxFrames by the profiler.
-        std::deque<float> FrameCallCounts;   // calls this frame
-        std::deque<float> FrameAvgMs;        // avg ms this frame
+        std::deque<float> FrameCallCounts;
+        std::deque<float> FrameAvgMs;
 
         void AddSample(uint64_t durationNs)
         {
@@ -150,22 +77,13 @@ namespace EngineProfiler
         uint32_t ScopeCount  = 0;
     };
 
-    // -------------------------------------------------------------------------
-    // Configuration
-    // -------------------------------------------------------------------------
     struct Config
     {
-        // How many frames of rolling history to keep for graphs.
         size_t MaxFrames     = 300;
-        // How many top-hotspot scopes to show in the bar charts.
         size_t TopScopeCount = 10;
-        // Whether to accumulate per-scope statistics.
         bool   CaptureStats  = true;
     };
 
-    // -------------------------------------------------------------------------
-    // Profiler singleton
-    // -------------------------------------------------------------------------
     class Profiler
     {
     public:
@@ -175,9 +93,6 @@ namespace EngineProfiler
             return s_Instance;
         }
 
-        // ------------------------------------------------------------------
-        // Configuration
-        // ------------------------------------------------------------------
         void SetConfig(const Config &cfg)
         {
             std::scoped_lock lock(m_Mutex);
@@ -188,9 +103,6 @@ namespace EngineProfiler
 
         const Config &GetConfig() const { return m_Config; }
 
-        // ------------------------------------------------------------------
-        // Frame control  (call once per game loop iteration)
-        // ------------------------------------------------------------------
         void BeginFrame()
         {
             std::scoped_lock lock(m_Mutex);
@@ -198,7 +110,6 @@ namespace EngineProfiler
             m_CurrentFrameIndex = ++m_FrameCounter;
             m_FrameStartNs      = NowNs();
 
-            // Reset main-thread RAII stack depth.
             auto &ts   = GetThreadState();
             ts.Depth   = 0;
             ts.Stack.clear();
@@ -223,8 +134,6 @@ namespace EngineProfiler
 
             if (m_Config.CaptureStats)
             {
-                // Accumulate per-scope stats and per-frame data.
-                // First pass: tally calls + duration per scope this frame.
                 struct PerFrameAccum { uint64_t totalNs = 0; uint64_t calls = 0; };
                 std::unordered_map<std::string, PerFrameAccum> frameAccum;
 
@@ -236,7 +145,6 @@ namespace EngineProfiler
                     ++a.calls;
                 }
 
-                // Push rolling per-frame series into each ScopeStats.
                 for (auto &[name, stats] : m_ScopeStats)
                 {
                     auto it = frameAccum.find(name);
@@ -257,9 +165,6 @@ namespace EngineProfiler
             }
         }
 
-        // ------------------------------------------------------------------
-        // Scope push / pop  (called by ScopeTimer RAII)
-        // ------------------------------------------------------------------
         void PushScope(const char *name)
         {
             if (!name) name = "(null)";
@@ -292,9 +197,6 @@ namespace EngineProfiler
                 m_CurrentFrameEvents[idx].EndNs = NowNs();
         }
 
-        // ------------------------------------------------------------------
-        // Read-only accessors
-        // ------------------------------------------------------------------
         const std::vector<ScopeEvent>                        &GetCurrentFrameEvents() const { return m_CurrentFrameEvents; }
         const std::deque<FrameStats>                         &GetFrameHistory()        const { return m_FrameHistory; }
         const std::unordered_map<std::string, ScopeStats>   &GetScopeStats()          const { return m_ScopeStats; }
@@ -302,7 +204,6 @@ namespace EngineProfiler
         double GetCurrentFrameTimeMs() const { return m_FrameHistory.empty() ? 0.0 : NsToMs(m_FrameHistory.back().FrameTimeNs); }
         double GetCurrentFPS()         const { return m_FrameHistory.empty() ? 0.0 : m_FrameHistory.back().Fps; }
 
-        // Resets accumulated lifetime stats (rolling frame history is kept).
         void ResetStats()
         {
             std::scoped_lock lock(m_Mutex);
@@ -315,12 +216,7 @@ namespace EngineProfiler
             }
         }
 
-        // ------------------------------------------------------------------
-        // ImGui panel
-        // ------------------------------------------------------------------
 #ifdef ENGINE_PROFILER_ENABLE_IMGUI
-        // Call once per frame, after EndFrame(), while ImGui is accepting draw calls.
-        // 'p_open' can be nullptr or a pointer to a bool for a close button.
         void DrawImGui(const char *title = "Profiler", bool *p_open = nullptr)
         {
             std::scoped_lock lock(m_Mutex);
@@ -332,7 +228,6 @@ namespace EngineProfiler
                 return;
             }
 
-            // ---- Header row ------------------------------------------------
             ImGui::Text("Frame %llu", static_cast<unsigned long long>(m_CurrentFrameIndex));
             ImGui::SameLine(160); ImGui::Text("FPS: %.1f", GetCurrentFPS());
             ImGui::SameLine(280); ImGui::Text("Frame: %.3f ms", GetCurrentFrameTimeMs());
@@ -342,7 +237,6 @@ namespace EngineProfiler
 
             ImGui::Separator();
 
-            // ---- Tabs ------------------------------------------------------
             if (ImGui::BeginTabBar("ProfilerTabs"))
             {
                 if (ImGui::BeginTabItem("Graphs"))
@@ -365,17 +259,15 @@ namespace EngineProfiler
 
             ImGui::End();
         }
-#endif // ENGINE_PROFILER_ENABLE_IMGUI
+#endif
 
     private:
-        // ---- Internal tree node for call-tree rendering --------------------
         struct Node
         {
             const ScopeEvent *Event = nullptr;
             std::vector<Node> Children;
         };
 
-        // ---- Thread-local push/pop state -----------------------------------
         struct ThreadState
         {
             std::vector<size_t> Stack;
@@ -400,7 +292,6 @@ namespace EngineProfiler
                 m_FrameHistory.pop_front();
         }
 
-        // Called with lock already held (from the Reset button in ImGui).
         void ResetStats_Locked()
         {
             for (auto &[name, s] : m_ScopeStats)
@@ -412,10 +303,8 @@ namespace EngineProfiler
             }
         }
 
-        // ---- ImGui helpers -------------------------------------------------
 #ifdef ENGINE_PROFILER_ENABLE_IMGUI
 
-        // Utility: convert a deque to a flat float vector for ImGui::PlotLines/PlotHistogram.
         static std::vector<float> ToVec(const std::deque<float> &d)
         {
             return std::vector<float>(d.begin(), d.end());
@@ -439,15 +328,11 @@ namespace EngineProfiler
             return v;
         }
 
-        // ----------------------------------------------------------------
-        // Graphs Tab
-        // ----------------------------------------------------------------
         void DrawGraphsTab()
         {
-            const float graphW = 0.0f; // 0 = full available width
+            const float graphW = 0.0f;
             const float graphH = 70.0f;
 
-            // ---- Frame time ------------------------------------------------
             ImGui::TextDisabled("Frame Time (ms)");
             {
                 auto data = FrameTimesMs(m_FrameHistory);
@@ -466,7 +351,6 @@ namespace EngineProfiler
 
             ImGui::Spacing();
 
-            // ---- FPS -------------------------------------------------------
             ImGui::TextDisabled("FPS");
             {
                 auto data = FpsValues(m_FrameHistory);
@@ -485,8 +369,6 @@ namespace EngineProfiler
 
             ImGui::Separator();
 
-            // ---- Top-N hotspots: avg ms per frame --------------------------
-            // Collect the top N scopes by lifetime average ms.
             struct Entry { std::string name; const ScopeStats *stats; };
             std::vector<Entry> entries;
             entries.reserve(m_ScopeStats.size());
@@ -495,7 +377,6 @@ namespace EngineProfiler
 
             const size_t topN = std::min(m_Config.TopScopeCount, entries.size());
 
-            // Sort by lifetime avg ms, descending.
             std::partial_sort(entries.begin(), entries.begin() + static_cast<ptrdiff_t>(topN),
                               entries.end(),
                               [](const Entry &a, const Entry &b) { return a.stats->AvgMs() > b.stats->AvgMs(); });
@@ -514,15 +395,12 @@ namespace EngineProfiler
                     std::snprintf(label,   sizeof(label),   "##avgms_%zu", i);
                     std::snprintf(overlay, sizeof(overlay), "%.3f ms", data.back());
 
-                    // Colourize: red for the hottest scope, fading toward yellow.
                     float t = (topN > 1) ? (1.0f - static_cast<float>(i) / static_cast<float>(topN - 1)) : 1.0f;
                     ImGui::PushStyleColor(ImGuiCol_PlotHistogram, ImVec4(0.9f, 0.9f * (1.f - t * 0.7f), 0.1f, 1.f));
 
-                    // Clamp y-axis to 1.5x the first (worst) scope's peak to avoid flat lines.
                     float yMax = *std::max_element(data.begin(), data.end()) * 1.5f;
                     yMax = std::max(yMax, 0.1f);
 
-                    // Scope name as a left-side label (truncated).
                     char nameLabel[48];
                     std::snprintf(nameLabel, sizeof(nameLabel), "%-20.20s", e.name.c_str());
                     ImGui::TextUnformatted(nameLabel);
@@ -535,10 +413,8 @@ namespace EngineProfiler
 
             ImGui::Separator();
 
-            // ---- Top-N: calls / frame -------------------------------------
             if (!entries.empty())
             {
-                // Re-sort by total call count, descending.
                 std::partial_sort(entries.begin(), entries.begin() + static_cast<ptrdiff_t>(topN),
                                   entries.end(),
                                   [](const Entry &a, const Entry &b) { return a.stats->Calls > b.stats->Calls; });
@@ -569,20 +445,13 @@ namespace EngineProfiler
             }
         }
 
-        // ----------------------------------------------------------------
-        // Stats Table Tab
-        // ----------------------------------------------------------------
-
-        // Sort column IDs.
         enum class SortCol { Name, Calls, Avg, Min, Max, Total };
 
         void DrawStatsTable()
         {
-            // Persist sort state across frames.
             static SortCol  s_SortCol  = SortCol::Avg;
             static bool     s_SortDesc = true;
 
-            // Filter box.
             static char s_Filter[128] = {};
             ImGui::SetNextItemWidth(200);
             ImGui::InputText("Filter##scope", s_Filter, sizeof(s_Filter));
@@ -603,11 +472,9 @@ namespace EngineProfiler
             if (!ImGui::BeginTable("scope_stats", 6, tableFlags, ImVec2(0, tableH)))
                 return;
 
-            // Helper lambda for sortable column headers.
             auto HeaderCol = [&](const char *label, SortCol col)
             {
                 ImGui::TableSetupColumn(label, ImGuiTableColumnFlags_None);
-                // We draw a custom header row below.
                 (void)col;
             };
 
@@ -619,7 +486,6 @@ namespace EngineProfiler
             HeaderCol("Total ms",  SortCol::Total);
             ImGui::TableHeadersRow();
 
-            // Build sorted list.
             struct Row { std::string name; const ScopeStats *s; };
             std::vector<Row> rows;
             rows.reserve(m_ScopeStats.size());
@@ -645,7 +511,6 @@ namespace EngineProfiler
                 return s_SortDesc ? !less : less;
             });
 
-            // Render rows.
             for (const auto &row : rows)
             {
                 const ScopeStats &s = *row.s;
@@ -653,11 +518,9 @@ namespace EngineProfiler
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn(); ImGui::TextUnformatted(row.name.c_str());
 
-                // Colour the avg-ms cell: green → yellow → red by relative cost.
                 ImGui::TableNextColumn();
                 ImGui::Text("%llu", static_cast<unsigned long long>(s.Calls));
 
-                // Colour avg cell by magnitude (rough thresholds: <1ms=ok, 1-5ms=warn, >5ms=hot).
                 double avg = s.AvgMs();
                 ImVec4 col = (avg < 1.0) ? ImVec4(0.5f, 1.f, 0.5f, 1.f)
                            : (avg < 5.0) ? ImVec4(1.f,  0.8f, 0.2f, 1.f)
@@ -672,8 +535,6 @@ namespace EngineProfiler
 
             ImGui::EndTable();
 
-            // Click column header to sort (manual since we're not using ImGuiTableFlags_Sortable
-            // to keep compat with older ImGui versions).
             ImGui::TextDisabled("Sort: click column header row above is not interactive in this build.\n"
                                 "Use the sort buttons below:");
             ImGui::SameLine();
@@ -692,15 +553,11 @@ namespace EngineProfiler
             ImGui::TextDisabled(s_SortDesc ? "(desc)" : "(asc)");
         }
 
-        // ----------------------------------------------------------------
-        // Call Tree Tab
-        // ----------------------------------------------------------------
         void DrawCallTree()
         {
             ImGui::TextDisabled("Current frame call tree  (%zu events)", m_CurrentFrameEvents.size());
             ImGui::Separator();
 
-            // Rebuild tree from depth-stamped events.
             std::vector<Node>  roots;
             std::vector<Node *> stack;
 
@@ -734,7 +591,6 @@ namespace EngineProfiler
             const ScopeEvent &e = *node.Event;
             const double ms = e.DurationMs();
 
-            // Colour: hot scopes glow red, fast scopes stay white.
             ImVec4 col = (ms > 5.0)  ? ImVec4(1.f, 0.3f, 0.3f, 1.f)
                        : (ms > 1.0)  ? ImVec4(1.f, 0.8f, 0.3f, 1.f)
                                      : ImGui::GetStyleColorVec4(ImGuiCol_Text);
@@ -744,7 +600,6 @@ namespace EngineProfiler
 
             if (node.Children.empty())
             {
-                // Leaf node — bullet, no expand.
                 ImGui::Indent(static_cast<float>(depth) * 4.0f);
                 ImGui::TextColored(col, "• %s  %.4f ms", e.Name.c_str(), ms);
                 ImGui::Unindent(static_cast<float>(depth) * 4.0f);
@@ -763,9 +618,8 @@ namespace EngineProfiler
             }
         }
 
-#endif // ENGINE_PROFILER_ENABLE_IMGUI
+#endif
 
-        // ---- Members -------------------------------------------------------
         Config    m_Config{};
         std::mutex m_Mutex;
 
@@ -780,9 +634,6 @@ namespace EngineProfiler
         Profiler() = default;
     };
 
-    // -------------------------------------------------------------------------
-    // RAII scope timer
-    // -------------------------------------------------------------------------
     class ScopeTimer
     {
     public:
@@ -798,15 +649,11 @@ namespace EngineProfiler
     private:
         const char *m_Name;
     };
+}
 
-} // namespace EngineProfiler
+#undef PROFILE_SCOPE
+#undef PROFILE_FUNCTION
 
-// =============================================================================
-// Macros
-// =============================================================================
-//
-// ENGINE_PROFILER_DISABLED disables all macros (zero overhead).
-//
 #ifndef ENGINE_PROFILER_DISABLED
     #define PROFILE_FRAME_BEGIN()   ::EngineProfiler::Profiler::Get().BeginFrame()
     #define PROFILE_FRAME_END()     ::EngineProfiler::Profiler::Get().EndFrame()

@@ -2,7 +2,6 @@
 #include <Engine/Application/Application.h>
 #include <Engine/Core/Window.h>
 #include <Engine/Core/Log.h>
-#include <Engine/Input/Input.h>
 
 #include <imgui.h>
 #include <backends/imgui_impl_sdl3.h>
@@ -38,24 +37,13 @@ namespace SIMPEngine
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-        // Only move windows by dragging the title bar.
         io.ConfigWindowsMoveFromTitleBarOnly = true;
 
-        // IMPORTANT: use the native OS cursor, not a software-drawn one.
-        // The OS cursor is composited by the window manager independently
-        // of our render loop, so it always tracks input at full display
-        // refresh with zero perceived lag. A software cursor drawn through
-        // ImGui's draw list only updates once per app frame, which reads
-        // as "slow"/stuttery the moment your frame time isn't perfectly
-        // flat. SDL3's ImGui backend already swaps the OS cursor shape
-        // per-widget (arrow/I-beam/resize) automatically via
-        // ImGui_ImplSDL3_NewFrame — nothing else to do here.
         io.MouseDrawCursor = false;
 
         LoadFonts();
         ApplyModernTheme();
 
-        // Init backends
         ImGui_ImplSDL3_InitForOpenGL(m_Window, SDL_GL_GetCurrentContext());
         ImGui_ImplOpenGL3_Init("#version 330 core");
     }
@@ -91,7 +79,6 @@ namespace SIMPEngine
         ImGuiStyle &s = ImGui::GetStyle();
         ImGui::StyleColorsDark();
 
-        // ---- Rounding — mostly square, see style.h for reasoning -------
         s.WindowRounding    = EditorStyleMetrics::WindowRounding;
         s.ChildRounding     = EditorStyleMetrics::ChildRounding;
         s.PopupRounding     = EditorStyleMetrics::PopupRounding;
@@ -100,16 +87,12 @@ namespace SIMPEngine
         s.TabRounding       = EditorStyleMetrics::TabRounding;
         s.ScrollbarRounding = EditorStyleMetrics::ScrollbarRounding;
 
-        // ---- Borders — off almost everywhere. Panel separation comes
-        // from background-color steps (BG0 vs BG1) and the docking
-        // splitter line, not from drawn boxes around every window/frame.
         s.WindowBorderSize = 0.0f;
         s.ChildBorderSize  = EditorStyleMetrics::ChildBorder;
         s.PopupBorderSize  = EditorStyleMetrics::PopupBorder;
         s.FrameBorderSize  = EditorStyleMetrics::FrameBorder;
         s.TabBorderSize    = 0.0f;
 
-        // ---- Spacing — dense, IDE-like, not airy marketing-site spacing
         s.WindowPadding    = ImVec2(8, 8);
         s.FramePadding     = ImVec2(8, 4);
         s.CellPadding      = ImVec2(6, 4);
@@ -119,15 +102,11 @@ namespace SIMPEngine
         s.ScrollbarSize    = 12.0f;
         s.GrabMinSize      = 10.0f;
 
-        // ---- Misc ---------------------------------------------------------
         s.WindowMenuButtonPosition = ImGuiDir_None;
         s.AntiAliasedLines = true;
         s.AntiAliasedFill  = true;
         s.CircleTessellationMaxError = 0.10f;
 
-        // The splitter between docked panels — this IS the border in this
-        // theme, so give it a real (if thin) hairline color instead of
-        // letting it default to near-invisible.
         s.DockingSeparatorSize = 1.0f;
 
         ImVec4 *c = s.Colors;
@@ -141,8 +120,6 @@ namespace SIMPEngine
         c[ImGuiCol_Border]   = BORDER;
         c[ImGuiCol_BorderShadow] = ImVec4(0, 0, 0, 0);
 
-        // Inputs distinguish themselves from the panel purely by being a
-        // touch darker — no border box, matching CLion's search bars/fields.
         c[ImGuiCol_FrameBg]        = BG2;
         c[ImGuiCol_FrameBgHovered] = BG3;
         c[ImGuiCol_FrameBgActive]  = ACCENT_MUTED;
@@ -166,8 +143,6 @@ namespace SIMPEngine
         c[ImGuiCol_ButtonHovered] = BG3;
         c[ImGuiCol_ButtonActive]  = ACCENT_ACTIVE;
 
-        // Selection highlight — this is the one place accent shows up in
-        // the tree/list views, matching CLion's row-select blue.
         c[ImGuiCol_Header]        = ACCENT_MUTED;
         c[ImGuiCol_HeaderHovered] = ImVec4(1, 1, 1, 0.06f);
         c[ImGuiCol_HeaderActive]  = ACCENT_MUTED;
@@ -176,13 +151,10 @@ namespace SIMPEngine
         c[ImGuiCol_SeparatorHovered] = ACCENT;
         c[ImGuiCol_SeparatorActive]  = ACCENT;
 
-        c[ImGuiCol_ResizeGrip]        = ImVec4(0, 0, 0, 0); // invisible until hover
+        c[ImGuiCol_ResizeGrip]        = ImVec4(0, 0, 0, 0);
         c[ImGuiCol_ResizeGripHovered] = ImVec4(TEXT_DIM.x, TEXT_DIM.y, TEXT_DIM.z, 0.4f);
         c[ImGuiCol_ResizeGripActive]  = ACCENT;
 
-        // Tabs — inactive tabs sit slightly darker than the panel so the
-        // ACTIVE tab (matching BG0) visually fuses with the content below
-        // it, exactly like CLion's editor tab strip.
         c[ImGuiCol_Tab]                = BG_TAB_INACTIVE;
         c[ImGuiCol_TabHovered]         = BG3;
         c[ImGuiCol_TabActive]          = BG0;
@@ -230,7 +202,6 @@ namespace SIMPEngine
 
     void ImGuiLayer::End()
     {
-        // Rendering
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     }

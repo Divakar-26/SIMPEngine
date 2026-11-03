@@ -44,9 +44,6 @@ namespace SIMPEngine
         if (it != s_Cache.end())
             return it->second;
 
-        // Tint is left at white here -- Renderer::DrawSvg applies tint per-draw
-        // via the normal sprite color multiply, so the same cached texture can
-        // be reused across draws with different tints.
         auto tex = doc.RasterizeToTexture(width, height, SDL_Color{255, 255, 255, 255});
         if (tex)
             s_Cache.emplace(key, tex);

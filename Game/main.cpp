@@ -22,7 +22,6 @@ public:
                 .At(0, 0)
                 .Build();
 
-        // Bind the script to the entity.
         auto &sc =
             scene1->GetRegistry().emplace<ScriptComponent>(
                 constellation
@@ -30,13 +29,6 @@ public:
         sc.Bind<ConstellationScript>();
         SIMPEngine::SceneSerializer serializer(scene1.get());
         serializer.Serialize("assets://scenes/Level2.yaml");
-        // --------------------------------------------------------
-        // Rendering layer
-        //
-        // LayerStack now OWNS layers through unique_ptr.
-        // We temporarily keep a raw pointer because EditorLayer
-        // needs to reference the RenderingLayer but must NOT own it.
-        // --------------------------------------------------------
         auto renderingLayer =
             std::make_unique<SIMPEngine::RenderingLayer>(
                 sceneManager
@@ -49,8 +41,6 @@ public:
 
 #ifndef NO_EDITOR
 
-        // EditorLayer does not own RenderingLayer.
-        // LayerStack owns both layers.
         PushOverlay(
             std::make_unique<EditorLayer>(
                 renderingLayerPtr

@@ -28,8 +28,6 @@ namespace SIMPEngine
         static std::string Join(const std::string & a, const std::string & b);
         static std::string Normalise(const std::string & p);
 
-        
     private:
     };
-
 }
