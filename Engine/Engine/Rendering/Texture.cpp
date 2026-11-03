@@ -63,9 +63,23 @@ namespace SIMPEngine
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        m_Filter = TextureFilter::Nearest;
 
         stbi_image_free(data);
         return true;
+    }
+
+    void Texture::SetFilter(TextureFilter filter)
+    {
+        m_Filter = filter;
+        if (!m_TextureID)
+            return;
+
+        GLint mode = filter == TextureFilter::Nearest ? GL_NEAREST : GL_LINEAR;
+        glBindTexture(GL_TEXTURE_2D, m_TextureID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mode);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mode);
+        glBindTexture(GL_TEXTURE_2D, 0);
     }
 
     void Texture::Destroy()
@@ -109,5 +123,6 @@ namespace SIMPEngine
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        m_Filter = TextureFilter::Linear;
     }
 }

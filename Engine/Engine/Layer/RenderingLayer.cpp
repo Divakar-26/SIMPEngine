@@ -19,7 +19,6 @@ namespace SIMPEngine
 
     void RenderingLayer::OnAttach()
     {
-        Renderer::SetClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         srand(time(NULL));
     }
 
@@ -43,17 +42,37 @@ namespace SIMPEngine
             s.Deserialize("assets://scenes/Level1.yaml");
         }
 
-        scene->OnUpdate(ts.GetSeconds());
+        if (m_SimulationEnabled)
+            scene->OnUpdate(ts.GetSeconds());
+    }
+
+    void RenderingLayer::Step(float dt)
+    {
+        auto scene = m_SceneManager->GetActiveScene();
+        if (scene)
+            scene->OnUpdate(dt);
     }
 
     void RenderingLayer::OnRender()
     {
         PROFILE_SCOPE("RenderingLayer/Render");
+        if (!m_RenderToBackbuffer)
+            return;
+
         auto scene = m_SceneManager->GetActiveScene();
+        if (!scene)
+            return;
 
-        if (scene)
-            scene->OnRender();
+        auto &camera = scene->GetActiveCamera();
+        auto [cw, ch] = camera.GetViewportSize();
+        if (cw != Renderer::m_WindowWidth || ch != Renderer::m_WindowHeight)
+            camera.SetViewportSize((float)Renderer::m_WindowWidth, (float)Renderer::m_WindowHeight);
 
+        const glm::vec4 &bg = scene->GetBackgroundColor();
+        Renderer::SetClearColor(bg.r, bg.g, bg.b, bg.a);
+        Renderer::Clear();
+
+        scene->OnRender();
         Renderer::Flush();
     }
 

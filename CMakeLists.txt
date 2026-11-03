@@ -37,6 +37,7 @@ add_library(imgui STATIC
     vendor/imgui/imgui_tables.cpp
     vendor/imgui/imgui_widgets.cpp
     vendor/imgui/imgui_demo.cpp
+    vendor/imgui/misc/cpp/imgui_stdlib.cpp
     vendor/imgui/backends/imgui_impl_sdl3.cpp
     vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp
     vendor/imgui/backends/imgui_impl_opengl3.cpp

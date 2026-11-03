@@ -5,9 +5,12 @@
 #include <Engine/Rendering/Animation.h>
 #include <Engine/Scene/Component.h>
 #include <imgui.h>
+#include "UI/Widgets.h"
+#include "../../EditorCommands.h"
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 
 namespace
 {
@@ -17,25 +20,6 @@ namespace
             return ImVec2(0.0f, 0.0f);
         float scale = std::min(maxW / srcW, maxH / srcH);
         return ImVec2(srcW * scale, srcH * scale);
-    }
-
-    static void DrawCheckerBackground(ImDrawList* dl, ImVec2 min, ImVec2 max, float cellSize = 8.0f)
-    {
-        const ImU32 dark  = IM_COL32(45,  45,  50,  255);
-        const ImU32 light = IM_COL32(62,  62,  68,  255);
-
-        for (float y = min.y; y < max.y; y += cellSize)
-        {
-            int row = (int)((y - min.y) / cellSize);
-            for (float x = min.x; x < max.x; x += cellSize)
-            {
-                int col = (int)((x - min.x) / cellSize);
-                ImU32 col32 = ((row + col) % 2 == 0) ? dark : light;
-                ImVec2 cellMin(x, y);
-                ImVec2 cellMax(std::min(x + cellSize, max.x), std::min(y + cellSize, max.y));
-                dl->AddRectFilled(cellMin, cellMax, col32);
-            }
-        }
     }
 
     static void DrawGridOverlay(
@@ -48,9 +32,9 @@ namespace
         if (!drawList || texW <= 0 || texH <= 0 || frameW <= 0 || frameH <= 0)
             return;
 
-        const ImU32 gridCol    = IM_COL32(255, 255, 255, 55);
-        const ImU32 borderCol  = IM_COL32(200, 200, 220, 180);
-        const ImU32 highlightC = IM_COL32(255, 210,  60, 200);
+        const ImU32 gridCol    = EditorUI::U32(EditorUI::Colors::Text, 0.18f);
+        const ImU32 borderCol  = EditorUI::U32(EditorUI::Colors::BorderStrong);
+        const ImU32 highlightC = EditorUI::U32(EditorUI::Colors::Accent);
 
         drawList->AddRect(min, max, borderCol, 0.0f, 0, 1.5f);
 
@@ -83,7 +67,7 @@ namespace
                         hMin.y + frameH * scaleY);
 
             drawList->AddRect(hMin, hMax, highlightC, 0.0f, 0, 2.0f);
-            drawList->AddRectFilled(hMin, hMax, IM_COL32(255, 210, 60, 28));
+            drawList->AddRectFilled(hMin, hMax, EditorUI::U32(EditorUI::Colors::Accent, 0.15f));
         }
     }
 }
@@ -133,54 +117,57 @@ bool AnimationMakerPanel::LoadSpriteSheet(const std::string& vpath)
 
 void AnimationMakerPanel::OnImGuiRender()
 {
+    using namespace EditorUI;
+
     if (!m_Open)
         return;
 
-    ImGui::OpenPopup("Animation Maker");
-
-    ImGui::SetNextWindowSizeConstraints(ImVec2(740, 480), ImVec2(1400, 960));
-    ImGui::SetNextWindowSize(ImVec2(900, 580), ImGuiCond_FirstUseEver);
-
-    if (!ImGui::BeginPopupModal("Animation Maker", nullptr, ImGuiWindowFlags_None))
+    ImGui::SetNextWindowSizeConstraints(ImVec2(760, 500), ImVec2(1600, 1000));
+    if (!BeginModal("Animation Maker", &m_Open, ImVec2(980, 620)))
         return;
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.85f, 0.85f, 0.9f, 1.0f));
-    ImGui::TextUnformatted("Animation Maker");
-    ImGui::PopStyleColor();
+    struct SuppressScope
+    {
+        SuppressScope() { PushEditSuppression(); }
+        ~SuppressScope() { PopEditSuppression(); }
+    } suppress;
 
-    ImGui::SameLine(0, 12);
-    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.6f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
     ImGui::TextUnformatted(m_SpriteSheetVPath.c_str());
     ImGui::PopStyleColor();
-    ImGui::Separator();
-    ImGui::Spacing();
+    ImGui::Dummy(ImVec2(0, 2));
 
-    const float  controlsWidth = 270.0f;
+    const float  controlsWidth = 290.0f;
     const ImVec2 avail         = ImGui::GetContentRegionAvail();
     const float  childHeight   = avail.y - 4.0f;
 
-    ImGui::BeginChild("##anim_controls", ImVec2(controlsWidth, childHeight), true);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, Metrics::FrameRounding);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 8));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Header);
+    ImGui::BeginChild("##anim_controls", ImVec2(controlsWidth, childHeight), ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar();
     {
-        ImGui::TextUnformatted("Frame Settings");
-        ImGui::Separator();
-        ImGui::Spacing();
+        SectionLabel("Frame Settings");
 
         if (m_SpriteSheetTexture)
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.8f, 0.5f, 1.0f));
-            ImGui::Text("Sheet  %d × %d px",
-                        m_SpriteSheetTexture->GetWidth(),
-                        m_SpriteSheetTexture->GetHeight());
-            ImGui::PopStyleColor();
+            char sheet[48];
+            std::snprintf(sheet, sizeof(sheet), "%d x %d px",
+                          m_SpriteSheetTexture->GetWidth(),
+                          m_SpriteSheetTexture->GetHeight());
+            PropertyValue("Sheet", sheet);
         }
 
-        ImGui::Spacing();
-
-        ImGui::DragInt("Frame Width",    &m_FrameWidth,    1.0f, 1, 4096);
-        ImGui::DragInt("Frame Height",   &m_FrameHeight,   1.0f, 1, 4096);
-        ImGui::DragInt("Frame Count",    &m_FrameCount,    1.0f, 1, 100000);
-        ImGui::DragFloat("Frame Duration", &m_FrameDuration, 0.005f, 0.005f, 10.0f, "%.3f s");
-        ImGui::Checkbox("Loop", &m_Loop);
+        int size[2] = {m_FrameWidth, m_FrameHeight};
+        if (PropertyInt2("Frame Size", size, 1.0f, 1, 4096))
+        {
+            m_FrameWidth  = size[0];
+            m_FrameHeight = size[1];
+        }
+        PropertyInt("Count", &m_FrameCount, 1.0f, 1, 100000);
+        PropertyFloat("Duration", &m_FrameDuration, 0.005f, 0.005f, 10.0f, "%.3f s");
+        PropertyBool("Loop", &m_Loop);
 
         m_FrameWidth    = std::max(1, m_FrameWidth);
         m_FrameHeight   = std::max(1, m_FrameHeight);
@@ -191,60 +178,49 @@ void AnimationMakerPanel::OnImGuiRender()
         {
             int cols = std::max(1, m_SpriteSheetTexture->GetWidth()  / m_FrameWidth);
             int rows = std::max(1, m_SpriteSheetTexture->GetHeight() / m_FrameHeight);
-            ImGui::Spacing();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.55f, 0.55f, 0.65f, 1.0f));
-            ImGui::Text("Grid  %d cols × %d rows  (%d cells)", cols, rows, cols * rows);
-            ImGui::Text("Total  %.2f s", m_FrameCount * m_FrameDuration);
-            ImGui::PopStyleColor();
+            char grid[64];
+            std::snprintf(grid, sizeof(grid), "%d x %d cells", cols, rows);
+            PropertyValue("Grid", grid, &Colors::TextDim);
+            std::snprintf(grid, sizeof(grid), "%.2f s", m_FrameCount * m_FrameDuration);
+            PropertyValue("Length", grid, &Colors::TextDim);
         }
 
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
+        SectionLabel("Preview");
 
-        ImGui::TextUnformatted("Preview");
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        if (ImGui::Button(m_PreviewPlaying ? "  ⏸  Pause" : "  ▶  Play ", ImVec2(-1, 28)))
-            m_PreviewPlaying = !m_PreviewPlaying;
-
-        if (ImGui::Button("  ⏮  Reset", ImVec2(-1, 28)))
+        if (IconButton("##restart", ICON_LC_SKIP_BACK, "Restart"))
         {
             m_PreviewFrame   = 0;
             m_PreviewElapsed = 0.0f;
         }
+        ImGui::SameLine(0, 4);
+        if (IconButton("##play", m_PreviewPlaying ? ICON_LC_PAUSE : ICON_LC_PLAY, m_PreviewPlaying ? "Pause" : "Play", m_PreviewPlaying))
+            m_PreviewPlaying = !m_PreviewPlaying;
+        ImGui::SameLine(0, 8);
 
-        ImGui::Spacing();
-
-        ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.7f, 0.7f, 0.8f, 1.0f));
-        ImGui::Text("Frame  %d / %d", m_PreviewFrame, std::max(0, m_FrameCount - 1));
-        ImGui::PopStyleColor();
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextDisabled("Frame %d / %d", m_PreviewFrame, std::max(0, m_FrameCount - 1));
 
         int scrub = m_PreviewFrame;
-        ImGui::SetNextItemWidth(-1);
-        if (ImGui::SliderInt("##scrub", &scrub, 0, std::max(0, m_FrameCount - 1)))
+        ImGui::SetNextItemWidth(-FLT_MIN);
+        if (ImGui::SliderInt("##scrub", &scrub, 0, std::max(0, m_FrameCount - 1), ""))
         {
             m_PreviewFrame   = scrub;
             m_PreviewElapsed = 0.0f;
             m_PreviewPlaying = false;
         }
 
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
+        float footer = ImGui::GetFrameHeight() * 2.0f + 18.0f;
+        float remaining = ImGui::GetContentRegionAvail().y - footer;
+        if (remaining > 0.0f)
+            ImGui::Dummy(ImVec2(0, remaining));
 
         const bool canBuild = (m_TargetEntity && m_SpriteSheetTexture);
 
-        if (!canBuild)
-            ImGui::BeginDisabled();
-
-        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.22f, 0.55f, 0.28f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.28f, 0.68f, 0.35f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.18f, 0.45f, 0.22f, 1.0f));
-
-        if (ImGui::Button("Build Animation", ImVec2(-1, 36)))
+        ImGui::BeginDisabled(!canBuild);
+        if (Button("Build Animation", ButtonKind::Primary, ImVec2(-FLT_MIN, 0)))
         {
+            if (m_Context)
+                EditorCommands::RecordEdit(*m_Context);
             if (!m_TargetEntity.HasComponent<AnimatedSpriteComponent>())
                 m_TargetEntity.AddComponent<AnimatedSpriteComponent>();
 
@@ -260,15 +236,9 @@ void AnimationMakerPanel::OnImGuiRender()
             Close();
             ImGui::CloseCurrentPopup();
         }
+        ImGui::EndDisabled();
 
-        ImGui::PopStyleColor(3);
-
-        if (!canBuild)
-            ImGui::EndDisabled();
-
-        ImGui::Spacing();
-
-        if (ImGui::Button("Cancel", ImVec2(-1, 32)))
+        if (Button("Cancel", ButtonKind::Ghost, ImVec2(-FLT_MIN, 0)))
         {
             Close();
             ImGui::CloseCurrentPopup();
@@ -276,15 +246,16 @@ void AnimationMakerPanel::OnImGuiRender()
     }
     ImGui::EndChild();
 
-    ImGui::SameLine(0, 6);
+    ImGui::SameLine(0, 10);
 
-    ImGui::BeginChild("##anim_right", ImVec2(0, childHeight), false);
+    ImGui::BeginChild("##anim_right", ImVec2(0, childHeight), ImGuiChildFlags_None);
     {
         if (!m_SpriteSheetTexture)
         {
-            ImGui::TextColored(ImVec4(1, 0.3f, 0.3f, 1), "No sprite sheet loaded.");
+            EmptyState("No sprite sheet loaded", "The selected file could not be loaded as a texture.");
             ImGui::EndChild();
-            ImGui::EndPopup();
+            ImGui::PopStyleVar();
+            EndModal();
             return;
         }
 
@@ -295,19 +266,13 @@ void AnimationMakerPanel::OnImGuiRender()
 
         ImVec2 rightAvail = ImGui::GetContentRegionAvail();
 
-        const float previewPanelH = std::max(120.0f, rightAvail.y * 0.32f);
+        const float previewPanelH = std::max(140.0f, rightAvail.y * 0.34f);
         const float sheetPanelH   = rightAvail.y - previewPanelH - 10.0f;
 
-        ImGui::BeginChild("##sheet_view", ImVec2(0, sheetPanelH), true);
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Canvas);
+        ImGui::BeginChild("##sheet_view", ImVec2(0, sheetPanelH), ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding);
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.75f, 0.75f, 0.85f, 1.0f));
-            ImGui::TextUnformatted("Sprite Sheet");
-            ImGui::PopStyleColor();
-            ImGui::SameLine();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.45f, 0.55f, 1.0f));
-            ImGui::Text("(%d × %d)", texW, texH);
-            ImGui::PopStyleColor();
-            ImGui::Separator();
+            SectionLabel("Sprite Sheet");
 
             ImVec2 area = ImGui::GetContentRegionAvail();
             if (area.x < 10.0f) area.x = 10.0f;
@@ -316,13 +281,13 @@ void AnimationMakerPanel::OnImGuiRender()
             ImVec2 imgSize = FitSizeInside((float)texW, (float)texH, area.x, area.y);
 
             ImVec2 cursor  = ImGui::GetCursorScreenPos();
-            ImVec2 imgMin(cursor.x + (area.x - imgSize.x) * 0.5f,
-                          cursor.y + (area.y - imgSize.y) * 0.5f);
+            ImVec2 imgMin(std::floor(cursor.x + (area.x - imgSize.x) * 0.5f),
+                          std::floor(cursor.y + (area.y - imgSize.y) * 0.5f));
             ImVec2 imgMax(imgMin.x + imgSize.x, imgMin.y + imgSize.y);
 
             ImDrawList* dl = ImGui::GetWindowDrawList();
 
-            DrawCheckerBackground(dl, imgMin, imgMax, 8.0f);
+            DrawCheckerboard(dl, imgMin, imgMax, 8.0f);
 
             dl->AddImage(
                 (ImTextureID)(intptr_t)m_SpriteSheetTexture->GetID(),
@@ -338,18 +303,11 @@ void AnimationMakerPanel::OnImGuiRender()
         }
         ImGui::EndChild();
 
-        ImGui::Spacing();
+        ImGui::Dummy(ImVec2(0, 2));
 
-        ImGui::BeginChild("##frame_preview", ImVec2(0, previewPanelH), true);
+        ImGui::BeginChild("##frame_preview", ImVec2(0, previewPanelH), ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding);
         {
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.75f, 0.75f, 0.85f, 1.0f));
-            ImGui::TextUnformatted("Live Preview");
-            ImGui::PopStyleColor();
-            ImGui::SameLine();
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.45f, 0.45f, 0.55f, 1.0f));
-            ImGui::Text("— frame %d", m_PreviewFrame);
-            ImGui::PopStyleColor();
-            ImGui::Separator();
+            SectionLabel("Live Preview");
 
             ImVec2 area = ImGui::GetContentRegionAvail();
             if (area.x < 4.0f) area.x = 4.0f;
@@ -359,7 +317,7 @@ void AnimationMakerPanel::OnImGuiRender()
                 (float)m_FrameWidth, (float)m_FrameHeight,
                 area.x, area.y);
 
-            const float maxFrameDisp = std::min(area.y - 4.0f, 200.0f);
+            const float maxFrameDisp = std::min(area.y - 4.0f, 220.0f);
             if (frameDispSize.x > maxFrameDisp || frameDispSize.y > maxFrameDisp)
             {
                 float s = maxFrameDisp / std::max(frameDispSize.x, frameDispSize.y);
@@ -368,12 +326,12 @@ void AnimationMakerPanel::OnImGuiRender()
             }
 
             ImVec2 cursor = ImGui::GetCursorScreenPos();
-            ImVec2 fMin(cursor.x + (area.x - frameDispSize.x) * 0.5f,
-                        cursor.y + (area.y - frameDispSize.y) * 0.5f);
+            ImVec2 fMin(std::floor(cursor.x + (area.x - frameDispSize.x) * 0.5f),
+                        std::floor(cursor.y + (area.y - frameDispSize.y) * 0.5f));
             ImVec2 fMax(fMin.x + frameDispSize.x, fMin.y + frameDispSize.y);
 
             ImDrawList* dl = ImGui::GetWindowDrawList();
-            DrawCheckerBackground(dl, fMin, fMax, 6.0f);
+            DrawCheckerboard(dl, fMin, fMax, 6.0f);
 
             if (texW > 0 && texH > 0 && m_FrameWidth > 0 && m_FrameHeight > 0)
             {
@@ -392,15 +350,17 @@ void AnimationMakerPanel::OnImGuiRender()
                     ImVec2(u0, v0), ImVec2(u1, v1));
             }
 
-            dl->AddRect(fMin, fMax, IM_COL32(255, 210, 60, 160), 0.0f, 0, 1.5f);
+            dl->AddRect(fMin, fMax, U32(Colors::Accent, 0.8f), 0.0f, 0, 1.5f);
 
             ImGui::Dummy(area);
         }
         ImGui::EndChild();
+        ImGui::PopStyleColor();
     }
     ImGui::EndChild();
+    ImGui::PopStyleVar();
 
-    ImGui::EndPopup();
+    EndModal();
 }
 
 void AnimationMakerPanel::TickPreview(float dt)

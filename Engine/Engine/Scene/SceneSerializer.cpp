@@ -9,32 +9,76 @@
 
 #include <cstdint>
 #include <fstream>
+#include <algorithm>
+#include <sstream>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 
 namespace SIMPEngine {
-bool SceneSerializer::Serialize(const std::string &filepath) {
-  std::string realPath = filepath;
+namespace {
+void EmitColor(YAML::Emitter &out, const SDL_Color &c) {
+  out << YAML::Flow << YAML::BeginSeq << (int)c.r << (int)c.g << (int)c.b
+      << (int)c.a << YAML::EndSeq;
+}
+
+bool ReadColor(const YAML::Node &node, SDL_Color &c) {
+  if (!node || !node.IsSequence() || node.size() < 4)
+    return false;
+  c.r = (Uint8)node[0].as<int>();
+  c.g = (Uint8)node[1].as<int>();
+  c.b = (Uint8)node[2].as<int>();
+  c.a = (Uint8)node[3].as<int>();
+  return true;
+}
+
+bool ReadVec2(const YAML::Node &node, float &x, float &y) {
+  if (!node || !node.IsSequence() || node.size() < 2)
+    return false;
+  x = node[0].as<float>();
+  y = node[1].as<float>();
+  return true;
+}
+
+std::string ResolvePath(const std::string &filepath) {
   if (auto resolved = VFS::Resolve(filepath))
-    realPath = *resolved;
-  else
-    CORE_WARN("Failed to resolve VFS path '{}'", filepath);
+    return *resolved;
+  CORE_WARN("Failed to resolve VFS path '{}'", filepath);
+  return filepath;
+}
+} // namespace
+
+std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
+                                  bool includeSettings) {
+  auto &registry = m_Scene->GetRegistry();
 
   std::unordered_map<entt::entity, std::uint64_t> entityIds;
   std::uint64_t nextEntityId = 1;
-  auto entityView = m_Scene->GetRegistry().view<TagComponent>();
-  for (auto entityHandle : entityView)
+  for (auto entityHandle : entities)
     entityIds.emplace(entityHandle, nextEntityId++);
 
   YAML::Emitter out;
   out << YAML::BeginMap;
 
   out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
+
+  if (includeSettings) {
+    const glm::vec4 &bg = m_Scene->GetBackgroundColor();
+    out << YAML::Key << "Settings" << YAML::BeginMap;
+    out << YAML::Key << "background" << YAML::Value << YAML::Flow
+        << YAML::BeginSeq << bg.r << bg.g << bg.b << bg.a << YAML::EndSeq;
+    out << YAML::EndMap;
+  }
+
   out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
 
-  entityView.each([&](auto entityHandle, auto &tag) {
+  for (auto entityHandle : entities) {
+    if (!registry.valid(entityHandle) ||
+        !registry.all_of<TagComponent>(entityHandle))
+      continue;
+
     Entity entity{entityHandle, m_Scene};
+    auto &tag = entity.GetComponent<TagComponent>();
 
     out << YAML::BeginMap;
 
@@ -59,9 +103,8 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       auto &rc = entity.GetComponent<RenderComponent>();
 
       out << YAML::Key << "Render" << YAML::BeginMap;
-      out << YAML::Key << "color" << YAML::Value << YAML::Flow << YAML::BeginSeq
-          << (int)rc.color.r << (int)rc.color.g << (int)rc.color.b
-          << (int)rc.color.a << YAML::EndSeq;
+      out << YAML::Key << "color" << YAML::Value;
+      EmitColor(out, rc.color);
       out << YAML::Key << "size" << YAML::Value << YAML::Flow << YAML::BeginSeq
           << rc.width << rc.height << YAML::EndSeq;
       out << YAML::EndMap;
@@ -69,14 +112,34 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
 
     if (entity.HasComponent<SpriteComponent>()) {
       auto &sc = entity.GetComponent<SpriteComponent>();
+      out << YAML::Key << "Sprite" << YAML::BeginMap;
+      out << YAML::Key << "size" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << sc.width << sc.height << YAML::EndSeq;
       if (sc.texture) {
-        out << YAML::Key << "Sprite" << YAML::BeginMap;
-        out << YAML::Key << "size" << YAML::Value << YAML::Flow
-            << YAML::BeginSeq << sc.width << sc.height << YAML::EndSeq;
         out << YAML::Key << "texture" << YAML::Value
             << sc.texture->GetVFSPath();
-        out << YAML::EndMap;
+        out << YAML::Key << "filter" << YAML::Value
+            << (sc.texture->GetFilter() == TextureFilter::Nearest ? "nearest"
+                                                                  : "linear");
       }
+      out << YAML::Key << "tint" << YAML::Value;
+      EmitColor(out, sc.tint);
+      out << YAML::Key << "flip" << YAML::Value << YAML::Flow
+          << YAML::BeginSeq << sc.flipX << sc.flipY << YAML::EndSeq;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<TextComponent>()) {
+      auto &tx = entity.GetComponent<TextComponent>();
+      out << YAML::Key << "Text" << YAML::BeginMap;
+      out << YAML::Key << "text" << YAML::Value << tx.Text;
+      out << YAML::Key << "size" << YAML::Value << tx.Size;
+      out << YAML::Key << "color" << YAML::Value;
+      EmitColor(out, tx.Color);
+      out << YAML::Key << "align" << YAML::Value << tx.Align;
+      if (!tx.FontPath.empty())
+        out << YAML::Key << "font" << YAML::Value << tx.FontPath;
+      out << YAML::EndMap;
     }
 
     if (entity.HasComponent<AnimatedSpriteComponent>()) {
@@ -205,93 +268,143 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
       } else {
         out << YAML::Key << "Physics" << YAML::BeginMap;
 
-      std::string shape = (body->shapeType == AccelEngine::ShapeType::CIRCLE)
-                              ? "CIRCLE"
-                              : "AABB";
+        std::string shape = (body->shapeType == AccelEngine::ShapeType::CIRCLE)
+                                ? "CIRCLE"
+                                : "AABB";
 
-      out << YAML::Key << "shape" << YAML::Value << shape;
+        out << YAML::Key << "shape" << YAML::Value << shape;
 
-      out << YAML::Key << "position" << YAML::Value << YAML::Flow
-          << YAML::BeginSeq << body->position.x << body->position.y
-          << YAML::EndSeq;
-
-      out << YAML::Key << "rotation" << YAML::Value << body->rotation;
-
-      out << YAML::Key << "inverse_mass" << YAML::Value << body->inverseMass;
-
-      if (shape == "CIRCLE") {
-        out << YAML::Key << "radius" << YAML::Value << body->circle.radius;
-      } else {
-        out << YAML::Key << "half_size" << YAML::Value << YAML::Flow
-            << YAML::BeginSeq << body->aabb.halfSize.x << body->aabb.halfSize.y
+        out << YAML::Key << "position" << YAML::Value << YAML::Flow
+            << YAML::BeginSeq << body->position.x << body->position.y
             << YAML::EndSeq;
-      }
 
-      out << YAML::Key << "velocity" << YAML::Value << YAML::Flow
-          << YAML::BeginSeq << body->velocity.x << body->velocity.y
-          << YAML::EndSeq;
+        out << YAML::Key << "rotation" << YAML::Value << body->rotation;
 
-      out << YAML::Key << "restitution" << YAML::Value << body->restitution;
+        out << YAML::Key << "inverse_mass" << YAML::Value << body->inverseMass;
 
-      out << YAML::Key << "static_friction" << YAML::Value
-          << body->staticFriction;
+        if (shape == "CIRCLE") {
+          out << YAML::Key << "radius" << YAML::Value << body->circle.radius;
+        } else {
+          out << YAML::Key << "half_size" << YAML::Value << YAML::Flow
+              << YAML::BeginSeq << body->aabb.halfSize.x << body->aabb.halfSize.y
+              << YAML::EndSeq;
+        }
 
-      out << YAML::Key << "dynamic_friction" << YAML::Value
-          << body->dynamicFriction;
+        out << YAML::Key << "velocity" << YAML::Value << YAML::Flow
+            << YAML::BeginSeq << body->velocity.x << body->velocity.y
+            << YAML::EndSeq;
 
-      out << YAML::Key << "lock_rotation" << YAML::Value << body->lockRotation;
+        out << YAML::Key << "restitution" << YAML::Value << body->restitution;
 
-      out << YAML::Key << "lock_position" << YAML::Value << body->lockPosition;
+        out << YAML::Key << "static_friction" << YAML::Value
+            << body->staticFriction;
 
-      out << YAML::EndMap;
+        out << YAML::Key << "dynamic_friction" << YAML::Value
+            << body->dynamicFriction;
+
+        out << YAML::Key << "lock_rotation" << YAML::Value << body->lockRotation;
+
+        out << YAML::Key << "lock_position" << YAML::Value << body->lockPosition;
+
+        out << YAML::EndMap;
       }
     }
 
     out << YAML::EndMap;
-  });
+  }
 
   out << YAML::EndSeq;
   out << YAML::EndMap;
 
   if (!out.good()) {
     CORE_ERROR("Scene serialization failed: {}", out.GetLastError());
-    return false;
+    return {};
   }
 
+  return out.c_str();
+}
+
+std::string SceneSerializer::SerializeToString() {
+  std::vector<entt::entity> entities;
+  for (auto entityHandle : m_Scene->GetRegistry().view<TagComponent>())
+    entities.push_back(entityHandle);
+  std::reverse(entities.begin(), entities.end());
+  return Emit(entities, true);
+}
+
+std::string
+SceneSerializer::SerializeEntities(const std::vector<entt::entity> &entities) {
+  return Emit(entities, false);
+}
+
+bool SceneSerializer::Serialize(const std::string &filepath) {
+  std::string yaml = SerializeToString();
+  if (yaml.empty())
+    return false;
+
+  std::string realPath = ResolvePath(filepath);
   std::ofstream fout(realPath);
   if (!fout.is_open()) {
     CORE_ERROR("Could not open '{}' for writing", realPath);
     return false;
   }
-  fout << out.c_str();
+  fout << yaml;
 
   return true;
 }
 
 bool SceneSerializer::Deserialize(const std::string &filepath) {
-  std::string realPath = filepath;
-  if (auto resolved = VFS::Resolve(filepath))
-    realPath = *resolved;
-  else
-    CORE_WARN("Failed to resolve VFS path '{}'", filepath);
+  std::string realPath = ResolvePath(filepath);
 
   std::ifstream stream(realPath);
   if (!stream.is_open())
     return false;
 
+  std::stringstream buffer;
+  buffer << stream.rdbuf();
+  return DeserializeFromString(buffer.str());
+}
+
+bool SceneSerializer::DeserializeFromString(const std::string &yaml,
+                                            std::vector<entt::entity> *created) {
   YAML::Node data;
   try {
-    data = YAML::Load(stream);
+    data = YAML::Load(yaml);
   } catch (const YAML::Exception &e) {
-    CORE_ERROR("Failed to parse scene '{}': {}", realPath, e.what());
+    CORE_ERROR("Failed to parse scene: {}", e.what());
     return false;
   }
+  return Load(data, true, created);
+}
+
+std::vector<entt::entity>
+SceneSerializer::DeserializeEntities(const std::string &yaml) {
+  std::vector<entt::entity> created;
+  try {
+    Load(YAML::Load(yaml), false, &created);
+  } catch (const YAML::Exception &e) {
+    CORE_ERROR("Failed to parse entities: {}", e.what());
+  }
+  return created;
+}
+
+bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
+                           std::vector<entt::entity> *created) {
   if (!data["Scene"])
     return false;
 
-  std::string sceneName;
-  if (TryGet(data, "Scene", sceneName))
-    m_Scene->SetName(sceneName);
+  if (applySettings) {
+    std::string sceneName;
+    if (TryGet(data, "Scene", sceneName))
+      m_Scene->SetName(sceneName);
+
+    if (auto settings = data["Settings"]) {
+      auto bg = settings["background"];
+      if (bg && bg.IsSequence() && bg.size() >= 4)
+        m_Scene->SetBackgroundColor({bg[0].as<float>(), bg[1].as<float>(),
+                                     bg[2].as<float>(), bg[3].as<float>()});
+    }
+  }
 
   std::unordered_map<std::uint64_t, entt::entity> entityIds;
   std::vector<std::pair<std::uint64_t, YAML::Node>> serializedEntities;
@@ -302,256 +415,241 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
     return true;
 
   for (auto entityNode : entities) {
+    std::string tag;
     try {
-      std::string tag;
       if (!TryGet(entityNode, "Tag", tag))
         continue;
+    } catch (const YAML::Exception &e) {
+      CORE_ERROR("Entity deserialize error: {}", e.what());
+      continue;
+    }
 
-      std::uint64_t serializedId = nextFallbackId++;
-      if (entityNode["ID"])
-        serializedId = entityNode["ID"].as<std::uint64_t>();
+    std::uint64_t serializedId = nextFallbackId++;
+    if (entityNode["ID"])
+      serializedId = entityNode["ID"].as<std::uint64_t>();
 
-      Entity entity = m_Scene->CreateEntity(tag);
-      entityIds[serializedId] = entity.GetHandle();
-      serializedEntities.emplace_back(serializedId, entityNode);
+    Entity entity = m_Scene->CreateEntity(tag);
+    entityIds[serializedId] = entity.GetHandle();
+    serializedEntities.emplace_back(serializedId, entityNode);
+    if (created)
+      created->push_back(entity.GetHandle());
 
-      if (auto t = entityNode["Transform"]) {
-        auto &tc = entity.GetComponent<TransformComponent>();
+    auto component = [&](const char *name, auto &&load) {
+      auto node = entityNode[name];
+      if (!node)
+        return;
+      try {
+        load(node);
+      } catch (const YAML::Exception &e) {
+        CORE_ERROR("'{}': failed to load {}: {}", tag, name, e.what());
+      }
+    };
 
-        auto pos = t["position"];
-        auto scale = t["scale"];
-
-        if (pos && pos.size() >= 2) {
-          tc.position.x = pos[0].as<float>();
-          tc.position.y = pos[1].as<float>();
-        }
-
+    component("Transform", [&](const YAML::Node &t) {
+      auto &tc = entity.GetComponent<TransformComponent>();
+      ReadVec2(t["position"], tc.position.x, tc.position.y);
+      if (t["rotation"])
         TryGet(t, "rotation", tc.rotation);
-        if (t["zIndex"])
-          TryGet(t, "zIndex", tc.zIndex);
+      if (t["zIndex"])
+        TryGet(t, "zIndex", tc.zIndex);
+      ReadVec2(t["scale"], tc.scale.x, tc.scale.y);
+    });
 
-        if (scale && scale.size() >= 2) {
-          tc.scale.x = scale[0].as<float>();
-          tc.scale.y = scale[1].as<float>();
-        }
+    component("Sprite", [&](const YAML::Node &s) {
+      auto &sc = entity.AddComponent<SpriteComponent>();
+      ReadVec2(s["size"], sc.width, sc.height);
+      if (s["texture"]) {
+        std::string texPath = s["texture"].as<std::string>();
+        if (!texPath.empty())
+          sc.texture = TextureManager::Get().LoadTexture(texPath, texPath);
+        if (sc.texture && s["filter"])
+          sc.texture->SetFilter(s["filter"].as<std::string>() == "linear"
+                                    ? TextureFilter::Linear
+                                    : TextureFilter::Nearest);
+      }
+      ReadColor(s["tint"], sc.tint);
+      if (auto flip = s["flip"]; flip && flip.IsSequence() && flip.size() >= 2) {
+        sc.flipX = flip[0].as<bool>();
+        sc.flipY = flip[1].as<bool>();
+      }
+    });
+
+    component("Text", [&](const YAML::Node &t) {
+      auto &tx = entity.AddComponent<TextComponent>();
+      if (t["text"])
+        tx.Text = t["text"].as<std::string>();
+      if (t["size"])
+        tx.Size = t["size"].as<float>();
+      ReadColor(t["color"], tx.Color);
+      if (t["align"])
+        tx.Align = t["align"].as<int>();
+      if (t["font"])
+        tx.FontPath = t["font"].as<std::string>();
+    });
+
+    component("Render", [&](const YAML::Node &r) {
+      auto &rc = entity.AddComponent<RenderComponent>();
+      ReadColor(r["color"], rc.color);
+      ReadVec2(r["size"], rc.width, rc.height);
+    });
+
+    component("Collision", [&](const YAML::Node &c) {
+      auto &cc = entity.AddComponent<CollisionComponent>();
+      ReadVec2(c["size"], cc.width, cc.height);
+      ReadVec2(c["offset"], cc.offsetX, cc.offsetY);
+    });
+
+    component("Velocity", [&](const YAML::Node &v) {
+      auto &vc = entity.AddComponent<VelocityComponent>();
+      ReadVec2(v["value"], vc.vx, vc.vy);
+    });
+
+    component("Camera", [&](const YAML::Node &cam) {
+      float zoom = 1.0f;
+      if (cam["zoom"])
+        TryGet(cam, "zoom", zoom);
+
+      auto &cc = entity.AddComponent<CameraComponent>(zoom);
+      if (cam["primary"])
+        TryGet(cam, "primary", cc.primary);
+    });
+
+    component("Lifetime", [&](const YAML::Node &l) {
+      auto &lf = entity.AddComponent<LifetimeComponent>();
+      if (l["remaining"])
+        TryGet(l, "remaining", lf.remaining);
+    });
+
+    component("Animation", [&](const YAML::Node &a) {
+      std::string path;
+      int fw, fh, fn;
+      float fd;
+      bool loop;
+
+      if (!TryGet(a, "texture", path) || !TryGet(a, "frame_width", fw) ||
+          !TryGet(a, "frame_height", fh) || !TryGet(a, "frame_count", fn) ||
+          !TryGet(a, "frame_duration", fd) || !TryGet(a, "looping", loop))
+        return;
+
+      auto tex = TextureManager::Get().LoadTexture(path, path);
+      if (!tex)
+        return;
+
+      auto &ac = entity.AddComponent<AnimatedSpriteComponent>();
+      ac.animation = std::make_unique<Animation>(tex, fw, fh, fn, fd, loop);
+      int currentFrame = 0;
+      float elapsedTime = 0.0f;
+      bool finished = false;
+      if (a["current_frame"])
+        TryGet(a, "current_frame", currentFrame);
+      if (a["elapsed_time"])
+        TryGet(a, "elapsed_time", elapsedTime);
+      if (a["finished"])
+        TryGet(a, "finished", finished);
+      ac.animation->SetPlaybackState(currentFrame, elapsedTime, finished);
+    });
+
+    component("Tilemap", [&](const YAML::Node &tilemapNode) {
+      auto &tilemap = entity.AddComponent<TilemapComponent>();
+      if (tilemapNode["tile_size"])
+        TryGet(tilemapNode, "tile_size", tilemap.tileSize);
+
+      std::string texturePath;
+      int tileWidth = 0;
+      int tileHeight = 0;
+      const bool hasTileset = tilemapNode["texture"] &&
+                              tilemapNode["tile_width"] &&
+                              tilemapNode["tile_height"];
+      if (hasTileset) {
+        TryGet(tilemapNode, "texture", texturePath);
+        TryGet(tilemapNode, "tile_width", tileWidth);
+        TryGet(tilemapNode, "tile_height", tileHeight);
+      }
+      if (hasTileset && tileWidth > 0 && tileHeight > 0) {
+        auto texture = TextureManager::Get().LoadTexture(texturePath, texturePath);
+        if (texture)
+          tilemap.tileset = std::make_shared<Tileset>(texture, tileWidth, tileHeight);
       }
 
-      if (auto s = entityNode["Sprite"]) {
-        auto size = s["size"];
-        std::string texPath;
-
-        if (!size || size.size() < 2)
-          continue;
-
-        if (!TryGet(s, "texture", texPath))
-          continue;
-
-        auto &sc = entity.AddComponent<SpriteComponent>();
-        sc.width = size[0].as<float>();
-        sc.height = size[1].as<float>();
-        sc.texture = TextureManager::Get().LoadTexture(texPath, texPath);
-      }
-
-      if (auto r = entityNode["Render"]) {
-        auto color = r["color"];
-        auto size = r["size"];
-
-        if (!color || color.size() < 4 || !size || size.size() < 2)
-          continue;
-
-        auto &rc = entity.AddComponent<RenderComponent>();
-        rc.color.r = color[0].as<Uint8>();
-        rc.color.g = color[1].as<Uint8>();
-        rc.color.b = color[2].as<Uint8>();
-        rc.color.a = color[3].as<Uint8>();
-        rc.width = size[0].as<float>();
-        rc.height = size[1].as<float>();
-      }
-
-      if (auto c = entityNode["Collision"]) {
-        auto size = c["size"];
-        auto offset = c["offset"];
-
-        if (!size || size.size() < 2 || !offset || offset.size() < 2)
-          continue;
-
-        auto &cc = entity.AddComponent<CollisionComponent>();
-        cc.width = size[0].as<float>();
-        cc.height = size[1].as<float>();
-        cc.offsetX = offset[0].as<float>();
-        cc.offsetY = offset[1].as<float>();
-      }
-
-      if (auto v = entityNode["Velocity"]) {
-        auto val = v["value"];
-        if (!val || val.size() < 2)
-          continue;
-
-        auto &vc = entity.AddComponent<VelocityComponent>();
-        vc.vx = val[0].as<float>();
-        vc.vy = val[1].as<float>();
-      }
-
-      if (auto cam = entityNode["Camera"]) {
-        bool primary;
-        if (!TryGet(cam, "primary", primary))
-          continue;
-
-        float zoom = 1.0f;
-        if (cam["zoom"])
-          TryGet(cam, "zoom", zoom);
-
-        auto &cc = entity.AddComponent<CameraComponent>(zoom);
-        cc.primary = primary;
-      }
-
-      if (auto l = entityNode["Lifetime"]) {
-        float remaining;
-        if (TryGet(l, "remaining", remaining)) {
-          auto &lf = entity.AddComponent<LifetimeComponent>();
-          lf.remaining = remaining;
-        }
-      }
-
-      if (auto a = entityNode["Animation"]) {
-        std::string path;
-        int fw, fh, fn;
-        float fd;
-        bool loop;
-
-        if (!TryGet(a, "texture", path) || !TryGet(a, "frame_width", fw) ||
-            !TryGet(a, "frame_height", fh) || !TryGet(a, "frame_count", fn) ||
-            !TryGet(a, "frame_duration", fd) || !TryGet(a, "looping", loop))
-          continue;
-
-        auto tex = TextureManager::Get().LoadTexture(path, path);
-        if (!tex)
-          continue;
-
-        auto &ac = entity.AddComponent<AnimatedSpriteComponent>();
-        ac.animation = std::make_unique<Animation>(tex, fw, fh, fn, fd, loop);
-        int currentFrame = 0;
-        float elapsedTime = 0.0f;
-        bool finished = false;
-        if (a["current_frame"])
-          TryGet(a, "current_frame", currentFrame);
-        if (a["elapsed_time"])
-          TryGet(a, "elapsed_time", elapsedTime);
-        if (a["finished"])
-          TryGet(a, "finished", finished);
-        ac.animation->SetPlaybackState(currentFrame, elapsedTime, finished);
-      }
-
-      if (auto tilemapNode = entityNode["Tilemap"]) {
-        auto &tilemap = entity.AddComponent<TilemapComponent>();
-        if (tilemapNode["tile_size"])
-          TryGet(tilemapNode, "tile_size", tilemap.tileSize);
-
-        std::string texturePath;
-        int tileWidth = 0;
-        int tileHeight = 0;
-        const bool hasTileset = tilemapNode["texture"] &&
-                                tilemapNode["tile_width"] &&
-                                tilemapNode["tile_height"];
-        if (hasTileset) {
-          TryGet(tilemapNode, "texture", texturePath);
-          TryGet(tilemapNode, "tile_width", tileWidth);
-          TryGet(tilemapNode, "tile_height", tileHeight);
-        }
-        if (hasTileset && tileWidth > 0 && tileHeight > 0) {
-          auto texture = TextureManager::Get().LoadTexture(texturePath, texturePath);
-          if (texture)
-            tilemap.tileset = std::make_shared<Tileset>(texture, tileWidth, tileHeight);
-        }
-
-        if (auto chunks = tilemapNode["chunks"]; chunks && chunks.IsSequence()) {
-          for (const auto &chunkNode : chunks) {
-            int chunkX = 0;
-            int chunkY = 0;
-            if (!TryGet(chunkNode, "x", chunkX) || !TryGet(chunkNode, "y", chunkY))
+      if (auto chunks = tilemapNode["chunks"]; chunks && chunks.IsSequence()) {
+        for (const auto &chunkNode : chunks) {
+          int chunkX = 0;
+          int chunkY = 0;
+          if (!TryGet(chunkNode, "x", chunkX) || !TryGet(chunkNode, "y", chunkY))
+            continue;
+          auto tiles = chunkNode["tiles"];
+          if (!tiles || !tiles.IsSequence())
+            continue;
+          for (const auto &tileNode : tiles) {
+            if (!tileNode.IsSequence() || tileNode.size() < 3)
               continue;
-            auto tiles = chunkNode["tiles"];
-            if (!tiles || !tiles.IsSequence())
+            const int localX = tileNode[0].as<int>();
+            const int localY = tileNode[1].as<int>();
+            const int tileId = tileNode[2].as<int>();
+            if (localX < 0 || localX >= CHUNK_SIZE || localY < 0 ||
+                localY >= CHUNK_SIZE || tileId < 0)
               continue;
-            for (const auto &tileNode : tiles) {
-              if (!tileNode.IsSequence() || tileNode.size() < 3)
-                continue;
-              const int localX = tileNode[0].as<int>();
-              const int localY = tileNode[1].as<int>();
-              const int tileId = tileNode[2].as<int>();
-              if (localX < 0 || localX >= CHUNK_SIZE || localY < 0 ||
-                  localY >= CHUNK_SIZE || tileId < 0)
-                continue;
-              SetTile(tilemap, chunkX * CHUNK_SIZE + localX,
-                      chunkY * CHUNK_SIZE + localY, tileId);
-            }
+            SetTile(tilemap, chunkX * CHUNK_SIZE + localX,
+                    chunkY * CHUNK_SIZE + localY, tileId);
           }
         }
       }
+    });
 
-      if (auto p = entityNode["Physics"]) {
-        std::string shape;
-        if (!TryGet(p, "shape", shape))
-          continue;
+    component("Physics", [&](const YAML::Node &p) {
+      std::string shape;
+      if (!TryGet(p, "shape", shape))
+        return;
 
-        auto pos = p["position"];
-        if (!pos || pos.size() < 2)
-          continue;
+      float px = 0.0f, py = 0.0f;
+      if (!ReadVec2(p["position"], px, py))
+        return;
 
-        float invMass;
-        if (!TryGet(p, "inverse_mass", invMass))
-          continue;
+      float invMass;
+      if (!TryGet(p, "inverse_mass", invMass))
+        return;
 
-        auto &phys = entity.AddComponent<PhysicsComponent>();
-        phys.body = std::make_unique<AccelEngine::RigidBody>();
+      auto body = std::make_unique<AccelEngine::RigidBody>();
+      body->entityID = (uint32_t)entity.GetHandle();
+      body->position = {px, py};
+      body->inverseMass = invMass;
 
-        phys.body->entityID = (uint32_t)entity.GetHandle();
-
-        phys.body->position = {pos[0].as<float>(), pos[1].as<float>()};
-
-        phys.body->inverseMass = invMass;
-
-        if (shape == "CIRCLE") {
-          float radius;
-          if (!TryGet(p, "radius", radius))
-            continue;
-
-          phys.body->shapeType = AccelEngine::ShapeType::CIRCLE;
-          phys.body->circle.radius = radius;
-        } else {
-          auto hs = p["half_size"];
-          if (!hs || hs.size() < 2)
-            continue;
-
-          phys.body->shapeType = AccelEngine::ShapeType::AABB;
-          phys.body->aabb.halfSize = {hs[0].as<float>(), hs[1].as<float>()};
-        }
-
-        TryGet(p, "rotation", phys.body->rotation);
-
-        auto vel = p["velocity"];
-        if (vel && vel.size() >= 2) {
-          phys.body->velocity = {vel[0].as<float>(), vel[1].as<float>()};
-        }
-
-        TryGet(p, "restitution", phys.body->restitution);
-        TryGet(p, "static_friction", phys.body->staticFriction);
-        TryGet(p, "dynamic_friction", phys.body->dynamicFriction);
-        TryGet(p, "lock_rotation", phys.body->lockRotation);
-        TryGet(p, "lock_position", phys.body->lockPosition);
-
-        phys.body->calculateInertia();
-
-        m_Scene->GetPhysicsWorld().addBody(phys.body.get());
-        m_Scene->GetPhysicsSystem().bodies.push_back(phys.body.get());
+      if (shape == "CIRCLE") {
+        float radius;
+        if (!TryGet(p, "radius", radius))
+          return;
+        body->shapeType = AccelEngine::ShapeType::CIRCLE;
+        body->circle.radius = radius;
+      } else {
+        float hx = 0.0f, hy = 0.0f;
+        if (!ReadVec2(p["half_size"], hx, hy))
+          return;
+        body->shapeType = AccelEngine::ShapeType::AABB;
+        body->aabb.halfSize = {hx, hy};
       }
-    } catch (const YAML::Exception &e) {
-      CORE_ERROR("Entity deserialize error: {}", e.what());
-    }
+
+      TryGet(p, "rotation", body->rotation);
+
+      float vx = 0.0f, vy = 0.0f;
+      if (ReadVec2(p["velocity"], vx, vy))
+        body->velocity = {vx, vy};
+
+      TryGet(p, "restitution", body->restitution);
+      TryGet(p, "static_friction", body->staticFriction);
+      TryGet(p, "dynamic_friction", body->dynamicFriction);
+      TryGet(p, "lock_rotation", body->lockRotation);
+      TryGet(p, "lock_position", body->lockPosition);
+
+      body->calculateInertia();
+
+      auto &phys = entity.AddComponent<PhysicsComponent>();
+      phys.body = std::move(body);
+      m_Scene->GetPhysicsWorld().addBody(phys.body.get());
+      m_Scene->GetPhysicsSystem().bodies.push_back(phys.body.get());
+    });
   }
 
   for (const auto &[childId, entityNode] : serializedEntities) {
-    (void)childId;
     auto hierarchyNode = entityNode["Hierarchy"];
     if (!hierarchyNode || !hierarchyNode["parent_id"])
       continue;
@@ -569,6 +667,7 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
     m_Scene->SetParent(childIt->second, parentIt->second);
   }
 
+  m_Scene->UpdateTransforms();
   return true;
 }
-}
+} // namespace SIMPEngine

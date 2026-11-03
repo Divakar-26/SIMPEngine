@@ -1,8 +1,9 @@
 add_library(Editor STATIC
     EditorLayer.cpp
     EditorCommands.cpp
+    EditorHistory.cpp
+    EditorCamera.cpp
     Panels/HierarchyPanel.cpp
-    Panels/ViewportUtility.cpp
     Panels/ViewportPanel.cpp
     Panels/InspectorPanel/InspectorPanel.cpp
     Panels/ContentBrowserPanel.cpp
@@ -11,6 +12,11 @@ add_library(Editor STATIC
     Panels/InspectorPanel/AnimationSection.cpp
     Panels/InspectorPanel/AnimationMakerPanel.cpp
     Panels/InspectorPanel/PhysicsSection.cpp
+    Panels/ConsolePanel.cpp
+    Panels/GameViewPanel.cpp
+    Panels/SettingsPanel.cpp
+    UI/Theme.cpp
+    UI/Widgets.cpp
 )
 
 target_compile_definitions(Editor PRIVATE ENGINE_PROFILER_ENABLE_IMGUI)

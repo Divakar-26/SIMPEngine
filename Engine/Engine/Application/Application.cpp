@@ -13,6 +13,7 @@
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Rendering/SvgTextureCache.h>
 #include <Engine/Rendering/TextureManager.h>
+#include <Engine/Rendering/Font.h>
 
 namespace SIMPEngine
 {
@@ -45,6 +46,7 @@ namespace SIMPEngine
         m_LayerStack.Clear();
         Renderer::Flush();
         SvgTextureCache::Clear();
+        Font::ClearCache();
         TextureManager::Get().UnloadAll();
         Renderer::Shutdown();
         s_Instance = nullptr;

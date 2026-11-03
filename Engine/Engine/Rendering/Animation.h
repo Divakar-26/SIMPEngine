@@ -19,7 +19,7 @@ namespace SIMPEngine
         void Update(float deltaTime);
         void Draw(float x, float y, float width, float height,
                   SDL_Color tint = {255, 255, 255, 255},
-                  float rotation = 0.0f);
+                  float rotation = 0.0f, float zIndex = 0.0f);
 
         int GetFrameNumber() { return m_FrameCount; }
         int GetFrameWidth() { return m_FrameWidth; }

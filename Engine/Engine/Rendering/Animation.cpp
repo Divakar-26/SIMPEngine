@@ -45,7 +45,7 @@ namespace SIMPEngine
     }
 
     void Animation::Draw(float x, float y, float width, float height,
-                         SDL_Color tint, float rotation)
+                         SDL_Color tint, float rotation, float zIndex)
     {
         if (!m_Texture || m_FrameWidth <= 0 || m_FrameHeight <= 0)
             return;
@@ -63,7 +63,7 @@ namespace SIMPEngine
         src.h = float(m_FrameHeight);
 
         Sprite tempSprite(m_Texture, src);
-        tempSprite.Draw(x, y, width, height, tint, rotation);
+        tempSprite.Draw(x, y, width, height, tint, rotation, zIndex);
     }
 
     void Animation::Reset()

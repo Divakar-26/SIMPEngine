@@ -19,7 +19,7 @@ namespace SIMPEngine
         void ClearSourceRect();
 
         void Draw(float x, float y, float width, float height,
-                  SDL_Color tint = {255, 255, 255, 255}, float rotation = 0.0f) const;
+                  SDL_Color tint = {255, 255, 255, 255}, float rotation = 0.0f, float zIndex = 0.0f) const;
 
         bool HasSourceRect() const { return m_HasSourceRect; }
 

@@ -9,150 +9,137 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 
 namespace
 {
     static void DrawFrameStrip(
-        SIMPEngine::Animation* anim,
-        float stripHeight = 48.0f)
+        SIMPEngine::Animation *anim,
+        float stripHeight)
     {
+        using namespace EditorUI;
+
         if (!anim || !anim->GetTexture())
             return;
 
-        auto tex   = anim->GetTexture();
-        int  texW  = tex->GetWidth();
-        int  texH  = tex->GetHeight();
-        int  fw    = anim->GetFrameWidth();
-        int  fh    = anim->GetFrameHeight();
-        int  fc    = anim->GetFrameNumber();
+        auto tex = anim->GetTexture();
+        int texW = tex->GetWidth();
+        int texH = tex->GetHeight();
+        int fw = anim->GetFrameWidth();
+        int fh = anim->GetFrameHeight();
+        int fc = anim->GetFrameNumber();
 
-        if (fw <= 0 || fh <= 0 || fc <= 0)
+        if (fw <= 0 || fh <= 0 || fc <= 0 || texW <= 0 || texH <= 0)
             return;
 
         int framesPerRow = std::max(1, texW / fw);
 
-        float aspect   = (float)fw / (float)fh;
-        float cellW    = stripHeight * aspect;
-        float panelW   = ImGui::GetContentRegionAvail().x;
+        float cellW = stripHeight * (float)fw / (float)fh;
+        float gap = 2.0f;
+        float panelW = ImGui::GetContentRegionAvail().x;
 
-        int visible = std::max(1, (int)(panelW / (cellW + 2.0f)));
-        visible     = std::min(visible, fc);
+        int visible = std::max(1, (int)((panelW - 24.0f) / (cellW + gap)));
+        visible = std::min(visible, fc);
+        int current = anim->GetCurrentFrame();
 
-        ImDrawList* dl     = ImGui::GetWindowDrawList();
-        ImVec2      cursor = ImGui::GetCursorScreenPos();
+        ImDrawList *dl = ImGui::GetWindowDrawList();
+        ImVec2 cursor = ImGui::GetCursorScreenPos();
 
         for (int i = 0; i < visible; ++i)
         {
             int fx = i % framesPerRow;
             int fy = i / framesPerRow;
 
-            float u0 =  fx      * fw / (float)texW;
+            float u0 = fx * fw / (float)texW;
             float u1 = (fx + 1) * fw / (float)texW;
             float v0 = 1.0f - (fy + 1) * fh / (float)texH;
-            float v1 = 1.0f -  fy      * fh / (float)texH;
+            float v1 = 1.0f - fy * fh / (float)texH;
 
-            ImVec2 cellMin(cursor.x + i * (cellW + 2.0f), cursor.y);
+            ImVec2 cellMin(cursor.x + i * (cellW + gap), cursor.y);
             ImVec2 cellMax(cellMin.x + cellW, cellMin.y + stripHeight);
 
-            dl->AddRectFilled(cellMin, cellMax, IM_COL32(30, 30, 35, 255));
-            dl->AddImage(
-                (ImTextureID)(intptr_t)tex->GetID(),
-                cellMin, cellMax,
-                ImVec2(u0, v1), ImVec2(u1, v0));
-            dl->AddRect(cellMin, cellMax, IM_COL32(80, 80, 90, 180));
+            DrawCheckerboard(dl, cellMin, cellMax, 5.0f);
+            dl->AddImage((ImTextureID)(intptr_t)tex->GetID(), cellMin, cellMax, ImVec2(u0, v1), ImVec2(u1, v0));
+            dl->AddRect(cellMin, cellMax, U32(i == current ? Colors::Accent : Colors::Border), 0.0f, 0, i == current ? 1.5f : 1.0f);
         }
 
         if (fc > visible)
         {
-            ImVec2 dotMin(cursor.x + visible * (cellW + 2.0f), cursor.y);
-            ImVec2 dotMax(dotMin.x + 20.0f, dotMin.y + stripHeight);
-            dl->AddRectFilled(dotMin, dotMax, IM_COL32(30, 30, 35, 180));
-            dl->AddText(
-                ImVec2(dotMin.x + 3.0f, dotMin.y + stripHeight * 0.5f - 6.0f),
-                IM_COL32(160, 160, 170, 255), "...");
+            char more[16];
+            std::snprintf(more, sizeof(more), "+%d", fc - visible);
+            ImVec2 ts = ImGui::CalcTextSize(more);
+            dl->AddText(ImVec2(cursor.x + visible * (cellW + gap) + 4.0f, cursor.y + (stripHeight - ts.y) * 0.5f), U32(Colors::TextFaint), more);
         }
 
         ImGui::Dummy(ImVec2(panelW, stripHeight));
     }
 }
 
-void InspectorPanel::DrawAnimationSection(SIMPEngine::Entity& m_SelectedEntity)
+void InspectorPanel::DrawAnimationSection(SIMPEngine::Entity &m_SelectedEntity)
 {
+    using namespace EditorUI;
+
     SIMPEngine::Scene *const selectedScene = m_Context->Scene;
     const entt::entity selectedHandle = m_SelectedEntity.GetHandle();
+    EditorContext &ctx = *m_Context;
 
-    DrawComponentCard<AnimatedSpriteComponent>(
-        "Animated Sprite", m_SelectedEntity,
-        [this, selectedScene, selectedHandle, &m_SelectedEntity](AnimatedSpriteComponent& ac)
+    auto openPicker = [this, selectedScene, selectedHandle](const char *title)
+    {
+        m_AssetPicker->Open(
+            title,
+            "assets://",
+            [this, selectedScene, selectedHandle](const std::string &vpath)
+            {
+                if (m_Context->Scene != selectedScene)
+                    return;
+                SIMPEngine::Entity selected(selectedHandle, selectedScene);
+                if (!selected || !selected.HasComponent<AnimatedSpriteComponent>())
+                    return;
+                m_AnimationMaker->Open(selected, vpath);
+            },
+            {".png", ".jpg", ".jpeg", ".bmp", ".tga", ".gif", ".webp"});
+    };
+
+    DrawComponentSection<AnimatedSpriteComponent>(
+        ctx, "Animated Sprite", m_SelectedEntity,
+        [this, &ctx, &openPicker, &m_SelectedEntity](AnimatedSpriteComponent &ac)
         {
-            SIMPEngine::Animation* anim = ac.animation.get();
+            SIMPEngine::Animation *anim = ac.animation.get();
 
             if (!anim || !anim->GetTexture())
             {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.6f, 0.6f, 0.65f, 1.0f));
-                ImGui::TextWrapped("No animation assigned. Use the picker below "
-                                   "or drag a sprite sheet onto the entity.");
+                ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextDim);
+                ImGui::TextWrapped("No animation. Pick a sprite sheet and slice it into frames.");
                 ImGui::PopStyleColor();
-                ImGui::Spacing();
-
-                if (ImGui::Button("  +  Create Animation", ImVec2(-1, 32)))
-                {
-                    m_AssetPicker->Open(
-                        "Select Sprite Sheet",
-                        "assets://",
-                        [this, selectedScene, selectedHandle](const std::string& vpath)
-                        {
-                            if (m_Context->Scene != selectedScene)
-                                return;
-                            SIMPEngine::Entity selected(selectedHandle, selectedScene);
-                            if (!selected || !selected.HasComponent<AnimatedSpriteComponent>())
-                                return;
-                            m_AnimationMaker->Open(selected, vpath);
-                        });
-                }
+                if (Button("Create Animation...", ButtonKind::Secondary, ImVec2(-FLT_MIN, 0)))
+                    openPicker("Select Sprite Sheet");
                 return;
             }
 
-            auto  tex  = anim->GetTexture();
-            float dur  = anim->GetFrameDuration();
-            int   fc   = anim->GetFrameNumber();
+            auto tex = anim->GetTexture();
+            float dur = anim->GetFrameDuration();
+            int fc = anim->GetFrameNumber();
 
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.8f, 0.5f, 1.0f));
-            ImGui::Text("Sheet   %s", tex->GetVFSPath().c_str());
-            ImGui::PopStyleColor();
-
-            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.65f, 0.65f, 0.75f, 1.0f));
-            ImGui::Text("Frames  %d   |   %d × %d px   |   %.3f s/frame   |   %.2f s total",
-                        fc,
-                        anim->GetFrameWidth(),
-                        anim->GetFrameHeight(),
-                        dur,
-                        fc * dur);
-            ImGui::PopStyleColor();
-
-            ImGui::Spacing();
+            PropertyValue("Sheet", tex->GetVFSPath().c_str(), &Colors::TextDim);
 
             {
-                int fw = anim->GetFrameWidth();
-                int fh = anim->GetFrameHeight();
+                int size[2] = {anim->GetFrameWidth(), anim->GetFrameHeight()};
                 int fn = anim->GetFrameNumber();
                 float fd = anim->GetFrameDurationRef();
-                bool  lp = anim->IsLooping();
+                bool lp = anim->IsLooping();
 
                 bool changed = false;
-
-                changed |= ImGui::DragInt("Frame Width",  &fw, 1.0f, 1, 4096);
-                changed |= ImGui::DragInt("Frame Height", &fh, 1.0f, 1, 4096);
-                changed |= ImGui::DragInt("Frame Count",  &fn, 1.0f, 1, 100000);
-                changed |= ImGui::DragFloat("Frame Duration", &fd, 0.005f, 0.005f, 10.0f, "%.3f s");
-                changed |= ImGui::Checkbox("Loop", &lp);
+                changed |= PropertyInt2("Frame Size", size, 1.0f, 1, 4096);
+                changed |= PropertyInt("Frames", &fn, 1.0f, 1, 100000);
+                changed |= PropertyFloat("Frame Time", &fd, 0.005f, 0.005f, 10.0f, "%.3f s");
+                changed |= PropertyBool("Loop", &lp);
 
                 if (changed)
                 {
                     ac.animation = std::make_unique<SIMPEngine::Animation>(
                         tex,
-                        std::max(1, fw),
-                        std::max(1, fh),
+                        std::max(1, size[0]),
+                        std::max(1, size[1]),
                         std::max(1, fn),
                         std::max(0.005f, fd),
                         lp);
@@ -160,71 +147,30 @@ void InspectorPanel::DrawAnimationSection(SIMPEngine::Entity& m_SelectedEntity)
                 }
             }
 
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
+            char total[48];
+            std::snprintf(total, sizeof(total), "%.2f s  ·  %s", fc * dur, anim->isFinished() ? "finished" : (anim->IsLooping() ? "looping" : "playing"));
+            PropertyValue("Length", total, &Colors::TextDim);
 
-            ImGui::TextUnformatted("Playback");
-            ImGui::Spacing();
+            PropertyLabel("Frames");
+            DrawFrameStrip(anim, 40.0f);
 
-            if (ImGui::Button("Play", ImVec2(80, 26)))
+            PropertyLabel("");
+            float spacing = ImGui::GetStyle().ItemSpacing.x;
+            float third = std::floor((ImGui::GetContentRegionAvail().x - spacing * 2.0f) / 3.0f);
+            if (Button("Restart", ButtonKind::Secondary, ImVec2(third, 0)))
                 anim->Reset();
-
             ImGui::SameLine();
-
-            if (anim->isFinished())
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.5f, 0.3f, 1.0f));
-                ImGui::TextUnformatted("Finished");
-                ImGui::PopStyleColor();
-            }
-            else
-            {
-                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.4f, 0.9f, 0.5f, 1.0f));
-                ImGui::TextUnformatted(anim->IsLooping() ? "Looping" : "Playing");
-                ImGui::PopStyleColor();
-            }
-
-            ImGui::Spacing();
-
-            ImGui::TextUnformatted("Frame Strip");
-            ImGui::Spacing();
-            DrawFrameStrip(anim, 52.0f);
-
-            ImGui::Spacing();
-            ImGui::Separator();
-            ImGui::Spacing();
-
-            if (ImGui::Button("Edit in Animation Maker", ImVec2(-1, 30)))
+            if (Button("Edit...", ButtonKind::Secondary, ImVec2(third, 0)))
                 m_AnimationMaker->Open(m_SelectedEntity, tex->GetVFSPath());
+            ImGui::SameLine();
+            if (Button("Replace...", ButtonKind::Secondary, ImVec2(-FLT_MIN, 0)))
+                openPicker("Replace Sprite Sheet");
 
-            ImGui::Spacing();
-
-            if (ImGui::Button("Replace Sprite Sheet", ImVec2(-1, 30)))
+            PropertyLabel("");
+            if (Button("Remove animation", ButtonKind::Danger, ImVec2(-FLT_MIN, 0)))
             {
-                m_AssetPicker->Open(
-                    "Replace Sprite Sheet",
-                    "assets://",
-                    [this, selectedScene, selectedHandle](const std::string& vpath)
-                    {
-                        if (m_Context->Scene != selectedScene)
-                            return;
-                        SIMPEngine::Entity selected(selectedHandle, selectedScene);
-                        if (!selected || !selected.HasComponent<AnimatedSpriteComponent>())
-                            return;
-                        m_AnimationMaker->Open(selected, vpath);
-                    });
-            }
-
-            ImGui::Spacing();
-
-            ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.55f, 0.18f, 0.18f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.72f, 0.22f, 0.22f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.42f, 0.14f, 0.14f, 1.0f));
-
-            if (ImGui::Button("Remove Animation", ImVec2(-1, 28)))
+                EditorCommands::RecordEdit(ctx);
                 ac.animation.reset();
-
-            ImGui::PopStyleColor(3);
+            }
         });
 }

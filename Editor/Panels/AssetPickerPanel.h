@@ -12,8 +12,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
-
-#include "icons/folder_icon.h"
+#include <vector>
 
 class AssetPickerPanel : public EditorPanel
 {
@@ -26,18 +25,19 @@ public:
 
     void Open(const std::string& title,
               const std::string& startDirVirtual,
-              ConfirmCallback onConfirm);
+              ConfirmCallback onConfirm,
+              std::vector<std::string> extensions = {});
 
     bool IsOpen() const { return m_Open; }
+    bool Accepts(const std::string& vpath) const;
 
 private:
     std::string ToVirtualChild(const std::string& parent, const std::string& filename) const;
     void DrawDirectory(const std::string& vdir);
     void DrawFiles(const std::string& vdir);
-    void DrawEntry(const std::string& vpath, bool isDir);
     void DrawPreview();
-    bool IsImageFile(const std::filesystem::path& path) const;
-    SIMPEngine::Texture& GetThumbnailFor(const std::string& vpath);
+    SIMPEngine::Texture* GetThumbnailFor(const std::string& vpath);
+    void Confirm();
     void Close();
 
 private:
@@ -50,7 +50,8 @@ private:
     bool m_Open = false;
     std::string m_SelectedVPath;
     ConfirmCallback m_OnConfirm;
+    char m_Search[128] = "";
+    std::vector<std::string> m_Extensions;
 
-    SIMPEngine::Texture m_FolderIcon;
     std::unordered_map<std::string, SIMPEngine::Texture> m_TextureCache;
 };

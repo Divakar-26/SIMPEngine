@@ -5,6 +5,12 @@
 
 namespace SIMPEngine
 {
+    enum class TextureFilter
+    {
+        Nearest,
+        Linear
+    };
+
     class Texture
     {
     public:
@@ -23,6 +29,9 @@ namespace SIMPEngine
 
         void SetVFSPath(std::string vfsPath) { m_VFSPath = vfsPath ;}
 
+        void SetFilter(TextureFilter filter);
+        TextureFilter GetFilter() const { return m_Filter; }
+
         bool LoadFromMemory(unsigned char *data, size_t size);
         void UploadToGPU(unsigned char *pixels, int width, int height, int channels);
 
@@ -30,6 +39,7 @@ namespace SIMPEngine
         GLuint m_TextureID = 0;
         int m_Width = 0;
         int m_Height = 0;
+        TextureFilter m_Filter = TextureFilter::Nearest;
 
         std::string m_Path = "";
         std::string m_VFSPath = "";

@@ -28,6 +28,7 @@ namespace SIMPEngine
         void RemoveComponent();
 
         entt::entity GetHandle() const { return m_EntityHandle; }
+        Scene *GetScene() const { return m_Scene; }
 
         operator bool() const;
         operator entt::entity() const { return m_EntityHandle; }

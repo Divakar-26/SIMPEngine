@@ -1,27 +1,21 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "HierarchyPanel.h"
+#include "ComponentMenu.h"
+#include "UI/Visuals.h"
+#include "UI/Widgets.h"
+
 #include <Engine/Scene/Scene.h>
-#include "../icons.h"
 
-template <typename T>
-void DrawComponent(SIMPEngine::Entity entity, const char *name)
+#include <imgui_internal.h>
+#include <misc/cpp/imgui_stdlib.h>
+
+#include <algorithm>
+#include <cstdio>
+#include <vector>
+
+namespace
 {
-    if (entity.HasComponent<T>())
-    {
-        bool open = ImGui::TreeNodeEx((void *)(uint64_t)typeid(T).hash_code(),
-                                      ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth,
-                                      "%s", name);
-
-        if (ImGui::BeginPopupContextItem())
-        {
-            if (ImGui::MenuItem("Remove Component"))
-                entity.RemoveComponent<T>();
-
-            ImGui::EndPopup();
-        }
-
-        if (open)
-            ImGui::TreePop();
-    }
+    constexpr const char *EntityPayload = "HIERARCHY_ENTITY";
 }
 
 HierarchyPanel::HierarchyPanel(
@@ -30,148 +24,320 @@ HierarchyPanel::HierarchyPanel(
 {
 }
 
+bool HierarchyPanel::IsRoot(entt::entity handle)
+{
+    auto &registry = m_Context->Scene->GetRegistry();
+    auto *h = registry.try_get<HierarchyComponent>(handle);
+    return !h || h->parent == entt::null || !registry.valid(h->parent);
+}
+
+void HierarchyPanel::BeginRename(entt::entity handle)
+{
+    auto &registry = m_Context->Scene->GetRegistry();
+    if (!registry.valid(handle) || !registry.all_of<TagComponent>(handle))
+        return;
+    m_Renaming = handle;
+    m_RenameBuffer = registry.get<TagComponent>(handle).Tag;
+    m_RenameFocus = true;
+    m_RenameAge = 0;
+}
+
 void HierarchyPanel::OnImGuiRender()
 {
-    ImGui::Begin("Hierarchy");
+    using namespace EditorUI;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+    bool visible = ImGui::Begin("Scene###Hierarchy");
+    ImGui::PopStyleVar();
+    if (!visible)
+    {
+        ImGui::End();
+        return;
+    }
+
     SIMPEngine::Scene &scene = *m_Context->Scene;
+    auto &registry = scene.GetRegistry();
 
-    if (ImGui::Button("+", ImVec2(40, 40)))
+    if (m_Context->RenameRequest != entt::null)
     {
-        ImGui::OpenPopup("AddEntityPopup");
+        BeginRename(m_Context->RenameRequest);
+        m_Context->RenameRequest = entt::null;
     }
 
-    if (ImGui::BeginPopupModal("AddEntityPopup", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    DrawToolbar();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
+    ImGui::BeginChild("##tree", ImVec2(0, 0), ImGuiChildFlags_AlwaysUseWindowPadding);
+
+    std::vector<entt::entity> entities;
+    for (auto handle : registry.view<TagComponent>())
+        entities.push_back(handle);
+    std::reverse(entities.begin(), entities.end());
+
+    if (entities.empty())
     {
-        ImGui::InputText("Entity Name", m_EntityNameBuffer, sizeof(m_EntityNameBuffer));
-
-        ImGui::Dummy(ImVec2(0,4));
-
-        ImGui::Text("Select Components:");
-        ImGui::Checkbox("Sprite", &m_AddSprite);
-        ImGui::Checkbox("Camera", &m_AddCamera);
-        ImGui::Checkbox("Velocity", &m_AddVelocity);
-        ImGui::Checkbox("Collision", &m_AddCollision);
-        ImGui::Checkbox("Render", &m_AddRender);
-        ImGui::Checkbox("Script", &m_AddScript);
-        ImGui::Checkbox("Physics", &m_AddPhysics);
-        ImGui::Checkbox("Animated Sprite", &m_AddAnimatedSprite);
-        ImGui::Checkbox("Lifetime", &m_AddLifetime);
-        ImGui::Checkbox("Tilemap", &m_AddTilemap);
-
-        ImGui::Dummy(ImVec2(0,4));
-
-        if (ImGui::Button("Add"))
+        EmptyState("No entities", "Right-click or press + to add one.");
+    }
+    else if (m_SearchBuffer[0])
+    {
+        int shown = 0;
+        for (auto handle : entities)
         {
-            SIMPEngine::Entity entity =
-                EditorCommands::CreateEntity(
-                    *m_Context,
-                    m_EntityNameBuffer);
+            SIMPEngine::Entity entity(handle, &scene);
+            const std::string &tag = entity.GetComponent<TagComponent>().Tag;
+            if (!ContainsInsensitive(tag.c_str(), m_SearchBuffer))
+                continue;
 
-            if (m_AddVelocity)
-                entity.AddComponent<VelocityComponent>();
-            if (m_AddSprite)
-                entity.AddComponent<SpriteComponent>(nullptr, 0.0f, 0.0f);
-            if (m_AddCamera)
-                entity.AddComponent<CameraComponent>(1.0f, glm::vec2(0.0f, 0.0f));
-            if (m_AddCollision)
-                entity.AddComponent<CollisionComponent>();
-            if (m_AddRender)
-                entity.AddComponent<RenderComponent>();
-            if (m_AddPhysics)
-                entity.AddComponent<PhysicsComponent>();
-            if (m_AddAnimatedSprite)
-                entity.AddComponent<AnimatedSpriteComponent>();
-            if (m_AddLifetime)
-                entity.AddComponent<LifetimeComponent>();
-            if (m_AddTilemap)
-                entity.AddComponent<TilemapComponent>();
-
-            m_AddVelocity = m_AddSprite = m_AddCamera = m_AddCollision = false;
-            m_AddRender = m_AddScript = m_AddPhysics = false;
-            m_AddAnimatedSprite = m_AddLifetime = m_AddTilemap = false;
-            strcpy(m_EntityNameBuffer, "New Entity");
-
-            ImGui::CloseCurrentPopup();
+            Visual v = EntityVisual(entity);
+            TreeRowOptions opt;
+            opt.Leaf = true;
+            opt.Selected = m_Context->IsSelected(handle);
+            char id[32];
+            std::snprintf(id, sizeof(id), "##s%u", (unsigned)handle);
+            auto row = TreeRow(id, v.Icon, v.Color(), tag.c_str(), opt);
+            if (row.Clicked)
+                m_Context->SelectedEntity = entity;
+            if (ImGui::BeginPopupContextItem())
+            {
+                DrawEntityContextMenu(entity);
+                ImGui::EndPopup();
+            }
+            ++shown;
         }
-        ImGui::SameLine();
-        if (ImGui::Button("Cancel"))
+        if (shown == 0)
+            EmptyState("No matches");
+    }
+    else
+    {
+        for (auto handle : entities)
         {
-            ImGui::CloseCurrentPopup();
+            if (IsRoot(handle))
+                DrawEntityNode(SIMPEngine::Entity(handle, &scene));
         }
-
-        ImGui::EndPopup();
     }
 
-    scene.GetRegistry().view<TagComponent>().each([&](auto handle, auto &tag)
-                                                  {
-    SIMPEngine::Entity entity(handle, &scene);
+    ImVec2 rest = ImGui::GetContentRegionAvail();
+    if (rest.y > 1.0f)
+    {
+        ImGui::InvisibleButton("##empty", ImVec2(std::max(1.0f, rest.x), rest.y));
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left))
+            m_Context->SelectedEntity = {};
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload(EntityPayload))
+            {
+                m_PendingChild = *(const entt::entity *)payload->Data;
+                m_PendingParent = entt::null;
+                m_PendingReparent = true;
+            }
+            ImGui::EndDragDropTarget();
+        }
+        if (ImGui::BeginPopupContextItem("##emptyctx"))
+        {
+            if (ImGui::MenuItem("New Entity"))
+                m_PendingCreate = true;
+            ImGui::EndPopup();
+        }
+    }
 
-    std::string nameWithIcon = tag.Tag;
-    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-    bool opened = ImGui::TreeNodeEx((void*)(uint64_t)handle, flags, "%s", nameWithIcon.c_str());
+    ImGui::EndChild();
+    ImGui::PopStyleVar(2);
 
-    if (ImGui::IsItemClicked())
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) && m_Context->SelectedEntity &&
+        !ImGui::GetIO().WantTextInput && m_Renaming == entt::null)
+    {
+        if (ImGui::IsKeyPressed(ImGuiKey_F2, false))
+            BeginRename(m_Context->SelectedEntity.GetHandle());
+    }
+
+    ImGui::End();
+
+    if (m_PendingCreate)
+    {
+        m_PendingCreate = false;
+        auto entity = EditorCommands::CreateEntity(*m_Context, "Entity");
         m_Context->SelectedEntity = entity;
+        BeginRename(entity.GetHandle());
+    }
+
+    if (m_PendingNewChild != entt::null)
+    {
+        if (registry.valid(m_PendingNewChild))
+        {
+            auto child = EditorCommands::CreateChild(*m_Context, SIMPEngine::Entity(m_PendingNewChild, &scene), "Entity");
+            m_Context->SelectedEntity = child;
+            BeginRename(child.GetHandle());
+        }
+        m_PendingNewChild = entt::null;
+    }
+
+    if (m_PendingReparent)
+    {
+        EditorCommands::ReparentEntity(*m_Context,
+                                       SIMPEngine::Entity(m_PendingChild, &scene),
+                                       SIMPEngine::Entity(m_PendingParent, &scene));
+        m_PendingReparent = false;
+    }
+
+    if (m_PendingDuplicate != entt::null)
+    {
+        if (registry.valid(m_PendingDuplicate))
+            m_Context->SelectedEntity = EditorCommands::DuplicateEntity(*m_Context, SIMPEngine::Entity(m_PendingDuplicate, &scene));
+        m_PendingDuplicate = entt::null;
+    }
+
+    if (m_PendingDelete != entt::null)
+    {
+        if (registry.valid(m_PendingDelete))
+            EditorCommands::DeleteEntity(*m_Context, SIMPEngine::Entity(m_PendingDelete, &scene));
+        m_PendingDelete = entt::null;
+    }
+}
+
+void HierarchyPanel::DrawToolbar()
+{
+    using namespace EditorUI;
+
+    BeginToolbar("##hierarchy_toolbar");
+    if (IconButton("##add", ICON_LC_PLUS, "New entity"))
+        m_PendingCreate = true;
+    ImGui::SameLine(0, 4);
+    SearchBox("##search", m_SearchBuffer, sizeof(m_SearchBuffer), "Filter");
+    EndToolbar();
+}
+
+void HierarchyPanel::DrawRenameField(SIMPEngine::Entity entity, const ImVec2 &min, const ImVec2 &max)
+{
+    ImVec2 restore = ImGui::GetCursorScreenPos();
+    ImGui::SetCursorScreenPos(min);
+    ImGui::SetNextItemWidth(max.x - min.x);
+    bool focusNow = m_RenameFocus;
+    if (focusNow)
+    {
+        ImGui::SetKeyboardFocusHere();
+        m_RenameFocus = false;
+    }
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(3, std::max(0.0f, (max.y - min.y - ImGui::GetFontSize()) * 0.5f)));
+    bool done = ImGui::InputText("##rename", &m_RenameBuffer, ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
+    ImGui::PopStyleVar();
+
+    bool cancel = ImGui::IsItemActive() && ImGui::IsKeyPressed(ImGuiKey_Escape);
+    ++m_RenameAge;
+    bool lostFocus = m_RenameAge > 3 && !ImGui::IsItemActive();
+
+    if (cancel)
+    {
+        m_Renaming = entt::null;
+    }
+    else if (done || lostFocus)
+    {
+        if (!m_RenameBuffer.empty())
+            EditorCommands::RenameEntity(*m_Context, entity, m_RenameBuffer);
+        m_Renaming = entt::null;
+    }
+
+    ImGui::SetCursorScreenPos(restore);
+    ImGui::Dummy(ImVec2(0, 0));
+}
+
+void HierarchyPanel::DrawEntityNode(SIMPEngine::Entity entity)
+{
+    using namespace EditorUI;
+
+    auto &registry = m_Context->Scene->GetRegistry();
+    entt::entity handle = entity.GetHandle();
+
+    std::vector<entt::entity> children;
+    if (auto *h = registry.try_get<HierarchyComponent>(handle))
+    {
+        for (auto child : h->children)
+            if (registry.valid(child) && registry.all_of<TagComponent>(child))
+                children.push_back(child);
+    }
+
+    Visual v = EntityVisual(entity);
+    TreeRowOptions opt;
+    opt.Leaf = children.empty();
+    opt.Selected = m_Context->IsSelected(handle);
+    opt.Highlight = m_Context->HoveredEntity && m_Context->HoveredEntity.GetHandle() == handle;
+    opt.DefaultOpen = true;
+    opt.HideLabel = m_Renaming == handle;
+    if (entity.HasComponent<ScriptComponent>())
+        opt.Trailing = ICON_LC_SCROLL_TEXT;
+
+    char id[32];
+    std::snprintf(id, sizeof(id), "##e%u", (unsigned)handle);
+    const std::string &tag = entity.GetComponent<TagComponent>().Tag;
+    auto row = TreeRow(id, v.Icon, v.Color(), tag.empty() ? "(unnamed)" : tag.c_str(), opt);
+
+    if (row.Clicked)
+        m_Context->SelectedEntity = entity;
+    if (row.DoubleClicked)
+        BeginRename(handle);
+
+    if (m_Renaming != handle && ImGui::BeginDragDropSource())
+    {
+        ImGui::SetDragDropPayload(EntityPayload, &handle, sizeof(handle));
+        ImGui::TextUnformatted(tag.c_str());
+        ImGui::EndDragDropSource();
+    }
+
+    if (ImGui::BeginDragDropTarget())
+    {
+        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload(EntityPayload))
+        {
+            m_PendingChild = *(const entt::entity *)payload->Data;
+            m_PendingParent = handle;
+            m_PendingReparent = true;
+        }
+        ImGui::EndDragDropTarget();
+    }
 
     if (ImGui::BeginPopupContextItem())
     {
-        if (ImGui::BeginMenu("Add Component"))
-        {
-            if (!entity.HasComponent<TransformComponent>() && ImGui::MenuItem("Transform"))
-                entity.AddComponent<TransformComponent>();
-
-            if (!entity.HasComponent<SpriteComponent>() && ImGui::MenuItem("Sprite"))
-                entity.AddComponent<SpriteComponent>(nullptr, 0.0f, 0.0f);
-
-            if (!entity.HasComponent<VelocityComponent>() && ImGui::MenuItem("Velocity"))
-                entity.AddComponent<VelocityComponent>();
-
-            if (!entity.HasComponent<RenderComponent>() && ImGui::MenuItem("Render"))
-                entity.AddComponent<RenderComponent>();
-
-            if (!entity.HasComponent<CameraComponent>() && ImGui::MenuItem("Camera"))
-                entity.AddComponent<CameraComponent>();
-
-            if (!entity.HasComponent<CollisionComponent>() && ImGui::MenuItem("Collision"))
-                entity.AddComponent<CollisionComponent>();
-
-            if (!entity.HasComponent<PhysicsComponent>() && ImGui::MenuItem("Physics"))
-                entity.AddComponent<PhysicsComponent>();
-
-            if (!entity.HasComponent<AnimatedSpriteComponent>() && ImGui::MenuItem("Animated Sprite"))
-                entity.AddComponent<AnimatedSpriteComponent>();
-
-            if (!entity.HasComponent<LifetimeComponent>() && ImGui::MenuItem("Lifetime"))
-                entity.AddComponent<LifetimeComponent>();
-
-            ImGui::EndMenu();
-        }
-
-        if (ImGui::MenuItem("Delete Entity"))
-        {
-            EditorCommands::DeleteEntity(*m_Context, entity);
-        }
-
-        if(ImGui::MenuItem("Add Script")){
-        }
-
+        m_Context->SelectedEntity = entity;
+        DrawEntityContextMenu(entity);
         ImGui::EndPopup();
     }
 
-    if (opened)
+    if (m_Renaming == handle)
+        DrawRenameField(entity, row.LabelMin, row.LabelMax);
+
+    if (row.Open)
     {
-        ShowComponents(entity);
-        ImGui::TreePop();
-    } });
-
-    ImGui::End();
+        for (auto child : children)
+            DrawEntityNode(SIMPEngine::Entity(child, m_Context->Scene));
+        TreeRowPop();
+    }
 }
 
-void HierarchyPanel::ShowComponents(SIMPEngine::Entity entity)
+void HierarchyPanel::DrawEntityContextMenu(SIMPEngine::Entity entity)
 {
-    DrawComponent<TransformComponent>(entity, "Transform");
-    DrawComponent<RenderComponent>(entity, "Render");
-    DrawComponent<CameraComponent>(entity, "Camera Entity");
-    DrawComponent<CollisionComponent>(entity, "Collision Box");
-    DrawComponent<SpriteComponent>(entity, "Sprite");
-}
+    if (ImGui::MenuItem("Rename", "F2"))
+        BeginRename(entity.GetHandle());
+    if (ImGui::MenuItem("Duplicate", "Ctrl+D"))
+        m_PendingDuplicate = entity.GetHandle();
+    if (ImGui::MenuItem("Add Child Entity"))
+        m_PendingNewChild = entity.GetHandle();
+
+    if (!IsRoot(entity.GetHandle()) && ImGui::MenuItem("Move to Root"))
+    {
+        m_PendingChild = entity.GetHandle();
+        m_PendingParent = entt::null;
+        m_PendingReparent = true;
+    }
+
+    ImGui::Separator();
+    if (ImGui::BeginMenu("Add Component"))
+    {
+        DrawAddComponentItems(*m_Context, entity);
+        ImGui::EndMenu();
+    }
+
+    ImGui::Separator();
+    if (ImGui::MenuItem("Delete", "Del"))
+        m_PendingDelete = entity.GetHandle();
+
+    }

@@ -21,6 +21,8 @@ add_library(Engine STATIC
     Engine/Rendering/Sprite.cpp
     Engine/Rendering/Texture.cpp
     Engine/Rendering/TextureManager.cpp
+    Engine/Rendering/Framebuffer.cpp
+    Engine/Rendering/Font.cpp
     Engine/Layer/RenderingLayer.cpp
     Engine/Input/Input.cpp
     Engine/Math/Camera2D.cpp

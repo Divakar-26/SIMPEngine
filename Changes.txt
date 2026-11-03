@@ -19,3 +19,7 @@ Akshat
     1. Fixed build: SDL_GetBasePath const, Entity/Scene include cycle
     2. Removed dead code and comments, CMake cleanup
     3. Fixed -Wreorder, unused vars, PROFILE_SCOPE clash with AccelEngine
+    4. Editor UI redesign: EditorUI theme/widgets, Lucide icons, JetBrains Mono Nerd Font, console, pause/step
+    5. Renderer: z-sorted single-shader batcher, SDF shapes/lines/text, Framebuffer, blend modes, sprite tint/flip/filter, TextComponent
+    6. Mouse: Input game viewport + ScriptableEntity::GetMouseWorldPosition; editor Game view; NO_EDITOR build fixed
+    7. Editor: Edit/Play/Stop with snapshot restore, undo/redo, editor camera, gizmos, grid, scene files, themes, Inter UI font

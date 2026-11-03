@@ -61,6 +61,18 @@ struct SpriteComponent
     std::shared_ptr<SIMPEngine::Texture> texture = nullptr;
     float width = 1.0f;
     float height = 1.0f;
+    SDL_Color tint{255, 255, 255, 255};
+    bool flipX = false;
+    bool flipY = false;
+};
+
+struct TextComponent
+{
+    std::string Text = "Text";
+    float Size = 32.0f;
+    SDL_Color Color{255, 255, 255, 255};
+    int Align = 1;
+    std::string FontPath;
 };
 
 struct TagComponent

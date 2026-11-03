@@ -1,6 +1,7 @@
 #pragma once
 
 #include <EditorPanel.h>
+#include "../../EditorContext.h"
 #include <Engine/Scene/Entity.h>
 #include <Engine/Rendering/Texture.h>
 
@@ -17,6 +18,7 @@ class AnimationMakerPanel : public EditorPanel
 public:
     AnimationMakerPanel() = default;
 
+    void SetContext(EditorContext *context) { m_Context = context; }
     void Open(SIMPEngine::Entity targetEntity, const std::string& spriteSheetVPath);
     void OnImGuiRender() override;
 
@@ -25,6 +27,7 @@ private:
     bool LoadSpriteSheet(const std::string& vpath);
 
 private:
+    EditorContext *m_Context = nullptr;
     bool m_Open = false;
 
     SIMPEngine::Entity m_TargetEntity{};

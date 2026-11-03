@@ -28,7 +28,7 @@ namespace SIMPEngine
     }
 
     void Sprite::Draw(float x, float y, float width, float height,
-                      SDL_Color tint, float rotation) const
+                      SDL_Color tint, float rotation, float zIndex) const
     {
         if (!m_Texture)
         {
@@ -41,7 +41,7 @@ namespace SIMPEngine
             Renderer::DrawTexture(
                 m_Texture,
                 x, y, width, height,
-                tint, rotation, 0.0f,
+                tint, rotation, zIndex,
                 &m_SourceRect
             );
         }
@@ -50,7 +50,7 @@ namespace SIMPEngine
             Renderer::DrawTexture(
                 m_Texture,
                 x, y, width, height,
-                tint, rotation, 0.0f,
+                tint, rotation, zIndex,
                 nullptr
             );
         }

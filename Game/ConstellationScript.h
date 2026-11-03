@@ -30,7 +30,6 @@ public:
 
     std::vector<Dot> m_Dots;
     std::mt19937     m_Rng{42};
-    bool             m_WasPressed = false;
 
     std::array<SDL_Color, 6> m_Palette = {{
         {100, 220, 255, 255},
@@ -56,17 +55,6 @@ public:
         return d;
     }
 
-    glm::vec2 ScreenToWorld(float px, float py)
-    {
-        float hw = (float)SIMPEngine::Renderer::m_WindowWidth;
-        float hh = (float)SIMPEngine::Renderer::m_WindowHeight;
-        float nx =  (px / hw) * 2.0f - 1.0f;
-        float ny = -(py / hh) * 2.0f + 1.0f;
-        float worldX = nx * (540.0f * (hw / hh));
-        float worldY = ny * 540.0f;
-        return {worldX, worldY};
-    }
-
     void OnCreate() override
     {
         std::uniform_real_distribution<float> rx(-WORLD_W, WORLD_W);
@@ -89,11 +77,9 @@ public:
             if (d.y >  WORLD_H) { d.y =  WORLD_H; d.vy *= -1; }
         }
 
-        bool pressed = SIMPEngine::Input::IsMouseButtonPressed(SIMPEngine::SIMP_Keys::SIMPK_MOUSE_LEFT);
-        if (pressed && !m_WasPressed)
+        if (SIMPEngine::Input::IsMouseButtonJustPressed(SIMPEngine::SIMP_Keys::SIMPK_MOUSE_LEFT) && IsMouseInViewport())
         {
-            auto [mx, my] = SIMPEngine::Input::GetMousePosition();
-            glm::vec2 world = ScreenToWorld((float)mx, (float)my);
+            glm::vec2 world = GetMouseWorldPosition();
 
             std::uniform_real_distribution<float> scatter(-30.0f, 30.0f);
             for (int i = 0; i < SPAWN_COUNT; i++)
@@ -101,7 +87,6 @@ public:
                     world.x + scatter(m_Rng),
                     world.y + scatter(m_Rng)));
         }
-        m_WasPressed = pressed;
     }
 
     void OnRender() override

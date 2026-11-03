@@ -37,7 +37,14 @@ namespace SIMPEngine
             return m_SceneManager->GetActiveScene()->GetMainCamera().GetViewportSize();
         }
 
+        void SetRenderToBackbuffer(bool enabled) { m_RenderToBackbuffer = enabled; }
+        void SetSimulationEnabled(bool enabled) { m_SimulationEnabled = enabled; }
+        bool IsSimulationEnabled() const { return m_SimulationEnabled; }
+        void Step(float dt);
+
     private:
         std::shared_ptr<SceneManager> m_SceneManager;
+        bool m_SimulationEnabled = true;
+        bool m_RenderToBackbuffer = true;
     };
 }

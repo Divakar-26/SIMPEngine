@@ -97,7 +97,14 @@ namespace SIMPEngine
 
         void OnUpdate(float dt);
         void OnRender();
+        void OnRender(const glm::mat4 &view, const glm::mat4 &projection);
         void OnEvent();
+
+        void UpdateTransforms();
+        glm::vec2 ScreenToWorld(const glm::vec2 &viewportPixel);
+
+        const glm::vec4 &GetBackgroundColor() const { return m_BackgroundColor; }
+        void SetBackgroundColor(const glm::vec4 &color) { m_BackgroundColor = color; }
 
         void Clear();
 
@@ -130,8 +137,16 @@ namespace SIMPEngine
 
         void SetParent(entt::entity child, entt::entity parent);
 
+        void MarkPhysicsDirty() { m_PhysicsDirty = true; }
+        void RebuildPhysicsWorld();
+        void SyncPhysicsFromTransforms();
+
     private:
+        void RenderContent();
+
         std::string m_Name;
+        glm::vec4 m_BackgroundColor{0.329f, 0.329f, 0.329f, 1.0f};
+        bool m_PhysicsDirty = false;
         entt::registry m_Registry;
 
         MovementSystem movementSystem;

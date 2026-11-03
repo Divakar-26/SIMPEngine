@@ -1,9 +1,42 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
 #include "ViewportPanel.h"
+#include "../EditorCommands.h"
+#include "UI/Visuals.h"
+#include "UI/Widgets.h"
 #include <Engine/Core/Log.h>
-#include <Engine/Input/Input.h>
-#include <Engine/Rendering/Renderer.h>
-#include <Engine/Input/SIMP_Keys.h>
 #include <Engine/Scene/Component.h>
+
+#include <imgui_internal.h>
+
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
+
+namespace
+{
+    constexpr float HandleLength = 72.0f;
+    constexpr float RotateRadius = 58.0f;
+    constexpr float HitTolerance = 6.0f;
+
+    SDL_Color ToSDL(const ImVec4 &c, float alpha = 1.0f)
+    {
+        return {(Uint8)(c.x * 255.0f), (Uint8)(c.y * 255.0f), (Uint8)(c.z * 255.0f), (Uint8)(c.w * alpha * 255.0f)};
+    }
+
+    float DistanceToSegment(const ImVec2 &p, const ImVec2 &a, const ImVec2 &b)
+    {
+        ImVec2 ab = b - a;
+        float len2 = ab.x * ab.x + ab.y * ab.y;
+        float t = len2 > 0.0f ? std::clamp(((p.x - a.x) * ab.x + (p.y - a.y) * ab.y) / len2, 0.0f, 1.0f) : 0.0f;
+        ImVec2 d = p - (a + ab * t);
+        return std::sqrt(d.x * d.x + d.y * d.y);
+    }
+
+    float SnapTo(float v, float step)
+    {
+        return step > 0.0f ? std::round(v / step) * step : v;
+    }
+}
 
 ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer, EditorContext *context)
 {
@@ -15,311 +48,666 @@ void ViewportPanel::OnAttach()
 {
 }
 
+ImVec2 ViewportPanel::ToScreen(const glm::vec2 &world) const
+{
+    glm::vec2 s = m_Camera.WorldToScreen(world);
+    return ImVec2(m_CanvasPos.x + s.x, m_CanvasPos.y + s.y);
+}
+
+glm::vec2 ViewportPanel::GetMouseWorldPosition() const
+{
+    ImVec2 mouse = ImGui::GetIO().MousePos;
+    return m_Camera.ScreenToWorld({mouse.x - m_CanvasPos.x, mouse.y - m_CanvasPos.y});
+}
+
+bool ViewportPanel::SnapActive() const
+{
+    return EditorUI::Settings().Snap != ImGui::GetIO().KeyCtrl;
+}
+
 void ViewportPanel::OnImGuiRender()
 {
     PROFILE_SCOPE("Viewport/Render");
-    ImGui::Begin("Viewport");
+    using namespace EditorUI;
 
-    m_ViewportPos = ImGui::GetCursorScreenPos();
-    m_ViewportSize = ImGui::GetContentRegionAvail();
-    m_Context->ViewportHovered = ImGui::IsItemHovered();
+    if (m_Context->FocusSceneView)
+    {
+        ImGui::SetNextWindowFocus();
+        m_Context->FocusSceneView = false;
+    }
 
-    ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-    UpdateFocusState();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    bool visible = ImGui::Begin("Viewport###Viewport");
+    ImGui::PopStyleVar();
 
-    if (viewportSize.x < 1.0f || viewportSize.y < 1.0f)
+    m_Context->ViewportFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
+    m_Context->ViewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+
+    if (!visible)
     {
         ImGui::End();
         return;
     }
 
-    m_RenderingLayer->GetCamera().SetAllowZoom(m_Context->ViewportHovered);
-    ResizeViewportIfNeeded(viewportSize);
+    DrawToolbar();
 
-    auto api = SIMPEngine::Renderer::GetAPI();
-    api->BeginFrame();
-    m_RenderingLayer->GetCamera().SetViewportSize(viewportSize.x, viewportSize.y);
-
-    SIMPEngine::Renderer::Clear();
-    DrawCartesianLines();
-    m_RenderingLayer->OnRender();
-
-    api->EndFrame();
-
-    ImTextureID texID = (ImTextureID)(intptr_t)api->GetViewportTexture();
-    ImGui::Image(texID, viewportSize, ImVec2(0, 1), ImVec2(1, 0));
-
-    m_ViewportPos = ImGui::GetItemRectMin();
-    m_ViewportSize = ImGui::GetItemRectSize();
-
-    if (m_Context->ViewportHovered &&
-        ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+    m_CanvasPos = ImGui::GetCursorScreenPos();
+    m_CanvasSize = ImGui::GetContentRegionAvail();
+    if (m_CanvasSize.x < 2.0f || m_CanvasSize.y < 2.0f)
     {
-        m_Context->SelectedEntity = GetEntityUnderMouse();
+        ImGui::End();
+        return;
     }
 
-    if (m_Context->ViewportFocused && ImGui::IsKeyDown(ImGuiKey_F))
-    {
-        FocusOnSelectedEntity();
-    }
+    RenderScene();
 
-    ShowDetailsInViewport();
-    DrawSelectionOutline();
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    dl->AddImage((ImTextureID)(intptr_t)m_Framebuffer->GetColorAttachment(), m_CanvasPos, m_CanvasPos + m_CanvasSize, ImVec2(0, 1), ImVec2(1, 0));
+
+    ImGui::InvisibleButton("##canvas", m_CanvasSize, ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight | ImGuiButtonFlags_MouseButtonMiddle);
+    m_CanvasHovered = ImGui::IsItemHovered();
+
+    HandleDrop();
+    HandleCameraInput();
+    HandleSelectionAndGizmo();
+    HandleShortcuts();
+
+    dl->PushClipRect(m_CanvasPos, m_CanvasPos + m_CanvasSize, true);
+    DrawOverlays();
+    dl->PopClipRect();
 
     ImGui::End();
 }
 
-void ViewportPanel::UpdateFocusState()
+void ViewportPanel::DrawToolbar()
 {
-    bool nowFocused = ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows);
-    bool nowHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+    using namespace EditorUI;
+    EditorSettings &settings = Settings();
 
-    SIMPEngine::Application::Get().GetImGuiLayer()->SetBlockEvent(!nowFocused);
+    BeginToolbar("##viewport_toolbar");
 
-    if (!nowFocused)
-        SIMPEngine::Input::ResetAllKeys();
+    struct ToolDef
+    {
+        GizmoTool Tool;
+        const char *Icon;
+        const char *Tip;
+    };
+    const ToolDef tools[] = {
+        {GizmoTool::Select, ICON_LC_MOUSE_POINTER_2, "Select (Q)"},
+        {GizmoTool::Move, ICON_LC_MOVE, "Move (W)"},
+        {GizmoTool::Rotate, ICON_LC_ROTATE_CW, "Rotate (E)"},
+        {GizmoTool::Scale, ICON_LC_SCALING, "Scale (R)"},
+    };
+    for (const auto &t : tools)
+    {
+        ImGui::PushID((int)t.Tool);
+        if (IconButton("##tool", t.Icon, t.Tip, m_Context->Tool == t.Tool))
+            m_Context->Tool = t.Tool;
+        ImGui::PopID();
+        ImGui::SameLine();
+    }
 
-    m_Context->ViewportFocused = nowFocused;
-    m_Context->ViewportHovered = nowHovered;
+    VerticalSeparator();
+    ImGui::SameLine();
+    if (IconButton("##snap", ICON_LC_MAGNET, "Snapping (hold Ctrl to invert)", settings.Snap))
+    {
+        settings.Snap = !settings.Snap;
+        ImGui::MarkIniSettingsDirty();
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(58.0f);
+    if (ImGui::DragFloat("##snapstep", &settings.SnapMove, 0.5f, 0.5f, 1024.0f, "%.0f px"))
+        ImGui::MarkIniSettingsDirty();
+    Tooltip("Snap step");
+    ImGui::SameLine();
+    if (IconButton("##grid", ICON_LC_GRID_3X3, "Grid", settings.ShowGrid))
+    {
+        settings.ShowGrid = !settings.ShowGrid;
+        ImGui::MarkIniSettingsDirty();
+    }
+
+    char zoom[16];
+    std::snprintf(zoom, sizeof(zoom), "%.0f%%", m_Camera.GetZoom() * 100.0f);
+    float zoomW = ImGui::CalcTextSize("0000%").x + 12.0f;
+    float rightX = ImGui::GetWindowContentRegionMax().x - zoomW - ImGui::GetFrameHeight() * 2.0f - 6.0f;
+    ImGui::SameLine(std::max(ImGui::GetCursorPosX() + 8.0f, rightX));
+    if (Button(zoom, ButtonKind::Ghost, ImVec2(zoomW, 0)))
+        m_Camera.SetZoom(1.0f);
+    Tooltip("Reset zoom to 100%");
+    ImGui::SameLine();
+    if (IconButton("##frame", ICON_LC_SCAN, "Frame selection (F)"))
+        FocusOnSelectedEntity();
+    ImGui::SameLine();
+    if (IconButton("##frameall", ICON_LC_MAXIMIZE, "Frame scene"))
+        FrameScene();
+
+    EndToolbar();
 }
 
-void ViewportPanel::ResizeViewportIfNeeded(const ImVec2 &viewportSize)
+void ViewportPanel::RenderScene()
 {
-    static int lastW = -1, lastH = -1;
-    int vw = (int)std::round(viewportSize.x);
-    int vh = (int)std::round(viewportSize.y);
+    int w = (int)m_CanvasSize.x;
+    int h = (int)m_CanvasSize.y;
 
-    if (vw != lastW || vh != lastH)
+    if (!m_Framebuffer)
+        m_Framebuffer = std::make_unique<SIMPEngine::Framebuffer>(w, h);
+    else
+        m_Framebuffer->Resize(w, h);
+
+    m_Camera.SetViewport((float)w, (float)h);
+    if (!m_CameraInitialized)
     {
-        SIMPEngine::Renderer::GetAPI()->ResizeViewport(vw, vh);
-        m_RenderingLayer->GetCamera().SetViewportSize((float)vw, (float)vh);
-        lastW = vw;
-        lastH = vh;
+        m_Camera.SetZoom((float)h / 1300.0f);
+        m_CameraInitialized = true;
+    }
+
+    SIMPEngine::Scene &scene = *m_Context->Scene;
+
+    SIMPEngine::Renderer::ResetStats();
+    SIMPEngine::Renderer::BeginRenderTarget(*m_Framebuffer);
+
+    const glm::vec4 &bg = scene.GetBackgroundColor();
+    SIMPEngine::Renderer::SetClearColor(bg.r, bg.g, bg.b, bg.a);
+    SIMPEngine::Renderer::Clear();
+
+    glm::mat4 view = m_Camera.GetView();
+    glm::mat4 proj = m_Camera.GetProjection();
+    SIMPEngine::Renderer::BeginScene(view, proj);
+    if (EditorUI::Settings().ShowGrid)
+        DrawGrid();
+
+    scene.OnRender(view, proj);
+    DrawCameraFrame();
+
+    SIMPEngine::Renderer::EndScene();
+    m_Stats = SIMPEngine::Renderer::GetStats();
+    SIMPEngine::Renderer::EndRenderTarget();
+}
+
+void ViewportPanel::DrawGrid()
+{
+    SIMPEngine::Scene &scene = *m_Context->Scene;
+    const glm::vec4 &bg = scene.GetBackgroundColor();
+    float luminance = bg.r * 0.299f + bg.g * 0.587f + bg.b * 0.114f;
+    SDL_Color minor = luminance > 0.6f ? SDL_Color{0, 0, 0, 22} : SDL_Color{255, 255, 255, 16};
+    SDL_Color major = luminance > 0.6f ? SDL_Color{0, 0, 0, 44} : SDL_Color{255, 255, 255, 34};
+
+    glm::vec2 a = m_Camera.ScreenToWorld({0.0f, 0.0f});
+    glm::vec2 b = m_Camera.ScreenToWorld({m_CanvasSize.x, m_CanvasSize.y});
+    float left = std::min(a.x, b.x), right = std::max(a.x, b.x);
+    float bottom = std::min(a.y, b.y), top = std::max(a.y, b.y);
+
+    float step = std::max(1.0f, EditorUI::Settings().GridSize);
+    while (step * m_Camera.GetZoom() < 10.0f)
+        step *= 2.0f;
+
+    const float z = -100000.0f;
+    long first = (long)std::floor(left / step);
+    long last = (long)std::ceil(right / step);
+    for (long i = first; i <= last && i - first < 600; ++i)
+    {
+        float x = i * step;
+        SIMPEngine::Renderer::DrawLine(x, bottom, x, top, (i % 4 == 0) ? major : minor, z);
+    }
+    first = (long)std::floor(bottom / step);
+    last = (long)std::ceil(top / step);
+    for (long i = first; i <= last && i - first < 600; ++i)
+    {
+        float y = i * step;
+        SIMPEngine::Renderer::DrawLine(left, y, right, y, (i % 4 == 0) ? major : minor, z);
+    }
+
+    SIMPEngine::Renderer::DrawLine(left, 0.0f, right, 0.0f, ToSDL(EditorUI::Colors::AxisX, 0.55f), z + 1.0f);
+    SIMPEngine::Renderer::DrawLine(0.0f, bottom, 0.0f, top, ToSDL(EditorUI::Colors::AxisY, 0.55f), z + 1.0f);
+}
+
+void ViewportPanel::DrawCameraFrame()
+{
+    SIMPEngine::Scene &scene = *m_Context->Scene;
+    auto &camera = scene.GetActiveCamera();
+    auto [vw, vh] = camera.GetViewportSize();
+    float aspect = (vw > 0 && vh > 0) ? (float)vw / (float)vh : 16.0f / 9.0f;
+    float hh = 540.0f * camera.GetZoom();
+    float hw = hh * aspect;
+    glm::vec2 p = camera.GetPosition();
+
+    SIMPEngine::Renderer::DrawRect(p.x, p.y, hw * 2.0f, hh * 2.0f, SIMPEngine::Renderer::GetWorldPerPixel() * 1.5f,
+                                   ToSDL(EditorUI::Colors::CameraFrame, 0.9f), 0.0f, 100000.0f);
+}
+
+void ViewportPanel::HandleCameraInput()
+{
+    ImGuiIO &io = ImGui::GetIO();
+    glm::vec2 local(io.MousePos.x - m_CanvasPos.x, io.MousePos.y - m_CanvasPos.y);
+
+    if (m_CanvasHovered && io.MouseWheel != 0.0f)
+        m_Camera.ZoomAt(io.MouseWheel, local);
+
+    bool spacePan = ImGui::IsKeyDown(ImGuiKey_Space) && m_CanvasHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+    if (m_CanvasHovered && (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || ImGui::IsMouseClicked(ImGuiMouseButton_Right) || spacePan))
+        m_Panning = true;
+
+    if (m_Panning)
+    {
+        bool held = ImGui::IsMouseDown(ImGuiMouseButton_Middle) || ImGui::IsMouseDown(ImGuiMouseButton_Right) ||
+                    (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsKeyDown(ImGuiKey_Space));
+        if (held)
+            m_Camera.Pan({io.MouseDelta.x, io.MouseDelta.y});
+        else
+            m_Panning = false;
     }
 }
 
-glm::vec2 ViewportPanel::GetMouseWorldPosition() const
+SIMPEngine::Entity ViewportPanel::PickEntity(const glm::vec2 &world) const
 {
-    if (!m_Context->ViewportHovered)
-        return {0.0f, 0.0f};
-
-    auto [mx, my] = SIMPEngine::Input::GetMousePosition();
-
-    glm::vec2 viewportMouse =
-        {
-            mx - m_ViewportPos.x,
-            my - m_ViewportPos.y};
-
-    return m_RenderingLayer
-        ->GetCamera()
-        .ScreenToWorld(viewportMouse);
-}
-
-bool ViewportPanel::IsHovered() const
-{
-    return m_Context->ViewportHovered;
-}
-
-bool ViewportPanel::IsFocused() const
-{
-    return m_Context->ViewportFocused;
-}
-
-const ImVec2 &ViewportPanel::GetViewportPosition() const
-{
-    return m_ViewportPos;
-}
-
-const ImVec2 &ViewportPanel::GetViewportSize() const
-{
-    return m_ViewportSize;
-}
-
-SIMPEngine::Entity ViewportPanel::GetEntityUnderMouse()
-{
-    if (!m_Context->ViewportHovered || !m_Context->Scene)
-        return {};
-
-    glm::vec2 worldPos = GetMouseWorldPosition();
-
     auto &registry = m_Context->Scene->GetRegistry();
-    auto view = registry.view<TransformComponent>();
-
     SIMPEngine::Entity best{};
-    float highestZ = -FLT_MAX;
+    float bestZ = -FLT_MAX;
 
-    for (auto entityHandle : view)
+    for (auto handle : registry.view<TransformComponent, TagComponent>())
     {
-        SIMPEngine::Entity entity(entityHandle, m_Context->Scene);
-
-        auto bounds = SIMPEngine::GetEntityBounds2D(entity);
-        if (!bounds)
+        SIMPEngine::Entity entity(handle, m_Context->Scene);
+        if (!SIMPEngine::PointInEntityBounds(entity, world))
             continue;
 
-        if (!bounds->Contains(worldPos))
-            continue;
-
-        auto &tc = entity.GetComponent<TransformComponent>();
-        if (tc.zIndex >= highestZ)
+        float z = registry.get<TransformComponent>(handle).zIndex;
+        if (z >= bestZ)
         {
-            highestZ = tc.zIndex;
+            bestZ = z;
             best = entity;
         }
     }
-
     return best;
 }
 
-void ViewportPanel::ShowDetailsInViewport()
+ViewportPanel::Handle ViewportPanel::HitTestGizmo(SIMPEngine::Entity entity, const ImVec2 &mouse) const
 {
-    auto hovered = GetEntityUnderMouse();
-    m_Context->HoveredEntity = hovered;
-    std::string hoveredEntityName = "None";
-    if (hovered)
+    auto &tc = entity.GetComponent<TransformComponent>();
+    SIMPEngine::WorldTransform2D w = SIMPEngine::DecomposeWorld(tc);
+    ImVec2 c = ToScreen(w.Position);
+    ImVec2 d = mouse - c;
+    float dist = std::sqrt(d.x * d.x + d.y * d.y);
+
+    switch (m_Context->Tool)
     {
-        if (hovered.HasComponent<TagComponent>())
-            hoveredEntityName =
-                hovered.GetComponent<TagComponent>().Tag;
-        else
-            hoveredEntityName = "Unnamed";
+    case GizmoTool::Move:
+        if (std::abs(d.x) <= 8.0f && std::abs(d.y) <= 8.0f)
+            return Handle::Center;
+        if (DistanceToSegment(mouse, c, c + ImVec2(HandleLength, 0)) < HitTolerance)
+            return Handle::AxisX;
+        if (DistanceToSegment(mouse, c, c + ImVec2(0, -HandleLength)) < HitTolerance)
+            return Handle::AxisY;
+        break;
+    case GizmoTool::Rotate:
+        if (std::abs(dist - RotateRadius) < HitTolerance + 1.0f)
+            return Handle::Rotate;
+        break;
+    case GizmoTool::Scale:
+    {
+        float r = glm::radians(w.Rotation);
+        ImVec2 ax(std::cos(r), -std::sin(r));
+        ImVec2 ay(-std::sin(r), -std::cos(r));
+        if (std::abs(d.x) <= 8.0f && std::abs(d.y) <= 8.0f)
+            return Handle::ScaleXY;
+        if (DistanceToSegment(mouse, c, c + ax * HandleLength) < HitTolerance)
+            return Handle::ScaleX;
+        if (DistanceToSegment(mouse, c, c + ay * HandleLength) < HitTolerance)
+            return Handle::ScaleY;
+        break;
+    }
+    default:
+        break;
+    }
+    return Handle::None;
+}
+
+void ViewportPanel::HandleSelectionAndGizmo()
+{
+    SIMPEngine::Scene &scene = *m_Context->Scene;
+    auto &registry = scene.GetRegistry();
+    ImGuiIO &io = ImGui::GetIO();
+
+    SIMPEngine::Entity selected = m_Context->SelectedEntity;
+    if (selected && (!registry.valid(selected.GetHandle()) || !selected.HasComponent<TransformComponent>()))
+        selected = {};
+
+    glm::vec2 mouseWorld = GetMouseWorldPosition();
+
+    m_HoverHandle = Handle::None;
+    if (selected && !m_Drag.Active && m_CanvasHovered && !m_Panning)
+        m_HoverHandle = HitTestGizmo(selected, io.MousePos);
+
+    m_Context->HoveredEntity = (m_CanvasHovered && !m_Panning) ? PickEntity(mouseWorld) : SIMPEngine::Entity{};
+
+    if (m_CanvasHovered && !m_Panning && ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsKeyDown(ImGuiKey_Space))
+    {
+        Handle grab = m_HoverHandle;
+        if (grab == Handle::None)
+        {
+            SIMPEngine::Entity picked = PickEntity(mouseWorld);
+            m_Context->SelectedEntity = picked;
+            selected = picked;
+            if (picked && m_Context->Tool != GizmoTool::Rotate && m_Context->Tool != GizmoTool::Scale)
+                grab = Handle::Body;
+        }
+
+        if (selected && grab != Handle::None)
+        {
+            scene.UpdateTransforms();
+            auto &tc = selected.GetComponent<TransformComponent>();
+            SIMPEngine::WorldTransform2D w = SIMPEngine::DecomposeWorld(tc);
+
+            m_Drag = {};
+            m_Drag.Active = true;
+            m_Drag.Grab = grab;
+            m_Drag.StartMouseWorld = mouseWorld;
+            m_Drag.StartMouseScreen = {io.MousePos.x, io.MousePos.y};
+            m_Drag.StartWorldPos = w.Position;
+            m_Drag.StartScale = tc.scale;
+            m_Drag.StartRotation = tc.rotation;
+            glm::vec2 rel = mouseWorld - w.Position;
+            m_Drag.StartAngle = std::atan2(rel.y, rel.x);
+        }
     }
 
-    const char *status = "None";
-
-    if (m_Context->ViewportFocused && m_Context->ViewportHovered)
-        status = "Focused & Hovered";
-    else if (m_Context->ViewportFocused)
-        status = "Focused";
-    else if (m_Context->ViewportHovered)
-        status = "Hovered";
-
-    glm::vec2 worldPos = GetMouseWorldPosition();
-
-    char buffer[512];
-    snprintf(
-        buffer,
-        sizeof(buffer),
-        "Status: %s\n"
-        "Coords: (%.2f, %.2f)\n"
-        "Entity: %s",
-        status,
-        worldPos.x,
-        worldPos.y,
-        hoveredEntityName.c_str());
-
-    ImDrawList *drawList = ImGui::GetWindowDrawList();
-
-    ImVec2 textPos =
-        {
-            m_ViewportPos.x + 10.0f,
-            m_ViewportPos.y + m_ViewportSize.y - 65.0f};
-
-    ImVec2 textSize = ImGui::CalcTextSize(buffer);
-
-    constexpr float padding = 6.0f;
-
-    ImVec2 rectMin =
-        {
-            textPos.x - padding,
-            textPos.y - padding};
-
-    ImVec2 rectMax =
-        {
-            textPos.x + textSize.x + padding,
-            textPos.y + textSize.y + padding};
-
-    drawList->AddRectFilled(
-        rectMin,
-        rectMax,
-        IM_COL32(60, 60, 60, 180),
-        4.0f);
-
-    drawList->AddRect(
-        rectMin,
-        rectMax,
-        IM_COL32(120, 120, 120, 220),
-        4.0f);
-
-    drawList->AddText(
-        textPos,
-        IM_COL32(255, 255, 255, 255),
-        buffer);
+    if (m_Drag.Active)
+    {
+        if (ImGui::IsMouseDown(ImGuiMouseButton_Left) && selected)
+            ApplyDrag(selected);
+        else
+            m_Drag.Active = false;
+    }
 }
 
-void ViewportPanel::DrawSelectionOutline()
+void ViewportPanel::ApplyDrag(SIMPEngine::Entity entity)
 {
-    auto entity = m_Context->SelectedEntity;
-
-    if (!entity)
+    ImGuiIO &io = ImGui::GetIO();
+    glm::vec2 screenDelta(io.MousePos.x - m_Drag.StartMouseScreen.x, io.MousePos.y - m_Drag.StartMouseScreen.y);
+    if (!m_Drag.Recorded && std::abs(screenDelta.x) + std::abs(screenDelta.y) < 3.0f)
         return;
 
-    auto bounds =
-        SIMPEngine::GetEntityBounds2D(entity);
+    if (!m_Drag.Recorded)
+    {
+        EditorCommands::RecordEdit(*m_Context);
+        m_Drag.Recorded = true;
+    }
 
-    if (!bounds)
+    SIMPEngine::Scene &scene = *m_Context->Scene;
+    auto &registry = scene.GetRegistry();
+    auto &tc = entity.GetComponent<TransformComponent>();
+    glm::vec2 mouseWorld = GetMouseWorldPosition();
+    glm::vec2 delta = mouseWorld - m_Drag.StartMouseWorld;
+    bool snap = SnapActive();
+    const EditorUI::EditorSettings &settings = EditorUI::Settings();
+
+    auto setWorldPosition = [&](glm::vec2 target)
+    {
+        glm::vec4 local(target, 0.0f, 1.0f);
+        if (auto *h = registry.try_get<HierarchyComponent>(entity.GetHandle());
+            h && h->parent != entt::null && registry.valid(h->parent) && registry.all_of<TransformComponent>(h->parent))
+            local = glm::inverse(registry.get<TransformComponent>(h->parent).worldTransform) * glm::vec4(target, 0.0f, 1.0f);
+        tc.position = {local.x, local.y};
+    };
+
+    switch (m_Drag.Grab)
+    {
+    case Handle::Body:
+    case Handle::Center:
+    case Handle::AxisX:
+    case Handle::AxisY:
+    {
+        glm::vec2 target = m_Drag.StartWorldPos;
+        if (m_Drag.Grab != Handle::AxisY)
+            target.x += delta.x;
+        if (m_Drag.Grab != Handle::AxisX)
+            target.y += delta.y;
+        if (snap)
+        {
+            if (m_Drag.Grab != Handle::AxisY)
+                target.x = SnapTo(target.x, settings.SnapMove);
+            if (m_Drag.Grab != Handle::AxisX)
+                target.y = SnapTo(target.y, settings.SnapMove);
+        }
+        setWorldPosition(target);
+        break;
+    }
+    case Handle::Rotate:
+    {
+        glm::vec2 rel = mouseWorld - m_Drag.StartWorldPos;
+        float angle = std::atan2(rel.y, rel.x);
+        float rotation = m_Drag.StartRotation + glm::degrees(angle - m_Drag.StartAngle);
+        if (snap)
+            rotation = SnapTo(rotation, settings.SnapRotate);
+        tc.rotation = rotation;
+        break;
+    }
+    case Handle::ScaleX:
+    case Handle::ScaleY:
+    case Handle::ScaleXY:
+    {
+        SIMPEngine::WorldTransform2D w = SIMPEngine::DecomposeWorld(tc);
+        float r = glm::radians(w.Rotation);
+        glm::vec2 ax(std::cos(r), std::sin(r));
+        glm::vec2 ay(-std::sin(r), std::cos(r));
+        glm::vec2 start = m_Drag.StartMouseWorld - m_Drag.StartWorldPos;
+        glm::vec2 now = mouseWorld - m_Drag.StartWorldPos;
+
+        auto ratio = [](float a, float b)
+        { return std::abs(a) > 1e-4f ? b / a : 1.0f; };
+
+        glm::vec2 factor(1.0f);
+        if (m_Drag.Grab == Handle::ScaleX)
+            factor.x = ratio(glm::dot(start, ax), glm::dot(now, ax));
+        else if (m_Drag.Grab == Handle::ScaleY)
+            factor.y = ratio(glm::dot(start, ay), glm::dot(now, ay));
+        else
+        {
+            float f = ratio(glm::length(start), glm::length(now));
+            factor = {f, f};
+        }
+
+        glm::vec2 scale = m_Drag.StartScale * factor;
+        if (snap)
+            scale = {SnapTo(scale.x, 0.1f), SnapTo(scale.y, 0.1f)};
+        tc.scale = scale;
+        break;
+    }
+    default:
+        break;
+    }
+
+    tc.dirty = true;
+    scene.UpdateTransforms();
+    if (m_Context->IsEditing())
+        scene.SyncPhysicsFromTransforms();
+}
+
+void ViewportPanel::HandleShortcuts()
+{
+    if (!(m_Context->ViewportFocused || m_CanvasHovered) || ImGui::GetIO().WantTextInput || ImGui::IsAnyItemActive())
         return;
 
-    ImDrawList *drawList =
-        ImGui::GetWindowDrawList();
-
-    glm::vec2 screenMin =
-        m_RenderingLayer
-            ->GetCamera()
-            .WorldToScreen(bounds->min);
-
-    glm::vec2 screenMax =
-        m_RenderingLayer
-            ->GetCamera()
-            .WorldToScreen(bounds->max);
-
-    ImVec2 min =
-        {
-            m_ViewportPos.x + screenMin.x,
-            m_ViewportPos.y + screenMin.y};
-
-    ImVec2 max =
-        {
-            m_ViewportPos.x + screenMax.x,
-            m_ViewportPos.y + screenMax.y};
-
-    drawList->AddRect(
-        min,
-        max,
-        IM_COL32(255, 0, 0, 255),
-        0.0f,
-        0,
-        2.0f
-    );
+    if (ImGui::IsKeyPressed(ImGuiKey_Q, false))
+        m_Context->Tool = GizmoTool::Select;
+    if (ImGui::IsKeyPressed(ImGuiKey_W, false))
+        m_Context->Tool = GizmoTool::Move;
+    if (ImGui::IsKeyPressed(ImGuiKey_E, false))
+        m_Context->Tool = GizmoTool::Rotate;
+    if (ImGui::IsKeyPressed(ImGuiKey_R, false))
+        m_Context->Tool = GizmoTool::Scale;
+    if (ImGui::IsKeyPressed(ImGuiKey_F, false))
+        FocusOnSelectedEntity();
 }
 
-void ViewportPanel::DrawGridDots()
+void ViewportPanel::HandleDrop()
 {
+    if (!ImGui::BeginDragDropTarget())
+        return;
+
+    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("TEXTURE_ASSET"))
+    {
+        std::string vpath((const char *)payload->Data);
+        glm::vec2 world = GetMouseWorldPosition();
+        if (EditorUI::Settings().Snap)
+            world = {SnapTo(world.x, EditorUI::Settings().SnapMove), SnapTo(world.y, EditorUI::Settings().SnapMove)};
+        if (auto entity = EditorCommands::CreateSprite(*m_Context, vpath, world))
+            m_Context->SelectedEntity = entity;
+    }
+    ImGui::EndDragDropTarget();
 }
 
-void ViewportPanel::DrawCartesianLines()
+void ViewportPanel::DrawOutline(SIMPEngine::Entity entity, ImU32 color, float thickness)
 {
-    auto &camera = m_RenderingLayer->GetCamera();
+    auto corners = SIMPEngine::GetEntityCorners(entity);
+    if (!corners)
+        return;
 
-    glm::vec2 tl = camera.ScreenToWorld({0.0f, 0.0f});
-    glm::vec2 br = camera.ScreenToWorld({m_ViewportSize.x, m_ViewportSize.y});
+    ImVec2 pts[4];
+    for (int i = 0; i < 4; ++i)
+        pts[i] = ToScreen((*corners)[i]);
+    ImGui::GetWindowDrawList()->AddPolyline(pts, 4, color, ImDrawFlags_Closed, thickness);
+}
 
-    float left   = std::min(tl.x, br.x);
-    float right  = std::max(tl.x, br.x);
-    float bottom = std::min(tl.y, br.y);
-    float top    = std::max(tl.y, br.y);
+void ViewportPanel::DrawGizmo(SIMPEngine::Entity entity)
+{
+    using namespace EditorUI;
+    ImDrawList *dl = ImGui::GetWindowDrawList();
 
-    SDL_Color xAxis{190, 70, 70, 255};
-    SDL_Color yAxis{120, 210, 120, 255};
-    SDL_Color viewRect{110, 140, 255, 255};
+    auto &tc = entity.GetComponent<TransformComponent>();
+    SIMPEngine::WorldTransform2D w = SIMPEngine::DecomposeWorld(tc);
+    ImVec2 c = ImFloor(ToScreen(w.Position)) + ImVec2(0.5f, 0.5f);
 
-    SIMPEngine::Renderer::DrawLine(left, 0.0f, right, 0.0f, xAxis);
-    SIMPEngine::Renderer::DrawLine(0.0f, bottom, 0.0f, top, yAxis);
+    Handle active = m_Drag.Active ? m_Drag.Grab : m_HoverHandle;
+    auto tone = [&](Handle h, const ImVec4 &base)
+    { return active == h ? U32(Colors::Text) : U32(base); };
 
-    SIMPEngine::Renderer::DrawQuad(
-        0.0f, 0.0f,
-        SIMPEngine::Renderer::m_WindowWidth,
-        SIMPEngine::Renderer::m_WindowHeight,
-        0.0f,
-        viewRect,
-        false);
+    auto arrow = [&](ImVec2 dir, Handle h, const ImVec4 &color)
+    {
+        ImVec2 tip = c + dir * HandleLength;
+        ImVec2 n(-dir.y, dir.x);
+        dl->AddLine(c, tip - dir * 8.0f, tone(h, color), 2.0f);
+        dl->AddTriangleFilled(tip, tip - dir * 11.0f + n * 5.0f, tip - dir * 11.0f - n * 5.0f, tone(h, color));
+    };
+
+    switch (m_Context->Tool)
+    {
+    case GizmoTool::Move:
+        arrow(ImVec2(1, 0), Handle::AxisX, Colors::AxisX);
+        arrow(ImVec2(0, -1), Handle::AxisY, Colors::AxisY);
+        dl->AddRectFilled(c - ImVec2(5, 5), c + ImVec2(5, 5), tone(Handle::Center, Colors::Accent));
+        break;
+    case GizmoTool::Rotate:
+    {
+        dl->AddCircle(c, RotateRadius, tone(Handle::Rotate, Colors::Accent), 64, 2.0f);
+        float r = glm::radians(w.Rotation);
+        ImVec2 knob = c + ImVec2(std::cos(r), -std::sin(r)) * RotateRadius;
+        dl->AddLine(c, knob, U32(Colors::Accent, 0.5f), 1.0f);
+        dl->AddCircleFilled(knob, 4.0f, tone(Handle::Rotate, Colors::Accent));
+        dl->AddCircleFilled(c, 2.5f, U32(Colors::Text));
+        break;
+    }
+    case GizmoTool::Scale:
+    {
+        float r = glm::radians(w.Rotation);
+        ImVec2 ax(std::cos(r), -std::sin(r));
+        ImVec2 ay(-std::sin(r), -std::cos(r));
+        ImVec2 ex = c + ax * HandleLength;
+        ImVec2 ey = c + ay * HandleLength;
+        dl->AddLine(c, ex, tone(Handle::ScaleX, Colors::AxisX), 2.0f);
+        dl->AddLine(c, ey, tone(Handle::ScaleY, Colors::AxisY), 2.0f);
+        dl->AddRectFilled(ex - ImVec2(4.5f, 4.5f), ex + ImVec2(4.5f, 4.5f), tone(Handle::ScaleX, Colors::AxisX));
+        dl->AddRectFilled(ey - ImVec2(4.5f, 4.5f), ey + ImVec2(4.5f, 4.5f), tone(Handle::ScaleY, Colors::AxisY));
+        dl->AddRectFilled(c - ImVec2(5, 5), c + ImVec2(5, 5), tone(Handle::ScaleXY, Colors::Accent));
+        break;
+    }
+    default:
+        dl->AddCircleFilled(c, 2.5f, U32(Colors::Accent));
+        break;
+    }
+}
+
+void ViewportPanel::DrawOverlays()
+{
+    using namespace EditorUI;
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    auto &registry = m_Context->Scene->GetRegistry();
+
+    SIMPEngine::Entity hovered = m_Context->HoveredEntity;
+    SIMPEngine::Entity selected = m_Context->SelectedEntity;
+    bool selectedValid = selected && registry.valid(selected.GetHandle()) && selected.HasComponent<TransformComponent>();
+
+    if (hovered && registry.valid(hovered.GetHandle()) && (!selectedValid || hovered.GetHandle() != selected.GetHandle()) && !m_Drag.Active)
+        DrawOutline(hovered, U32(Colors::Accent, 0.5f), 1.0f);
+
+    if (selectedValid)
+    {
+        DrawOutline(selected, U32(Colors::Accent), 1.5f);
+        DrawGizmo(selected);
+    }
+
+    float fs = ImGui::GetFontSize();
+    ImVec2 bl(m_CanvasPos.x + 8.0f, m_CanvasPos.y + m_CanvasSize.y - fs - 6.0f);
+    if (m_CanvasHovered)
+    {
+        glm::vec2 world = GetMouseWorldPosition();
+        char text[64];
+        std::snprintf(text, sizeof(text), "%.1f, %.1f", world.x, world.y);
+        dl->AddText(bl + ImVec2(1, 1), IM_COL32(0, 0, 0, 120), text);
+        dl->AddText(bl, IM_COL32(255, 255, 255, 215), text);
+    }
+
+    if (Settings().ShowStats)
+    {
+        char stats[128];
+        std::snprintf(stats, sizeof(stats), "%d draw calls  %d primitives  %d textures", m_Stats.drawCalls, m_Stats.primitives, m_Stats.textureSwitches);
+        ImVec2 ts = ImGui::CalcTextSize(stats);
+        ImVec2 p(m_CanvasPos.x + m_CanvasSize.x - ts.x - 8.0f, m_CanvasPos.y + 6.0f);
+        dl->AddText(p + ImVec2(1, 1), IM_COL32(0, 0, 0, 120), stats);
+        dl->AddText(p, IM_COL32(255, 255, 255, 215), stats);
+    }
+
+    if (m_Context->State != SceneState::Edit)
+    {
+        ImVec4 color = m_Context->State == SceneState::Play ? Colors::Success : Colors::Warning;
+        dl->AddRect(m_CanvasPos, m_CanvasPos + m_CanvasSize, U32(color, 0.8f), 0.0f, 0, 2.0f);
+    }
+}
+
+void ViewportPanel::FocusOnSelectedEntity()
+{
+    if (!m_Context->SelectedEntity || !m_Context->Scene->GetRegistry().valid(m_Context->SelectedEntity.GetHandle()))
+        return;
+
+    if (auto bounds = SIMPEngine::GetEntityBounds2D(m_Context->SelectedEntity))
+    {
+        glm::vec2 size = glm::max(bounds->max - bounds->min, glm::vec2(160.0f));
+        m_Camera.Frame((bounds->min + bounds->max) * 0.5f, size);
+    }
+    else
+    {
+        m_Camera.SetPosition(SIMPEngine::GetEntityCenter(m_Context->SelectedEntity));
+    }
+}
+
+void ViewportPanel::FrameScene()
+{
+    auto &registry = m_Context->Scene->GetRegistry();
+    bool any = false;
+    glm::vec2 mn(0.0f), mx(0.0f);
+    for (auto handle : registry.view<TransformComponent>())
+    {
+        auto bounds = SIMPEngine::GetEntityBounds2D(SIMPEngine::Entity(handle, m_Context->Scene));
+        if (!bounds)
+            continue;
+        mn = any ? glm::min(mn, bounds->min) : bounds->min;
+        mx = any ? glm::max(mx, bounds->max) : bounds->max;
+        any = true;
+    }
+
+    if (!any)
+    {
+        m_Camera.SetPosition({0.0f, 0.0f});
+        return;
+    }
+    m_Camera.Frame((mn + mx) * 0.5f, glm::max(mx - mn, glm::vec2(320.0f)) * 1.2f);
 }

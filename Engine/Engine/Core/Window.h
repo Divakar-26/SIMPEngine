@@ -24,6 +24,9 @@ namespace SIMPEngine
         SDL_Renderer *GetRenderer() { return m_Renderer; }
         SDL_GLContext GetGLContetext(){return m_GLContext;}
 
+        void SetVSync(bool enabled);
+        bool IsVSync() const { return m_VSync; }
+
     private:
         bool m_Initialized = false;
         SDL_Window *m_Window = nullptr;
@@ -31,5 +34,6 @@ namespace SIMPEngine
         SDL_GLContext m_GLContext = nullptr;
         int m_Width = 1920;
         int m_Height = 1080;
+        bool m_VSync = true;
     };
 }

@@ -2,6 +2,7 @@
 #include <Engine/Scene/Entity.h>
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/ScriptableEntity.h>
+#include <Engine/Input/Input.h>
 
 #include <entt/entt.hpp>
 #include <iostream>
@@ -9,6 +10,19 @@
 
 namespace SIMPEngine
 {
+    glm::vec2 ScriptableEntity::GetMouseWorldPosition() const
+    {
+        Scene *scene = m_Entity.GetScene();
+        if (!scene)
+            return {0.0f, 0.0f};
+        return scene->ScreenToWorld(Input::GetMouseViewportPosition());
+    }
+
+    bool ScriptableEntity::IsMouseInViewport() const
+    {
+        return Input::IsMouseInViewport();
+    }
+
     Entity::operator bool() const
     {
         return m_Scene != nullptr && m_EntityHandle != entt::null &&
@@ -63,8 +77,44 @@ namespace SIMPEngine
         return Entity{};
     }
 
+    void Scene::RebuildPhysicsWorld()
+    {
+        physicsSystem.DestroyBodies();
+        physicsSystem.DestroyWorld();
+
+        for (auto entity : m_Registry.view<PhysicsComponent>())
+        {
+            auto &pc = m_Registry.get<PhysicsComponent>(entity);
+            if (!pc.body)
+                continue;
+            pc.body->entityID = (uint32_t)entity;
+            physicsSystem.GetWorld().addBody(pc.body.get());
+            physicsSystem.bodies.push_back(pc.body.get());
+        }
+
+        m_PhysicsDirty = false;
+    }
+
+    void Scene::SyncPhysicsFromTransforms()
+    {
+        auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
+        for (auto entity : view)
+        {
+            auto &tc = view.get<TransformComponent>(entity);
+            auto &pc = view.get<PhysicsComponent>(entity);
+            if (!pc.body)
+                continue;
+            pc.body->position = {tc.position.x, tc.position.y};
+            pc.body->orientation = glm::radians(tc.rotation);
+            pc.body->calculateDerivativeData();
+        }
+    }
+
     void Scene::OnUpdate(float deltaTime)
     {
+        if (m_PhysicsDirty)
+            RebuildPhysicsWorld();
+
         physicsSystem.startFrame(deltaTime);
         physicsSystem.UpdateTransform(m_Registry);
 
@@ -97,14 +147,38 @@ namespace SIMPEngine
         animationSystem.Update(m_Registry, deltaTime);
     }
 
+    void Scene::UpdateTransforms()
+    {
+        hierarchySystem.Update(m_Registry, 0.0f);
+    }
+
+    glm::vec2 Scene::ScreenToWorld(const glm::vec2 &viewportPixel)
+    {
+        return GetActiveCamera().ScreenToWorld(viewportPixel);
+    }
+
     void Scene::OnRender()
     {
+        UpdateTransforms();
         cameraSystem.OnRender(m_Registry);
+        RenderContent();
+    }
 
+    void Scene::OnRender(const glm::mat4 &view, const glm::mat4 &projection)
+    {
+        UpdateTransforms();
+        Renderer::SetProjectionMatrix(projection);
+        Renderer::SetViewMatrix(view);
+        RenderContent();
+    }
+
+    void Scene::RenderContent()
+    {
         tilemapSystem.Render(m_Registry);
 
         renderSystem.RenderQuads(m_Registry);
         renderSystem.RenderSprites(m_Registry);
+        renderSystem.RenderText(m_Registry);
 
         auto view = m_Registry.view<ScriptComponent>();
         for (auto entityHandle : view)
@@ -153,6 +227,7 @@ namespace SIMPEngine
 
         auto &bodies = physicsSystem.bodies;
         bodies.erase(std::remove(bodies.begin(), bodies.end(), physicsComponent.body.get()), bodies.end());
+        m_PhysicsDirty = true;
     }
 
     void Scene::OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity)

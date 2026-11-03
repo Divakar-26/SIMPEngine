@@ -1,4 +1,10 @@
 #include <Engine/PCH.h>
+#include <Engine/Application/Application.h>
+#include <Engine/Core/Log.h>
+#include <Engine/Core/VFS.h>
+#include <Engine/Layer/RenderingLayer.h>
+#include <Engine/Scene/SceneManager.h>
+#include <Engine/Scene/SceneSerializer.h>
 
 #include "ConstellationScript.h"
 

@@ -1,37 +1,43 @@
 #pragma once
 
 #include <imgui.h>
-#include <Engine/Rendering/Renderer.h>
-#include <Engine/Layer/RenderingLayer.h>
-#include <Engine/Application/Application.h>
 #include <Engine/Scene/Scene.h>
 #include <../EditorContext.h>
 #include <../EditorCommands.h>
 #include <EditorPanel.h>
 
+#include <string>
+
 class HierarchyPanel : public EditorPanel
 {
 public:
+    static constexpr const char *WindowId = "###Hierarchy";
+
     HierarchyPanel(EditorContext* context);
 
     void OnImGuiRender() override;
-    void ShowComponents(SIMPEngine::Entity entity);
 
 private:
+    void DrawToolbar();
+    void DrawEntityNode(SIMPEngine::Entity entity);
+    void DrawEntityContextMenu(SIMPEngine::Entity entity);
+    void DrawRenameField(SIMPEngine::Entity entity, const ImVec2 &min, const ImVec2 &max);
+    void BeginRename(entt::entity handle);
+    bool IsRoot(entt::entity handle);
 
     EditorContext* m_Context;
-    char m_EntityNameBuffer[128] = "New Entity";
-    bool m_OpenAddPopup = false;
+    char m_SearchBuffer[128] = "";
 
-    bool m_AddTransform = false;
-    bool m_AddSprite = false;
-    bool m_AddCamera = false;
-    bool m_AddCollision = false;
-    bool m_AddVelocity = false;
-    bool m_AddRender = false;
-    bool m_AddScript = false;
-    bool m_AddPhysics = false;
-    bool m_AddAnimatedSprite = false;
-    bool m_AddLifetime = false;
-    bool m_AddTilemap = false;
+    entt::entity m_Renaming = entt::null;
+    std::string m_RenameBuffer;
+    bool m_RenameFocus = false;
+    int m_RenameAge = 0;
+
+    entt::entity m_PendingDelete = entt::null;
+    entt::entity m_PendingDuplicate = entt::null;
+    entt::entity m_PendingChild = entt::null;
+    entt::entity m_PendingParent = entt::null;
+    entt::entity m_PendingNewChild = entt::null;
+    bool m_PendingReparent = false;
+    bool m_PendingCreate = false;
 };

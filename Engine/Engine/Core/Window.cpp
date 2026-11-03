@@ -53,7 +53,7 @@
                 return false;
             }
 
-            SDL_GL_SetSwapInterval(0);
+            SDL_GL_SetSwapInterval(m_VSync ? 1 : 0);
 
             CORE_INFO("Window '{}' created successfully ({} x {})", name, width, height);
 
@@ -92,4 +92,11 @@
 
             CORE_INFO("Window shutdown complete.");
         }
+    
+    void Window::SetVSync(bool enabled)
+    {
+        m_VSync = enabled;
+        if (m_GLContext)
+            SDL_GL_SetSwapInterval(enabled ? 1 : 0);
     }
+}

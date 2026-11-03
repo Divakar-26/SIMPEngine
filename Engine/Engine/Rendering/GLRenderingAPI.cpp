@@ -1,18 +1,16 @@
 #include <Engine/Rendering/GLRenderingAPI.h>
-#include <Engine/Rendering/Shaders/SpriteShader.h>
-#include <Engine/Rendering/Shaders/ShapeShader.h>
-#include <Engine/Rendering/Shaders/LineShader.h>
+#include <Engine/Rendering/Framebuffer.h>
+#include <Engine/Rendering/Shaders/Renderer2DShader.h>
 
 #include <Engine/Core/Profiler/EngineProfiler.h>
 #include <Engine/Core/Log.h>
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <iostream>
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
+#include <numeric>
 
 namespace SIMPEngine
 {
@@ -42,15 +40,14 @@ namespace SIMPEngine
 
     GLRenderingAPI::GLRenderingAPI()
     {
-        m_QuadBatch.reserve(MAX_BATCH_QUADS);
-        m_VertexData.resize(MAX_VERTICES);
-        m_LineVertices.reserve(MAX_LINE_VERTICES);
-        m_ShapeInstances.reserve(MAX_SHAPE_INSTANCES);
+        m_Pending.reserve(4096);
+        m_Order.reserve(4096);
+        m_Vertices.resize(MAX_VERTICES);
     }
 
     GLRenderingAPI::~GLRenderingAPI()
     {
-        Flush();
+        m_Pending.clear();
 
         if (m_VAO)
             glDeleteVertexArrays(1, &m_VAO);
@@ -58,29 +55,13 @@ namespace SIMPEngine
             glDeleteBuffers(1, &m_VBO);
         if (m_EBO)
             glDeleteBuffers(1, &m_EBO);
-        if (m_LineVAO)
-            glDeleteVertexArrays(1, &m_LineVAO);
-        if (m_LineVBO)
-            glDeleteBuffers(1, &m_LineVBO);
-        if (m_ShapeVAO)
-            glDeleteVertexArrays(1, &m_ShapeVAO);
-        if (m_ShapeUnitVBO)
-            glDeleteBuffers(1, &m_ShapeUnitVBO);
-        if (m_ShapeInstanceVBO)
-            glDeleteBuffers(1, &m_ShapeInstanceVBO);
         if (m_WhiteTexture)
             glDeleteTextures(1, &m_WhiteTexture);
-        if (m_ColorAttachment)
-            glDeleteTextures(1, &m_ColorAttachment);
-        if (m_RBO)
-            glDeleteRenderbuffers(1, &m_RBO);
-        if (m_Framebuffer)
-            glDeleteFramebuffers(1, &m_Framebuffer);
     }
 
     void GLRenderingAPI::Init()
     {
-        glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
+        glViewport(0, 0, m_BackbufferWidth, m_BackbufferHeight);
 
 #ifndef NDEBUG
         if (glDebugMessageCallback)
@@ -91,37 +72,24 @@ namespace SIMPEngine
         }
 #endif
 
-        m_Shader = std::make_unique<Shader>(
-            Shaders::SPRITE_VERT,
-            Shaders::SPRITE_FRAG);
-
-        m_LineShader = std::make_unique<Shader>(
-            Shaders::LINE_VERT,
-            Shaders::LINE_FRAG);
-
-        m_ShapeShader = std::make_unique<Shader>(
-            Shaders::SHAPE_VERT,
-            Shaders::SHAPE_FRAG);
+        m_Shader = std::make_unique<Shader>(Shaders::RENDERER2D_VERT, Shaders::RENDERER2D_FRAG);
 
         GLint maxUnits = 0;
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxUnits);
         if (maxUnits < MAX_TEXTURE_SLOTS)
-        {
-            CORE_ERROR("GPU reports only {} fragment texture units; sprite batching is limited to {} instead of {}.",
-                       maxUnits, maxUnits, MAX_TEXTURE_SLOTS);
-        }
+            CORE_ERROR("GPU reports only {} fragment texture units; batching expects {}.", maxUnits, MAX_TEXTURE_SLOTS);
 
         std::vector<unsigned int> indices(MAX_INDICES);
-        for (unsigned int i = 0; i < MAX_BATCH_QUADS; i++)
+        for (unsigned int i = 0; i < MAX_QUADS; i++)
         {
-            unsigned int offset = i * 4;
-            unsigned int indexOffset = i * 6;
-            indices[indexOffset + 0] = offset + 0;
-            indices[indexOffset + 1] = offset + 1;
-            indices[indexOffset + 2] = offset + 2;
-            indices[indexOffset + 3] = offset + 2;
-            indices[indexOffset + 4] = offset + 3;
-            indices[indexOffset + 5] = offset + 0;
+            unsigned int v = i * 4;
+            unsigned int n = i * 6;
+            indices[n + 0] = v + 0;
+            indices[n + 1] = v + 1;
+            indices[n + 2] = v + 2;
+            indices[n + 3] = v + 2;
+            indices[n + 4] = v + 3;
+            indices[n + 5] = v + 0;
         }
 
         glGenVertexArrays(1, &m_VAO);
@@ -131,120 +99,31 @@ namespace SIMPEngine
         glBindVertexArray(m_VAO);
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferData(GL_ARRAY_BUFFER,
-                     MAX_VERTICES * sizeof(BatchVertex),
-                     nullptr,
-                     GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, MAX_VERTICES * sizeof(Vertex2D), nullptr, GL_DYNAMIC_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-                     indices.size() * sizeof(unsigned int),
-                     indices.data(),
-                     GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
-                              (void *)offsetof(BatchVertex, localPos));
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Position));
         glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
-                              (void *)offsetof(BatchVertex, center));
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, UV));
         glEnableVertexAttribArray(1);
-
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
-                              (void *)offsetof(BatchVertex, size));
+        glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Color));
         glEnableVertexAttribArray(2);
-
-        glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
-                              (void *)offsetof(BatchVertex, rotation));
+        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Local));
         glEnableVertexAttribArray(3);
-
-        glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
-                              (void *)offsetof(BatchVertex, texCoord));
+        glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Shape));
         glEnableVertexAttribArray(4);
-
-        glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
-                              (void *)offsetof(BatchVertex, texIndex));
+        glVertexAttribPointer(5, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex2D), (void *)offsetof(Vertex2D, Misc));
         glEnableVertexAttribArray(5);
-
-        glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(BatchVertex),
-                              (void *)offsetof(BatchVertex, color));
-        glEnableVertexAttribArray(6);
-
-        glBindVertexArray(0);
-
-        glGenVertexArrays(1, &m_LineVAO);
-        glGenBuffers(1, &m_LineVBO);
-
-        glBindVertexArray(m_LineVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO);
-        glBufferData(GL_ARRAY_BUFFER, MAX_LINE_VERTICES * sizeof(LineVertex), nullptr, GL_DYNAMIC_DRAW);
-
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(LineVertex), (void *)offsetof(LineVertex, pos));
-        glEnableVertexAttribArray(0);
-
-        glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(LineVertex), (void *)offsetof(LineVertex, color));
-        glEnableVertexAttribArray(1);
 
         glBindVertexArray(0);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        float unitQuad[] = {
-            -1.0f, -1.0f, 1.0f, -1.0f, 1.0f, 1.0f,
-            -1.0f, -1.0f, 1.0f, 1.0f, -1.0f, 1.0f};
-
-        glGenVertexArrays(1, &m_ShapeVAO);
-        glGenBuffers(1, &m_ShapeUnitVBO);
-        glGenBuffers(1, &m_ShapeInstanceVBO);
-
-        glBindVertexArray(m_ShapeVAO);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeUnitVBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(unitQuad), unitQuad, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribDivisor(0, 0);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeInstanceVBO);
-        glBufferData(GL_ARRAY_BUFFER, MAX_SHAPE_INSTANCES * sizeof(ShapeInstance), nullptr, GL_DYNAMIC_DRAW);
-
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, boundsCenter));
-        glEnableVertexAttribArray(1);
-        glVertexAttribDivisor(1, 1);
-
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, boundsHalf));
-        glEnableVertexAttribArray(2);
-        glVertexAttribDivisor(2, 1);
-
-        glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, dataA));
-        glEnableVertexAttribArray(3);
-        glVertexAttribDivisor(3, 1);
-
-        glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, dataB));
-        glEnableVertexAttribArray(4);
-        glVertexAttribDivisor(4, 1);
-
-        glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, radius));
-        glEnableVertexAttribArray(5);
-        glVertexAttribDivisor(5, 1);
-
-        glVertexAttribPointer(6, 1, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, shapeType));
-        glEnableVertexAttribArray(6);
-        glVertexAttribDivisor(6, 1);
-
-        glVertexAttribPointer(7, 1, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, aa));
-        glEnableVertexAttribArray(7);
-        glVertexAttribDivisor(7, 1);
-
-        glVertexAttribPointer(8, 4, GL_FLOAT, GL_FALSE, sizeof(ShapeInstance), (void *)offsetof(ShapeInstance, color));
-        glEnableVertexAttribArray(8);
-        glVertexAttribDivisor(8, 1);
-
-        glBindVertexArray(0);
-
         CreateWhiteTexture();
-        ResetTextureSlots();
+        m_TextureSlots[0] = m_WhiteTexture;
 
         m_Shader->Bind();
         int samplers[MAX_TEXTURE_SLOTS];
@@ -265,381 +144,166 @@ namespace SIMPEngine
         glBindTexture(GL_TEXTURE_2D, 0);
     }
 
-    void GLRenderingAPI::ResetTextureSlots()
+    void GLRenderingAPI::Submit(const Primitive &primitive)
     {
-        m_TextureSlots[0] = m_WhiteTexture;
-        m_UsedTextureSlots = 1;
-    }
+        if (m_Pending.size() >= MAX_PENDING)
+            Flush();
 
-    float GLRenderingAPI::AcquireTextureSlot(GLuint texID)
-    {
-        if (texID == 0)
-            return 0.0f;
+        m_Pending.push_back(primitive);
 
-        for (int i = 1; i < m_UsedTextureSlots; i++)
+        switch (primitive.Mode)
         {
-            if (m_TextureSlots[i] == texID)
-                return (float)i;
+        case PrimitiveMode::Sprite:
+            m_Stats.quadCount++;
+            break;
+        case PrimitiveMode::Shape:
+            m_Stats.shapeCount++;
+            break;
+        case PrimitiveMode::SdfText:
+            m_Stats.glyphCount++;
+            break;
         }
-
-        if (m_UsedTextureSlots >= MAX_TEXTURE_SLOTS)
-        {
-            if (!m_QuadBatch.empty())
-                FlushQuads();
-            else
-                ResetTextureSlots();
-        }
-
-        m_TextureSlots[m_UsedTextureSlots] = texID;
-        m_Stats.textureSwitches++;
-        return (float)(m_UsedTextureSlots++);
+        m_Stats.primitives++;
     }
 
-    void GLRenderingAPI::FlushAllExcept(BatchCategory keepPending)
+    void GLRenderingAPI::WriteQuad(const Primitive &p, float slot)
     {
-        if (keepPending != BatchCategory::Quad)
-            FlushQuads();
-        if (keepPending != BatchCategory::Line)
-            FlushLines();
-        if (keepPending != BatchCategory::Shape)
-            FlushShapes();
-    }
+        Vertex2D *v = &m_Vertices[m_QuadCount * 4];
 
-    void GLRenderingAPI::GenerateQuadVertices(
-        BatchVertex *v,
-        const BatchQuad &q)
-    {
+        glm::vec2 ext = p.HalfSize + glm::vec2(p.Padding);
         glm::vec2 local[4] = {
-            {-0.5f, 0.5f},
-            {0.5f, 0.5f},
-            {0.5f, -0.5f},
-            {-0.5f, -0.5f}};
+            {-ext.x, ext.y},
+            {ext.x, ext.y},
+            {ext.x, -ext.y},
+            {-ext.x, -ext.y}};
 
         glm::vec2 uv[4] = {
-            {q.uvRect.x, q.uvRect.y},
-            {q.uvRect.z, q.uvRect.y},
-            {q.uvRect.z, q.uvRect.w},
-            {q.uvRect.x, q.uvRect.w}};
+            {p.UV.x, p.UV.y},
+            {p.UV.z, p.UV.y},
+            {p.UV.z, p.UV.w},
+            {p.UV.x, p.UV.w}};
 
-        glm::vec4 c(
-            q.color.r / 255.f,
-            q.color.g / 255.f,
-            q.color.b / 255.f,
-            q.color.a / 255.f);
-
-        float rotRad = glm::radians(q.rotation);
+        float c = std::cos(p.Rotation);
+        float s = std::sin(p.Rotation);
+        glm::vec4 shape(p.HalfSize.x, p.HalfSize.y, p.CornerRadius, p.Stroke);
+        glm::vec3 misc(slot, (float)p.Mode, p.Softness);
 
         for (int i = 0; i < 4; i++)
         {
-            v[i].localPos = local[i];
-            v[i].center = q.position;
-            v[i].size = q.size;
-            v[i].rotation = rotRad;
-            v[i].texCoord = uv[i];
-            v[i].texIndex = q.texIndex;
-            v[i].color = c;
+            glm::vec2 r(local[i].x * c - local[i].y * s, local[i].x * s + local[i].y * c);
+            v[i].Position = glm::vec3(p.Center + r, p.Z);
+            v[i].UV = uv[i];
+            v[i].Color = p.Color;
+            v[i].Local = local[i];
+            v[i].Shape = shape;
+            v[i].Misc = misc;
+        }
+
+        m_QuadCount++;
+    }
+
+    void GLRenderingAPI::ApplyBlend(BlendMode mode)
+    {
+        switch (mode)
+        {
+        case BlendMode::Additive:
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            break;
+        case BlendMode::Multiply:
+            glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
+            break;
+        default:
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            break;
         }
     }
 
-    void GLRenderingAPI::SubmitQuad(BatchQuad quad, GLuint textureID)
+    void GLRenderingAPI::DrawBatch()
     {
-        FlushAllExcept(BatchCategory::Quad);
-
-        if (m_QuadBatch.size() >= MAX_BATCH_QUADS)
-            FlushQuads();
-
-        quad.texIndex = AcquireTextureSlot(textureID);
-
-        m_QuadBatch.push_back(quad);
-        m_IsBatchDirty = true;
-    }
-
-    void GLRenderingAPI::FlushQuads()
-    {
-        PROFILE_FUNCTION();
-
-        if (m_QuadBatch.empty())
+        if (m_QuadCount == 0)
             return;
 
-        if (m_SortByZIndex)
+        ApplyBlend(m_BatchBlend);
+
+        for (int i = 0; i < m_UsedTextureSlots; i++)
         {
-            PROFILE_SCOPE("FlushQuads/Sort");
-            std::stable_sort(m_QuadBatch.begin(), m_QuadBatch.end(),
-                              [](const BatchQuad &a, const BatchQuad &b)
-                              { return a.zIndex < b.zIndex; });
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, m_TextureSlots[i]);
         }
 
-        {
-            PROFILE_SCOPE("FlushQuads/GenerateVertices");
-            for (size_t i = 0; i < m_QuadBatch.size(); i++)
-            {
-                GenerateQuadVertices(&m_VertexData[i * 4], m_QuadBatch[i]);
-            }
-        }
+        glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, m_QuadCount * 4 * sizeof(Vertex2D), m_Vertices.data());
 
-        m_Shader->Bind();
-
-        glm::mat4 mvp = m_Projection * m_ViewMatrix;
-        m_Shader->SetUniformMat4("uVP", mvp);
-
-        {
-            PROFILE_SCOPE("FlushQuads/BindTextures");
-            for (int i = 0; i < m_UsedTextureSlots; i++)
-            {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, m_TextureSlots[i]);
-            }
-        }
-
-        {
-            PROFILE_SCOPE("FlushQuads/Upload");
-            glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-            glBufferSubData(GL_ARRAY_BUFFER, 0, m_QuadBatch.size() * 4 * sizeof(BatchVertex), m_VertexData.data());
-        }
-
-        {
-            PROFILE_SCOPE("FlushQuads/Draw");
-            glBindVertexArray(m_VAO);
-            glDrawElements(GL_TRIANGLES, (GLsizei)(m_QuadBatch.size() * 6), GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
-        }
-
-        m_Stats.drawCalls++;
-        m_Stats.quadCount += (int)m_QuadBatch.size();
-
-        m_QuadBatch.clear();
-        m_IsBatchDirty = false;
-        ResetTextureSlots();
-    }
-
-    void GLRenderingAPI::DrawQuad(float x, float y, float width, float height, float rotation, SDL_Color color, bool fill, float zIndex)
-    {
-        if (!fill)
-        {
-            float rad = glm::radians(rotation);
-            float c = std::cos(rad);
-            float s = std::sin(rad);
-            glm::vec2 half(width * 0.5f, height * 0.5f);
-            glm::vec2 local[4] = {
-                {-half.x, half.y}, {half.x, half.y}, {half.x, -half.y}, {-half.x, -half.y}};
-
-            glm::vec2 world[4];
-            for (int i = 0; i < 4; i++)
-            {
-                glm::vec2 r(local[i].x * c - local[i].y * s, local[i].x * s + local[i].y * c);
-                world[i] = r + glm::vec2(x, y);
-            }
-
-            for (int i = 0; i < 4; i++)
-                AddLineToBatch(world[i].x, world[i].y, world[(i + 1) % 4].x, world[(i + 1) % 4].y, color);
-
-            return;
-        }
-
-        BatchQuad quad;
-        quad.position = glm::vec3(x, y, zIndex);
-        quad.size = glm::vec2(width, height);
-        quad.rotation = rotation;
-        quad.color = color;
-        quad.zIndex = zIndex;
-        quad.uvRect = glm::vec4(0.0f, 1.0f, 1.0f, 0.0f);
-
-        SubmitQuad(quad, 0);
-    }
-
-    void GLRenderingAPI::AddLineToBatch(float x1, float y1, float x2, float y2, SDL_Color color)
-    {
-        FlushAllExcept(BatchCategory::Line);
-
-        if (m_LineVertices.size() + 2 > MAX_LINE_VERTICES)
-            FlushLines();
-
-        glm::vec4 c(color.r / 255.0f, color.g / 255.0f, color.b / 255.0f, color.a / 255.0f);
-        m_LineVertices.push_back({{x1, y1}, c});
-        m_LineVertices.push_back({{x2, y2}, c});
-    }
-
-    void GLRenderingAPI::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color)
-    {
-        AddLineToBatch(x1, y1, x2, y2, color);
-    }
-
-    void GLRenderingAPI::FlushLines()
-    {
-        PROFILE_FUNCTION();
-
-        if (m_LineVertices.empty())
-            return;
-
-        m_LineShader->Bind();
-        glm::mat4 mvp = m_Projection * m_ViewMatrix;
-        m_LineShader->SetUniformMat4("uVP", mvp);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_LineVBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, m_LineVertices.size() * sizeof(LineVertex), m_LineVertices.data());
-
-        glBindVertexArray(m_LineVAO);
-        glDrawArrays(GL_LINES, 0, (GLsizei)m_LineVertices.size());
+        glBindVertexArray(m_VAO);
+        glDrawElements(GL_TRIANGLES, (GLsizei)(m_QuadCount * 6), GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);
 
-        m_LineShader->Unbind();
-
         m_Stats.drawCalls++;
-        m_Stats.lineSegmentCount += (int)(m_LineVertices.size() / 2);
-
-        m_LineVertices.clear();
-    }
-
-    void GLRenderingAPI::DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect *srcRect)
-    {
-        if (!texture)
-        {
-            return;
-        }
-
-        BatchQuad quad;
-        quad.position = glm::vec3(x, y, zIndex);
-        quad.size = glm::vec2(width, height);
-        quad.rotation = rotation;
-        quad.color = color;
-        quad.zIndex = zIndex;
-
-        if (srcRect)
-        {
-            float texWidth = texture->GetWidth();
-            float texHeight = texture->GetHeight();
-
-            float u1 = srcRect->x / texWidth;
-            float v1 = srcRect->y / texHeight;
-            float u2 = (srcRect->x + srcRect->w) / texWidth;
-            float v2 = (srcRect->y + srcRect->h) / texHeight;
-
-            quad.uvRect = glm::vec4(u1, 1.0f - v1, u2, 1.0f - v2);
-        }
-        else
-        {
-            quad.uvRect = glm::vec4(0.0f, 1.0f, 1.0f, 0.0f);
-        }
-
-        SubmitQuad(quad, texture->GetID());
-    }
-
-    void GLRenderingAPI::PushShapeInstance(const ShapeInstance &instance)
-    {
-        FlushAllExcept(BatchCategory::Shape);
-
-        if (m_ShapeInstances.size() >= MAX_SHAPE_INSTANCES)
-            FlushShapes();
-
-        m_ShapeInstances.push_back(instance);
-    }
-
-    void GLRenderingAPI::DrawCircle(float cx, float cy, float radius, SDL_Color color, float aa, float zIndex)
-    {
-        float pad = aa * 2.0f;
-
-        ShapeInstance inst{};
-        inst.boundsCenter = {cx, cy};
-        inst.boundsHalf = {radius + pad, radius + pad};
-        inst.dataA = {cx, cy};
-        inst.dataB = {0.0f, 0.0f};
-        inst.radius = radius;
-        inst.shapeType = 0.0f;
-        inst.aa = aa;
-        inst.color = {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
-
-        PushShapeInstance(inst);
-    }
-
-    void GLRenderingAPI::DrawRoundedRect(float cx, float cy, float halfW, float halfH,
-                                         float cornerRadius, SDL_Color color,
-                                         float aa, float zIndex)
-    {
-        float pad = aa * 2.0f;
-
-        ShapeInstance inst{};
-        inst.boundsCenter = {cx, cy};
-        inst.boundsHalf = {halfW + cornerRadius + pad, halfH + cornerRadius + pad};
-        inst.dataA = {cx, cy};
-        inst.dataB = {halfW, halfH};
-        inst.radius = cornerRadius;
-        inst.shapeType = 1.0f;
-        inst.aa = aa;
-        inst.color = {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
-
-        PushShapeInstance(inst);
-    }
-
-    void GLRenderingAPI::DrawCapsuleLine(float x1, float y1, float x2, float y2,
-                                         float width, SDL_Color color,
-                                         float aa, float zIndex)
-    {
-        float pad = aa * 2.0f;
-        float minX = std::min(x1, x2) - width - pad;
-        float minY = std::min(y1, y2) - width - pad;
-        float maxX = std::max(x1, x2) + width + pad;
-        float maxY = std::max(y1, y2) + width + pad;
-
-        ShapeInstance inst{};
-        inst.boundsCenter = {(minX + maxX) * 0.5f, (minY + maxY) * 0.5f};
-        inst.boundsHalf = {(maxX - minX) * 0.5f, (maxY - minY) * 0.5f};
-        inst.dataA = {x1, y1};
-        inst.dataB = {x2, y2};
-        inst.radius = width;
-        inst.shapeType = 2.0f;
-        inst.aa = aa;
-        inst.color = {color.r / 255.f, color.g / 255.f, color.b / 255.f, color.a / 255.f};
-
-        PushShapeInstance(inst);
-    }
-
-    void GLRenderingAPI::FlushShapes()
-    {
-        PROFILE_FUNCTION();
-
-        if (m_ShapeInstances.empty())
-            return;
-
-        m_ShapeShader->Bind();
-        glm::mat4 mvp = m_Projection * m_ViewMatrix;
-        m_ShapeShader->SetUniformMat4("uVP", mvp);
-
-        glBindBuffer(GL_ARRAY_BUFFER, m_ShapeInstanceVBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, m_ShapeInstances.size() * sizeof(ShapeInstance), m_ShapeInstances.data());
-
-        glBindVertexArray(m_ShapeVAO);
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, (GLsizei)m_ShapeInstances.size());
-        glBindVertexArray(0);
-
-        m_ShapeShader->Unbind();
-
-        m_Stats.drawCalls++;
-        m_Stats.shapeCount += (int)m_ShapeInstances.size();
-
-        m_ShapeInstances.clear();
+        m_QuadCount = 0;
+        m_UsedTextureSlots = 1;
     }
 
     void GLRenderingAPI::Flush()
     {
-        FlushQuads();
-        FlushLines();
-        FlushShapes();
-    }
+        PROFILE_FUNCTION();
 
-    void GLRenderingAPI::ApplyCommonSpriteState(
-        float x, float y, float width, float height,
-        float rotation, float zIndex,
-        SDL_Color color, bool useTexture)
-    {
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, zIndex));
-        model = glm::rotate(model, glm::radians(rotation), glm::vec3(0, 0, 1));
-        model = glm::scale(model, glm::vec3(width, height, 1.0f));
+        if (m_Pending.empty())
+            return;
 
-        glm::mat4 mvp = m_Projection * m_ViewMatrix * model;
+        m_Order.resize(m_Pending.size());
+        std::iota(m_Order.begin(), m_Order.end(), 0u);
+        std::stable_sort(m_Order.begin(), m_Order.end(), [this](uint32_t a, uint32_t b)
+                         { return m_Pending[a].Z < m_Pending[b].Z; });
 
         m_Shader->Bind();
-        m_Shader->SetUniformMat4("uVP", mvp);
-        (void)useTexture;
+        m_Shader->SetUniformMat4("uVP", m_Projection * m_ViewMatrix);
+
+        m_QuadCount = 0;
+        m_UsedTextureSlots = 1;
+        m_BatchBlend = m_Pending[m_Order[0]].Blend;
+
+        for (uint32_t index : m_Order)
+        {
+            const Primitive &p = m_Pending[index];
+
+            if (p.Blend != m_BatchBlend || m_QuadCount >= MAX_QUADS)
+            {
+                DrawBatch();
+                m_BatchBlend = p.Blend;
+            }
+
+            float slot = 0.0f;
+            if (p.Texture && p.Texture != m_WhiteTexture)
+            {
+                int found = -1;
+                for (int i = 1; i < m_UsedTextureSlots; i++)
+                {
+                    if (m_TextureSlots[i] == p.Texture)
+                    {
+                        found = i;
+                        break;
+                    }
+                }
+
+                if (found < 0)
+                {
+                    if (m_UsedTextureSlots >= MAX_TEXTURE_SLOTS)
+                        DrawBatch();
+                    found = m_UsedTextureSlots++;
+                    m_TextureSlots[found] = p.Texture;
+                    m_Stats.textureSwitches++;
+                }
+                slot = (float)found;
+            }
+
+            WriteQuad(p, slot);
+        }
+
+        DrawBatch();
+        ApplyBlend(BlendMode::Alpha);
+        m_Shader->Unbind();
+
+        m_Pending.clear();
     }
 
     void GLRenderingAPI::SetViewMatrix(const glm::mat4 &view)
@@ -656,59 +320,48 @@ namespace SIMPEngine
 
     void GLRenderingAPI::BeginFrame()
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
-        glViewport(0, 0, m_ViewportWidth, m_ViewportHeight);
-
-        m_QuadBatch.clear();
-        m_LineVertices.clear();
-        m_ShapeInstances.clear();
-        m_IsBatchDirty = false;
-        ResetTextureSlots();
-
-        m_Stats = RenderStats{};
+        m_Pending.clear();
+        m_QuadCount = 0;
+        m_UsedTextureSlots = 1;
     }
 
     void GLRenderingAPI::EndFrame()
     {
         Flush();
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
-    void GLRenderingAPI::InitFramebuffer(int width, int height)
+    void GLRenderingAPI::BindRenderTarget(Framebuffer *target)
     {
-        if (m_Framebuffer)
+        Flush();
+        m_Target = target;
+
+        if (target)
         {
-            glDeleteFramebuffers(1, &m_Framebuffer);
-            glDeleteTextures(1, &m_ColorAttachment);
-            glDeleteRenderbuffers(1, &m_RBO);
+            glBindFramebuffer(GL_FRAMEBUFFER, target->GetID());
+            glViewport(0, 0, target->GetWidth(), target->GetHeight());
         }
-        glGenFramebuffers(1, &m_Framebuffer);
-        glBindFramebuffer(GL_FRAMEBUFFER, m_Framebuffer);
-
-        glGenTextures(1, &m_ColorAttachment);
-        glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_ColorAttachment, 0);
-
-        if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-            std::cerr << "Framebuffer is not complete!" << std::endl;
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        else
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glViewport(0, 0, m_BackbufferWidth, m_BackbufferHeight);
+        }
     }
 
     void GLRenderingAPI::ResizeViewport(int width, int height)
     {
         Flush();
-
-        glViewport(0, 0, width, height);
-        std::cout << "Viewport changed" << std::endl;
-        m_ViewportWidth = width;
-        m_ViewportHeight = height;
-        InitFramebuffer(width, height);
+        m_BackbufferWidth = std::max(1, width);
+        m_BackbufferHeight = std::max(1, height);
+        if (!m_Target)
+            glViewport(0, 0, m_BackbufferWidth, m_BackbufferHeight);
     }
 
-    unsigned int GLRenderingAPI::GetViewportTexture() { return m_ColorAttachment; }
+    glm::vec2 GLRenderingAPI::GetViewportSize()
+    {
+        if (m_Target)
+            return {(float)m_Target->GetWidth(), (float)m_Target->GetHeight()};
+        return {(float)m_BackbufferWidth, (float)m_BackbufferHeight};
+    }
 
     void GLRenderingAPI::SetClearColor(float r, float g, float b, float a)
     {
@@ -724,9 +377,4 @@ namespace SIMPEngine
         glClearColor(m_ClearColor[0], m_ClearColor[1], m_ClearColor[2], m_ClearColor[3]);
         glClear(GL_COLOR_BUFFER_BIT);
     }
-
-    void GLRenderingAPI::Present() {}
-
-    glm::vec2 GLRenderingAPI::TransformPosition(float x, float y) const { return {x, y}; }
-    glm::vec2 GLRenderingAPI::TransformSize(float w, float h) const { return {w, h}; }
 }

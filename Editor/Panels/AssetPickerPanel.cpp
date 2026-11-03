@@ -1,87 +1,160 @@
 #include "AssetPickerPanel.h"
-#include "EditorUtility.h"
+#include "UI/Visuals.h"
+#include "UI/Widgets.h"
 #include <Engine/Core/Log.h>
 #include <algorithm>
-#include <cctype>
+#include <cmath>
+#include <cstdio>
+#include <vector>
+
+namespace
+{
+    struct PickerItem
+    {
+        std::string Name;
+        std::string VPath;
+        bool IsDirectory = false;
+    };
+
+    std::vector<PickerItem> ListSorted(const std::string &real, const std::string &vdir)
+    {
+        std::vector<PickerItem> items;
+        for (auto &e : SIMPEngine::FileSystem::List(real))
+        {
+            std::string name = std::filesystem::path(e.path).filename().string();
+            if (name.empty() || name[0] == '.')
+                continue;
+            std::string child = vdir.ends_with('/') ? vdir + name : vdir + "/" + name;
+            items.push_back({name, child, e.isDirectory});
+        }
+        std::sort(items.begin(), items.end(), [](const PickerItem &a, const PickerItem &b)
+                  {
+            if (a.IsDirectory != b.IsDirectory)
+                return a.IsDirectory;
+            return a.Name < b.Name; });
+        return items;
+    }
+}
 
 AssetPickerPanel::AssetPickerPanel(const std::string &rootVirtual, SIMPEngine::AssetManager *am)
     : m_AM(am), m_Root(rootVirtual), m_CurrentDir(rootVirtual)
 {
-    m_FolderIcon.LoadFromMemory(folder_png, folder_png_len);
+}
+
+bool AssetPickerPanel::Accepts(const std::string &vpath) const
+{
+    if (m_Extensions.empty())
+        return true;
+    std::string ext = EditorUI::LowerExtension(vpath);
+    return std::find(m_Extensions.begin(), m_Extensions.end(), ext) != m_Extensions.end();
 }
 
 void AssetPickerPanel::Open(const std::string &title,
                             const std::string &startDirVirtual,
-                            ConfirmCallback onConfirm)
+                            ConfirmCallback onConfirm,
+                            std::vector<std::string> extensions)
 {
+    m_Extensions = std::move(extensions);
     m_Title = title;
     m_OnConfirm = std::move(onConfirm);
     m_SelectedVPath.clear();
+    m_Search[0] = '\0';
     m_CurrentDir = startDirVirtual.empty() ? m_Root : startDirVirtual;
     m_Open = true;
 }
 
 void AssetPickerPanel::OnImGuiRender()
 {
+    using namespace EditorUI;
+
     if (!m_Open)
         return;
 
-    ImGui::OpenPopup(m_Title.c_str());
+    if (!BeginModal(m_Title.c_str(), &m_Open, ImVec2(900, 560)))
+        return;
 
-    if (ImGui::BeginPopupModal(m_Title.c_str(), nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+    auto rootReal = SIMPEngine::VFS::Resolve(m_Root);
+    if (!rootReal)
     {
-        auto rootReal = SIMPEngine::VFS::Resolve(m_Root);
-        if (!rootReal)
-        {
-            ImGui::TextColored(ImVec4(1, 0.3f, 0.3f, 1), "Failed to resolve root: %s", m_Root.c_str());
-            ImGui::EndPopup();
-            return;
-        }
-
-        ImGui::TextUnformatted("Choose an asset");
-        ImGui::Dummy(ImVec2(0, 4));
-
-        ImGui::BeginChild("##tree", ImVec2(220, 360), true);
-        DrawDirectory(m_Root);
-        ImGui::EndChild();
-
-        ImGui::SameLine();
-
-        ImGui::BeginChild("##grid", ImVec2(420, 360), true);
-        DrawFiles(m_CurrentDir);
-        ImGui::EndChild();
-
-        ImGui::Dummy(ImVec2(0, 4));
-        DrawPreview();
-        ImGui::Dummy(ImVec2(0, 4));
-
-        const bool valid = !m_SelectedVPath.empty();
-
-        if (!valid)
-            ImGui::BeginDisabled();
-
-        if (ImGui::Button("OK"))
-        {
-            if (m_OnConfirm)
-                m_OnConfirm(m_SelectedVPath);
-
-            Close();
-            ImGui::CloseCurrentPopup();
-        }
-
-        if (!valid)
-            ImGui::EndDisabled();
-
-        ImGui::SameLine();
-
-        if (ImGui::Button("Cancel"))
-        {
-            Close();
-            ImGui::CloseCurrentPopup();
-        }
-
-        ImGui::EndPopup();
+        ImGui::TextColored(Colors::Error, "Failed to resolve root: %s", m_Root.c_str());
+        EndModal();
+        return;
     }
+
+    std::string target;
+    ImGui::BeginChild("##crumbs", ImVec2(ImGui::GetContentRegionAvail().x - 260.0f, ImGui::GetFrameHeight()), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoBackground);
+    if (Breadcrumbs(m_CurrentDir, target))
+        m_CurrentDir = target;
+    ImGui::EndChild();
+    ImGui::SameLine();
+    SearchBox("##search", m_Search, sizeof(m_Search), "Search", -FLT_MIN);
+
+    float footerH = ImGui::GetFrameHeight() + 14.0f;
+    float bodyH = ImGui::GetContentRegionAvail().y - footerH;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Header);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 6));
+    ImGui::BeginChild("##tree", ImVec2(200, bodyH), ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding);
+    DrawDirectory(m_Root);
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
+
+    ImGui::SameLine();
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+    ImGui::BeginChild("##grid", ImVec2(ImGui::GetContentRegionAvail().x - 236.0f, bodyH), ImGuiChildFlags_None);
+    DrawFiles(m_CurrentDir);
+    ImGui::EndChild();
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine();
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
+    ImGui::BeginChild("##preview", ImVec2(0, bodyH), ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding);
+    DrawPreview();
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
+
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar();
+
+    ImGui::Dummy(ImVec2(0, 4));
+
+    const bool valid = !m_SelectedVPath.empty();
+    float bw = 110.0f;
+    float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+    ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(valid ? m_SelectedVPath.c_str() : "Select a file, or double-click to pick it");
+    ImGui::PopStyleColor();
+
+    ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - bw * 2.0f - spacing);
+    if (Button("Cancel", ButtonKind::Secondary, ImVec2(bw, 0)))
+    {
+        Close();
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    ImGui::BeginDisabled(!valid);
+    if (Button("Select", ButtonKind::Primary, ImVec2(bw, 0)))
+    {
+        Confirm();
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndDisabled();
+
+    if (!m_Open)
+        ImGui::CloseCurrentPopup();
+
+    EndModal();
+}
+
+void AssetPickerPanel::Confirm()
+{
+    if (m_OnConfirm && !m_SelectedVPath.empty())
+        m_OnConfirm(m_SelectedVPath);
+    Close();
 }
 
 void AssetPickerPanel::Close()
@@ -98,170 +171,159 @@ std::string AssetPickerPanel::ToVirtualChild(const std::string &parent, const st
     return parent + "/" + filename;
 }
 
-bool AssetPickerPanel::IsImageFile(const std::filesystem::path &path) const
+SIMPEngine::Texture *AssetPickerPanel::GetThumbnailFor(const std::string &vpath)
 {
-    std::string ext = path.extension().string();
-    std::transform(ext.begin(), ext.end(), ext.begin(),
-                   [](unsigned char c)
-                   { return static_cast<char>(std::tolower(c)); });
+    if (!EditorUI::IsImageExtension(EditorUI::LowerExtension(vpath)))
+        return nullptr;
 
-    return ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".bmp" || ext == ".webp";
-}
-
-SIMPEngine::Texture &AssetPickerPanel::GetThumbnailFor(const std::string &vpath)
-{
     auto real = SIMPEngine::VFS::Resolve(vpath);
     if (!real)
-        return m_FolderIcon;
+        return nullptr;
 
-    auto it = m_TextureCache.find(*real);
-    if (it != m_TextureCache.end())
-        return it->second;
+    auto [it, inserted] = m_TextureCache.try_emplace(*real);
+    if (inserted && !it->second.LoadFromFile(real->c_str()))
+        CORE_WARN("Could not load thumbnail {}", *real);
 
-    m_TextureCache[*real] = SIMPEngine::Texture();
-
-    if (m_TextureCache[*real].LoadFromFile(real->c_str()))
-        return m_TextureCache[*real];
-
-    m_TextureCache.erase(*real);
-    return m_FolderIcon;
+    return it->second.GetID() ? &it->second : nullptr;
 }
 
 void AssetPickerPanel::DrawDirectory(const std::string &vdir)
 {
+    using namespace EditorUI;
+
     auto real = SIMPEngine::VFS::Resolve(vdir);
     if (!real)
         return;
 
-    std::string label = std::filesystem::path(*real).filename().string();
-    if (label.empty())
-        label = vdir;
+    bool isRoot = vdir == m_Root;
+    std::string label = isRoot ? m_Root.substr(0, m_Root.find("://")) : std::filesystem::path(*real).filename().string();
 
-    ImGuiTreeNodeFlags flags =
-        ImGuiTreeNodeFlags_OpenOnArrow |
-        ImGuiTreeNodeFlags_SpanFullWidth |
-        ImGuiTreeNodeFlags_DefaultOpen;
+    std::vector<PickerItem> dirs;
+    for (auto &item : ListSorted(*real, vdir))
+        if (item.IsDirectory)
+            dirs.push_back(item);
 
-    bool opened = ImGui::TreeNodeEx(label.c_str(), flags);
+    TreeRowOptions opt;
+    opt.Leaf = dirs.empty();
+    opt.Selected = vdir == m_CurrentDir;
+    opt.DefaultOpen = isRoot;
 
-    if (ImGui::IsItemClicked())
+    auto row = TreeRow(vdir.c_str(), ICON_LC_FOLDER, Colors::FolderTint, label.c_str(), opt);
+    if (row.Clicked)
         m_CurrentDir = vdir;
 
-    if (opened)
+    if (row.Open)
     {
-        auto entries = SIMPEngine::FileSystem::List(*real);
-        for (auto &e : entries)
-        {
-            if (!e.isDirectory)
-                continue;
-
-            std::string filename = std::filesystem::path(e.path).filename().string();
-            std::string childV = ToVirtualChild(vdir, filename);
-            DrawDirectory(childV);
-        }
-
-        ImGui::TreePop();
+        for (auto &d : dirs)
+            DrawDirectory(d.VPath);
+        TreeRowPop();
     }
 }
 
 void AssetPickerPanel::DrawFiles(const std::string &vdir)
 {
+    using namespace EditorUI;
+
     auto real = SIMPEngine::VFS::Resolve(vdir);
     if (!real)
     {
-        ImGui::TextUnformatted("No directory");
+        EmptyState("Folder not found");
         return;
     }
 
-    auto entries = SIMPEngine::FileSystem::List(*real);
+    std::vector<PickerItem> items;
+    for (auto &item : ListSorted(*real, vdir))
+        if (ContainsInsensitive(item.Name.c_str(), m_Search) && (item.IsDirectory || Accepts(item.Name)))
+            items.push_back(item);
 
-    float cell = 96.0f;
-    int columns = (int)(ImGui::GetContentRegionAvail().x / cell);
-    if (columns < 1)
-        columns = 1;
-
-    ImGui::Columns(columns, nullptr, false);
-
-    for (auto &e : entries)
+    if (items.empty())
     {
-        std::string filename = std::filesystem::path(e.path).filename().string();
-        std::string childV = ToVirtualChild(vdir, filename);
-        DrawEntry(childV, e.isDirectory);
-        ImGui::NextColumn();
-    }
-
-    ImGui::Columns(1);
-}
-
-void AssetPickerPanel::DrawEntry(const std::string &vpath, bool isDir)
-{
-    auto real = SIMPEngine::VFS::Resolve(vpath);
-    if (!real)
+        EmptyState("Nothing here", m_Search[0] ? "No files match your search." : nullptr);
         return;
+    }
 
-    std::string name = std::filesystem::path(*real).filename().string();
+    float spacing = 10.0f;
+    float tileW = 108.0f;
+    float avail = ImGui::GetContentRegionAvail().x;
+    int columns = std::max(1, (int)((avail + spacing) / (tileW + spacing)));
+    tileW = std::floor((avail - spacing * (columns - 1)) / columns);
 
-    ImGui::PushID(vpath.c_str());
-    ImGui::BeginGroup();
-
-    if (isDir)
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing));
+    int index = 0;
+    std::string navigateTo;
+    for (auto &item : items)
     {
-        if (m_FolderIcon.GetID())
+        if (index++ % columns)
+            ImGui::SameLine();
+
+        Visual v = FileVisual(item.Name, item.IsDirectory);
+        SIMPEngine::Texture *thumb = item.IsDirectory ? nullptr : GetThumbnailFor(item.VPath);
+        ImTextureID tex = thumb ? (ImTextureID)(intptr_t)thumb->GetID() : (ImTextureID)0;
+        ImVec2 texSize = thumb ? ImVec2((float)thumb->GetWidth(), (float)thumb->GetHeight()) : ImVec2(0, 0);
+
+        auto r = AssetTile(item.VPath.c_str(), tex, texSize, v.Icon, v.Color(), item.Name.c_str(), m_SelectedVPath == item.VPath, tileW);
+        if (r.Clicked && !item.IsDirectory)
+            m_SelectedVPath = item.VPath;
+        if (r.DoubleClicked)
         {
-            if (EditorUI::DrawThumbnailButton("##folder", m_FolderIcon, 72.0f, m_SelectedVPath == vpath))
-                m_CurrentDir = vpath;
+            if (item.IsDirectory)
+                navigateTo = item.VPath;
+            else
+            {
+                m_SelectedVPath = item.VPath;
+                Confirm();
+            }
         }
     }
-    else if (IsImageFile(*real))
-    {
-        SIMPEngine::Texture &thumb = GetThumbnailFor(vpath);
-        if (thumb.GetID())
-        {
-            if (EditorUI::DrawThumbnailButton("##img", thumb, 72.0f, m_SelectedVPath == vpath))
-                m_SelectedVPath = vpath;
-        }
-    }
-    else
-    {
-        if (ImGui::Button("FILE", ImVec2(72, 72)))
-            m_SelectedVPath = vpath;
-    }
+    ImGui::PopStyleVar();
 
-    if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && isDir)
-        m_CurrentDir = vpath;
-
-    if (ImGui::IsItemClicked() && !isDir)
-        m_SelectedVPath = vpath;
-
-    ImGui::TextWrapped("%s", name.c_str());
-
-    if (m_SelectedVPath == vpath)
-        ImGui::TextUnformatted("Selected");
-
-    ImGui::EndGroup();
-    ImGui::PopID();
+    if (!navigateTo.empty())
+        m_CurrentDir = navigateTo;
 }
 
 void AssetPickerPanel::DrawPreview()
 {
+    using namespace EditorUI;
+
     if (m_SelectedVPath.empty())
     {
-        ImGui::TextUnformatted("Selected: none");
+        EmptyState("No file selected");
         return;
     }
 
-    ImGui::Text("Selected: %s", m_SelectedVPath.c_str());
+    std::filesystem::path p(m_SelectedVPath);
+    Visual v = FileVisual(p.filename(), false);
+    float w = ImGui::GetContentRegionAvail().x;
 
-    auto real = SIMPEngine::VFS::Resolve(m_SelectedVPath);
-    if (!real)
-        return;
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImVec2 max(pos.x + w, pos.y + w);
+    ImDrawList *dl = ImGui::GetWindowDrawList();
 
-    if (IsImageFile(*real))
+    SIMPEngine::Texture *tex = GetThumbnailFor(m_SelectedVPath);
+    if (tex)
     {
-        auto &tex = GetThumbnailFor(m_SelectedVPath);
-        if (tex.GetID())
-        {
-            EditorUI::DrawThumbnailImage(tex, 160.0f);
-        }
+        dl->PushClipRect(pos, max, true);
+        DrawCheckerboard(dl, pos, max, 8.0f);
+        dl->PopClipRect();
+        DrawImageFit(dl, (ImTextureID)(intptr_t)tex->GetID(), ImVec2((float)tex->GetWidth(), (float)tex->GetHeight()), ImVec2(pos.x + 6, pos.y + 6), ImVec2(max.x - 6, max.y - 6));
     }
+    else
+    {
+        dl->AddRectFilled(pos, max, U32(Colors::Frame), Metrics::FrameRounding);
+        float size = std::floor(w * 0.30f);
+        ImVec2 ts = ImGui::GetFont()->CalcTextSizeA(size, FLT_MAX, 0.0f, v.Icon);
+        dl->AddText(ImGui::GetFont(), size, ImVec2(std::floor(pos.x + (w - ts.x) * 0.5f), std::floor(pos.y + (w - ts.y) * 0.5f)), U32(v.Color()), v.Icon);
+    }
+    ImGui::Dummy(ImVec2(w, w));
+    ImGui::Dummy(ImVec2(0, 4));
+
+    ImGui::PushFont(GetFont(FontRole::Medium), 0.0f);
+    ImGui::TextWrapped("%s", p.filename().string().c_str());
+    ImGui::PopFont();
+    ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextDim);
+    if (tex)
+        ImGui::Text("%s  ·  %d x %d", v.Type, tex->GetWidth(), tex->GetHeight());
+    else
+        ImGui::TextUnformatted(v.Type);
+    ImGui::PopStyleColor();
 }

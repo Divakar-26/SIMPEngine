@@ -5,8 +5,9 @@
 
 #include "../../EditorContext.h"
 #include "../../EditorCommands.h"
+#include "UI/Visuals.h"
+#include "UI/Widgets.h"
 #include <EditorPanel.h>
-#include <filesystem>
 #include "AssetPickerPanel.h"
 #include "AnimationMakerPanel.h"
 
@@ -21,86 +22,34 @@ class AssetPickerPanel;
 class AnimationMakerPanel;
 
 template <typename T, typename UIFunc>
-static void DrawComponent(const char *name, SIMPEngine::Entity entity, UIFunc uiFunc)
-{
-    if (entity.HasComponent<T>())
-    {
-        auto &component = entity.GetComponent<T>();
-
-        if (ImGui::TreeNodeEx((void *)typeid(T).hash_code(),
-                              ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap,
-                              name))
-        {
-            if (ImGui::BeginPopupContextItem())
-            {
-                if (ImGui::MenuItem("Remove Component"))
-                    entity.RemoveComponent<T>();
-                ImGui::EndPopup();
-            }
-
-            uiFunc(component);
-            ImGui::TreePop();
-        }
-    }
-}
-
-template <typename T, typename UIFunc>
-static void DrawComponentCard(
-    const char *name,
+static void DrawComponentSection(
+    EditorContext &ctx,
+    const char *title,
     SIMPEngine::Entity entity,
-    UIFunc uiFunc)
+    UIFunc uiFunc,
+    bool removable = true)
 {
     if (!entity.HasComponent<T>())
         return;
 
-    auto &component = entity.GetComponent<T>();
+    bool remove = false;
+    if (EditorUI::BeginSection(title, title, removable ? &remove : nullptr))
+        uiFunc(entity.GetComponent<T>());
+    EditorUI::EndSection();
 
-    ImGui::PushStyleVar(
-        ImGuiStyleVar_FramePadding,
-        ImVec2(4, 2));
-
-    ImGui::PushStyleColor(
-        ImGuiCol_Header,
-        ImVec4(0.22f, 0.27f, 0.36f, 1.0f));
-
-    ImGui::PushStyleColor(
-        ImGuiCol_HeaderHovered,
-        ImVec4(0.28f, 0.34f, 0.46f, 1.0f));
-
-    ImGui::PushStyleColor(
-        ImGuiCol_HeaderActive,
-        ImVec4(0.35f, 0.45f, 0.65f, 1.0f));
-
-    bool open = ImGui::CollapsingHeader(
-        name,
-        ImGuiTreeNodeFlags_DefaultOpen);
-
-    ImGui::PopStyleColor(3);
-    ImGui::PopStyleVar();
-
-    if (!open)
-        return;
-
-    ImGui::PushID(name);
-
-    if (ImGui::BeginPopupContextItem())
+    if (remove)
     {
-        if (ImGui::MenuItem("Remove Component"))
-            entity.RemoveComponent<T>();
-
-        ImGui::EndPopup();
+        EditorCommands::RecordEdit(ctx);
+        entity.RemoveComponent<T>();
+        ctx.Scene->MarkPhysicsDirty();
     }
-
-    uiFunc(component);
-
-    ImGui::Dummy(ImVec2(0, 2));
-
-    ImGui::PopID();
 }
 
 class InspectorPanel : public EditorPanel
 {
 public:
+    static constexpr const char *WindowId = "###Inspector";
+
     InspectorPanel(EditorContext *m_Context);
 
     void OnImGuiRender() override;
@@ -121,10 +70,14 @@ public:
     }
 
 private:
+    void DrawHeader(SIMPEngine::Entity &entity);
+    void DrawSceneProperties();
+    void DrawCoreComponents(SIMPEngine::Entity &entity);
+    void DrawAddComponentButton(SIMPEngine::Entity &entity);
+
     EditorContext *m_Context;
 
-    bool m_ShowTexturePicker = false;
-    std::string m_SelectedTexturePath;
+    char m_ComponentFilter[64] = "";
 
     AssetPickerPanel *m_AssetPicker = nullptr;
     AnimationMakerPanel* m_AnimationMaker = nullptr;

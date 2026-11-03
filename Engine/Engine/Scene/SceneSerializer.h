@@ -3,6 +3,9 @@
 #include <Engine/Core/Log.h>
 #include <yaml-cpp/yaml.h>
 
+#include <string>
+#include <vector>
+
 namespace SIMPEngine
 {
     class SceneSerializer
@@ -13,7 +16,16 @@ namespace SIMPEngine
         bool Serialize(const std::string &filepath);
         bool Deserialize(const std::string &filepath);
 
+        std::string SerializeToString();
+        bool DeserializeFromString(const std::string &yaml, std::vector<entt::entity> *created = nullptr);
+
+        std::string SerializeEntities(const std::vector<entt::entity> &entities);
+        std::vector<entt::entity> DeserializeEntities(const std::string &yaml);
+
     private:
+        std::string Emit(const std::vector<entt::entity> &entities, bool includeSettings);
+        bool Load(const YAML::Node &data, bool applySettings, std::vector<entt::entity> *created);
+
         Scene *m_Scene;
     };
 
