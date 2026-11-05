@@ -97,7 +97,12 @@ void HierarchyPanel::OnImGuiRender()
             std::snprintf(id, sizeof(id), "##s%u", static_cast<unsigned>(handle));
             auto row = TreeRow(id, v.Icon, v.Color(), tag.c_str(), opt);
             if (row.Clicked)
-                m_Context->SelectedEntity = entity;
+            {
+                if (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeyShift)
+                    m_Context->ToggleSelection(entity);
+                else
+                    m_Context->Select(entity);
+            }
             if (ImGui::BeginPopupContextItem())
             {
                 DrawEntityContextMenu(entity);
@@ -183,14 +188,24 @@ void HierarchyPanel::OnImGuiRender()
     if (m_PendingDuplicate != entt::null)
     {
         if (registry.valid(m_PendingDuplicate))
-            m_Context->SelectedEntity = EditorCommands::DuplicateEntity(*m_Context, SIMPEngine::Entity(m_PendingDuplicate, &scene));
+        {
+            if (m_Context->HasExtraSelection() && m_Context->IsSelected(m_PendingDuplicate))
+                EditorCommands::DuplicateSelection(*m_Context);
+            else
+                m_Context->Select(EditorCommands::DuplicateEntity(*m_Context, SIMPEngine::Entity(m_PendingDuplicate, &scene)));
+        }
         m_PendingDuplicate = entt::null;
     }
 
     if (m_PendingDelete != entt::null)
     {
         if (registry.valid(m_PendingDelete))
-            EditorCommands::DeleteEntity(*m_Context, SIMPEngine::Entity(m_PendingDelete, &scene));
+        {
+            if (m_Context->HasExtraSelection() && m_Context->IsSelected(m_PendingDelete))
+                EditorCommands::DeleteSelection(*m_Context);
+            else
+                EditorCommands::DeleteEntity(*m_Context, SIMPEngine::Entity(m_PendingDelete, &scene));
+        }
         m_PendingDelete = entt::null;
     }
 }
@@ -273,7 +288,12 @@ void HierarchyPanel::DrawEntityNode(SIMPEngine::Entity entity)
     auto row = TreeRow(id, v.Icon, v.Color(), tag.empty() ? "(unnamed)" : tag.c_str(), opt);
 
     if (row.Clicked)
-        m_Context->SelectedEntity = entity;
+    {
+        if (ImGui::GetIO().KeyCtrl || ImGui::GetIO().KeyShift)
+            m_Context->ToggleSelection(entity);
+        else
+            m_Context->Select(entity);
+    }
     if (row.DoubleClicked)
         BeginRename(handle);
 
@@ -297,7 +317,8 @@ void HierarchyPanel::DrawEntityNode(SIMPEngine::Entity entity)
 
     if (ImGui::BeginPopupContextItem())
     {
-        m_Context->SelectedEntity = entity;
+        if (!m_Context->IsSelected(handle))
+            m_Context->Select(entity);
         DrawEntityContextMenu(entity);
         ImGui::EndPopup();
     }

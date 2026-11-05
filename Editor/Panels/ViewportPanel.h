@@ -11,6 +11,8 @@
 #include <EditorPanel.h>
 
 #include <memory>
+#include <utility>
+#include <vector>
 
 class ViewportPanel : public EditorPanel
 {
@@ -22,7 +24,7 @@ public:
     void OnAttach();
     void OnImGuiRender() override;
 
-    bool IsInteracting() const { return m_Drag.Active || m_Panning; }
+    bool IsInteracting() const { return m_Drag.Active || m_Panning || m_Marquee.Active; }
     void FocusOnSelectedEntity();
     void FrameScene();
 
@@ -53,6 +55,14 @@ private:
         glm::vec2 StartScale{1.0f};
         float StartRotation = 0.0f;
         float StartAngle = 0.0f;
+        std::vector<std::pair<entt::entity, glm::vec2>> Others;
+    };
+
+    struct MarqueeState
+    {
+        bool Active = false;
+        bool Additive = false;
+        ImVec2 Start{0, 0};
     };
 
     void DrawToolbar();
@@ -66,6 +76,8 @@ private:
     void DrawOverlays();
     void DrawGizmo(SIMPEngine::Entity entity);
     void DrawOutline(SIMPEngine::Entity entity, ImU32 color, float thickness);
+    void FinishMarquee();
+    std::vector<entt::entity> EntitiesInMarquee() const;
 
     Handle HitTestGizmo(SIMPEngine::Entity entity, const ImVec2 &mouse) const;
     void ApplyDrag(SIMPEngine::Entity entity);
@@ -86,6 +98,7 @@ private:
     bool m_Panning = false;
 
     DragState m_Drag;
+    MarqueeState m_Marquee;
     Handle m_HoverHandle = Handle::None;
     SIMPEngine::RenderStats m_Stats;
 };

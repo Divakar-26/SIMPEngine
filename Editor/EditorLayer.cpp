@@ -300,11 +300,11 @@ void EditorLayer::HandleShortcuts()
     if (hasSelection && !m_GameViewPanel.IsFocused())
     {
         if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_D, ImGuiInputFlags_RouteGlobal))
-            ctx.SelectedEntity = EditorCommands::DuplicateEntity(ctx, ctx.SelectedEntity);
+            EditorCommands::DuplicateSelection(ctx);
         if (ImGui::Shortcut(ImGuiKey_Delete, ImGuiInputFlags_RouteGlobal))
-            EditorCommands::DeleteEntity(ctx, ctx.SelectedEntity);
+            EditorCommands::DeleteSelection(ctx);
         if (ImGui::Shortcut(ImGuiKey_Escape, ImGuiInputFlags_RouteGlobal))
-            ctx.SelectedEntity = {};
+            ctx.ClearSelection();
     }
 }
 
@@ -418,9 +418,9 @@ void EditorLayer::DrawMenuBar()
             if (ImGui::MenuItem("Rename", "F2", false, hasSelection))
                 ctx.RenameRequest = ctx.SelectedEntity.GetHandle();
             if (ImGui::MenuItem("Duplicate", "Ctrl+D", false, hasSelection))
-                ctx.SelectedEntity = EditorCommands::DuplicateEntity(ctx, ctx.SelectedEntity);
+                EditorCommands::DuplicateSelection(ctx);
             if (ImGui::MenuItem("Delete", "Del", false, hasSelection))
-                EditorCommands::DeleteEntity(ctx, ctx.SelectedEntity);
+                EditorCommands::DeleteSelection(ctx);
             ImGui::Separator();
             if (ImGui::MenuItem("Editor Settings..."))
                 m_SettingsPanel.Open();

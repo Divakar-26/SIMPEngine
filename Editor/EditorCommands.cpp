@@ -149,6 +149,27 @@ SIMPEngine::Entity EditorCommands::DuplicateEntity(EditorContext &ctx, SIMPEngin
     return root;
 }
 
+void EditorCommands::DeleteSelection(EditorContext &ctx)
+{
+    std::vector<entt::entity> roots = ctx.SelectedRoots();
+    for (entt::entity handle : roots)
+        DeleteEntity(ctx, SIMPEngine::Entity(handle, ctx.Scene));
+    ctx.ClearSelection();
+}
+
+void EditorCommands::DuplicateSelection(EditorContext &ctx)
+{
+    std::vector<entt::entity> roots = ctx.SelectedRoots();
+    std::vector<entt::entity> created;
+    for (entt::entity handle : roots)
+    {
+        SIMPEngine::Entity copy = DuplicateEntity(ctx, SIMPEngine::Entity(handle, ctx.Scene));
+        if (copy)
+            created.push_back(copy.GetHandle());
+    }
+    ctx.SetSelection(created);
+}
+
 void EditorCommands::RenameEntity(
     EditorContext &ctx,
     SIMPEngine::Entity entity,

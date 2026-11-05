@@ -38,6 +38,10 @@ public:
         EditorContext& ctx,
         SIMPEngine::Entity entity);
 
+    static void DeleteSelection(EditorContext &ctx);
+
+    static void DuplicateSelection(EditorContext &ctx);
+
     static void RenameEntity(
         EditorContext& ctx,
         SIMPEngine::Entity entity,

@@ -385,10 +385,27 @@ void ViewportPanel::HandleSelectionAndGizmo()
         if (grab == Handle::None)
         {
             SIMPEngine::Entity picked = PickEntity(mouseWorld);
-            m_Context->SelectedEntity = picked;
-            selected = picked;
-            if (picked && m_Context->Tool != GizmoTool::Rotate && m_Context->Tool != GizmoTool::Scale)
-                grab = Handle::Body;
+            if (!picked)
+            {
+                m_Marquee.Active = true;
+                m_Marquee.Additive = io.KeyShift;
+                m_Marquee.Start = io.MousePos;
+            }
+            else if (io.KeyShift)
+            {
+                m_Context->ToggleSelection(picked);
+                selected = m_Context->SelectedEntity;
+            }
+            else
+            {
+                if (m_Context->IsSelected(picked.GetHandle()))
+                    m_Context->MakePrimary(picked);
+                else
+                    m_Context->Select(picked);
+                selected = picked;
+                if (m_Context->Tool != GizmoTool::Rotate && m_Context->Tool != GizmoTool::Scale)
+                    grab = Handle::Body;
+            }
         }
 
         if (selected && grab != Handle::None)
@@ -407,7 +424,29 @@ void ViewportPanel::HandleSelectionAndGizmo()
             m_Drag.StartRotation = tc.rotation;
             glm::vec2 rel = mouseWorld - w.Position;
             m_Drag.StartAngle = std::atan2(rel.y, rel.x);
+
+            bool moving = grab == Handle::Body || grab == Handle::Center || grab == Handle::AxisX || grab == Handle::AxisY;
+            if (moving && m_Context->HasExtraSelection())
+            {
+                std::vector<entt::entity> roots = m_Context->SelectedRoots();
+                bool primaryIsRoot = std::find(roots.begin(), roots.end(), selected.GetHandle()) != roots.end();
+                for (entt::entity handle : roots)
+                {
+                    if (!primaryIsRoot || handle == selected.GetHandle() || !registry.valid(handle) || !registry.all_of<TransformComponent>(handle))
+                        continue;
+                    SIMPEngine::WorldTransform2D other = SIMPEngine::DecomposeWorld(registry.get<TransformComponent>(handle));
+                    m_Drag.Others.emplace_back(handle, other.Position);
+                }
+            }
         }
+    }
+
+    if (m_Marquee.Active)
+    {
+        if (ImGui::IsKeyPressed(ImGuiKey_Escape, false))
+            m_Marquee.Active = false;
+        else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left))
+            FinishMarquee();
     }
 
     if (m_Drag.Active)
@@ -440,13 +479,15 @@ void ViewportPanel::ApplyDrag(SIMPEngine::Entity entity)
     bool snap = SnapActive();
     const EditorUI::EditorSettings &settings = EditorUI::Settings();
 
-    auto setWorldPosition = [&](glm::vec2 target)
+    auto setWorldPosition = [&](entt::entity handle, glm::vec2 target)
     {
+        auto &t = registry.get<TransformComponent>(handle);
         glm::vec4 local(target, 0.0f, 1.0f);
-        if (auto *h = registry.try_get<HierarchyComponent>(entity.GetHandle());
+        if (auto *h = registry.try_get<HierarchyComponent>(handle);
             h && h->parent != entt::null && registry.valid(h->parent) && registry.all_of<TransformComponent>(h->parent))
             local = glm::inverse(registry.get<TransformComponent>(h->parent).worldTransform) * glm::vec4(target, 0.0f, 1.0f);
-        tc.position = {local.x, local.y};
+        t.position = {local.x, local.y};
+        t.dirty = true;
     };
 
     switch (m_Drag.Grab)
@@ -468,7 +509,13 @@ void ViewportPanel::ApplyDrag(SIMPEngine::Entity entity)
             if (m_Drag.Grab != Handle::AxisX)
                 target.y = SnapTo(target.y, settings.SnapMove);
         }
-        setWorldPosition(target);
+        glm::vec2 offset = target - m_Drag.StartWorldPos;
+        setWorldPosition(entity.GetHandle(), target);
+        for (const auto &[handle, start] : m_Drag.Others)
+        {
+            if (registry.valid(handle) && registry.all_of<TransformComponent>(handle))
+                setWorldPosition(handle, start + offset);
+        }
         break;
     }
     case Handle::Rotate:
@@ -556,6 +603,67 @@ void ViewportPanel::HandleDrop()
     ImGui::EndDragDropTarget();
 }
 
+std::vector<entt::entity> ViewportPanel::EntitiesInMarquee() const
+{
+    std::vector<entt::entity> hits;
+    ImVec2 a = m_Marquee.Start;
+    ImVec2 b = ImGui::GetIO().MousePos;
+    ImVec2 lo(std::min(a.x, b.x), std::min(a.y, b.y));
+    ImVec2 hi(std::max(a.x, b.x), std::max(a.y, b.y));
+
+    auto &registry = m_Context->Scene->GetRegistry();
+    for (auto handle : registry.view<TransformComponent, TagComponent>())
+    {
+        SIMPEngine::Entity entity(handle, m_Context->Scene);
+        auto corners = SIMPEngine::GetEntityCorners(entity);
+        if (!corners)
+            continue;
+
+        ImVec2 mn(FLT_MAX, FLT_MAX);
+        ImVec2 mx(-FLT_MAX, -FLT_MAX);
+        for (const glm::vec2 &corner : *corners)
+        {
+            ImVec2 p = ToScreen(corner);
+            mn = ImVec2(std::min(mn.x, p.x), std::min(mn.y, p.y));
+            mx = ImVec2(std::max(mx.x, p.x), std::max(mx.y, p.y));
+        }
+
+        if (mx.x >= lo.x && mn.x <= hi.x && mx.y >= lo.y && mn.y <= hi.y)
+            hits.push_back(handle);
+    }
+    return hits;
+}
+
+void ViewportPanel::FinishMarquee()
+{
+    ImVec2 d = ImGui::GetIO().MousePos - m_Marquee.Start;
+    bool dragged = std::abs(d.x) + std::abs(d.y) >= 4.0f;
+    bool additive = m_Marquee.Additive;
+    m_Marquee.Active = false;
+
+    if (!dragged)
+    {
+        if (!additive)
+            m_Context->ClearSelection();
+        return;
+    }
+
+    std::vector<entt::entity> hits = EntitiesInMarquee();
+    if (!additive)
+    {
+        m_Context->SetSelection(hits);
+        return;
+    }
+
+    std::vector<entt::entity> handles = m_Context->SelectedHandles();
+    for (entt::entity handle : hits)
+    {
+        if (std::find(handles.begin(), handles.end(), handle) == handles.end())
+            handles.push_back(handle);
+    }
+    m_Context->SetSelection(handles);
+}
+
 void ViewportPanel::DrawOutline(SIMPEngine::Entity entity, ImU32 color, float thickness)
 {
     auto corners = SIMPEngine::GetEntityCorners(entity);
@@ -636,13 +744,36 @@ void ViewportPanel::DrawOverlays()
     SIMPEngine::Entity selected = m_Context->SelectedEntity;
     bool selectedValid = selected && registry.valid(selected.GetHandle()) && selected.HasComponent<TransformComponent>();
 
-    if (hovered && registry.valid(hovered.GetHandle()) && (!selectedValid || hovered.GetHandle() != selected.GetHandle()) && !m_Drag.Active)
+    if (hovered && registry.valid(hovered.GetHandle()) && !m_Context->IsSelected(hovered.GetHandle()) && !m_Drag.Active && !m_Marquee.Active)
         DrawOutline(hovered, U32(Colors::Accent, 0.5f), 1.0f);
+
+    for (entt::entity handle : m_Context->SelectedHandles())
+    {
+        if (selectedValid && handle == selected.GetHandle())
+            continue;
+        if (registry.all_of<TransformComponent>(handle))
+            DrawOutline(SIMPEngine::Entity(handle, m_Context->Scene), U32(Colors::Accent, 0.8f), 1.5f);
+    }
 
     if (selectedValid)
     {
         DrawOutline(selected, U32(Colors::Accent), 1.5f);
         DrawGizmo(selected);
+    }
+
+    if (m_Marquee.Active)
+    {
+        ImVec2 mouse = ImGui::GetIO().MousePos;
+        ImVec2 d = mouse - m_Marquee.Start;
+        if (std::abs(d.x) + std::abs(d.y) >= 4.0f)
+        {
+            ImVec2 lo(std::min(m_Marquee.Start.x, mouse.x), std::min(m_Marquee.Start.y, mouse.y));
+            ImVec2 hi(std::max(m_Marquee.Start.x, mouse.x), std::max(m_Marquee.Start.y, mouse.y));
+            for (entt::entity handle : EntitiesInMarquee())
+                DrawOutline(SIMPEngine::Entity(handle, m_Context->Scene), U32(Colors::Accent, 0.6f), 1.0f);
+            dl->AddRectFilled(lo, hi, U32(Colors::Accent, 0.12f));
+            dl->AddRect(lo, hi, U32(Colors::Accent, 0.9f), 0.0f, 0, 1.0f);
+        }
     }
 
     float fs = ImGui::GetFontSize();
