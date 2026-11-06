@@ -13,6 +13,7 @@
 #include "Panels/AssetPickerPanel.h"
 #include "Panels/ConsolePanel.h"
 #include "Panels/SettingsPanel.h"
+#include "Panels/TilePalettePanel.h"
 #include "Panels/InspectorPanel/AnimationMakerPanel.h"
 #include "EditorContext.h"
 #include "EditorHistory.h"
@@ -69,6 +70,7 @@ private:
     GameViewPanel m_GameViewPanel;
     HierarchyPanel m_HieararchyPanel;
     InspectorPanel m_InspectorPanel;
+    TilePalettePanel m_TilePalettePanel;
     ConsolePanel m_ConsolePanel;
     SettingsPanel m_SettingsPanel;
     SIMPEngine::RenderingLayer *m_RenderingLayer;

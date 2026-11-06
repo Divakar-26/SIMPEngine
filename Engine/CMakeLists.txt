@@ -39,6 +39,7 @@ add_library(Engine STATIC
     Engine/Scene/Systems/LifetimeSystem.cpp
     Engine/Scene/SceneSerializer.cpp
     Engine/Scene/Loaders/TiledLoader.cpp
+    Engine/Scene/TilemapUtils.cpp
     Engine/Rendering/SvgTextureCache.cpp
     Engine/Scene/Systems/MovementSystem.cpp
 )

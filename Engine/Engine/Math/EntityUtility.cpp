@@ -1,6 +1,7 @@
 #include "EntityUtility.h"
 #include <Engine/Scene/Component.h>
 #include <Engine/Rendering/Font.h>
+#include <Engine/Scene/TilemapUtils.h>
 
 #include <algorithm>
 #include <cmath>
@@ -75,6 +76,18 @@ namespace SIMPEngine
 
     std::optional<std::array<glm::vec2, 4>> GetEntityCorners(Entity entity)
     {
+        if (entity && entity.HasComponent<TilemapComponent>() && entity.HasComponent<TransformComponent>())
+        {
+            auto &tm = entity.GetComponent<TilemapComponent>();
+            auto &tc = entity.GetComponent<TransformComponent>();
+            glm::ivec2 lo, hi;
+            if (!GetUsedBounds(tm, lo, hi))
+                return std::nullopt;
+            glm::vec2 a = TileToWorld(tm, tc, lo);
+            glm::vec2 b = TileToWorld(tm, tc, hi + glm::ivec2(1));
+            return std::array<glm::vec2, 4>{glm::vec2(a.x, b.y), b, glm::vec2(b.x, a.y), a};
+        }
+
         auto size = GetEntityLocalSize(entity);
         if (!size)
             return std::nullopt;
@@ -125,6 +138,13 @@ namespace SIMPEngine
 
     bool PointInEntityBounds(Entity entity, const glm::vec2 &point)
     {
+        if (entity && entity.HasComponent<TilemapComponent>() && entity.HasComponent<TransformComponent>())
+        {
+            auto &tm = entity.GetComponent<TilemapComponent>();
+            glm::ivec2 cell = WorldToTile(tm, entity.GetComponent<TransformComponent>(), point);
+            return GetTileId(tm, cell.x, cell.y) >= 0;
+        }
+
         auto corners = GetEntityCorners(entity);
         if (!corners)
             return false;

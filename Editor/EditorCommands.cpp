@@ -4,6 +4,8 @@
 #include <Engine/Rendering/TextureManager.h>
 #include <Engine/Scene/Component.h>
 #include <Engine/Scene/SceneSerializer.h>
+#include <Engine/Scene/Loaders/TiledLoader.h>
+#include <Engine/Rendering/Tileset.h>
 #include <Engine/Scene/ScriptableEntity.h>
 #include <algorithm>
 #include <cctype>
@@ -71,6 +73,64 @@ std::shared_ptr<SIMPEngine::Texture> EditorCommands::LoadTexture(const std::stri
     else
         CORE_ERROR("Could not load texture {}", vpath);
     return texture;
+}
+
+SIMPEngine::Entity EditorCommands::CreateTilemap(EditorContext &ctx)
+{
+    auto entity = CreateEntity(ctx, "Tilemap");
+    auto &tilemap = entity.AddComponent<TilemapComponent>();
+    tilemap.tileSize = 32.0f;
+    ctx.Select(entity);
+    ctx.Tiles.Enabled = true;
+    ctx.Tiles.FocusPalette = true;
+    return entity;
+}
+
+bool EditorCommands::AssignTileset(EditorContext &ctx, SIMPEngine::Entity entity, const std::string &path)
+{
+    if (!entity || !entity.HasComponent<TilemapComponent>())
+        return false;
+
+    std::string ext = std::filesystem::path(path).extension().string();
+    std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c)
+                   { return static_cast<char>(std::tolower(c)); });
+
+    std::shared_ptr<SIMPEngine::Tileset> tileset;
+    auto &tilemap = entity.GetComponent<TilemapComponent>();
+    if (ext == ".json" || ext == ".tsj")
+    {
+        tileset = SIMPEngine::TiledLoader::LoadTileset(path);
+    }
+    else if (auto texture = LoadTexture(path))
+    {
+        int tw = tilemap.tileset ? tilemap.tileset->GetTileWidth() : std::max(1, static_cast<int>(tilemap.tileSize));
+        int th = tilemap.tileset ? tilemap.tileset->GetTileHeight() : std::max(1, static_cast<int>(tilemap.tileSize));
+        tw = std::min(tw, texture->GetWidth());
+        th = std::min(th, texture->GetHeight());
+        tileset = std::make_shared<SIMPEngine::Tileset>(texture, tw, th);
+    }
+
+    if (!tileset)
+    {
+        CORE_ERROR("Could not use '{}' as a tileset", path);
+        return false;
+    }
+
+    RecordEdit(ctx);
+    tilemap.tileset = tileset;
+    ctx.Tiles.SetSingle(0);
+    return true;
+}
+
+SIMPEngine::Entity EditorCommands::ImportTiledMap(EditorContext &ctx, const std::string &path)
+{
+    RecordEdit(ctx);
+    auto created = SIMPEngine::TiledLoader::Import(path, *ctx.Scene);
+    if (created.empty())
+        return {};
+    SIMPEngine::Entity root(created.front(), ctx.Scene);
+    ctx.Select(root);
+    return root;
 }
 
 SIMPEngine::Entity EditorCommands::CreateSprite(EditorContext &ctx, const std::string &textureVPath, const glm::vec2 &position)

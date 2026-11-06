@@ -23,3 +23,10 @@ Akshat
     5. Renderer: z-sorted single-shader batcher, SDF shapes/lines/text, Framebuffer, blend modes, sprite tint/flip/filter, TextComponent
     6. Mouse: Input game viewport + ScriptableEntity::GetMouseWorldPosition; editor Game view; NO_EDITOR build fixed
     7. Editor: Edit/Play/Stop with snapshot restore, undo/redo, editor camera, gizmos, grid, scene files, themes, Inter UI font
+    8. Sample game "Knight Run" (Game/Platformer) with the CC0 Brackeys pack; sprite regions; Camera2D manual control flag; removed F1 reload; VFS skips empty dirs
+
+06/11/2026
+    1. Startup back to Level1 + constellation, F1 reload restored
+    2. Tilemap: tile flip flags, Tileset margin/spacing + source path, TilemapUtils (world<->tile, flood fill, bounds, IsSolidAt/OverlapsSolid), view-culled TilemapSystem, serializer writes tint/visible/solid/flags
+    3. TiledLoader rewrite: external tilesets, CSV + infinite maps, flip bits, layer visibility/opacity, Import as one entity per layer
+    4. Editor tile painting: brush/rect/fill/erase/picker with stamps, Tiles palette panel, Tilemap inspector section, New Tilemap, FileSystem Import Tiled Map, tilemap picking/outline

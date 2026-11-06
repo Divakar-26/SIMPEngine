@@ -55,6 +55,7 @@ public:
     void OnImGuiRender() override;
 
     void DrawSpriteSection(SIMPEngine::Entity &m_SelectedEntity);
+    void DrawTilemapSection(SIMPEngine::Entity &m_SelectedEntity);
     void DrawAnimationSection(SIMPEngine::Entity &m_SelectedEntity);
     void DrawPhysicsSection(SIMPEngine::Entity &m_SelectedEntity);
 

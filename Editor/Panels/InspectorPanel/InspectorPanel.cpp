@@ -39,6 +39,7 @@ void InspectorPanel::OnImGuiRender()
 
     DrawCoreComponents(m_SelectedEntity);
     DrawSpriteSection(m_SelectedEntity);
+    DrawTilemapSection(m_SelectedEntity);
     DrawAnimationSection(m_SelectedEntity);
     DrawPhysicsSection(m_SelectedEntity);
 
@@ -195,14 +196,6 @@ void InspectorPanel::DrawCoreComponents(SIMPEngine::Entity &entity)
 
     DrawComponentSection<LifetimeComponent>(ctx, "Lifetime", entity, [](LifetimeComponent &lf)
                                             { PropertyFloat("Remaining", &lf.remaining, 0.1f, 0.0f, 10000.0f, "%.1f s"); });
-
-    DrawComponentSection<TilemapComponent>(ctx, "Tilemap", entity, [](TilemapComponent &tm)
-                                           {
-        PropertyFloat("Tile Size", &tm.tileSize, 0.5f, 1.0f, 1024.0f, "%.0f");
-        char chunks[32];
-        std::snprintf(chunks, sizeof(chunks), "%zu", tm.chunks.size());
-        PropertyValue("Chunks", chunks);
-        PropertyValue("Tileset", tm.tileset ? "Assigned" : "None", tm.tileset ? nullptr : &Colors::TextFaint); });
 
     DrawComponentSection<ScriptComponent>(ctx, "Script", entity, [](ScriptComponent &sc)
                                           {

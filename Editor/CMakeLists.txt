@@ -3,6 +3,7 @@ add_library(Editor STATIC
     EditorCommands.cpp
     EditorHistory.cpp
     EditorCamera.cpp
+    TileEditor.cpp
     Panels/HierarchyPanel.cpp
     Panels/ViewportPanel.cpp
     Panels/InspectorPanel/InspectorPanel.cpp
@@ -15,6 +16,8 @@ add_library(Editor STATIC
     Panels/ConsolePanel.cpp
     Panels/GameViewPanel.cpp
     Panels/SettingsPanel.cpp
+    Panels/TilePalettePanel.cpp
+    Panels/InspectorPanel/TilemapSection.cpp
     UI/Theme.cpp
     UI/Widgets.cpp
 )

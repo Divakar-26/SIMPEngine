@@ -79,6 +79,7 @@ namespace SIMPEngine
                 desc.Tint = sprite->tint;
                 desc.FlipX = sprite->flipX;
                 desc.FlipY = sprite->flipY;
+                desc.SourceRect = sprite->useRegion ? &sprite->region : nullptr;
                 Renderer::DrawSprite(desc);
             }
         }

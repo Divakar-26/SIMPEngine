@@ -1,4 +1,6 @@
 #include "ContentBrowserPanel.h"
+#include "../EditorCommands.h"
+#include <Engine/Scene/Loaders/TiledLoader.h>
 #include <Engine/Core/VFS.h>
 #include <Engine/Core/FileSystem.h>
 #include <Engine/Core/Log.h>
@@ -403,6 +405,15 @@ void ContentBrowserPanel::DrawItemContextMenu(const Item &item)
 
     if (item.IsDirectory && ImGui::MenuItem("Open"))
         Navigate(item.VPath);
+
+    std::string ext = EditorUI::LowerExtension(EditorUI::Utf8Path(item.Name));
+    if (!item.IsDirectory && m_Context && (ext == ".json" || ext == ".tmj") && SIMPEngine::TiledLoader::IsTiledMap(item.VPath))
+    {
+        bool canEdit = m_Context->IsEditing();
+        if (ImGui::MenuItem("Import Tiled Map", nullptr, false, canEdit))
+            EditorCommands::ImportTiledMap(*m_Context, item.VPath);
+    }
+
     if (ImGui::MenuItem("Copy Path"))
         ImGui::SetClipboardText(item.VPath.c_str());
 }

@@ -64,6 +64,8 @@ struct SpriteComponent
     SDL_Color tint{255, 255, 255, 255};
     bool flipX = false;
     bool flipY = false;
+    bool useRegion = false;
+    SDL_FRect region{0.0f, 0.0f, 0.0f, 0.0f};
 };
 
 struct TextComponent
@@ -138,9 +140,16 @@ struct LifetimeComponent
     float remaining = 10000.0f;
 };
 
+enum TileFlags : uint8_t
+{
+    TileFlipX = 1,
+    TileFlipY = 2
+};
+
 struct Tile
 {
     int id = -1;
+    uint8_t flags = 0;
 };
 
 static constexpr int CHUNK_SIZE = 16;
@@ -156,4 +165,8 @@ struct TilemapComponent
     float tileSize = 32.0f;
 
     std::unordered_map<int64_t, TileChunk> chunks;
+
+    SDL_Color tint{255, 255, 255, 255};
+    bool visible = true;
+    bool solid = false;
 };

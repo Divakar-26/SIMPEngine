@@ -127,6 +127,10 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       EmitColor(out, sc.tint);
       out << YAML::Key << "flip" << YAML::Value << YAML::Flow
           << YAML::BeginSeq << sc.flipX << sc.flipY << YAML::EndSeq;
+      if (sc.useRegion)
+        out << YAML::Key << "region" << YAML::Value << YAML::Flow
+            << YAML::BeginSeq << sc.region.x << sc.region.y << sc.region.w
+            << sc.region.h << YAML::EndSeq;
       out << YAML::EndMap;
     }
 
@@ -220,13 +224,24 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::Key << "tile_size" << YAML::Value << tilemap.tileSize;
 
       if (tilemap.tileset && tilemap.tileset->GetTexture()) {
+        if (!tilemap.tileset->GetSourcePath().empty())
+          out << YAML::Key << "tileset" << YAML::Value
+              << tilemap.tileset->GetSourcePath();
         out << YAML::Key << "texture" << YAML::Value
             << tilemap.tileset->GetTexture()->GetVFSPath();
         out << YAML::Key << "tile_width" << YAML::Value
             << tilemap.tileset->GetTileWidth();
         out << YAML::Key << "tile_height" << YAML::Value
             << tilemap.tileset->GetTileHeight();
+        out << YAML::Key << "margin" << YAML::Value
+            << tilemap.tileset->GetMargin();
+        out << YAML::Key << "spacing" << YAML::Value
+            << tilemap.tileset->GetSpacing();
       }
+      out << YAML::Key << "tint" << YAML::Value;
+      EmitColor(out, tilemap.tint);
+      out << YAML::Key << "visible" << YAML::Value << tilemap.visible;
+      out << YAML::Key << "solid" << YAML::Value << tilemap.solid;
 
       out << YAML::Key << "chunks" << YAML::Value << YAML::BeginSeq;
       for (const auto &[key, chunk] : tilemap.chunks) {
@@ -240,10 +255,13 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
         out << YAML::Key << "tiles" << YAML::BeginSeq;
         for (int localY = 0; localY < CHUNK_SIZE; ++localY) {
           for (int localX = 0; localX < CHUNK_SIZE; ++localX) {
-            const int tileId = chunk.tiles[static_cast<size_t>(localY * CHUNK_SIZE + localX)].id;
-            if (tileId >= 0)
-              out << YAML::Flow << YAML::BeginSeq << localX << localY << tileId
-                  << YAML::EndSeq;
+            const Tile &tile = chunk.tiles[static_cast<size_t>(localY * CHUNK_SIZE + localX)];
+            if (tile.id < 0)
+              continue;
+            out << YAML::Flow << YAML::BeginSeq << localX << localY << tile.id;
+            if (tile.flags)
+              out << static_cast<int>(tile.flags);
+            out << YAML::EndSeq;
           }
         }
         out << YAML::EndSeq;
@@ -473,6 +491,11 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
         sc.flipX = flip[0].as<bool>();
         sc.flipY = flip[1].as<bool>();
       }
+      if (auto r = s["region"]; r && r.IsSequence() && r.size() >= 4) {
+        sc.useRegion = true;
+        sc.region = {r[0].as<float>(), r[1].as<float>(), r[2].as<float>(),
+                     r[3].as<float>()};
+      }
     });
 
     component("Text", [&](const YAML::Node &t) {
@@ -566,11 +589,25 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
         TryGet(tilemapNode, "tile_width", tileWidth);
         TryGet(tilemapNode, "tile_height", tileHeight);
       }
+      int margin = 0;
+      int spacing = 0;
+      if (tilemapNode["margin"])
+        TryGet(tilemapNode, "margin", margin);
+      if (tilemapNode["spacing"])
+        TryGet(tilemapNode, "spacing", spacing);
       if (hasTileset && tileWidth > 0 && tileHeight > 0) {
         auto texture = TextureManager::Get().LoadTexture(texturePath, texturePath);
-        if (texture)
-          tilemap.tileset = std::make_shared<Tileset>(texture, tileWidth, tileHeight);
+        if (texture) {
+          tilemap.tileset = std::make_shared<Tileset>(texture, tileWidth, tileHeight, margin, spacing);
+          if (tilemapNode["tileset"])
+            tilemap.tileset->SetSourcePath(tilemapNode["tileset"].as<std::string>());
+        }
       }
+      ReadColor(tilemapNode["tint"], tilemap.tint);
+      if (tilemapNode["visible"])
+        TryGet(tilemapNode, "visible", tilemap.visible);
+      if (tilemapNode["solid"])
+        TryGet(tilemapNode, "solid", tilemap.solid);
 
       if (auto chunks = tilemapNode["chunks"]; chunks && chunks.IsSequence()) {
         for (const auto &chunkNode : chunks) {
@@ -587,11 +624,13 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
             const int localX = tileNode[0].as<int>();
             const int localY = tileNode[1].as<int>();
             const int tileId = tileNode[2].as<int>();
+            const int flags = tileNode.size() >= 4 ? tileNode[3].as<int>() : 0;
             if (localX < 0 || localX >= CHUNK_SIZE || localY < 0 ||
                 localY >= CHUNK_SIZE || tileId < 0)
               continue;
             SetTile(tilemap, chunkX * CHUNK_SIZE + localX,
-                    chunkY * CHUNK_SIZE + localY, tileId);
+                    chunkY * CHUNK_SIZE + localY, tileId,
+                    static_cast<uint8_t>(flags));
           }
         }
       }

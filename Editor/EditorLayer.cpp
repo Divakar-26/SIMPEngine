@@ -30,7 +30,7 @@ namespace
 }
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_History(&m_EditorContext), m_ViewportPanel(renderingLayer, &m_EditorContext), m_GameViewPanel(&m_EditorContext), m_HieararchyPanel(&m_EditorContext), m_InspectorPanel(&m_EditorContext), serializer(&renderingLayer->GetScene())
+    : Layer("EditorLayer"), m_History(&m_EditorContext), m_ViewportPanel(renderingLayer, &m_EditorContext), m_GameViewPanel(&m_EditorContext), m_HieararchyPanel(&m_EditorContext), m_InspectorPanel(&m_EditorContext), m_TilePalettePanel(&m_EditorContext), serializer(&renderingLayer->GetScene())
 {
     this->m_RenderingLayer = renderingLayer;
 
@@ -43,6 +43,7 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     m_AssetManager->Init("assets", "assets/registry.asset");
 
     m_ContentBrowser = std::make_unique<ContentBrowserPanel>("assets://", m_AssetManager.get());
+    m_ContentBrowser->SetContext(&m_EditorContext);
 
     m_AssetPicker = std::make_unique<AssetPickerPanel>("assets://", m_AssetManager.get());
     m_InspectorPanel.SetAssetPicker(m_AssetPicker.get());
@@ -324,6 +325,7 @@ void EditorLayer::OnRender()
     m_AssetPicker->OnImGuiRender();
     m_AnimationMakerPanel->OnImGuiRender();
     m_SettingsPanel.OnImGuiRender();
+    m_TilePalettePanel.OnImGuiRender();
 
     if (m_ShowProfiler)
         EngineProfiler::Profiler::Get().DrawImGui("Profiler###Profiler", &m_ShowProfiler);
@@ -415,6 +417,8 @@ void EditorLayer::DrawMenuBar()
                 ctx.SelectedEntity = EditorCommands::CreateEntity(ctx, "Entity");
                 ctx.RenameRequest = ctx.SelectedEntity.GetHandle();
             }
+            if (ImGui::MenuItem("New Tilemap", nullptr, false, ctx.IsEditing()))
+                EditorCommands::CreateTilemap(ctx);
             if (ImGui::MenuItem("Rename", "F2", false, hasSelection))
                 ctx.RenameRequest = ctx.SelectedEntity.GetHandle();
             if (ImGui::MenuItem("Duplicate", "Ctrl+D", false, hasSelection))
@@ -722,6 +726,7 @@ void EditorLayer::BuildDefaultLayout(unsigned int dockspaceId)
     ImGui::DockBuilderDockWindow(InspectorPanel::WindowId, right);
     ImGui::DockBuilderDockWindow(ContentBrowserPanel::WindowId, bottom);
     ImGui::DockBuilderDockWindow(ConsolePanel::WindowId, bottom);
+    ImGui::DockBuilderDockWindow(TilePalettePanel::WindowId, bottom);
     ImGui::DockBuilderDockWindow("###Profiler", bottom);
     ImGui::DockBuilderDockWindow(ViewportPanel::WindowId, center);
     ImGui::DockBuilderDockWindow(GameViewPanel::WindowId, center);

@@ -112,6 +112,12 @@ void InspectorPanel::DrawSpriteSection(SIMPEngine::Entity &m_SelectedEntity)
 
         PropertyColor("Tint", sc.tint);
         PropertyBool2("Flip", "X", &sc.flipX, "Y", &sc.flipY);
+        PropertyBool("Use Region", &sc.useRegion);
+        if (sc.useRegion)
+        {
+            PropertyVec2("Region Pos", &sc.region.x, 1.0f, "%.0f");
+            PropertyVec2("Region Size", &sc.region.w, 1.0f, "%.0f", 1.0f, 4096.0f);
+        }
 
         if (sc.texture)
         {

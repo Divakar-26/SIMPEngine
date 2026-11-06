@@ -5,6 +5,7 @@
 #include <Engine/Scene/Component.h>
 
 #include <algorithm>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -14,6 +15,36 @@ class EditorHistory;
 enum class SceneState { Edit, Play, Pause };
 
 enum class GizmoTool { Select, Move, Rotate, Scale };
+
+enum class TileTool { Brush, Rect, Fill, Erase, Picker };
+
+struct TileEditState
+{
+    bool Enabled = false;
+    TileTool Tool = TileTool::Brush;
+    int StampWidth = 1;
+    int StampHeight = 1;
+    std::vector<int> Stamp{0};
+    uint8_t Flags = 0;
+    bool FocusPalette = false;
+
+    int StampAt(int x, int y) const
+    {
+        if (StampWidth <= 0 || StampHeight <= 0 || Stamp.empty())
+            return -1;
+        int sx = ((x % StampWidth) + StampWidth) % StampWidth;
+        int sy = ((y % StampHeight) + StampHeight) % StampHeight;
+        size_t index = static_cast<size_t>(sy * StampWidth + sx);
+        return index < Stamp.size() ? Stamp[index] : -1;
+    }
+
+    void SetSingle(int id)
+    {
+        StampWidth = 1;
+        StampHeight = 1;
+        Stamp.assign(1, id);
+    }
+};
 
 struct EditorContext
 {
@@ -28,6 +59,7 @@ struct EditorContext
     bool StepRequested = false;
 
     GizmoTool Tool = GizmoTool::Move;
+    TileEditState Tiles;
     EditorHistory *History = nullptr;
 
     std::string ScenePath;

@@ -30,6 +30,12 @@ public:
         const std::string& textureVPath,
         const glm::vec2& position);
 
+    static SIMPEngine::Entity CreateTilemap(EditorContext &ctx);
+
+    static bool AssignTileset(EditorContext &ctx, SIMPEngine::Entity entity, const std::string &path);
+
+    static SIMPEngine::Entity ImportTiledMap(EditorContext &ctx, const std::string &path);
+
     static void DeleteEntity(
         EditorContext& ctx,
         SIMPEngine::Entity entity);

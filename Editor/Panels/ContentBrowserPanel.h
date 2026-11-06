@@ -10,6 +10,8 @@
 #include <Engine/Core/VFS.h>
 #include <EditorPanel.h>
 
+struct EditorContext;
+
 class ContentBrowserPanel : public EditorPanel
 {
 public:
@@ -19,6 +21,7 @@ public:
         : m_AM(am), m_Root(rootVirtual), m_CurrentDir(rootVirtual)
     {
     }
+    void SetContext(EditorContext *context) { m_Context = context; }
     void OnImGuiRender() override;
 
     SIMPEngine::Texture *GetThumbnail(const std::string &vpath);
@@ -45,6 +48,7 @@ private:
     std::string ParentOf(const std::string &vdir) const;
 
     SIMPEngine::AssetManager *m_AM;
+    EditorContext *m_Context = nullptr;
     std::string m_Root;
     std::string m_CurrentDir;
     std::string m_Selected;

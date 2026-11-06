@@ -31,7 +31,8 @@ namespace SIMPEngine
                 {
                     fs::path candidate = (ancestor / requested).lexically_normal();
                     std::error_code ec;
-                    if (fs::exists(candidate, ec) && !ec)
+                    bool emptyDir = fs::is_directory(candidate, ec) && fs::is_empty(candidate, ec);
+                    if (fs::exists(candidate, ec) && !ec && !emptyDir)
                     {
                         resolved = candidate;
                         break;

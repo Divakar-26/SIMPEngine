@@ -56,6 +56,10 @@ namespace SIMPEngine
         m_Position +=
             (m_TargetPosition - m_Position) *
             glm::clamp(m_SmoothFactor * deltaTime, 0.0f, 1.0f);
+        m_Dirty = true;
+
+        if (!m_ManualControl)
+            return;
 
         glm::vec2 moveDelta(0.0f);
 

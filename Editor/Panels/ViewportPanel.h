@@ -8,6 +8,7 @@
 #include <Engine/Math/EntityUtility.h>
 #include <../EditorContext.h>
 #include <../EditorCamera.h>
+#include <../TileEditor.h>
 #include <EditorPanel.h>
 
 #include <memory>
@@ -24,7 +25,7 @@ public:
     void OnAttach();
     void OnImGuiRender() override;
 
-    bool IsInteracting() const { return m_Drag.Active || m_Panning || m_Marquee.Active; }
+    bool IsInteracting() const { return m_Drag.Active || m_Panning || m_Marquee.Active || m_TileEditor.IsInteracting(); }
     void FocusOnSelectedEntity();
     void FrameScene();
 
@@ -66,6 +67,9 @@ private:
     };
 
     void DrawToolbar();
+    void DrawTileToolbar();
+    bool SelectedHasTilemap() const;
+    void ViewBounds(glm::vec2 &min, glm::vec2 &max) const;
     void RenderScene();
     void DrawGrid();
     void DrawCameraFrame();
@@ -87,6 +91,7 @@ private:
 
     SIMPEngine::RenderingLayer *m_RenderingLayer = nullptr;
     EditorContext *m_Context = nullptr;
+    TileEditor m_TileEditor;
 
     std::unique_ptr<SIMPEngine::Framebuffer> m_Framebuffer;
     EditorCamera m_Camera;

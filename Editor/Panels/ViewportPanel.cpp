@@ -39,6 +39,7 @@ namespace
 }
 
 ViewportPanel::ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer, EditorContext *context)
+    : m_TileEditor(context)
 {
     m_RenderingLayer = renderingLayer;
     m_Context = context;
@@ -58,6 +59,20 @@ glm::vec2 ViewportPanel::GetMouseWorldPosition() const
 {
     ImVec2 mouse = ImGui::GetIO().MousePos;
     return m_Camera.ScreenToWorld({mouse.x - m_CanvasPos.x, mouse.y - m_CanvasPos.y});
+}
+
+bool ViewportPanel::SelectedHasTilemap() const
+{
+    SIMPEngine::Entity entity = m_Context->SelectedEntity;
+    return entity && m_Context->Scene->GetRegistry().valid(entity.GetHandle()) && entity.HasComponent<TilemapComponent>();
+}
+
+void ViewportPanel::ViewBounds(glm::vec2 &min, glm::vec2 &max) const
+{
+    glm::vec2 a = m_Camera.ScreenToWorld({0.0f, 0.0f});
+    glm::vec2 b = m_Camera.ScreenToWorld({m_CanvasSize.x, m_CanvasSize.y});
+    min = glm::min(a, b);
+    max = glm::max(a, b);
 }
 
 bool ViewportPanel::SnapActive() const
@@ -109,11 +124,26 @@ void ViewportPanel::OnImGuiRender()
 
     HandleDrop();
     HandleCameraInput();
-    HandleSelectionAndGizmo();
+    if (m_TileEditor.IsActive())
+    {
+        glm::vec2 viewMin, viewMax;
+        ViewBounds(viewMin, viewMax);
+        m_Context->HoveredEntity = {};
+        m_Drag.Active = false;
+        m_Marquee.Active = false;
+        m_TileEditor.Update(GetMouseWorldPosition(), viewMin, viewMax, m_CanvasHovered, m_Panning);
+    }
+    else
+    {
+        HandleSelectionAndGizmo();
+    }
     HandleShortcuts();
 
     dl->PushClipRect(m_CanvasPos, m_CanvasPos + m_CanvasSize, true);
     DrawOverlays();
+    if (m_TileEditor.IsActive())
+        m_TileEditor.DrawScreen(dl, [this](const glm::vec2 &world)
+                                { return ToScreen(world); });
     dl->PopClipRect();
 
     ImGui::End();
@@ -125,6 +155,27 @@ void ViewportPanel::DrawToolbar()
     EditorSettings &settings = Settings();
 
     BeginToolbar("##viewport_toolbar");
+
+    bool tileMode = m_TileEditor.IsActive();
+    if (SelectedHasTilemap() && m_Context->IsEditing())
+    {
+        if (IconButton("##tilemode", ICON_LC_PAINTBRUSH, tileMode ? "Stop painting tiles (T)" : "Paint tiles (T)", tileMode))
+        {
+            m_Context->Tiles.Enabled = !m_Context->Tiles.Enabled;
+            if (m_Context->Tiles.Enabled)
+                m_Context->Tiles.FocusPalette = true;
+        }
+        ImGui::SameLine();
+        VerticalSeparator();
+        ImGui::SameLine();
+    }
+
+    if (tileMode)
+    {
+        DrawTileToolbar();
+        EndToolbar();
+        return;
+    }
 
     struct ToolDef
     {
@@ -184,6 +235,51 @@ void ViewportPanel::DrawToolbar()
     EndToolbar();
 }
 
+void ViewportPanel::DrawTileToolbar()
+{
+    using namespace EditorUI;
+    TileEditState &tiles = m_Context->Tiles;
+
+    struct ToolDef
+    {
+        TileTool Tool;
+        const char *Icon;
+        const char *Tip;
+    };
+    const ToolDef tools[] = {
+        {TileTool::Brush, ICON_LC_BRUSH, "Brush (B)  Right-click erases"},
+        {TileTool::Rect, ICON_LC_SQUARE_DASHED, "Rectangle (R)"},
+        {TileTool::Fill, ICON_LC_PAINT_BUCKET, "Bucket fill (G)"},
+        {TileTool::Erase, ICON_LC_ERASER, "Eraser (E)"},
+        {TileTool::Picker, ICON_LC_PIPETTE, "Pick tile (I or Alt+click)"},
+    };
+    for (const auto &t : tools)
+    {
+        ImGui::PushID(static_cast<int>(t.Tool));
+        if (IconButton("##tiletool", t.Icon, t.Tip, tiles.Tool == t.Tool))
+            tiles.Tool = t.Tool;
+        ImGui::PopID();
+        ImGui::SameLine();
+    }
+
+    VerticalSeparator();
+    ImGui::SameLine();
+    if (IconButton("##flipx", ICON_LC_FLIP_HORIZONTAL, "Flip horizontally (X)", (tiles.Flags & TileFlipX) != 0))
+        tiles.Flags ^= TileFlipX;
+    ImGui::SameLine();
+    if (IconButton("##flipy", ICON_LC_FLIP_VERTICAL, "Flip vertically (Y)", (tiles.Flags & TileFlipY) != 0))
+        tiles.Flags ^= TileFlipY;
+    ImGui::SameLine();
+    if (IconButton("##grid", ICON_LC_GRID_3X3, "Grid", Settings().ShowGrid))
+    {
+        Settings().ShowGrid = !Settings().ShowGrid;
+        ImGui::MarkIniSettingsDirty();
+    }
+    ImGui::SameLine();
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextDisabled("Middle or Space+drag to pan");
+}
+
 void ViewportPanel::RenderScene()
 {
     int w = static_cast<int>(m_CanvasSize.x);
@@ -218,6 +314,7 @@ void ViewportPanel::RenderScene()
 
     scene.OnRender(view, proj);
     DrawCameraFrame();
+    m_TileEditor.RenderWorld(SIMPEngine::Renderer::GetWorldPerPixel());
 
     SIMPEngine::Renderer::EndScene();
     m_Stats = SIMPEngine::Renderer::GetStats();
@@ -283,13 +380,14 @@ void ViewportPanel::HandleCameraInput()
     if (m_CanvasHovered && io.MouseWheel != 0.0f)
         m_Camera.ZoomAt(io.MouseWheel, local);
 
+    bool rightPans = !m_TileEditor.IsActive();
     bool spacePan = ImGui::IsKeyDown(ImGuiKey_Space) && m_CanvasHovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-    if (m_CanvasHovered && (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || ImGui::IsMouseClicked(ImGuiMouseButton_Right) || spacePan))
+    if (m_CanvasHovered && (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) || (rightPans && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) || spacePan))
         m_Panning = true;
 
     if (m_Panning)
     {
-        bool held = ImGui::IsMouseDown(ImGuiMouseButton_Middle) || ImGui::IsMouseDown(ImGuiMouseButton_Right) ||
+        bool held = ImGui::IsMouseDown(ImGuiMouseButton_Middle) || (rightPans && ImGui::IsMouseDown(ImGuiMouseButton_Right)) ||
                     (ImGui::IsMouseDown(ImGuiMouseButton_Left) && ImGui::IsKeyDown(ImGuiKey_Space));
         if (held)
             m_Camera.Pan({io.MouseDelta.x, io.MouseDelta.y});
@@ -574,6 +672,21 @@ void ViewportPanel::HandleShortcuts()
     if (!(m_Context->ViewportFocused || m_CanvasHovered) || ImGui::GetIO().WantTextInput || ImGui::IsAnyItemActive())
         return;
 
+    if (ImGui::IsKeyPressed(ImGuiKey_T, false) && SelectedHasTilemap() && m_Context->IsEditing())
+    {
+        m_Context->Tiles.Enabled = !m_Context->Tiles.Enabled;
+        if (m_Context->Tiles.Enabled)
+            m_Context->Tiles.FocusPalette = true;
+    }
+
+    if (m_TileEditor.IsActive())
+    {
+        m_TileEditor.HandleShortcuts();
+        if (ImGui::IsKeyPressed(ImGuiKey_F, false))
+            FocusOnSelectedEntity();
+        return;
+    }
+
     if (ImGui::IsKeyPressed(ImGuiKey_Q, false))
         m_Context->Tool = GizmoTool::Select;
     if (ImGui::IsKeyPressed(ImGuiKey_W, false))
@@ -755,7 +868,7 @@ void ViewportPanel::DrawOverlays()
             DrawOutline(SIMPEngine::Entity(handle, m_Context->Scene), U32(Colors::Accent, 0.8f), 1.5f);
     }
 
-    if (selectedValid)
+    if (selectedValid && !m_TileEditor.IsActive())
     {
         DrawOutline(selected, U32(Colors::Accent), 1.5f);
         DrawGizmo(selected);
