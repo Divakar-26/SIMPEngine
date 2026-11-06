@@ -12,6 +12,8 @@ namespace SIMPEngine{
             static bool IsKeyJustPressed(int keyCode);
             static bool IsMouseButtonPressed(int button);
             static bool IsMouseButtonJustPressed(int button);
+            static bool IsKeyJustReleased(int keyCode);
+            static bool IsMouseButtonJustReleased(int button);
 
             static std::pair<int,int> GetMousePosition();
 
@@ -40,6 +42,8 @@ namespace SIMPEngine{
             static std::unordered_set<int> s_KeysJustPressed;
             static std::unordered_set<int> s_MouseButtonsPressed;
             static std::unordered_set<int> s_MouseButtonsJustPressed;
+            static std::unordered_set<int> s_KeysJustReleased;
+            static std::unordered_set<int> s_MouseButtonsJustReleased;
             static int s_MouseX, s_MouseY;
             static float s_MouseWheel;
 

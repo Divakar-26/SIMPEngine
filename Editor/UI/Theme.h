@@ -81,6 +81,8 @@ namespace EditorUI
         bool Snap = false;
         float SnapMove = 8.0f;
         float SnapRotate = 15.0f;
+        bool PreviewLighting = true;
+        bool ShowColliders = false;
     };
 
     EditorSettings &Settings();

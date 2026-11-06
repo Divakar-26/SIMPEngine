@@ -1,6 +1,9 @@
 Scene: Level1
 Settings:
   background: [0.329, 0.329, 0.329, 1]
+  lighting:
+    enabled: false
+    ambient: [0.16, 0.16, 0.22, 1]
 Entities:
   - ID: 1
     Tag: Ball 2
@@ -15,6 +18,7 @@ Entities:
     Camera:
       primary: false
       zoom: 1
+      shake_strength: 16
     Physics:
       shape: AABB
       position: [-264, -208]
@@ -43,6 +47,7 @@ Entities:
     Camera:
       primary: false
       zoom: 1
+      shake_strength: 16
     Physics:
       shape: AABB
       position: [-270, -50]

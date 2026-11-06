@@ -41,6 +41,8 @@ void InspectorPanel::OnImGuiRender()
     DrawSpriteSection(m_SelectedEntity);
     DrawTilemapSection(m_SelectedEntity);
     DrawParticleSection(m_SelectedEntity);
+    DrawLightSection(m_SelectedEntity);
+    DrawAudioSection(m_SelectedEntity);
     DrawAnimationSection(m_SelectedEntity);
     DrawPhysicsSection(m_SelectedEntity);
 
@@ -65,6 +67,17 @@ void InspectorPanel::DrawSceneProperties()
         float rgba[4] = {bg.r, bg.g, bg.b, bg.a};
         if (PropertyColor("Background", rgba))
             scene.SetBackgroundColor({rgba[0], rgba[1], rgba[2], rgba[3]});
+
+        auto &lighting = scene.GetLighting();
+        PropertyBool("Lighting", &lighting.Enabled);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Darkens the scene to the ambient color and adds Light components on top");
+        if (lighting.Enabled)
+        {
+            float ambient[4] = {lighting.Ambient.r, lighting.Ambient.g, lighting.Ambient.b, lighting.Ambient.a};
+            if (PropertyColor("Ambient", ambient))
+                lighting.Ambient = {ambient[0], ambient[1], ambient[2], ambient[3]};
+        }
 
         char count[32];
         std::snprintf(count, sizeof(count), "%zu", scene.GetRegistry().view<TagComponent>().size());
@@ -173,12 +186,56 @@ void InspectorPanel::DrawCoreComponents(SIMPEngine::Entity &entity)
             vc.vy = v[1];
         } });
 
-    DrawComponentSection<CameraComponent>(ctx, "Camera", entity, [](CameraComponent &cc)
+    SIMPEngine::Scene *cameraScene = m_Context->Scene;
+    DrawComponentSection<CameraComponent>(ctx, "Camera", entity, [cameraScene, &entity](CameraComponent &cc)
                                           {
         PropertyBool("Primary", &cc.primary);
         float zoom = cc.Camera.GetZoom();
         if (PropertyFloat("Zoom", &zoom, 0.01f, 0.1f, 10.0f, "%.2f"))
-            cc.Camera.SetZoom(zoom); });
+            cc.Camera.SetZoom(zoom);
+
+        SectionLabel("Follow");
+        PropertyLabel("Target");
+        if (ImGui::BeginCombo("##followtarget", cc.followTarget.empty() ? "None" : cc.followTarget.c_str()))
+        {
+            if (ImGui::Selectable("None", cc.followTarget.empty()))
+            {
+                NotifyEdit();
+                cc.followTarget.clear();
+            }
+            auto &registry = cameraScene->GetRegistry();
+            for (auto e : registry.view<TagComponent>())
+            {
+                if (e == entity.GetHandle())
+                    continue;
+                const std::string &tag = registry.get<TagComponent>(e).Tag;
+                ImGui::PushID(static_cast<int>(entt::to_integral(e)));
+                if (ImGui::Selectable(tag.c_str(), tag == cc.followTarget))
+                {
+                    NotifyEdit();
+                    cc.followTarget = tag;
+                }
+                ImGui::PopID();
+            }
+            ImGui::EndCombo();
+        }
+        if (!cc.followTarget.empty())
+        {
+            PropertyVec2("Offset", &cc.followOffset.x, 1.0f, "%.0f");
+            PropertyFloat("Smoothing", &cc.followSmoothing, 0.05f, 0.0f, 100.0f, "%.2f");
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                ImGui::SetTooltip("0 snaps instantly; higher values catch up faster");
+            PropertyVec2("Dead Zone", &cc.deadZone.x, 1.0f, "%.0f", 0.0f, 100000.0f);
+        }
+        PropertyBool("Limit to Bounds", &cc.useBounds);
+        if (cc.useBounds)
+        {
+            PropertyVec2("Bounds Min", &cc.boundsMin.x, 1.0f, "%.0f");
+            PropertyVec2("Bounds Max", &cc.boundsMax.x, 1.0f, "%.0f");
+        }
+        PropertyFloat("Shake Strength", &cc.shakeStrength, 0.25f, 0.0f, 1000.0f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Scripts call CameraComponent::Shake(amount) to add trauma"); });
 
     DrawComponentSection<CollisionComponent>(ctx, "Collision", entity, [](CollisionComponent &col)
                                              {

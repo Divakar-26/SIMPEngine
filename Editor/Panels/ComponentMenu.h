@@ -49,6 +49,15 @@ inline void DrawAddComponentItems(EditorContext &ctx, SIMPEngine::Entity entity,
                                                   { entity.AddComponent<TilemapComponent>(); });
     any |= AddComponentMenuItem<ParticleEmitterComponent>(ctx, entity, ICON_LC_SPARKLES, "Particle Emitter", filter, [&]
                                                           { entity.AddComponent<ParticleEmitterComponent>(); });
+    any |= AddComponentMenuItem<LightComponent>(ctx, entity, ICON_LC_LIGHTBULB, "Light", filter, [&]
+                                                { entity.AddComponent<LightComponent>(); });
+    any |= AddComponentMenuItem<ParallaxComponent>(ctx, entity, ICON_LC_LAYERS, "Parallax", filter, [&]
+                                                   { entity.AddComponent<ParallaxComponent>(); });
+
+    if (!filtering)
+        EditorUI::SectionLabel("Audio");
+    any |= AddComponentMenuItem<AudioSourceComponent>(ctx, entity, ICON_LC_VOLUME_2, "Audio Source", filter, [&]
+                                                      { entity.AddComponent<AudioSourceComponent>(); });
 
     if (!filtering)
         EditorUI::SectionLabel("Simulation");

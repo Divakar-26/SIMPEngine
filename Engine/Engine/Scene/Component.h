@@ -15,6 +15,8 @@
 #include <string>
 #include <unordered_map>
 #include <array>
+#include <algorithm>
+#include <cstdint>
 
 #include <entt/entt.hpp>
 
@@ -100,8 +102,22 @@ struct CameraComponent
     SIMPEngine::Camera2D Camera;
     bool primary = false;
 
+    std::string followTarget;
+    glm::vec2 followOffset{0.0f, 0.0f};
+    float followSmoothing = 6.0f;
+    glm::vec2 deadZone{0.0f, 0.0f};
+    bool useBounds = false;
+    glm::vec2 boundsMin{-1000.0f, -1000.0f};
+    glm::vec2 boundsMax{1000.0f, 1000.0f};
+    float shakeStrength = 16.0f;
+
+    float trauma = 0.0f;
+    entt::entity followHandle = entt::null;
+
     CameraComponent(float zoom = 1.0f, glm::vec2 position = {0.0f, 0.0f})
         : Camera(zoom, position), primary(false) {}
+
+    void Shake(float amount) { trauma = std::min(1.0f, trauma + amount); }
 };
 
 struct ScriptComponent
@@ -177,4 +193,41 @@ struct ParticleEmitterComponent
     SIMPEngine::ParticleEffect effect;
     bool playing = true;
     SIMPEngine::ParticleState state;
+};
+
+enum class LightType : uint8_t
+{
+    Point,
+    Spot
+};
+
+struct LightComponent
+{
+    LightType type = LightType::Point;
+    SDL_Color color{255, 214, 160, 255};
+    float intensity = 1.0f;
+    float radius = 240.0f;
+    float falloff = 1.0f;
+    float innerAngle = 20.0f;
+    float outerAngle = 35.0f;
+    float flicker = 0.0f;
+    float flickerSpeed = 8.0f;
+    bool enabled = true;
+};
+
+struct ParallaxComponent
+{
+    glm::vec2 factor{0.5f, 0.5f};
+};
+
+struct AudioSourceComponent
+{
+    std::string clip;
+    float volume = 1.0f;
+    float pitch = 1.0f;
+    bool loop = false;
+    bool playOnStart = true;
+
+    uint32_t voice = 0;
+    bool started = false;
 };

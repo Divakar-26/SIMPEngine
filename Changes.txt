@@ -31,3 +31,9 @@ Akshat
     3. TiledLoader rewrite: external tilesets, CSV + infinite maps, flip bits, layer visibility/opacity, Import as one entity per layer
     4. Editor tile painting: brush/rect/fill/erase/picker with stamps, Tiles palette panel, Tilemap inspector section, New Tilemap, FileSystem Import Tiled Map, tilemap picking/outline
     5. Particle engine: ParticleEffect/ParticleEmitter (rate, bursts, emitter shapes, gravity/drag/radial/orbital/turbulence, size/rotation/3-stop color, procedural shapes, additive), 16 presets, .particle files, ParticleEmitter component + serializer; editor effect picker with live preview grid, inspector section, emitter overlay, edit-mode playback
+
+07/11/2026
+    1. 2D lighting: Light component (point/spot, color, intensity, radius, falloff, cone, flicker), scene ambient + enable in Settings, light-map multiply composite, viewport preview toggle and light gizmos
+    2. Audio: AudioEngine on SDL3 streams (WAV, loop, volume, pitch, pause), AudioSource component, inspector preview
+    3. Parallax component; camera follow (target, offset, smoothing, dead zone), bounds and shake on CameraComponent
+    4. Input just-released queries; viewport collider overlay; New Point/Spot Light menu items

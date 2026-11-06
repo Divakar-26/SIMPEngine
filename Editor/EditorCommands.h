@@ -43,6 +43,8 @@ public:
 
     static bool SaveParticleEffect(const SIMPEngine::ParticleEffect &effect, std::string &outPath);
 
+    static SIMPEngine::Entity CreateLight(EditorContext &ctx, bool spot, const glm::vec2 &position = glm::vec2(0.0f));
+
     static void DeleteEntity(
         EditorContext& ctx,
         SIMPEngine::Entity entity);

@@ -6,6 +6,7 @@
 #include <Engine/Core/Log.h>
 #include <Engine/Scene/Component.h>
 #include <Engine/Scene/Systems/ParticleSystem.h>
+#include <Engine/Math/EntityUtility.h>
 
 #include <imgui_internal.h>
 
@@ -217,6 +218,18 @@ void ViewportPanel::DrawToolbar()
         settings.ShowGrid = !settings.ShowGrid;
         ImGui::MarkIniSettingsDirty();
     }
+    ImGui::SameLine();
+    if (IconButton("##lighting", ICON_LC_SUN, "Preview scene lighting", settings.PreviewLighting))
+    {
+        settings.PreviewLighting = !settings.PreviewLighting;
+        ImGui::MarkIniSettingsDirty();
+    }
+    ImGui::SameLine();
+    if (IconButton("##colliders", ICON_LC_BOX, "Show collision boxes", settings.ShowColliders))
+    {
+        settings.ShowColliders = !settings.ShowColliders;
+        ImGui::MarkIniSettingsDirty();
+    }
 
     char zoom[16];
     std::snprintf(zoom, sizeof(zoom), "%.0f%%", m_Camera.GetZoom() * 100.0f);
@@ -313,9 +326,14 @@ void ViewportPanel::RenderScene()
     if (EditorUI::Settings().ShowGrid)
         DrawGrid();
 
+    scene.SetLightingVisible(EditorUI::Settings().PreviewLighting);
     scene.OnRender(view, proj);
+    scene.SetLightingVisible(true);
     DrawCameraFrame();
     DrawEmitterShapes();
+    DrawLightShapes();
+    if (EditorUI::Settings().ShowColliders)
+        DrawColliders();
     m_TileEditor.RenderWorld(SIMPEngine::Renderer::GetWorldPerPixel());
 
     SIMPEngine::Renderer::EndScene();
@@ -419,6 +437,84 @@ void ViewportPanel::DrawEmitterShapes()
             ray(e.Direction - e.Spread, faint);
             ray(e.Direction + e.Spread, faint);
         }
+    }
+}
+
+void ViewportPanel::DrawLightShapes()
+{
+    using SIMPEngine::Renderer;
+    auto &registry = m_Context->Scene->GetRegistry();
+    float wpp = Renderer::GetWorldPerPixel();
+    float z = 99995.0f;
+
+    for (auto entity : registry.view<LightComponent, TransformComponent>())
+    {
+        const auto &light = registry.get<LightComponent>(entity);
+        auto world = SIMPEngine::DecomposeWorld(registry.get<TransformComponent>(entity));
+        bool selected = m_Context->IsSelected(entity);
+        SDL_Color tint{light.color.r, light.color.g, light.color.b, static_cast<Uint8>(selected ? 230 : 150)};
+
+        Renderer::DrawRing(world.Position.x, world.Position.y, wpp * 7.0f, wpp * 2.0f, tint, 1.0f, z);
+        Renderer::DrawCircle(world.Position.x, world.Position.y, wpp * 3.0f, tint, 1.0f, z);
+        if (!selected)
+            continue;
+
+        float scale = (std::abs(world.Scale.x) + std::abs(world.Scale.y)) * 0.5f;
+        float radius = light.radius * scale;
+        SDL_Color faint = ToSDL(EditorUI::Colors::Accent, 0.55f);
+        if (light.type == LightType::Point)
+        {
+            Renderer::DrawRing(world.Position.x, world.Position.y, radius, wpp * 1.5f, faint, 1.0f, z);
+            continue;
+        }
+
+        auto ray = [&](float degrees)
+        {
+            float a = glm::radians(degrees + world.Rotation);
+            glm::vec2 tip = world.Position + glm::vec2(std::cos(a), std::sin(a)) * radius;
+            Renderer::DrawLine(world.Position.x, world.Position.y, tip.x, tip.y, wpp * 1.5f, faint, z);
+        };
+        ray(-light.outerAngle);
+        ray(light.outerAngle);
+        ray(0.0f);
+        int segments = std::max(4, static_cast<int>(light.outerAngle / 6.0f));
+        for (int i = 0; i < segments; ++i)
+        {
+            float a0 = glm::radians(world.Rotation - light.outerAngle + 2.0f * light.outerAngle * static_cast<float>(i) / static_cast<float>(segments));
+            float a1 = glm::radians(world.Rotation - light.outerAngle + 2.0f * light.outerAngle * static_cast<float>(i + 1) / static_cast<float>(segments));
+            glm::vec2 p0 = world.Position + glm::vec2(std::cos(a0), std::sin(a0)) * radius;
+            glm::vec2 p1 = world.Position + glm::vec2(std::cos(a1), std::sin(a1)) * radius;
+            Renderer::DrawLine(p0.x, p0.y, p1.x, p1.y, wpp * 1.5f, faint, z);
+        }
+    }
+}
+
+void ViewportPanel::DrawColliders()
+{
+    using SIMPEngine::Renderer;
+    auto &registry = m_Context->Scene->GetRegistry();
+    float wpp = Renderer::GetWorldPerPixel();
+    SDL_Color color = ToSDL(EditorUI::Colors::Success, 0.85f);
+
+    for (auto entity : registry.view<CollisionComponent, TransformComponent>())
+    {
+        const auto &collision = registry.get<CollisionComponent>(entity);
+        auto world = SIMPEngine::DecomposeWorld(registry.get<TransformComponent>(entity));
+        glm::vec2 size(collision.width * std::abs(world.Scale.x), collision.height * std::abs(world.Scale.y));
+        glm::vec2 center = world.Position + glm::vec2(collision.offsetX, collision.offsetY) + size * 0.5f;
+        Renderer::DrawRect(center.x, center.y, size.x, size.y, wpp * 1.5f, color, 0.0f, 99994.0f);
+    }
+
+    for (auto entity : registry.view<PhysicsComponent, TransformComponent>())
+    {
+        const auto &physics = registry.get<PhysicsComponent>(entity);
+        if (!physics.body)
+            continue;
+        auto world = SIMPEngine::DecomposeWorld(registry.get<TransformComponent>(entity));
+        if (physics.body->shapeType == AccelEngine::ShapeType::CIRCLE)
+            Renderer::DrawRing(world.Position.x, world.Position.y, physics.body->circle.radius, wpp * 1.5f, color, 1.0f, 99994.0f);
+        else
+            Renderer::DrawRect(world.Position.x, world.Position.y, physics.body->aabb.halfSize.x * 2.0f, physics.body->aabb.halfSize.y * 2.0f, wpp * 1.5f, color, world.Rotation, 99994.0f);
     }
 }
 

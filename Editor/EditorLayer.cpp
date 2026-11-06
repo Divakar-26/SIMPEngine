@@ -1,4 +1,5 @@
 #include "EditorLayer.h"
+#include <Engine/Audio/AudioEngine.h>
 #include "imgui.h"
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -98,6 +99,7 @@ void EditorLayer::OnUpdate(class SIMPEngine::TimeStep ts)
 
     if (m_EditorContext.State == SceneState::Edit)
         m_EditorContext.Scene->UpdateParticles(ts.GetSeconds());
+    SIMPEngine::AudioEngine::SetPaused(m_EditorContext.State == SceneState::Pause);
 
     m_StatusFlash = std::max(0.0f, m_StatusFlash - ts.GetSeconds());
     UpdateWindowTitle();
@@ -148,6 +150,7 @@ void EditorLayer::Stop()
     m_RenderingLayer->SetSimulationEnabled(false);
     SIMPEngine::Input::SetEnabled(false);
 
+    m_EditorContext.Scene->StopAudio();
     m_History.Restore(m_PlaySnapshot);
     m_History.RefreshStable();
     m_EditorContext.Dirty = m_DirtyBeforePlay;
@@ -434,6 +437,10 @@ void EditorLayer::DrawMenuBar()
                 EditorCommands::CreateTilemap(ctx);
             if (ImGui::MenuItem("New Particle Effect...", nullptr, false, ctx.IsEditing()))
                 OpenNewParticleEffect();
+            if (ImGui::MenuItem("New Point Light", nullptr, false, ctx.IsEditing()))
+                EditorCommands::CreateLight(ctx, false, m_ViewportPanel.GetCameraCenter());
+            if (ImGui::MenuItem("New Spot Light", nullptr, false, ctx.IsEditing()))
+                EditorCommands::CreateLight(ctx, true, m_ViewportPanel.GetCameraCenter());
             if (ImGui::MenuItem("Rename", "F2", false, hasSelection))
                 ctx.RenameRequest = ctx.SelectedEntity.GetHandle();
             if (ImGui::MenuItem("Duplicate", "Ctrl+D", false, hasSelection))

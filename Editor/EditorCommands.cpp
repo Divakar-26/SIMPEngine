@@ -114,6 +114,30 @@ bool EditorCommands::SaveParticleEffect(const SIMPEngine::ParticleEffect &effect
     return ok;
 }
 
+SIMPEngine::Entity EditorCommands::CreateLight(EditorContext &ctx, bool spot, const glm::vec2 &position)
+{
+    auto entity = CreateEntity(ctx, spot ? "Spot Light" : "Point Light");
+    auto &transform = entity.GetComponent<TransformComponent>();
+    transform.position = position;
+    transform.rotation = spot ? -90.0f : 0.0f;
+    transform.dirty = true;
+    auto &light = entity.AddComponent<LightComponent>();
+    if (spot)
+    {
+        light.type = LightType::Spot;
+        light.radius = 360.0f;
+        light.falloff = 1.2f;
+    }
+    if (!ctx.Scene->GetLighting().Enabled)
+    {
+        ctx.Scene->GetLighting().Enabled = true;
+        CORE_INFO("Scene lighting enabled (ambient can be changed in the Scene inspector)");
+    }
+    ctx.Scene->UpdateTransforms();
+    ctx.Select(entity);
+    return entity;
+}
+
 SIMPEngine::Entity EditorCommands::CreateTilemap(EditorContext &ctx)
 {
     auto entity = CreateEntity(ctx, "Tilemap");

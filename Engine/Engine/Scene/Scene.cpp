@@ -36,6 +36,7 @@ namespace SIMPEngine
         m_Registry.on_destroy<ScriptComponent>().connect<&Scene::OnScriptComponentDestroyed>(this);
         m_Registry.on_destroy<PhysicsComponent>().connect<&Scene::OnPhysicsComponentDestroyed>(this);
         m_Registry.on_destroy<HierarchyComponent>().connect<&Scene::OnHierarchyComponentDestroyed>(this);
+        m_Registry.on_destroy<AudioSourceComponent>().connect<&Scene::OnAudioSourceDestroyed>(this);
     }
 
     void Scene::DestroyEntity(Entity entity)
@@ -146,6 +147,48 @@ namespace SIMPEngine
 
         animationSystem.Update(m_Registry, deltaTime);
         particleSystem.Update(m_Registry, deltaTime);
+        audioSystem.Update(m_Registry);
+    }
+
+    void Scene::StopAudio()
+    {
+        for (auto entity : m_Registry.view<AudioSourceComponent>())
+        {
+            AudioSystem::StopSource(m_Registry, entity);
+            m_Registry.get<AudioSourceComponent>(entity).started = false;
+        }
+    }
+
+    void Scene::OnAudioSourceDestroyed(entt::registry &registry, entt::entity entity)
+    {
+        AudioSystem::StopSource(registry, entity);
+    }
+
+    void Scene::ApplyParallax()
+    {
+        auto view = m_Registry.view<ParallaxComponent, TransformComponent>();
+        if (view.begin() == view.end())
+            return;
+
+        glm::vec2 camera = GetActiveCamera().GetPosition();
+        auto shift = [this](auto &&self, entt::entity entity, const glm::vec2 &offset, int depth) -> void
+        {
+            auto &transform = m_Registry.get<TransformComponent>(entity);
+            transform.worldTransform[3][0] += offset.x;
+            transform.worldTransform[3][1] += offset.y;
+            auto *hierarchy = m_Registry.try_get<HierarchyComponent>(entity);
+            if (!hierarchy || depth > 64)
+                return;
+            for (auto child : hierarchy->children)
+                if (m_Registry.valid(child) && m_Registry.all_of<TransformComponent>(child))
+                    self(self, child, offset, depth + 1);
+        };
+
+        for (auto entity : view)
+        {
+            glm::vec2 offset = camera * (glm::vec2(1.0f) - view.get<ParallaxComponent>(entity).factor);
+            shift(shift, entity, offset, 0);
+        }
     }
 
     void Scene::UpdateParticles(float dt)
@@ -167,6 +210,7 @@ namespace SIMPEngine
     void Scene::OnRender()
     {
         UpdateTransforms();
+        ApplyParallax();
         cameraSystem.OnRender(m_Registry);
         RenderContent();
     }
@@ -174,6 +218,7 @@ namespace SIMPEngine
     void Scene::OnRender(const glm::mat4 &view, const glm::mat4 &projection)
     {
         UpdateTransforms();
+        ApplyParallax();
         Renderer::SetProjectionMatrix(projection);
         Renderer::SetViewMatrix(view);
         RenderContent();
@@ -195,6 +240,9 @@ namespace SIMPEngine
             if (sc.Instance)
                 sc.Instance->OnRender();
         }
+
+        if (m_Lighting.Enabled && m_LightingVisible)
+            lightingSystem.Render(m_Registry, m_Lighting);
     }
 
     void Scene::Clear()

@@ -60,6 +60,8 @@ public:
     void DrawAnimationSection(SIMPEngine::Entity &m_SelectedEntity);
     void DrawPhysicsSection(SIMPEngine::Entity &m_SelectedEntity);
     void DrawParticleSection(SIMPEngine::Entity &m_SelectedEntity);
+    void DrawLightSection(SIMPEngine::Entity &m_SelectedEntity);
+    void DrawAudioSection(SIMPEngine::Entity &m_SelectedEntity);
 
     void SetParticlePicker(ParticlePickerPanel *picker) { m_ParticlePicker = picker; }
 

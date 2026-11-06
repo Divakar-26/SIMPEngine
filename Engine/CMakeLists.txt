@@ -34,6 +34,9 @@ add_library(Engine STATIC
     Engine/Scene/Systems/RenderSystem.cpp
     Engine/Scene/Systems/TilemapSystem.cpp
     Engine/Scene/Systems/ParticleSystem.cpp
+    Engine/Scene/Systems/LightingSystem.cpp
+    Engine/Scene/Systems/AudioSystem.cpp
+    Engine/Audio/AudioEngine.cpp
     Engine/Particles/ParticleEmitter.cpp
     Engine/Particles/ParticlePresets.cpp
     Engine/Particles/ParticleSerializer.cpp

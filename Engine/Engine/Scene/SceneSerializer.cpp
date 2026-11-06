@@ -69,6 +69,13 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
     out << YAML::Key << "Settings" << YAML::BeginMap;
     out << YAML::Key << "background" << YAML::Value << YAML::Flow
         << YAML::BeginSeq << bg.r << bg.g << bg.b << bg.a << YAML::EndSeq;
+    const SceneLighting &lighting = m_Scene->GetLighting();
+    out << YAML::Key << "lighting" << YAML::BeginMap;
+    out << YAML::Key << "enabled" << YAML::Value << lighting.Enabled;
+    out << YAML::Key << "ambient" << YAML::Value << YAML::Flow << YAML::BeginSeq
+        << lighting.Ambient.r << lighting.Ambient.g << lighting.Ambient.b
+        << lighting.Ambient.a << YAML::EndSeq;
+    out << YAML::EndMap;
     out << YAML::EndMap;
   }
 
@@ -202,6 +209,60 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::Key << "Camera" << YAML::BeginMap;
       out << YAML::Key << "primary" << YAML::Value << cam.primary;
       out << YAML::Key << "zoom" << YAML::Value << cam.Camera.GetZoom();
+      if (!cam.followTarget.empty()) {
+        out << YAML::Key << "follow" << YAML::Value << cam.followTarget;
+        out << YAML::Key << "follow_offset" << YAML::Value << YAML::Flow
+            << YAML::BeginSeq << cam.followOffset.x << cam.followOffset.y
+            << YAML::EndSeq;
+        out << YAML::Key << "smoothing" << YAML::Value << cam.followSmoothing;
+        out << YAML::Key << "dead_zone" << YAML::Value << YAML::Flow
+            << YAML::BeginSeq << cam.deadZone.x << cam.deadZone.y
+            << YAML::EndSeq;
+      }
+      if (cam.useBounds) {
+        out << YAML::Key << "bounds" << YAML::Value << YAML::Flow
+            << YAML::BeginSeq << cam.boundsMin.x << cam.boundsMin.y
+            << cam.boundsMax.x << cam.boundsMax.y << YAML::EndSeq;
+      }
+      out << YAML::Key << "shake_strength" << YAML::Value << cam.shakeStrength;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<LightComponent>()) {
+      const auto &light = entity.GetComponent<LightComponent>();
+      out << YAML::Key << "Light" << YAML::BeginMap;
+      out << YAML::Key << "type" << YAML::Value
+          << (light.type == LightType::Spot ? "spot" : "point");
+      out << YAML::Key << "color" << YAML::Value;
+      EmitColor(out, light.color);
+      out << YAML::Key << "intensity" << YAML::Value << light.intensity;
+      out << YAML::Key << "radius" << YAML::Value << light.radius;
+      out << YAML::Key << "falloff" << YAML::Value << light.falloff;
+      out << YAML::Key << "inner_angle" << YAML::Value << light.innerAngle;
+      out << YAML::Key << "outer_angle" << YAML::Value << light.outerAngle;
+      out << YAML::Key << "flicker" << YAML::Value << light.flicker;
+      out << YAML::Key << "flicker_speed" << YAML::Value << light.flickerSpeed;
+      out << YAML::Key << "enabled" << YAML::Value << light.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<ParallaxComponent>()) {
+      const auto &parallax = entity.GetComponent<ParallaxComponent>();
+      out << YAML::Key << "Parallax" << YAML::BeginMap;
+      out << YAML::Key << "factor" << YAML::Value << YAML::Flow
+          << YAML::BeginSeq << parallax.factor.x << parallax.factor.y
+          << YAML::EndSeq;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<AudioSourceComponent>()) {
+      const auto &audio = entity.GetComponent<AudioSourceComponent>();
+      out << YAML::Key << "AudioSource" << YAML::BeginMap;
+      out << YAML::Key << "clip" << YAML::Value << audio.clip;
+      out << YAML::Key << "volume" << YAML::Value << audio.volume;
+      out << YAML::Key << "pitch" << YAML::Value << audio.pitch;
+      out << YAML::Key << "loop" << YAML::Value << audio.loop;
+      out << YAML::Key << "play_on_start" << YAML::Value << audio.playOnStart;
       out << YAML::EndMap;
     }
 
@@ -432,6 +493,17 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
       if (bg && bg.IsSequence() && bg.size() >= 4)
         m_Scene->SetBackgroundColor({bg[0].as<float>(), bg[1].as<float>(),
                                      bg[2].as<float>(), bg[3].as<float>()});
+
+      SceneLighting lighting;
+      if (auto l = settings["lighting"]) {
+        if (l["enabled"])
+          TryGet(l, "enabled", lighting.Enabled);
+        auto a = l["ambient"];
+        if (a && a.IsSequence() && a.size() >= 4)
+          lighting.Ambient = {a[0].as<float>(), a[1].as<float>(),
+                              a[2].as<float>(), a[3].as<float>()};
+      }
+      m_Scene->GetLighting() = lighting;
     }
   }
 
@@ -546,6 +618,63 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
       auto &cc = entity.AddComponent<CameraComponent>(zoom);
       if (cam["primary"])
         TryGet(cam, "primary", cc.primary);
+      if (cam["follow"])
+        TryGet(cam, "follow", cc.followTarget);
+      ReadVec2(cam["follow_offset"], cc.followOffset.x, cc.followOffset.y);
+      if (cam["smoothing"])
+        TryGet(cam, "smoothing", cc.followSmoothing);
+      ReadVec2(cam["dead_zone"], cc.deadZone.x, cc.deadZone.y);
+      if (auto b = cam["bounds"]; b && b.IsSequence() && b.size() >= 4) {
+        cc.useBounds = true;
+        cc.boundsMin = {b[0].as<float>(), b[1].as<float>()};
+        cc.boundsMax = {b[2].as<float>(), b[3].as<float>()};
+      }
+      if (cam["shake_strength"])
+        TryGet(cam, "shake_strength", cc.shakeStrength);
+    });
+
+    component("Light", [&](const YAML::Node &l) {
+      auto &light = entity.AddComponent<LightComponent>();
+      std::string type;
+      if (l["type"])
+        TryGet(l, "type", type);
+      light.type = type == "spot" ? LightType::Spot : LightType::Point;
+      ReadColor(l["color"], light.color);
+      if (l["intensity"])
+        TryGet(l, "intensity", light.intensity);
+      if (l["radius"])
+        TryGet(l, "radius", light.radius);
+      if (l["falloff"])
+        TryGet(l, "falloff", light.falloff);
+      if (l["inner_angle"])
+        TryGet(l, "inner_angle", light.innerAngle);
+      if (l["outer_angle"])
+        TryGet(l, "outer_angle", light.outerAngle);
+      if (l["flicker"])
+        TryGet(l, "flicker", light.flicker);
+      if (l["flicker_speed"])
+        TryGet(l, "flicker_speed", light.flickerSpeed);
+      if (l["enabled"])
+        TryGet(l, "enabled", light.enabled);
+    });
+
+    component("Parallax", [&](const YAML::Node &p) {
+      auto &parallax = entity.AddComponent<ParallaxComponent>();
+      ReadVec2(p["factor"], parallax.factor.x, parallax.factor.y);
+    });
+
+    component("AudioSource", [&](const YAML::Node &a) {
+      auto &audio = entity.AddComponent<AudioSourceComponent>();
+      if (a["clip"])
+        TryGet(a, "clip", audio.clip);
+      if (a["volume"])
+        TryGet(a, "volume", audio.volume);
+      if (a["pitch"])
+        TryGet(a, "pitch", audio.pitch);
+      if (a["loop"])
+        TryGet(a, "loop", audio.loop);
+      if (a["play_on_start"])
+        TryGet(a, "play_on_start", audio.playOnStart);
     });
 
     component("Lifetime", [&](const YAML::Node &l) {

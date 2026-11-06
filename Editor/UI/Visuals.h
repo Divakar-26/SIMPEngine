@@ -81,6 +81,10 @@ namespace EditorUI
             return {ICON_LC_VIDEO, &Colors::NodeTint, "Camera"};
         if (entity.HasComponent<TilemapComponent>())
             return {ICON_LC_GRID_3X3, &Colors::NodeTint, "Tilemap"};
+        if (entity.HasComponent<LightComponent>())
+            return {ICON_LC_LIGHTBULB, &Colors::NodeTint, "Light"};
+        if (entity.HasComponent<AudioSourceComponent>())
+            return {ICON_LC_VOLUME_2, &Colors::NodeTint, "Audio"};
         if (entity.HasComponent<ParticleEmitterComponent>())
             return {ICON_LC_SPARKLES, &Colors::NodeTint, "Particles"};
         if (entity.HasComponent<AnimatedSpriteComponent>())

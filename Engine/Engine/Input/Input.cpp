@@ -9,6 +9,8 @@ namespace SIMPEngine
 
     std::unordered_set<int> Input::s_MouseButtonsPressed;
     std::unordered_set<int> Input::s_MouseButtonsJustPressed;
+    std::unordered_set<int> Input::s_KeysJustReleased;
+    std::unordered_set<int> Input::s_MouseButtonsJustReleased;
     int Input::s_MouseX = 0;
     int Input::s_MouseY = 0;
     float Input::s_MouseWheel = 0.0f;
@@ -35,6 +37,16 @@ namespace SIMPEngine
     bool Input::IsMouseButtonJustPressed(int button)
     {
         return s_Enabled && s_MouseButtonsJustPressed.find(button) != s_MouseButtonsJustPressed.end();
+    }
+
+    bool Input::IsKeyJustReleased(int keycode)
+    {
+        return s_Enabled && s_KeysJustReleased.find(keycode) != s_KeysJustReleased.end();
+    }
+
+    bool Input::IsMouseButtonJustReleased(int button)
+    {
+        return s_Enabled && s_MouseButtonsJustReleased.find(button) != s_MouseButtonsJustReleased.end();
     }
 
     std::pair<int, int> Input::GetMousePosition()
@@ -94,7 +106,8 @@ namespace SIMPEngine
 
     void Input::OnKeyReleased(int keycode)
     {
-        s_KeysPressed.erase(keycode);
+        if (s_KeysPressed.erase(keycode))
+            s_KeysJustReleased.insert(keycode);
     }
 
     void Input::OnMouseButtonPressed(int button)
@@ -105,7 +118,8 @@ namespace SIMPEngine
 
     void Input::OnMouseButtonReleased(int button)
     {
-        s_MouseButtonsPressed.erase(button);
+        if (s_MouseButtonsPressed.erase(button))
+            s_MouseButtonsJustReleased.insert(button);
     }
 
     void Input::OnMouseMoved(int x, int y)
@@ -120,6 +134,8 @@ namespace SIMPEngine
         s_KeysJustPressed.clear();
         s_MouseButtonsPressed.clear();
         s_MouseButtonsJustPressed.clear();
+        s_KeysJustReleased.clear();
+        s_MouseButtonsJustReleased.clear();
         s_MouseWheel = 0.0f;
     }
 
@@ -142,5 +158,7 @@ namespace SIMPEngine
         s_MouseWheel = 0.0f;
         s_KeysJustPressed.clear();
         s_MouseButtonsJustPressed.clear();
+        s_KeysJustReleased.clear();
+        s_MouseButtonsJustReleased.clear();
     }
 }

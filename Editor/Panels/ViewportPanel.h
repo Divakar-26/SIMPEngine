@@ -75,6 +75,8 @@ private:
     void DrawGrid();
     void DrawCameraFrame();
     void DrawEmitterShapes();
+    void DrawLightShapes();
+    void DrawColliders();
     void HandleCameraInput();
     void HandleSelectionAndGizmo();
     void HandleShortcuts();

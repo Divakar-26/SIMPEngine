@@ -14,6 +14,8 @@
 #include <Engine/Rendering/SvgTextureCache.h>
 #include <Engine/Rendering/TextureManager.h>
 #include <Engine/Particles/ParticleEmitter.h>
+#include <Engine/Scene/Systems/LightingSystem.h>
+#include <Engine/Audio/AudioEngine.h>
 #include <Engine/Rendering/Font.h>
 
 namespace SIMPEngine
@@ -31,6 +33,7 @@ namespace SIMPEngine
         int w, h;
         SDL_GetWindowSize(m_Window.GetNativeWindow(), &w, &h);
         Renderer::Init(std::make_unique<GLRenderingAPI>(), w, h);
+        AudioEngine::Init();
 
         auto imguiLayer = std::make_unique<ImGuiLayer>();
 
@@ -45,10 +48,12 @@ namespace SIMPEngine
     {
         ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
         m_LayerStack.Clear();
+        AudioEngine::Shutdown();
         Renderer::Flush();
         SvgTextureCache::Clear();
         Font::ClearCache();
         ParticleTextures::Release();
+        LightingSystem::ReleaseTextures();
         TextureManager::Get().UnloadAll();
         Renderer::Shutdown();
         s_Instance = nullptr;
@@ -88,6 +93,7 @@ namespace SIMPEngine
 
                 for (auto & layer : m_LayerStack)
                     layer->OnUpdate(TimeStep(deltaTime));
+                AudioEngine::Update();
             }
 
             {

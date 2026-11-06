@@ -1,10 +1,76 @@
 #include <Engine/Scene/Systems/CameraSystem.h>
 #include <Engine/Core/Log.h>
+#include <Engine/Math/EntityUtility.h>
+
+#include <cmath>
 
 namespace SIMPEngine
 {
+    namespace
+    {
+        void Follow(entt::registry &registry, CameraComponent &cam, TransformComponent &transform, float dt)
+        {
+            if (cam.followTarget.empty())
+                return;
+
+            entt::entity target = cam.followHandle;
+            bool valid = target != entt::null && registry.valid(target) &&
+                         registry.all_of<TagComponent, TransformComponent>(target) &&
+                         registry.get<TagComponent>(target).Tag == cam.followTarget;
+            if (!valid)
+            {
+                target = entt::null;
+                for (auto e : registry.view<TagComponent, TransformComponent>())
+                {
+                    if (registry.get<TagComponent>(e).Tag == cam.followTarget)
+                    {
+                        target = e;
+                        break;
+                    }
+                }
+                cam.followHandle = target;
+            }
+            if (target == entt::null)
+                return;
+
+            glm::vec2 goal = DecomposeWorld(registry.get<TransformComponent>(target)).Position + cam.followOffset;
+            glm::vec2 current = transform.position;
+            glm::vec2 delta = goal - current;
+            glm::vec2 half = glm::max(cam.deadZone, glm::vec2(0.0f)) * 0.5f;
+            for (int i = 0; i < 2; ++i)
+            {
+                if (std::abs(delta[i]) <= half[i])
+                    delta[i] = 0.0f;
+                else
+                    delta[i] -= delta[i] > 0.0f ? half[i] : -half[i];
+            }
+
+            if (cam.followSmoothing > 0.0f)
+                current += delta * (1.0f - std::exp(-cam.followSmoothing * dt));
+            else
+                current += delta;
+
+            if (cam.useBounds)
+            {
+                float left, right, top, bottom;
+                cam.Camera.GetVisibleWorldBounds(left, right, top, bottom);
+                glm::vec2 extent(std::abs(right - left) * 0.5f, std::abs(top - bottom) * 0.5f);
+                for (int i = 0; i < 2; ++i)
+                {
+                    float lo = cam.boundsMin[i] + extent[i];
+                    float hi = cam.boundsMax[i] - extent[i];
+                    current[i] = lo > hi ? (cam.boundsMin[i] + cam.boundsMax[i]) * 0.5f : std::clamp(current[i], lo, hi);
+                }
+            }
+
+            transform.position = current;
+            transform.dirty = true;
+        }
+    }
+
     void CameraSystem::OnUpdate(entt::registry &registry, float dt)
     {
+        m_Time += dt;
         auto cameraView = registry.view<CameraComponent, TransformComponent>();
         for (auto entity : cameraView)
         {
@@ -13,7 +79,18 @@ namespace SIMPEngine
 
             if (camComp.primary)
             {
-                camComp.Camera.SetPosition({transform.position.x, transform.position.y});
+                Follow(registry, camComp, transform, dt);
+
+                glm::vec2 shake(0.0f);
+                if (camComp.trauma > 0.0f)
+                {
+                    float amount = camComp.shakeStrength * camComp.trauma * camComp.trauma;
+                    shake = amount * glm::vec2(std::sin(m_Time * 47.0f) * 0.6f + std::sin(m_Time * 83.0f) * 0.4f,
+                                               std::cos(m_Time * 53.0f) * 0.6f + std::sin(m_Time * 71.0f) * 0.4f);
+                    camComp.trauma = std::max(0.0f, camComp.trauma - dt * 1.5f);
+                }
+
+                camComp.Camera.SetPosition(transform.position + shake);
                 camComp.Camera.Update(dt);
                 break;
             }

@@ -12,6 +12,7 @@ namespace SIMPEngine
     private:
         Camera2D m_MainCamera;
         bool useMainCamera = true;
+        float m_Time = 0.0f;
 
     public:
         void OnUpdate(entt::registry &registry, float dt);

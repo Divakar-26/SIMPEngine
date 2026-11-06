@@ -82,6 +82,8 @@ namespace SIMPEngine
         }
         if (entity.HasComponent<CameraComponent>())
             return glm::vec2(48.0f, 48.0f);
+        if (entity.HasComponent<LightComponent>() || entity.HasComponent<AudioSourceComponent>())
+            return glm::vec2(32.0f, 32.0f);
 
         return std::nullopt;
     }

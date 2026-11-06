@@ -13,6 +13,8 @@
 #include <Engine/Scene/Systems/RenderSystem.h>
 #include <Engine/Scene/Systems/TilemapSystem.h>
 #include <Engine/Scene/Systems/ParticleSystem.h>
+#include <Engine/Scene/Systems/LightingSystem.h>
+#include <Engine/Scene/Systems/AudioSystem.h>
 
 #include <AccelEngine/world.h>
 #include <AccelEngine/ForceRegistry.h>
@@ -108,6 +110,11 @@ namespace SIMPEngine
         const glm::vec4 &GetBackgroundColor() const { return m_BackgroundColor; }
         void SetBackgroundColor(const glm::vec4 &color) { m_BackgroundColor = color; }
 
+        SceneLighting &GetLighting() { return m_Lighting; }
+        const SceneLighting &GetLighting() const { return m_Lighting; }
+        void SetLightingVisible(bool visible) { m_LightingVisible = visible; }
+        void StopAudio();
+
         void Clear();
 
         Entity CreateEntity(const std::string &name = "");
@@ -145,10 +152,13 @@ namespace SIMPEngine
 
     private:
         void RenderContent();
+        void ApplyParallax();
 
         std::string m_Name;
         glm::vec4 m_BackgroundColor{0.329f, 0.329f, 0.329f, 1.0f};
         bool m_PhysicsDirty = false;
+        SceneLighting m_Lighting;
+        bool m_LightingVisible = true;
         entt::registry m_Registry;
 
         MovementSystem movementSystem;
@@ -161,10 +171,13 @@ namespace SIMPEngine
         RenderSystem renderSystem;
         TilemapSystem tilemapSystem;
         ParticleSystem particleSystem;
+        LightingSystem lightingSystem;
+        AudioSystem audioSystem;
 
         void OnPhysicsComponentDestroyed(entt::registry &registry, entt::entity entity);
         void OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity);
         void OnScriptComponentDestroyed(entt::registry &registry, entt::entity entity);
+        void OnAudioSourceDestroyed(entt::registry &registry, entt::entity entity);
     };
 }
 
