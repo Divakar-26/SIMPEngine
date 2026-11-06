@@ -60,6 +60,8 @@ namespace EditorUI
             return {ICON_LC_CLAPPERBOARD, &Colors::NodeTint, "Scene"};
         if (ext == ".json")
             return {ICON_LC_BRACES, &Colors::TextDim, "JSON"};
+        if (ext == ".particle")
+            return {ICON_LC_SPARKLES, &Colors::NodeTint, "Particle Effect"};
         if (ext == ".ttf" || ext == ".otf")
             return {ICON_LC_TYPE, &Colors::TextDim, "Font"};
         if (ext == ".wav" || ext == ".mp3" || ext == ".ogg" || ext == ".flac")
@@ -79,6 +81,8 @@ namespace EditorUI
             return {ICON_LC_VIDEO, &Colors::NodeTint, "Camera"};
         if (entity.HasComponent<TilemapComponent>())
             return {ICON_LC_GRID_3X3, &Colors::NodeTint, "Tilemap"};
+        if (entity.HasComponent<ParticleEmitterComponent>())
+            return {ICON_LC_SPARKLES, &Colors::NodeTint, "Particles"};
         if (entity.HasComponent<AnimatedSpriteComponent>())
             return {ICON_LC_FILM, &Colors::NodeTint, "Animated Sprite"};
         if (entity.HasComponent<SpriteComponent>())

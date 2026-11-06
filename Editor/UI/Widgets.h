@@ -81,6 +81,7 @@ namespace EditorUI
     bool PropertyFloat(const char *label, float *value, float speed = 0.1f, float min = 0.0f, float max = 0.0f, const char *format = "%.2f");
     bool PropertyInt(const char *label, int *value, float speed = 1.0f, int min = 0, int max = 0);
     bool PropertyVec2(const char *label, float *values, float speed = 0.1f, const char *format = "%.2f", float min = 0.0f, float max = 0.0f);
+    bool PropertyRange(const char *label, float *values, float speed = 0.1f, const char *format = "%.2f", float min = 0.0f, float max = 0.0f);
     bool PropertyInt2(const char *label, int *values, float speed = 1.0f, int min = 0, int max = 0);
     bool PropertyBool(const char *label, bool *value);
     bool PropertyBool2(const char *label, const char *a, bool *va, const char *b, bool *vb);

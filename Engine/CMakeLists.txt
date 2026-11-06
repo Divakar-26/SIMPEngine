@@ -33,6 +33,10 @@ add_library(Engine STATIC
     Engine/Scene/Systems/PhysicsSystem.cpp
     Engine/Scene/Systems/RenderSystem.cpp
     Engine/Scene/Systems/TilemapSystem.cpp
+    Engine/Scene/Systems/ParticleSystem.cpp
+    Engine/Particles/ParticleEmitter.cpp
+    Engine/Particles/ParticlePresets.cpp
+    Engine/Particles/ParticleSerializer.cpp
     Engine/Scene/Systems/AnimationSystem.cpp
     Engine/Scene/Systems/CollisionSystem.cpp
     Engine/Scene/Systems/HierarchySystem.cpp

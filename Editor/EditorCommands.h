@@ -9,6 +9,7 @@
 namespace SIMPEngine
 {
     class Texture;
+    struct ParticleEffect;
 }
 
 class EditorCommands
@@ -35,6 +36,12 @@ public:
     static bool AssignTileset(EditorContext &ctx, SIMPEngine::Entity entity, const std::string &path);
 
     static SIMPEngine::Entity ImportTiledMap(EditorContext &ctx, const std::string &path);
+
+    static SIMPEngine::Entity CreateParticleEmitter(EditorContext &ctx, const SIMPEngine::ParticleEffect &effect, const glm::vec2 &position = glm::vec2(0.0f));
+
+    static void ApplyParticleEffect(EditorContext &ctx, SIMPEngine::Entity entity, const SIMPEngine::ParticleEffect &effect);
+
+    static bool SaveParticleEffect(const SIMPEngine::ParticleEffect &effect, std::string &outPath);
 
     static void DeleteEntity(
         EditorContext& ctx,

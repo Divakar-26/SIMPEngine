@@ -6,6 +6,7 @@
 #include <Engine/Scene/Entity.h>
 #include <Engine/Scene/SceneSerializer.h>
 #include <Engine/Scene/TilemapUtils.h>
+#include <Engine/Particles/ParticleSerializer.h>
 
 #include <cstdint>
 #include <fstream>
@@ -268,6 +269,15 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
         out << YAML::EndMap;
       }
       out << YAML::EndSeq;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<ParticleEmitterComponent>()) {
+      const auto &pe = entity.GetComponent<ParticleEmitterComponent>();
+      out << YAML::Key << "ParticleEmitter" << YAML::BeginMap;
+      out << YAML::Key << "playing" << YAML::Value << pe.playing;
+      out << YAML::Key << "effect" << YAML::Value;
+      ParticleSerializer::Emit(out, pe.effect);
       out << YAML::EndMap;
     }
 
@@ -571,6 +581,13 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
       if (a["finished"])
         TryGet(a, "finished", finished);
       ac.animation->SetPlaybackState(currentFrame, elapsedTime, finished);
+    });
+
+    component("ParticleEmitter", [&](const YAML::Node &p) {
+      auto &pe = entity.AddComponent<ParticleEmitterComponent>();
+      if (p["playing"])
+        TryGet(p, "playing", pe.playing);
+      ParticleSerializer::Load(p["effect"], pe.effect);
     });
 
     component("Tilemap", [&](const YAML::Node &tilemapNode) {

@@ -18,6 +18,8 @@ add_library(Editor STATIC
     Panels/SettingsPanel.cpp
     Panels/TilePalettePanel.cpp
     Panels/InspectorPanel/TilemapSection.cpp
+    Panels/InspectorPanel/ParticleSection.cpp
+    Panels/ParticlePickerPanel.cpp
     UI/Theme.cpp
     UI/Widgets.cpp
 )

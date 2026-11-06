@@ -20,6 +20,7 @@
 
 class AssetPickerPanel;
 class AnimationMakerPanel;
+class ParticlePickerPanel;
 
 template <typename T, typename UIFunc>
 static void DrawComponentSection(
@@ -58,6 +59,9 @@ public:
     void DrawTilemapSection(SIMPEngine::Entity &m_SelectedEntity);
     void DrawAnimationSection(SIMPEngine::Entity &m_SelectedEntity);
     void DrawPhysicsSection(SIMPEngine::Entity &m_SelectedEntity);
+    void DrawParticleSection(SIMPEngine::Entity &m_SelectedEntity);
+
+    void SetParticlePicker(ParticlePickerPanel *picker) { m_ParticlePicker = picker; }
 
     void SetAssetPicker(AssetPickerPanel *picker)
     {
@@ -82,4 +86,5 @@ private:
 
     AssetPickerPanel *m_AssetPicker = nullptr;
     AnimationMakerPanel* m_AnimationMaker = nullptr;
+    ParticlePickerPanel *m_ParticlePicker = nullptr;
 };

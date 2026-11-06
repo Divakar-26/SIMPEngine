@@ -491,18 +491,20 @@ namespace EditorUI
     namespace
     {
         template <typename Fn>
-        bool AxisPair(const char *label, Fn drag)
+        bool AxisPair(const char *label, Fn drag, bool range = false)
         {
             PropertyLabel(label);
             ImGui::PushID(label);
 
             static const char *axes[2] = {"x", "y"};
-            const ImVec4 *axisColors[2] = {&Colors::AxisX, &Colors::AxisY};
+            static const char *bounds[2] = {"min", "max"};
+            const char *const *tags = range ? bounds : axes;
+            const ImVec4 *axisColors[2] = {range ? &Colors::TextFaint : &Colors::AxisX, range ? &Colors::TextFaint : &Colors::AxisY};
 
             float spacing = 3.0f;
             float width = ImGui::GetContentRegionAvail().x;
             float half = std::floor((width - spacing) * 0.5f);
-            float tagW = ImGui::CalcTextSize("x").x + 8.0f;
+            float tagW = ImGui::CalcTextSize(tags[1]).x + 8.0f;
             bool changed = false;
 
             for (int i = 0; i < 2; ++i)
@@ -512,12 +514,22 @@ namespace EditorUI
 
                 ImGui::PushID(i);
                 ImVec2 pos = ImGui::GetCursorScreenPos();
-                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(ImGui::GetStyle().FramePadding.x + tagW * 0.5f, ImGui::GetStyle().FramePadding.y));
-                ImGui::SetNextItemWidth(i == 0 ? half : width - half - spacing);
-                changed |= drag(i);
-                ImGui::PopStyleVar();
-
-                ImGui::GetWindowDrawList()->AddText(ImVec2(pos.x + 5.0f, pos.y + ImGui::GetStyle().FramePadding.y), U32(*axisColors[i]), axes[i]);
+                float itemW = i == 0 ? half : width - half - spacing;
+                if (range)
+                {
+                    ImGui::GetWindowDrawList()->AddText(ImVec2(pos.x + 1.0f, pos.y + ImGui::GetStyle().FramePadding.y), U32(*axisColors[i]), tags[i]);
+                    ImGui::SetCursorScreenPos(ImVec2(pos.x + tagW - 2.0f, pos.y));
+                    ImGui::SetNextItemWidth(itemW - tagW + 2.0f);
+                    changed |= drag(i);
+                }
+                else
+                {
+                    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(ImGui::GetStyle().FramePadding.x + tagW * 0.5f, ImGui::GetStyle().FramePadding.y));
+                    ImGui::SetNextItemWidth(itemW);
+                    changed |= drag(i);
+                    ImGui::PopStyleVar();
+                    ImGui::GetWindowDrawList()->AddText(ImVec2(pos.x + 5.0f, pos.y + ImGui::GetStyle().FramePadding.y), U32(*axisColors[i]), tags[i]);
+                }
                 ImGui::PopID();
             }
 
@@ -530,6 +542,15 @@ namespace EditorUI
     {
         return AxisPair(label, [&](int i)
                         { return ImGui::DragFloat("##axis", &values[i], speed, min, max, format); });
+    }
+
+    bool PropertyRange(const char *label, float *values, float speed, const char *format, float min, float max)
+    {
+        bool changed = AxisPair(label, [&](int i)
+                                { return ImGui::DragFloat("##axis", &values[i], speed, min, max, format); }, true);
+        if (changed && values[1] < values[0])
+            values[1] = values[0];
+        return changed;
     }
 
     bool PropertyInt2(const char *label, int *values, float speed, int min, int max)

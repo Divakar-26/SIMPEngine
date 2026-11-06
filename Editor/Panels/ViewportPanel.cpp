@@ -5,6 +5,7 @@
 #include "UI/Widgets.h"
 #include <Engine/Core/Log.h>
 #include <Engine/Scene/Component.h>
+#include <Engine/Scene/Systems/ParticleSystem.h>
 
 #include <imgui_internal.h>
 
@@ -314,6 +315,7 @@ void ViewportPanel::RenderScene()
 
     scene.OnRender(view, proj);
     DrawCameraFrame();
+    DrawEmitterShapes();
     m_TileEditor.RenderWorld(SIMPEngine::Renderer::GetWorldPerPixel());
 
     SIMPEngine::Renderer::EndScene();
@@ -370,6 +372,54 @@ void ViewportPanel::DrawCameraFrame()
 
     SIMPEngine::Renderer::DrawRect(p.x, p.y, hw * 2.0f, hh * 2.0f, SIMPEngine::Renderer::GetWorldPerPixel() * 1.5f,
                                    ToSDL(EditorUI::Colors::CameraFrame, 0.9f), 0.0f, 100000.0f);
+}
+
+void ViewportPanel::DrawEmitterShapes()
+{
+    using SIMPEngine::Renderer;
+    auto &registry = m_Context->Scene->GetRegistry();
+    float wpp = Renderer::GetWorldPerPixel();
+    float z = 99995.0f;
+    SDL_Color color = ToSDL(EditorUI::Colors::Accent, 0.85f);
+    SDL_Color faint = ToSDL(EditorUI::Colors::Accent, 0.4f);
+
+    for (entt::entity handle : m_Context->SelectedHandles())
+    {
+        if (!registry.valid(handle) || !registry.all_of<ParticleEmitterComponent, TransformComponent>(handle))
+            continue;
+
+        const auto &e = registry.get<ParticleEmitterComponent>(handle).effect;
+        auto frame = SIMPEngine::ParticleSystem::FrameOf(registry.get<TransformComponent>(handle));
+        glm::vec2 o = frame.Origin;
+        float r = glm::radians(frame.Rotation);
+        glm::vec2 ax(std::cos(r), std::sin(r));
+
+        if (e.Emitter == SIMPEngine::EmitterShape::Circle)
+            Renderer::DrawRing(o.x, o.y, e.Radius * frame.Scale, wpp * 1.5f, color, 1.0f, z);
+        else if (e.Emitter == SIMPEngine::EmitterShape::Box)
+            Renderer::DrawRect(o.x, o.y, e.BoxSize.x * frame.Scale, e.BoxSize.y * frame.Scale, wpp * 1.5f, color, frame.Rotation, z);
+        else if (e.Emitter == SIMPEngine::EmitterShape::Line)
+        {
+            glm::vec2 half = ax * e.BoxSize.x * 0.5f * frame.Scale;
+            Renderer::DrawLine(o.x - half.x, o.y - half.y, o.x + half.x, o.y + half.y, wpp * 1.5f, color, z);
+        }
+
+        float length = wpp * 56.0f;
+        auto ray = [&](float degrees, SDL_Color c)
+        {
+            float a = glm::radians(degrees + frame.Rotation);
+            glm::vec2 tip = o + glm::vec2(std::cos(a), std::sin(a)) * length;
+            Renderer::DrawLine(o.x, o.y, tip.x, tip.y, wpp * 1.5f, c, z + 1.0f);
+            return tip;
+        };
+        glm::vec2 tip = ray(e.Direction, color);
+        Renderer::DrawCircle(tip.x, tip.y, wpp * 3.0f, color, 1.0f, z + 1.0f);
+        if (e.Spread > 0.5f && e.Spread < 179.5f)
+        {
+            ray(e.Direction - e.Spread, faint);
+            ray(e.Direction + e.Spread, faint);
+        }
+    }
 }
 
 void ViewportPanel::HandleCameraInput()

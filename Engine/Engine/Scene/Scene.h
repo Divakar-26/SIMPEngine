@@ -12,6 +12,7 @@
 #include <Engine/Scene/Systems/AnimationSystem.h>
 #include <Engine/Scene/Systems/RenderSystem.h>
 #include <Engine/Scene/Systems/TilemapSystem.h>
+#include <Engine/Scene/Systems/ParticleSystem.h>
 
 #include <AccelEngine/world.h>
 #include <AccelEngine/ForceRegistry.h>
@@ -101,6 +102,7 @@ namespace SIMPEngine
         void OnEvent();
 
         void UpdateTransforms();
+        void UpdateParticles(float dt);
         glm::vec2 ScreenToWorld(const glm::vec2 &viewportPixel);
 
         const glm::vec4 &GetBackgroundColor() const { return m_BackgroundColor; }
@@ -158,6 +160,7 @@ namespace SIMPEngine
         AnimationSystem animationSystem;
         RenderSystem renderSystem;
         TilemapSystem tilemapSystem;
+        ParticleSystem particleSystem;
 
         void OnPhysicsComponentDestroyed(entt::registry &registry, entt::entity entity);
         void OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity);

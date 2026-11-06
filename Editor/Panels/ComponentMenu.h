@@ -47,6 +47,8 @@ inline void DrawAddComponentItems(EditorContext &ctx, SIMPEngine::Entity entity,
                                                { entity.AddComponent<TextComponent>(); });
     any |= AddComponentMenuItem<TilemapComponent>(ctx, entity, ICON_LC_GRID_3X3, "Tilemap", filter, [&]
                                                   { entity.AddComponent<TilemapComponent>(); });
+    any |= AddComponentMenuItem<ParticleEmitterComponent>(ctx, entity, ICON_LC_SPARKLES, "Particle Emitter", filter, [&]
+                                                          { entity.AddComponent<ParticleEmitterComponent>(); });
 
     if (!filtering)
         EditorUI::SectionLabel("Simulation");

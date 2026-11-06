@@ -30,3 +30,4 @@ Akshat
     2. Tilemap: tile flip flags, Tileset margin/spacing + source path, TilemapUtils (world<->tile, flood fill, bounds, IsSolidAt/OverlapsSolid), view-culled TilemapSystem, serializer writes tint/visible/solid/flags
     3. TiledLoader rewrite: external tilesets, CSV + infinite maps, flip bits, layer visibility/opacity, Import as one entity per layer
     4. Editor tile painting: brush/rect/fill/erase/picker with stamps, Tiles palette panel, Tilemap inspector section, New Tilemap, FileSystem Import Tiled Map, tilemap picking/outline
+    5. Particle engine: ParticleEffect/ParticleEmitter (rate, bursts, emitter shapes, gravity/drag/radial/orbital/turbulence, size/rotation/3-stop color, procedural shapes, additive), 16 presets, .particle files, ParticleEmitter component + serializer; editor effect picker with live preview grid, inspector section, emitter overlay, edit-mode playback

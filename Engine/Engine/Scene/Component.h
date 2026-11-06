@@ -4,6 +4,7 @@
 #include <Engine/Rendering/Animation.h>
 #include <Engine/Rendering/AnimationController.h>
 #include <Engine/Rendering/Tileset.h>
+#include <Engine/Particles/ParticleEffect.h>
 #include <Engine/Math/Camera2D.h>
 
 #include <AccelEngine/world.h>
@@ -169,4 +170,11 @@ struct TilemapComponent
     SDL_Color tint{255, 255, 255, 255};
     bool visible = true;
     bool solid = false;
+};
+
+struct ParticleEmitterComponent
+{
+    SIMPEngine::ParticleEffect effect;
+    bool playing = true;
+    SIMPEngine::ParticleState state;
 };

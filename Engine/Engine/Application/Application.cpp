@@ -13,6 +13,7 @@
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Rendering/SvgTextureCache.h>
 #include <Engine/Rendering/TextureManager.h>
+#include <Engine/Particles/ParticleEmitter.h>
 #include <Engine/Rendering/Font.h>
 
 namespace SIMPEngine
@@ -47,6 +48,7 @@ namespace SIMPEngine
         Renderer::Flush();
         SvgTextureCache::Clear();
         Font::ClearCache();
+        ParticleTextures::Release();
         TextureManager::Get().UnloadAll();
         Renderer::Shutdown();
         s_Instance = nullptr;

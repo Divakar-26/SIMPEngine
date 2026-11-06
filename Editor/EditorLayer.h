@@ -14,6 +14,7 @@
 #include "Panels/ConsolePanel.h"
 #include "Panels/SettingsPanel.h"
 #include "Panels/TilePalettePanel.h"
+#include "Panels/ParticlePickerPanel.h"
 #include "Panels/InspectorPanel/AnimationMakerPanel.h"
 #include "EditorContext.h"
 #include "EditorHistory.h"
@@ -47,6 +48,7 @@ private:
     void DrawSaveAsModal();
     void DrawConfirmModal();
     void DrawShortcutsWindow();
+    void OpenNewParticleEffect();
     void BuildDefaultLayout(unsigned int dockspaceId);
     void HandleShortcuts();
     void UpdateWindowTitle();
@@ -78,6 +80,7 @@ private:
     std::unique_ptr<ContentBrowserPanel> m_ContentBrowser;
     std::unique_ptr<SIMPEngine::AssetManager> m_AssetManager;
     std::unique_ptr<AssetPickerPanel> m_AssetPicker;
+    std::unique_ptr<ParticlePickerPanel> m_ParticlePicker;
     std::unique_ptr<AnimationMakerPanel> m_AnimationMakerPanel;
 
     SIMPEngine::SceneSerializer serializer;

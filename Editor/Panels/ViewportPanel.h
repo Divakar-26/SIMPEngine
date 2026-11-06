@@ -30,6 +30,7 @@ public:
     void FrameScene();
 
     glm::vec2 GetMouseWorldPosition() const;
+    glm::vec2 GetCameraCenter() const { return m_Camera.GetPosition(); }
 
 private:
     enum class Handle
@@ -73,6 +74,7 @@ private:
     void RenderScene();
     void DrawGrid();
     void DrawCameraFrame();
+    void DrawEmitterShapes();
     void HandleCameraInput();
     void HandleSelectionAndGizmo();
     void HandleShortcuts();

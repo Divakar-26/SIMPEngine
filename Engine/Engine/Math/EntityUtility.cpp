@@ -68,6 +68,18 @@ namespace SIMPEngine
             auto &cc = entity.GetComponent<CollisionComponent>();
             return glm::vec2(cc.width, cc.height);
         }
+        if (entity.HasComponent<ParticleEmitterComponent>())
+        {
+            const auto &e = entity.GetComponent<ParticleEmitterComponent>().effect;
+            glm::vec2 size(32.0f);
+            if (e.Emitter == EmitterShape::Circle)
+                size = glm::vec2(e.Radius * 2.0f);
+            else if (e.Emitter == EmitterShape::Box)
+                size = e.BoxSize;
+            else if (e.Emitter == EmitterShape::Line)
+                size = glm::vec2(e.BoxSize.x, 16.0f);
+            return glm::max(size, glm::vec2(24.0f));
+        }
         if (entity.HasComponent<CameraComponent>())
             return glm::vec2(48.0f, 48.0f);
 

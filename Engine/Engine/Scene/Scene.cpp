@@ -145,6 +145,13 @@ namespace SIMPEngine
         physicsSystem.Update(m_Registry, deltaTime);
 
         animationSystem.Update(m_Registry, deltaTime);
+        particleSystem.Update(m_Registry, deltaTime);
+    }
+
+    void Scene::UpdateParticles(float dt)
+    {
+        UpdateTransforms();
+        particleSystem.Update(m_Registry, dt);
     }
 
     void Scene::UpdateTransforms()
@@ -178,6 +185,7 @@ namespace SIMPEngine
 
         renderSystem.RenderQuads(m_Registry);
         renderSystem.RenderSprites(m_Registry);
+        particleSystem.Render(m_Registry);
         renderSystem.RenderText(m_Registry);
 
         auto view = m_Registry.view<ScriptComponent>();

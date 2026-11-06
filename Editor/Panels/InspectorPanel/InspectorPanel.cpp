@@ -40,6 +40,7 @@ void InspectorPanel::OnImGuiRender()
     DrawCoreComponents(m_SelectedEntity);
     DrawSpriteSection(m_SelectedEntity);
     DrawTilemapSection(m_SelectedEntity);
+    DrawParticleSection(m_SelectedEntity);
     DrawAnimationSection(m_SelectedEntity);
     DrawPhysicsSection(m_SelectedEntity);
 

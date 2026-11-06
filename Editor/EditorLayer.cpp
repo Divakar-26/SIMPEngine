@@ -48,6 +48,9 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     m_AssetPicker = std::make_unique<AssetPickerPanel>("assets://", m_AssetManager.get());
     m_InspectorPanel.SetAssetPicker(m_AssetPicker.get());
 
+    m_ParticlePicker = std::make_unique<ParticlePickerPanel>();
+    m_InspectorPanel.SetParticlePicker(m_ParticlePicker.get());
+
     m_AnimationMakerPanel =
         std::make_unique<AnimationMakerPanel>();
     m_AnimationMakerPanel->SetContext(&m_EditorContext);
@@ -93,8 +96,17 @@ void EditorLayer::OnUpdate(class SIMPEngine::TimeStep ts)
         m_RenderingLayer->Step(1.0f / 60.0f);
     m_EditorContext.StepRequested = false;
 
+    if (m_EditorContext.State == SceneState::Edit)
+        m_EditorContext.Scene->UpdateParticles(ts.GetSeconds());
+
     m_StatusFlash = std::max(0.0f, m_StatusFlash - ts.GetSeconds());
     UpdateWindowTitle();
+}
+
+void EditorLayer::OpenNewParticleEffect()
+{
+    m_ParticlePicker->Open("New Particle Effect", [this](const SIMPEngine::ParticleEffect &effect)
+                           { EditorCommands::CreateParticleEmitter(m_EditorContext, effect, m_ViewportPanel.GetCameraCenter()); });
 }
 
 void EditorLayer::OnEvent(SIMPEngine::Event &e)
@@ -323,6 +335,7 @@ void EditorLayer::OnRender()
     m_ContentBrowser->OnImGuiRender();
     m_ConsolePanel.OnImGuiRender();
     m_AssetPicker->OnImGuiRender();
+    m_ParticlePicker->OnImGuiRender();
     m_AnimationMakerPanel->OnImGuiRender();
     m_SettingsPanel.OnImGuiRender();
     m_TilePalettePanel.OnImGuiRender();
@@ -419,6 +432,8 @@ void EditorLayer::DrawMenuBar()
             }
             if (ImGui::MenuItem("New Tilemap", nullptr, false, ctx.IsEditing()))
                 EditorCommands::CreateTilemap(ctx);
+            if (ImGui::MenuItem("New Particle Effect...", nullptr, false, ctx.IsEditing()))
+                OpenNewParticleEffect();
             if (ImGui::MenuItem("Rename", "F2", false, hasSelection))
                 ctx.RenameRequest = ctx.SelectedEntity.GetHandle();
             if (ImGui::MenuItem("Duplicate", "Ctrl+D", false, hasSelection))

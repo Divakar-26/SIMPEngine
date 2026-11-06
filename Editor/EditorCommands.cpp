@@ -6,6 +6,8 @@
 #include <Engine/Scene/SceneSerializer.h>
 #include <Engine/Scene/Loaders/TiledLoader.h>
 #include <Engine/Rendering/Tileset.h>
+#include <Engine/Particles/ParticleEmitter.h>
+#include <Engine/Particles/ParticleSerializer.h>
 #include <Engine/Scene/ScriptableEntity.h>
 #include <algorithm>
 #include <cctype>
@@ -73,6 +75,43 @@ std::shared_ptr<SIMPEngine::Texture> EditorCommands::LoadTexture(const std::stri
     else
         CORE_ERROR("Could not load texture {}", vpath);
     return texture;
+}
+
+SIMPEngine::Entity EditorCommands::CreateParticleEmitter(EditorContext &ctx, const SIMPEngine::ParticleEffect &effect, const glm::vec2 &position)
+{
+    auto entity = CreateEntity(ctx, effect.Name.empty() ? "Particles" : effect.Name);
+    auto &transform = entity.GetComponent<TransformComponent>();
+    transform.position = position;
+    transform.dirty = true;
+    auto &emitter = entity.AddComponent<ParticleEmitterComponent>();
+    emitter.effect = effect;
+    ctx.Scene->UpdateTransforms();
+    ctx.Select(entity);
+    return entity;
+}
+
+void EditorCommands::ApplyParticleEffect(EditorContext &ctx, SIMPEngine::Entity entity, const SIMPEngine::ParticleEffect &effect)
+{
+    if (!entity || !entity.HasComponent<ParticleEmitterComponent>())
+        return;
+    RecordEdit(ctx);
+    auto &emitter = entity.GetComponent<ParticleEmitterComponent>();
+    emitter.effect = effect;
+    emitter.playing = true;
+    SIMPEngine::ParticleEmitter::Restart(emitter.state);
+}
+
+bool EditorCommands::SaveParticleEffect(const SIMPEngine::ParticleEffect &effect, std::string &outPath)
+{
+    std::string name = effect.Name.empty() ? "Particles" : effect.Name;
+    std::string file;
+    for (char c : name)
+        file += (std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_') ? c : '_';
+    outPath = "assets://particles/" + file + SIMPEngine::ParticleSerializer::Extension;
+    bool ok = SIMPEngine::ParticleSerializer::SaveFile(outPath, effect);
+    if (ok)
+        CORE_INFO("Saved particle effect {}", outPath);
+    return ok;
 }
 
 SIMPEngine::Entity EditorCommands::CreateTilemap(EditorContext &ctx)
