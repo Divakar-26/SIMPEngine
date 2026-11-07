@@ -71,3 +71,8 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3 spdlog)
 add_subdirectory(Engine)
 add_subdirectory(Editor)
 add_subdirectory(Game)
+
+option(SIMP_INSTALL "Generate install rules for the SIMPEngine library" ON)
+if(SIMP_INSTALL)
+    include(cmake/SIMPEngineInstall.cmake)
+endif()

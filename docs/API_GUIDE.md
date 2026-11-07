@@ -182,7 +182,7 @@ All in `Scene/Component.h`. Sizes are world units (1 unit = 1 pixel at zoom 1). 
 | `bool useRegion` + `SDL_FRect region` | Draw a sub-rectangle in pixels from the image's top-left (sprite sheets) |
 
 ### AnimatedSpriteComponent
-`std::unique_ptr<Animation> animation` (grid sheet frames, see [Rendering](#rendering)). When the entity also has a `SpriteComponent`, its `width/height/tint` size and tint the animation.
+`std::unique_ptr<Animation> animation` (grid sheet frames, see [Rendering](#rendering)). The display size comes from a `SpriteComponent` (`width`, `height`, `tint`) or a `RenderComponent` on the same entity; with neither, the animation is drawn at the entity's scale in world units (1×1 by default), so add a `SpriteComponent` to size it. Animations can't be flipped; use `SpriteComponent::region` + `flipX` when you need facing.
 
 ### RenderComponent
 A filled rectangle: `float width, height`, `SDL_Color color`.
@@ -194,7 +194,7 @@ A filled rectangle: `float width, height`, `SDL_Color color`.
 `float vx, vy` — moved by the movement system every update.
 
 ### CollisionComponent
-`float width, height, offsetX, offsetY` — an axis-aligned box whose bottom-left corner is `position + offset`. It is data for your own gameplay code (and the editor's collider overlay); it does not resolve collisions by itself.
+`float width, height, offsetX, offsetY` — an axis-aligned box whose bottom-left corner is `position + offset` (the entity's local position, not the world transform). The collision system only tests overlaps and does nothing with them; nothing is pushed apart and no callbacks fire. Use these boxes from your own scripts (see [HOW_TO](HOW_TO.md#move-a-character-with-your-own-collision)) or use rigid bodies.
 
 ### PhysicsComponent
 `std::unique_ptr<AccelEngine::RigidBody> body` — see [Physics](#physics).
@@ -215,7 +215,7 @@ A filled rectangle: `float width, height`, `SDL_Color color`.
 The camera system writes the follow result into the camera entity's `TransformComponent`.
 
 ### LifetimeComponent
-`float remaining` — seconds until the entity is destroyed. Safe to add from scripts (`registry.emplace_or_replace<LifetimeComponent>(e, LifetimeComponent{0.0f})`).
+`float remaining` — seconds until the entity is destroyed, together with all its children. Safe to add from scripts (`registry.emplace_or_replace<LifetimeComponent>(e, LifetimeComponent{0.0f})`).
 
 ### TilemapComponent
 | Field | Notes |
@@ -474,10 +474,14 @@ pc.body->aabb.halfSize = {16.0f, 16.0f};             // or circle.radius
 pc.body->inverseMass = 1.0f;                         // 0 = static
 pc.body->restitution = 0.3f;
 pc.body->entityID = static_cast<uint32_t>(entity.GetHandle());
+glm::vec2 at = entity.GetComponent<TransformComponent>().position;
+pc.body->position = {at.x, at.y};
 scene.MarkPhysicsDirty();
 ```
 
-The world is rebuilt from all bodies at the start of the next update. The physics step writes positions back to transforms.
+- At the start of every update the body position is copied **into** the transform, so a body whose `position` you never set snaps the entity to the origin. Set it, or call `scene.SyncPhysicsFromTransforms()` after placing entities (the editor does this when you press Play).
+- The world is rebuilt from all bodies at the start of the next update after `MarkPhysicsDirty()`.
+- Gravity, friction and collision response come from AccelEngine; see its headers in `include/AccelEngine/`.
 
 ---
 

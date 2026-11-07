@@ -1,0 +1,32 @@
+get_filename_component(_simp_prefix "${CMAKE_CURRENT_LIST_DIR}/@SIMP_PREFIX_FROM_CONFIG@" ABSOLUTE)
+set(_simp_include "${_simp_prefix}/@SIMP_INSTALL_INCLUDE@")
+set(_simp_libdir "${_simp_prefix}/@SIMP_INSTALL_LIB@")
+
+set(SIMPEngine_INCLUDE_DIR "${_simp_include}")
+set(SIMPEngine_LIBRARY_DIR "${_simp_libdir}")
+set(SIMPEngine_ASSETS_DIR "${_simp_prefix}/@SIMP_INSTALL_SHARE@/assets")
+
+if(NOT TARGET SIMPEngine::Engine)
+    set(OpenGL_GL_PREFERENCE GLVND)
+    find_package(OpenGL REQUIRED)
+    find_package(Threads REQUIRED)
+
+    set(_simp_libs "")
+    foreach(_simp_lib @SIMP_LIB_FILES@)
+        list(APPEND _simp_libs "${_simp_libdir}/${_simp_lib}")
+    endforeach()
+
+    set(_simp_defines "@SIMP_DEFINES@")
+    list(REMOVE_ITEM _simp_defines "")
+    list(REMOVE_DUPLICATES _simp_defines)
+
+    add_library(SIMPEngine::Engine INTERFACE IMPORTED)
+    set_target_properties(SIMPEngine::Engine PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${_simp_include};${_simp_include}/Engine"
+        INTERFACE_COMPILE_DEFINITIONS "${_simp_defines}"
+        INTERFACE_COMPILE_FEATURES "cxx_std_20"
+        INTERFACE_LINK_LIBRARIES "${_simp_libs};OpenGL::GL;Threads::Threads;${CMAKE_DL_LIBS}"
+        INTERFACE_LINK_OPTIONS "LINKER:-rpath,${_simp_libdir}")
+endif()
+
+set(SIMPEngine_FOUND TRUE)

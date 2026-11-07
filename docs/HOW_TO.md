@@ -25,14 +25,16 @@ Short recipes for common tasks. The full API is in [API_GUIDE.md](API_GUIDE.md);
 
 ## Start a new game
 
-`Game/main.cpp` owns startup. A minimal game:
+Two ways to work:
+
+- **Inside this repository** (with the editor): edit `Game/main.cpp` or add your own executable next to it. Shown below.
+- **As an installed library** (no editor): see [USING_THE_LIBRARY.md](USING_THE_LIBRARY.md).
+
+`Game/main.cpp` owns startup. A minimal game with the editor:
 
 ```cpp
-#include <Engine/PCH.h>
-#include <Engine/Application/Application.h>
+#include <Engine/SIMPEngine.h>
 #include <Engine/Core/VFS.h>
-#include <Engine/Layer/RenderingLayer.h>
-#include <Engine/Scene/SceneManager.h>
 
 #ifndef NO_EDITOR
 #include "EditorLayer.h"
@@ -48,7 +50,8 @@ public:
         scenes->AddScene("Main", scene);
         scenes->SetActiveScene("Main");
 
-        BuildWorld(*scene);
+        auto camera = scene->CreateEntity("Camera");
+        camera.AddComponent<CameraComponent>(1.0f, glm::vec2(0.0f)).primary = true;
 
         auto rendering = std::make_unique<SIMPEngine::RenderingLayer>(scenes);
         auto *renderingPtr = rendering.get();
@@ -72,6 +75,8 @@ int main()
 ```
 
 Put game sources under `Game/<YourGame>/` and add every `.cpp` to `Game/CMakeLists.txt`.
+
+To make a second executable in this repository, copy the pattern of `Game/CMakeLists.txt`: `add_executable(MyGame main.cpp ...)`, link `Engine` (and `Editor imgui` for editor builds), and add `add_subdirectory(MyGame)` to the root `CMakeLists.txt`. Don't redeclare `option(NO_EDITOR ...)` in the new folder; it already exists and the first definition wins.
 
 ---
 
@@ -404,10 +409,11 @@ The editor's Scene menu does the same (Ctrl+S, Ctrl+O). Rebind scripts after loa
 | Action | How |
 |---|---|
 | Play / Pause / Step / Stop | F5 / F6 / F7 / F5, or the toolbar |
-| Move / rotate / scale | W / E / R or the toolbar; hold Ctrl to invert snapping |
+| Select / move / rotate / scale tool | Q / W / E / R, or the toolbar; hold Ctrl to invert snapping |
 | Undo / redo | Ctrl+Z / Ctrl+Y |
 | Frame selection | F |
 | Rename / duplicate / delete | F2 / Ctrl+D / Del |
+| New / open / save / save as | Ctrl+N / Ctrl+O / Ctrl+S / Ctrl+Shift+S |
 | Group / ungroup in the Scene panel | Ctrl+G / Ctrl+Shift+G |
 | Show only one kind of entity | Scene panel → filter button |
 | Collapse or expand every group | Scene panel toolbar |

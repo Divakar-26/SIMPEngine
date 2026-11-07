@@ -41,7 +41,16 @@ The repository ships with **Mossveil**, a small three-level exploration game bui
 
 ## Building
 
-Requirements: CMake 3.25+ (for the presets), Ninja, a C++20 compiler (GCC 12+ or Clang 15+), OpenGL 4.6 drivers. All third-party libraries live in `vendor/`.
+Requirements: CMake 3.25+ (for the presets), Ninja, a C++20 compiler (tested with GCC 12 and Clang), and OpenGL 4.6 drivers. Linux is the tested platform.
+
+All third-party libraries are git submodules in `vendor/`, so clone recursively:
+
+```sh
+git clone --recursive https://github.com/Divakar-26/SIMPEngine.git
+cd SIMPEngine
+```
+
+(Already cloned? Run `git submodule update --init --recursive`.)
 
 ```sh
 cmake --preset dev && cmake --build --preset dev        # Debug, build/dev
@@ -56,6 +65,23 @@ Run from the repository root:
 ```
 
 Configure with `-DNO_EDITOR=ON` to build the game without the editor.
+
+### Install as a library
+
+```sh
+cmake --preset release
+cmake --build --preset release --target Engine
+sudo cmake --install build/release --prefix /usr/local
+```
+
+Then in any CMake project:
+
+```cmake
+find_package(SIMPEngine REQUIRED)
+target_link_libraries(MyGame PRIVATE SIMPEngine::Engine)
+```
+
+The full walkthrough, including the project layout and VS Code autocomplete, is in [docs/USING_THE_LIBRARY.md](docs/USING_THE_LIBRARY.md). The editor is not part of the installed library.
 
 ## Playing Mossveil
 
@@ -75,6 +101,7 @@ Press **Play** (F5) in the editor, or build with `NO_EDITOR`.
 
 | Guide | What it covers |
 |---|---|
+| [docs/USING_THE_LIBRARY.md](docs/USING_THE_LIBRARY.md) | Install the engine and use it from your own project; VS Code setup |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the engine is put together: loop, layers, scene, systems, rendering, editor |
 | [docs/API_GUIDE.md](docs/API_GUIDE.md) | Reference for the public API: application, scene, entities, every component, rendering, lighting, particles, audio, input, assets |
 | [docs/HOW_TO.md](docs/HOW_TO.md) | Step-by-step recipes: first game, scripts, sprites and animation, tilemaps, particles, lights, levels, procedural generation, editor workflow |
