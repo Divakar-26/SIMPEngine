@@ -16,6 +16,7 @@
 #include <Engine/Particles/ParticleEmitter.h>
 #include <Engine/Scene/Systems/LightingSystem.h>
 #include <Engine/Audio/AudioEngine.h>
+#include <Engine/Scripting/LuaRuntime.h>
 #include <Engine/Rendering/Bloom.h>
 #include <Engine/Rendering/Font.h>
 
@@ -49,6 +50,7 @@ namespace SIMPEngine
     {
         ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
         m_LayerStack.Clear();
+        LuaRuntime::Get().ShutDown();
         AudioEngine::Shutdown();
         Renderer::Flush();
         SvgTextureCache::Clear();

@@ -132,6 +132,8 @@ struct ScriptComponent
         InstantiateScript = []() -> std::unique_ptr<SIMPEngine::ScriptableEntity>
         { return std::make_unique<T>(); };
     }
+
+    void BindLua(const std::string &path);
 };
 
 struct PhysicsComponent

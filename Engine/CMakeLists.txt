@@ -52,6 +52,9 @@ add_library(Engine STATIC
     Engine/Scene/TilemapUtils.cpp
     Engine/Rendering/SvgTextureCache.cpp
     Engine/Scene/Systems/MovementSystem.cpp
+    Engine/Scripting/LuaRuntime.cpp
+    Engine/Scripting/LuaBindings.cpp
+    Engine/Scripting/LuaScript.cpp
 )
 
 target_include_directories(Engine
@@ -77,4 +80,5 @@ target_link_libraries(Engine
     PUBLIC stb
     PUBLIC yaml-cpp
     PUBLIC AccelEngine
+    PUBLIC lua
 )

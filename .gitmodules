@@ -36,3 +36,6 @@
 	path = vendor/AccelEngine
 	url = https://github.com/Divakar-26/AccelEngine.git
 	branch = simpengine
+[submodule "vendor/lua"]
+	path = vendor/lua
+	url = https://github.com/lua/lua

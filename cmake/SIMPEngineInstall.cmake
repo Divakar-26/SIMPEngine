@@ -19,7 +19,7 @@ simp_real_target(SIMP_SDL_IMAGE SDL3_image::SDL3_image)
 simp_real_target(SIMP_YAML yaml-cpp)
 simp_real_target(SIMP_SPDLOG spdlog)
 
-set(SIMP_LINK_TARGETS Engine imgui glad AccelEngine ${SIMP_YAML} ${SIMP_SPDLOG} ${SIMP_SDL_IMAGE} ${SIMP_SDL})
+set(SIMP_LINK_TARGETS Engine imgui glad AccelEngine lua ${SIMP_YAML} ${SIMP_SPDLOG} ${SIMP_SDL_IMAGE} ${SIMP_SDL})
 
 install(TARGETS ${SIMP_LINK_TARGETS}
     ARCHIVE DESTINATION "${SIMP_INSTALL_LIB}"

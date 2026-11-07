@@ -72,6 +72,38 @@ add_subdirectory(Engine)
 add_subdirectory(Editor)
 add_subdirectory(Game)
 
+file(GLOB LUA_SOURCES CONFIGURE_DEPENDS
+    "${CMAKE_SOURCE_DIR}/vendor/lua/*.c"
+)
+
+list(REMOVE_ITEM LUA_SOURCES
+    "${CMAKE_SOURCE_DIR}/vendor/lua/lua.c"
+    "${CMAKE_SOURCE_DIR}/vendor/lua/luac.c"
+    "${CMAKE_SOURCE_DIR}/vendor/lua/onelua.c"
+    "${CMAKE_SOURCE_DIR}/vendor/lua/ltests.c"
+)
+
+add_library(lua STATIC ${LUA_SOURCES})
+
+target_include_directories(lua PUBLIC
+    ${CMAKE_SOURCE_DIR}/vendor/lua
+)
+
+set_target_properties(lua PROPERTIES
+    C_STANDARD 99
+    C_STANDARD_REQUIRED ON
+)
+
+if(MSVC)
+    target_compile_options(lua PRIVATE /W0)
+else()
+    target_compile_options(lua PRIVATE -w)
+endif()
+
+if(NOT WIN32)
+    target_compile_definitions(lua PRIVATE LUA_USE_POSIX)
+endif()
+
 option(SIMP_INSTALL "Generate install rules for the SIMPEngine library" ON)
 if(SIMP_INSTALL)
     include(cmake/SIMPEngineInstall.cmake)

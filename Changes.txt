@@ -44,3 +44,5 @@ Akshat
     9. Mossveil sample game (Game/Mossveil): 3 levels with the mossy cavern/blue wizard packs, last one procedurally generated; startup now builds Mossveil
     10. Renderer: per-primitive view culling, per-mode fragment shader with transparent discard; half-res light map and glow emission; off-screen lights and glow sources skipped
     11. Scene panel: collapsed groups with counts and folder icons, type filter + A-Z sort, collapse/expand all, clipped flat results with parent path, reveal selection, Group/Ungroup
+    12. Lua scripting foundation: LuaRuntime fixed (it did not compile) with protected calls + tracebacks, VFS loading and an mtime-checked class cache; ScriptComponent::BindLua + LuaScript (OnCreate/OnUpdate/OnRender/OnDestroy); bindings for log, Input, Key and an Entity userdata (name, transform, FindByName, Destroy); sample assets/scripts/rotator.lua, docs/SCRIPTING.md
+    13. Lua: Sprite (tint, flip, size, region), Camera (shake, zoom, follow) and Light (color, intensity, radius, enabled) component handles via entity:GetSprite()/GetCamera()/GetLight()
