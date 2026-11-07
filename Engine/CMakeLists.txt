@@ -18,6 +18,8 @@ add_library(Engine STATIC
     Engine/Rendering/Animation.cpp
     Engine/Rendering/AnimationController.cpp
     Engine/Rendering/Tileset.cpp
+    Engine/Rendering/Bloom.cpp
+    Engine/Rendering/SpriteSheetSlicer.cpp
     Engine/Rendering/Sprite.cpp
     Engine/Rendering/Texture.cpp
     Engine/Rendering/TextureManager.cpp
@@ -35,6 +37,7 @@ add_library(Engine STATIC
     Engine/Scene/Systems/TilemapSystem.cpp
     Engine/Scene/Systems/ParticleSystem.cpp
     Engine/Scene/Systems/LightingSystem.cpp
+    Engine/Scene/Systems/GlowSystem.cpp
     Engine/Scene/Systems/AudioSystem.cpp
     Engine/Audio/AudioEngine.cpp
     Engine/Particles/ParticleEmitter.cpp

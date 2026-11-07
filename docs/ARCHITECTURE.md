@@ -1,457 +1,97 @@
-# SIMPEngine Architecture
-
-## Overview
-
-SIMPEngine follows a layered architecture with clear separation of concerns:
-
-```
-┌─────────────────────────────────────┐
-│      Application Layer              │
-│  (Main Game Loop & Event Loop)      │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│      Layer Stack                    │
-│  ┌──────────────────────────────┐   │
-│  │  Editor/UI Layer (ImGui)     │   │
-│  ├──────────────────────────────┤   │
-│  │  Rendering Layer (Game)      │   │
-│  ├──────────────────────────────┤   │
-│  │  ImGui Layer (Rendering)     │   │
-│  └──────────────────────────────┘   │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│      Scene & ECS System             │
-│  ┌──────────────────────────────┐   │
-│  │  Scene (Entity Container)    │   │
-│  │  ├─ EnTT Registry            │   │
-│  │  ├─ Systems                  │   │
-│  │  │  ├─ RenderSystem          │   │
-│  │  │  ├─ PhysicsSystem         │   │
-│  │  │  ├─ AnimationSystem       │   │
-│  │  │  ├─ CameraSystem          │   │
-│  │  │  └─ Others...             │   │
-│  │  └─ Components               │   │
-│  └──────────────────────────────┘   │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│      Core Systems                   │
-│  ├─ Renderer (GPU abstraction)      │
-│  ├─ Input Handling                  │
-│  ├─ Asset Management                │
-│  ├─ Logging                         │
-│  ├─ Virtual File System             │
-│  └─ Window Management               │
-└─────────────────────────────────────┘
-```
-
-## Core Components
-
-### 1. Application
-
-**File**: `Engine/Application/Application.h`
-
-Entry point for the engine. Manages:
-- Window lifecycle
-- Main game loop
-- Event distribution
-- Layer stack management
-- Renderer initialization
-
-**Key Methods**:
-- `Run()` - Start the main game loop
-- `PushLayer()` / `PushOverlay()` - Add layers to the stack
-- `OnEvent()` - Route events to layers
-- `SDLEventToEngine()` - Convert SDL events to engine events
-
-### 2. Layer System
-
-**File**: `Engine/Layer/Layer.h`
-
-Hierarchical layer organization for modular scene management:
-
-```cpp
-class Layer {
-    virtual void OnAttach() {}     // Layer attached to stack
-    virtual void OnDetach() {}     // Layer detached
-    virtual void OnUpdate(TimeStep) {}  // Per-frame update
-    virtual void OnRender() {}     // Per-frame render
-    virtual void OnEvent(Event&) {}     // Handle events
-};
-```
-
-**Layer Stack**: LIFO ordering means top layer processes events first. Preventing propagation with `event.Handled = true` blocks lower layers.
-
-### 3. Scene & ECS
-
-**File**: `Engine/Scene/Scene.h`
-
-The scene is the primary organizational container:
-
-```cpp
-class Scene {
-    entt::registry m_Registry;  // ECS registry
-    
-    // Systems
-    RenderSystem renderSystem;
-    PhysicsSystem physicsSystem;
-    CameraSystem cameraSystem;
-    // ... other systems
-    
-    void OnUpdate(float dt);    // Update all systems
-    void OnRender();            // Render all entities
-};
-```
-
-**Entity Component System (ECS)**:
-- **Entities**: Unique identifiers for game objects
-- **Components**: Data containers (transform, sprite, physics, etc.)
-- **Systems**: Logic that processes entities with specific components
-
-**Advantages**:
-- Cache-friendly iteration
-- Data-oriented design
-- Easy composition
-- No deep inheritance hierarchies
-
-### 4. Component Architecture
-
-Components are data structures attached to entities:
-
-```cpp
-struct TransformComponent {
-    glm::vec2 position;
-    float rotation;
-    glm::vec2 scale;
-    glm::mat4 worldTransform;
-    bool dirty;  // For optimization
-};
-
-struct SpriteComponent {
-    std::shared_ptr<Texture> texture;
-    float width, height;
-    SDL_Color color;
-};
-
-entity.AddComponent<SpriteComponent>(texture, width, height);
-auto& sprite = entity.GetComponent<SpriteComponent>();
-```
-
-See [COMPONENTS.md](COMPONENTS.md) for complete component list.
-
-### 5. Systems
-
-Systems contain game logic:
-
-```cpp
-class RenderSystem {
-    void OnUpdate(Scene& scene) {
-        auto view = scene.GetRegistry()
-            .view<TransformComponent, SpriteComponent>();
-        
-        for (auto entity : view) {
-            auto& transform = view.get<TransformComponent>(entity);
-            auto& sprite = view.get<SpriteComponent>(entity);
-            // Render sprite at transform position
-        }
-    }
-};
-```
-
-**System Categories**:
-
-#### Transform Systems
-- **HierarchySystem** - Parent-child relationships
-- **CameraSystem** - Camera positioning and culling
-
-#### Physics Systems
-- **PhysicsSystem** - Rigid body simulation
-- **CollisionSystem** - Collision detection
-
-#### Rendering Systems
-- **RenderSystem** - Sprite rendering
-- **TilemapSystem** - Tilemap rendering
-- **AnimationSystem** - Animation updates
-
-#### Lifecycle Systems
-- **LifetimeSystem** - Entity lifetime management
-
-### 6. Rendering Pipeline
-
-**File**: `Engine/Rendering/Renderer.h`
-
-Abstract rendering API with OpenGL backend:
-
-```
-Game Code
-    ↓
-Renderer (Static Interface)
-    ↓
-RenderingAPI (Backend Interface)
-    ↓
-GLRenderingAPI (OpenGL Implementation)
-    ↓
-GPU
-```
-
-**Key Classes**:
-- `Renderer` - High-level API (static interface)
-- `RenderingAPI` - Low-level rendering contract
-- `GLRenderingAPI` - OpenGL implementation
-- `Shader` - Shader program management
-- `Texture` - Texture loading and management
-
-### 7. Input System
-
-**File**: `Engine/Input/Input.h`
-
-Centralized input handling with static interface:
-
-```cpp
-static bool IsKeyPressed(int keyCode);
-static bool IsMouseButtonPressed(int button);
-static std::pair<int,int> GetMousePosition();
-```
-
-Input events flow:
-```
-SDL_Event → Application::SDLEventToEngine()
-    ↓
-Engine Event
-    ↓
-Layer::OnEvent()
-    ↓
-Input::OnKeyPressed/Released/etc.
-    ↓
-Input static state updated
-```
-
-### 8. Asset Management
-
-**Files**: `Engine/Assets/AssetManager.h`, `Engine/Assets/AssetRegistry.h`
-
-Centralized resource loading and caching:
-
-```cpp
-auto texture = AssetManager::Get().ImportIfNeeded("path/to/texture.png", AssetType::Texture);
-auto texturePtr = AssetManager::Get().GetAs<Texture>(handle);
-```
-
-**Features**:
-- Reference counting
-- Lazy loading
-- Caching
-- Metadata tracking
-- Extensible importer system
-
-### 9. Virtual File System (VFS)
-
-**File**: `Engine/Core/VFS.h`
-
-Asset path abstraction:
-
-```cpp
-VFS::Mount("assets", "../assets");
-// Now use: "assets://textures/player.png"
-```
-
-Enables:
-- Asset relocation without code changes
-- Multiple mount points
-- Consistent asset access
-
-### 10. Event System
-
-**File**: `Engine/Events/Event.h`
-
-Hierarchical event routing:
-
-```cpp
-class Event {
-    virtual EventType GetEventType() const = 0;
-    bool Handled = false;
-};
-
-// Event types: WindowClose, KeyPressed, MouseMoved, etc.
-```
-
-**Flow**:
-```
-SDL_Event
-    ↓
-Application::Run() polls SDL_PollEvent()
-    ↓
-Application::SDLEventToEngine() converts to Engine::Event
-    ↓
-Layer::OnEvent() on each layer (top → bottom)
-    ↓
-If Handled=true, stop propagation
-```
-
-## Data Flow
-
-### Per-Frame Update Cycle
-
-```cpp
-while (m_Running) {
-    // 1. Input Collection
-    SDL_Event sdlEvent;
-    while (SDL_PollEvent(&sdlEvent)) {
-        SDLEventToEngine(sdlEvent);
-    }
-    
-    // 2. Layer Updates
-    for (Layer* layer : m_LayerStack)
-        layer->OnUpdate(deltaTime);
-    
-    // 3. Rendering
-    Renderer::Clear();
-    m_ImGuiLayer->Begin();
-    
-    for (Layer* layer : m_LayerStack)
-        layer->OnRender();
-    
-    m_ImGuiLayer->End();
-    m_Window.OnUpdate();  // Swap buffers
-}
-```
-
-### Scene Update Cycle
-
-```cpp
-Scene::OnUpdate(float dt) {
-    // Update all systems in sequence
-    movementSystem.OnUpdate(*this);
-    physicsSystem.OnUpdate(*this);
-    collisionSystem.OnUpdate(*this);
-    cameraSystem.OnUpdate(*this);
-    animationSystem.OnUpdate(*this);
-    hierarchySystem.OnUpdate(*this);
-    lifeTimeSystem.OnUpdate(*this);
-}
-```
-
-## Memory Management
-
-### Ownership Model
-
-- **Application** owns Layer pointers (manual delete in destructor)
-- **Scene** owns Systems (member variables)
-- **Scene** owns Entities via EnTT Registry
-- **TextureManager** owns Textures via shared_ptr
-- **AssetManager** owns Assets via shared_ptr
-
-**Current Issues**:
-- Some raw `new`/`delete` without proper cleanup
-- Layers created with `new` should use `unique_ptr`
-
-**Recommendations**:
-- Replace raw pointers with `unique_ptr` for ownership
-- Use `shared_ptr` for shared resources
-- Implement RAII for all resources
-
-## Thread Safety
-
-**Current**: Single-threaded design. All operations on main thread.
-
-**Considerations for future**:
-- ImGui is NOT thread-safe
-- Renderer calls must be from main thread
-- ECS operations should be from single thread
-- Consider thread pool for physics/collision
-
-## Extension Points
-
-### Custom Components
-
-```cpp
-struct MyCustomComponent {
-    int customData;
-};
-
-entity.AddComponent<MyCustomComponent>(42);
-```
-
-### Custom Systems
-
-```cpp
-class CustomSystem {
-    void OnUpdate(Scene& scene) {
-        auto view = scene.GetRegistry()
-            .view<CustomComponent, OtherComponent>();
-        // Custom logic
-    }
-};
-
-// Add to Scene constructor
-class MyScene : public Scene {
-    CustomSystem customSystem;
-};
-```
-
-### Custom Events
-
-```cpp
-class CustomEvent : public Event {
-    EventType GetEventType() const override { return EventType::Custom; }
-    const char* GetName() const override { return "CustomEvent"; }
-};
-```
-
-## Performance Considerations
-
-### Optimization Techniques Used
-
-1. **Component Grouping** - EnTT caches component views
-2. **Z-Index Optimization** - Render sorting for depth
-3. **Transform Caching** - Dirty flags for matrix updates
-4. **Spatial Partitioning** - Collision detection optimization
-5. **Asset Caching** - Texture reference counting
-
-### Profiling
-
-Built-in profiling macros:
-
-```cpp
-ProfileTimer timer("SystemName");
-// Code to profile
-// Logged on destruction
-```
-
-## Dependencies
-
-```
-SIMPEngine
-├── SDL3 (window, events, input)
-├── OpenGL 3.3+ (rendering)
-├── EnTT (ECS)
-├── GLM (math)
-├── spdlog (logging)
-├── yaml-cpp (serialization)
-├── imgui (UI)
-├── AccelEngine (physics)
-└── stb (image loading)
-```
-
-## Known Limitations
-
-1. Single-threaded execution
-2. No async asset loading
-3. Tilemap rendering performance (no LOD/culling optimizations)
-4. Limited shader customization
-5. No spatial partitioning for broad-phase collision
-
-## Future Improvements
-
-1. Multi-threaded rendering
-2. Async asset pipeline
-3. Advanced culling and LOD systems
-4. Custom shader support
-5. Particle system integration
-6. Scripting language support (Lua/Python)
-
----
-
-For API details, see [API_GUIDE.md](API_GUIDE.md)
+# Architecture
+
+This page describes how SIMPEngine is put together. For the API itself see [API_GUIDE.md](API_GUIDE.md); for recipes see [HOW_TO.md](HOW_TO.md).
+
+## Modules
+
+| Module | Path | Role |
+|---|---|---|
+| Engine | `Engine/Engine/` | Static library. Application loop, layers, scene/ECS, systems, renderer, audio, assets, VFS, input |
+| Editor | `Editor/` | Static library. `EditorLayer`, panels, commands, undo history, editor camera, `EditorUI` design kit |
+| Game | `Game/` | `GameApp` executable. Builds the scene and pushes layers (Mossveil lives in `Game/Mossveil/`) |
+
+The editor is optional: building with `-DNO_EDITOR=ON` links only the engine and renders the scene straight to the window.
+
+## Frame loop
+
+`Application::Run` does, every frame:
+
+1. `Input::BeginFrame()` clears per-frame edges (just pressed / just released, wheel).
+2. SDL events go to the `ImGuiLayer`, then to `Input`, then to layers from top to bottom until one marks the event handled.
+3. `OnUpdate(TimeStep)` on every layer, bottom to top, then `AudioEngine::Update()`.
+4. Clear, ImGui begin, `OnRender()` on every layer, ImGui end, swap.
+
+`LayerStack` owns layers through `unique_ptr`. `PushLayer`/`PushOverlay` call `OnAttach`; destruction detaches in reverse order. Overlays always sit above normal layers.
+
+A typical game pushes, in order: its own game layer (level switching and other non-entity logic), the `RenderingLayer` (updates and draws the active scene), and, in editor builds, the `EditorLayer`.
+
+## Scene and ECS
+
+`Scene` owns an `entt::registry` and one instance of each system. Components are plain global-namespace structs in `Scene/Component.h`. `Entity` is a light handle (`entt::entity` + `Scene*`).
+
+`Scene::OnUpdate(dt)` runs, in order:
+
+1. physics frame start and transform sync
+2. camera (follow, bounds, shake)
+3. movement (`VelocityComponent`)
+4. collision
+5. hierarchy (world transforms)
+6. lifetime (`LifetimeComponent` countdown and destroy)
+7. scripts (`OnCreate` lazily on first update, then `OnUpdate`)
+8. physics step
+9. sprite animation
+10. particles
+11. audio sources
+
+`Scene::OnRender()` runs:
+
+1. hierarchy transforms, then parallax offsets
+2. camera matrices (or the `OnRender(view, projection)` override used by the editor viewport)
+3. tilemaps, shapes, sprites, non-emissive particles, text
+4. script `OnRender`
+5. lighting composite (when scene lighting is on)
+6. emissive particles, glow components, screen bloom
+
+Renderers read `TransformComponent::worldTransform` through `DecomposeWorld`, so parenting, rotation and scale apply everywhere.
+
+## Rendering
+
+`Renderer` is a static facade over a `RenderingAPI`. The OpenGL backend (`GLRenderingAPI`) collects `Primitive`s, stable-sorts them by z when flushed, and draws them in batches of up to 16 textures per blend mode with one shader (`Shaders/Renderer2DShader.h`). The shader has four modes: textured sprite, SDF shape, SDF text, and analytic light.
+
+- Every primitive is culled against the visible rectangle before it is queued (`Renderer::IsVisible`).
+- Changing view, projection or render target flushes the batch.
+- Render targets are `Framebuffer`s (RGBA8 or RGBA16F) bound with `Renderer::BeginRenderTarget` / `EndRenderTarget`.
+
+Post-processing passes run inside `Scene::RenderContent` on whatever target is bound:
+
+| Pass | Implementation |
+|---|---|
+| Lighting | `LightingSystem` renders lights additively into a half-resolution RGBA16F light map cleared to the ambient colour, then multiplies it over the view |
+| Emissive particles | Particle effects marked `Emissive` are drawn after the multiply so they are not darkened |
+| Glow | `GlowSystem` redraws glowing entities into a half-resolution emission buffer, blurs it with the bloom chain and adds it |
+| Bloom | `BloomRenderer` thresholds the frame, runs a 13-tap downsample / tent upsample mip chain and adds it back |
+
+## Assets
+
+All runtime paths are virtual: `assets://textures/foo.png`. `VFS::Mount("assets", "../assets")` in `main()` walks up from the executable until it finds the folder. `TextureManager` caches textures by path; scenes store virtual paths so they load from anywhere.
+
+| Asset | Loader |
+|---|---|
+| Images | `TextureManager::LoadTexture` (stb_image) |
+| SVG | `SvgTextureCache` (nanosvg) |
+| Fonts | `Font::Load` (stb_truetype SDF atlas) |
+| Scenes | `SceneSerializer` (YAML) |
+| Particle effects | `ParticleSerializer` (`.particle`, YAML) |
+| Tiled maps and tilesets | `TiledLoader` (JSON, CSV layers) |
+| Audio | `AudioEngine` (WAV via SDL) |
+
+## Editor
+
+`EditorLayer` turns off the rendering layer's backbuffer output and simulation, then draws the scene into its own framebuffers:
+
+- **Viewport** — `EditorCamera`, gizmos, picking, tile painting, overlays. Never simulates gameplay (particles still animate for preview).
+- **Game** — renders through the scene's primary camera and owns game input while playing.
+
+Play takes a YAML snapshot of the scene (`EditorHistory::Capture`) and Stop restores it, re-binding script factories by entity order. Undo/redo uses the same snapshots: property widgets call `EditorUI::NotifyEdit()`, discrete commands call `EditorCommands::RecordEdit()` before changing anything.
+
+All panels share an `EditorContext` (scene, selection, play state, tool state). UI is built from the `EditorUI` kit (`Editor/UI/`): theme colours, fonts, section headers, property rows, tree rows, tiles and toolbars.

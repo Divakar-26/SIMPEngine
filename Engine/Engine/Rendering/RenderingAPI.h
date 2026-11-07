@@ -33,7 +33,8 @@ namespace SIMPEngine
     {
         Sprite = 0,
         Shape = 1,
-        SdfText = 2
+        SdfText = 2,
+        Light = 3
     };
 
     struct Primitive

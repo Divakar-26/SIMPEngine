@@ -248,6 +248,9 @@ void InspectorPanel::DrawParticleSection(SIMPEngine::Entity &m_SelectedEntity)
         int blend = static_cast<int>(e.Blend);
         if (PropertySegmented("Blend", &blend, blends, 3))
             e.Blend = static_cast<SIMPEngine::BlendMode>(blend);
+        PropertyBool("Emissive", &e.Emissive);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Drawn after scene lighting so it glows in the dark (fire, magic, sparks)");
 
         ImGui::Dummy(ImVec2(0, 4));
         PropertyLabel("");

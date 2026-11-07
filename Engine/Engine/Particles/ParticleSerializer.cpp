@@ -128,6 +128,7 @@ namespace SIMPEngine
         if (e.CustomTexture && !e.CustomTexture->GetVFSPath().empty())
             out << YAML::Key << "texture" << YAML::Value << e.CustomTexture->GetVFSPath();
         out << YAML::Key << "blend" << YAML::Value << BlendNames[static_cast<size_t>(e.Blend)];
+        out << YAML::Key << "emissive" << YAML::Value << e.Emissive;
         out << YAML::EndMap;
     }
 
@@ -190,6 +191,7 @@ namespace SIMPEngine
         }
         text.clear();
         Read(node, "blend", text);
+        Read(node, "emissive", e.Emissive);
         e.Blend = static_cast<BlendMode>(IndexOf(BlendNames, text, static_cast<int>(e.Blend)));
         return true;
     }

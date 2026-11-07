@@ -4,76 +4,48 @@
 #include <Engine/Core/VFS.h>
 #include <Engine/Layer/RenderingLayer.h>
 #include <Engine/Scene/SceneManager.h>
-#include <Engine/Scene/SceneSerializer.h>
 
-#include "ConstellationScript.h"
+#include "Mossveil/MossveilLayer.h"
 
 #ifndef NO_EDITOR
 #include "EditorLayer.h"
 #endif
 
-class MyGame : public SIMPEngine::Application
+class MossveilGame : public SIMPEngine::Application
 {
 public:
-    MyGame()
+    MossveilGame()
     {
         auto sceneManager = std::make_shared<SIMPEngine::SceneManager>();
-        sceneManager->LoadScene(
-            "Level1",
-            "assets://scenes/Level1.yaml"
-        );
-        auto scene1 = sceneManager->GetActiveScene();
-        auto constellation =
-            scene1->BuildEntity("constellation")
-                .At(0, 0)
-                .Build();
+        auto scene = std::make_shared<SIMPEngine::Scene>("Mossveil");
+        sceneManager->AddScene("Mossveil", scene);
+        sceneManager->SetActiveScene("Mossveil");
+        Mossveil::BuildLevel(*scene, 1, 7);
 
-        auto &sc =
-            scene1->GetRegistry().emplace<ScriptComponent>(
-                constellation
-            );
-        sc.Bind<ConstellationScript>();
-        SIMPEngine::SceneSerializer serializer(scene1.get());
-        serializer.Serialize("assets://scenes/Level2.yaml");
-        auto renderingLayer =
-            std::make_unique<SIMPEngine::RenderingLayer>(
-                sceneManager
-            );
+        PushLayer(std::make_unique<Mossveil::MossveilLayer>(scene.get()));
 
-        SIMPEngine::RenderingLayer *renderingLayerPtr =
-            renderingLayer.get();
-
+        auto renderingLayer = std::make_unique<SIMPEngine::RenderingLayer>(sceneManager);
+        SIMPEngine::RenderingLayer *renderingLayerPtr = renderingLayer.get();
         PushOverlay(std::move(renderingLayer));
 
 #ifndef NO_EDITOR
-
-        PushOverlay(
-            std::make_unique<EditorLayer>(
-                renderingLayerPtr
-            )
-        );
-
+        PushOverlay(std::make_unique<EditorLayer>(renderingLayerPtr));
+#else
+        (void)renderingLayerPtr;
 #endif
     }
 };
 
 SIMPEngine::Application *SIMPEngine::CreateApplication()
 {
-    return new MyGame();
+    return new MossveilGame();
 }
 
 int main()
 {
     SIMPEngine::Log::Init();
     CORE_INFO("Engine Starting up....");
-    SIMPEngine::VFS::Mount(
-        "assets",
-        "../assets"
-    );
-    CORE_INFO(
-        "Mounted assets VFS at {}",
-        "../assets"
-    );
+    SIMPEngine::VFS::Mount("assets", "../assets");
     auto *app = SIMPEngine::CreateApplication();
     app->Run();
     delete app;

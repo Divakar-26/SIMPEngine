@@ -1,5 +1,7 @@
 add_executable(GameApp
     main.cpp
+    Mossveil/Builder.cpp
+    Mossveil/Levels.cpp
 )
 
 set_target_properties(GameApp PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")

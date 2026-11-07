@@ -37,3 +37,10 @@ Akshat
     2. Audio: AudioEngine on SDL3 streams (WAV, loop, volume, pitch, pause), AudioSource component, inspector preview
     3. Parallax component; camera follow (target, offset, smoothing, dead zone), bounds and shake on CameraComponent
     4. Input just-released queries; viewport collider overlay; New Point/Spot Light menu items
+    5. Lights computed per pixel in the batch shader (smooth at any zoom) into an RGBA16F light map; HDR framebuffers
+    6. Bloom post-process as a scene setting; emissive particle effects drawn after lighting
+    7. Glow component (per-entity glow via emission buffer + blur), Renderer color multiplier, RenderSystem::DrawEntity; scene bloom renamed Screen Bloom
+    8. SpriteSheetSlicer: Animation Maker auto-detects frame size and count from sprite sheet gaps
+    9. Mossveil sample game (Game/Mossveil): 3 levels with the mossy cavern/blue wizard packs, last one procedurally generated; startup now builds Mossveil
+    10. Renderer: per-primitive view culling, per-mode fragment shader with transparent discard; half-res light map and glow emission; off-screen lights and glow sources skipped
+    11. Scene panel: collapsed groups with counts and folder icons, type filter + A-Z sort, collapse/expand all, clipped flat results with parent path, reveal selection, Group/Ungroup

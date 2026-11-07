@@ -16,6 +16,7 @@
 #include <Engine/Particles/ParticleEmitter.h>
 #include <Engine/Scene/Systems/LightingSystem.h>
 #include <Engine/Audio/AudioEngine.h>
+#include <Engine/Rendering/Bloom.h>
 #include <Engine/Rendering/Font.h>
 
 namespace SIMPEngine
@@ -54,6 +55,7 @@ namespace SIMPEngine
         Font::ClearCache();
         ParticleTextures::Release();
         LightingSystem::ReleaseTextures();
+        BloomRenderer::ReleaseShared();
         TextureManager::Get().UnloadAll();
         Renderer::Shutdown();
         s_Instance = nullptr;

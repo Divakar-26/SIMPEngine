@@ -79,6 +79,18 @@ void InspectorPanel::DrawSceneProperties()
                 lighting.Ambient = {ambient[0], ambient[1], ambient[2], ambient[3]};
         }
 
+        auto &bloom = scene.GetBloom();
+        PropertyBool("Screen Bloom", &bloom.Enabled);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Everything brighter than the threshold glows. To make one entity glow, add a Glow component to it instead");
+        if (bloom.Enabled)
+        {
+            PropertyFloat("Threshold", &bloom.Threshold, 0.005f, 0.0f, 1.0f, "%.2f");
+            PropertyFloat("Soft Knee", &bloom.Knee, 0.005f, 0.0f, 1.0f, "%.2f");
+            PropertyFloat("Intensity", &bloom.Intensity, 0.01f, 0.0f, 10.0f, "%.2f");
+            PropertyFloat("Spread", &bloom.Radius, 0.01f, 0.1f, 4.0f, "%.2f");
+        }
+
         char count[32];
         std::snprintf(count, sizeof(count), "%zu", scene.GetRegistry().view<TagComponent>().size());
         PropertyValue("Entities", count);

@@ -88,8 +88,22 @@ void AnimationMakerPanel::Open(SIMPEngine::Entity targetEntity,
     m_PreviewElapsed  = 0.0f;
     m_PreviewPlaying  = true;
 
-    LoadSpriteSheet(spriteSheetVPath);
+    if (LoadSpriteSheet(spriteSheetVPath))
+        AutoSlice();
     m_Open = true;
+}
+
+void AnimationMakerPanel::AutoSlice()
+{
+    m_Slice = SIMPEngine::SpriteSheetSlicer::Detect(m_SpriteSheetVPath);
+    if (m_Slice.FrameWidth <= 0 || m_Slice.FrameHeight <= 0)
+        return;
+    m_FrameWidth = m_Slice.FrameWidth;
+    m_FrameHeight = m_Slice.FrameHeight;
+    m_FrameCount = std::max(1, m_Slice.FrameCount);
+    m_PreviewFrame = 0;
+    m_PreviewElapsed = 0.0f;
+    m_PreviewPlaying = true;
 }
 
 bool AnimationMakerPanel::LoadSpriteSheet(const std::string& vpath)
@@ -157,6 +171,21 @@ void AnimationMakerPanel::OnImGuiRender()
                           m_SpriteSheetTexture->GetWidth(),
                           m_SpriteSheetTexture->GetHeight());
             PropertyValue("Sheet", sheet);
+        }
+
+        if (m_SpriteSheetTexture)
+        {
+            char detected[96];
+            if (m_Slice.Found)
+                std::snprintf(detected, sizeof(detected), "%d frames, %d x %d", m_Slice.FrameCount, m_Slice.FrameWidth, m_Slice.FrameHeight);
+            else
+                std::snprintf(detected, sizeof(detected), "No grid found");
+            PropertyValue("Detected", detected, m_Slice.Found ? &Colors::Success : &Colors::Warning);
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip) && !m_Slice.Method.empty())
+                ImGui::SetTooltip("Found by %s", m_Slice.Method.c_str());
+            PropertyLabel("");
+            if (Button("Detect Again", ButtonKind::Ghost, ImVec2(-FLT_MIN, 0)))
+                AutoSlice();
         }
 
         int size[2] = {m_FrameWidth, m_FrameHeight};

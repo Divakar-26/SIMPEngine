@@ -77,6 +77,7 @@ namespace SIMPEngine
         ParticleShape Shape = ParticleShape::Soft;
         std::shared_ptr<Texture> CustomTexture;
         BlendMode Blend = BlendMode::Alpha;
+        bool Emissive = false;
     };
 
     struct Particle

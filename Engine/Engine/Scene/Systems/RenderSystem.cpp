@@ -3,113 +3,141 @@
 #include <Engine/Math/EntityUtility.h>
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Rendering/Font.h>
+#include <Engine/Scene/Systems/TilemapSystem.h>
+#include <Engine/Scene/Systems/ParticleSystem.h>
 
 #include <cmath>
 
 namespace SIMPEngine
 {
-    void RenderSystem::RenderQuads(entt::registry &m_Registry)
+    void RenderSystem::DrawQuad(entt::registry &registry, entt::entity entity)
     {
-        auto view = m_Registry.view<TransformComponent, RenderComponent>();
+        if (registry.any_of<SpriteComponent, AnimatedSpriteComponent>(entity) || !registry.all_of<TransformComponent, RenderComponent>(entity))
+            return;
 
-        for (auto entity : view)
+        auto &transform = registry.get<TransformComponent>(entity);
+        auto &render = registry.get<RenderComponent>(entity);
+        WorldTransform2D w = DecomposeWorld(transform);
+        Renderer::DrawQuad(w.Position.x, w.Position.y, render.width * w.Scale.x,
+                           render.height * w.Scale.y, w.Rotation,
+                           render.color, true, transform.zIndex);
+    }
+
+    void RenderSystem::DrawSprite(entt::registry &registry, entt::entity entity)
+    {
+        bool hasSprite = registry.any_of<SpriteComponent>(entity);
+        bool hasAnim = registry.any_of<AnimatedSpriteComponent>(entity);
+        if ((!hasSprite && !hasAnim) || !registry.all_of<TransformComponent>(entity))
+            return;
+
+        auto &transform = registry.get<TransformComponent>(entity);
+        WorldTransform2D w = DecomposeWorld(transform);
+
+        float width = w.Scale.x;
+        float height = w.Scale.y;
+
+        if (auto *render = registry.try_get<RenderComponent>(entity))
         {
-            if (m_Registry.any_of<SpriteComponent, AnimatedSpriteComponent>(entity))
-                continue;
+            width = render->width * w.Scale.x;
+            height = render->height * w.Scale.y;
+        }
 
-            auto &transform = view.get<TransformComponent>(entity);
-            auto &render = view.get<RenderComponent>(entity);
-            WorldTransform2D w = DecomposeWorld(transform);
+        SpriteComponent *sprite = registry.try_get<SpriteComponent>(entity);
+        if (sprite)
+        {
+            width = sprite->width * w.Scale.x;
+            height = sprite->height * w.Scale.y;
+        }
 
-            Renderer::DrawQuad(w.Position.x, w.Position.y, render.width * w.Scale.x,
-                               render.height * w.Scale.y, w.Rotation,
-                               render.color, true, transform.zIndex);
+        if (hasAnim)
+        {
+            auto &anim = registry.get<AnimatedSpriteComponent>(entity);
+            if (anim.animation)
+            {
+                SDL_Color tint = sprite ? sprite->tint : SDL_Color{255, 255, 255, 255};
+                anim.animation->Draw(w.Position.x, w.Position.y, width, height, tint, w.Rotation, transform.zIndex);
+                return;
+            }
+        }
+
+        if (sprite && sprite->texture)
+        {
+            SpriteDesc desc;
+            desc.TextureRef = sprite->texture;
+            desc.Position = w.Position;
+            desc.Size = {width, height};
+            desc.Rotation = w.Rotation;
+            desc.Z = transform.zIndex;
+            desc.Tint = sprite->tint;
+            desc.FlipX = sprite->flipX;
+            desc.FlipY = sprite->flipY;
+            desc.SourceRect = sprite->useRegion ? &sprite->region : nullptr;
+            Renderer::DrawSprite(desc);
         }
     }
 
-    void RenderSystem::RenderSprites(entt::registry &m_Registry)
+    void RenderSystem::DrawText(entt::registry &registry, entt::entity entity)
     {
-        auto view = m_Registry.view<TransformComponent>();
+        if (!registry.all_of<TransformComponent, TextComponent>(entity))
+            return;
 
-        for (auto entity : view)
-        {
-            bool hasSprite = m_Registry.any_of<SpriteComponent>(entity);
-            bool hasAnim = m_Registry.any_of<AnimatedSpriteComponent>(entity);
-            if (!hasSprite && !hasAnim)
-                continue;
+        auto &transform = registry.get<TransformComponent>(entity);
+        auto &text = registry.get<TextComponent>(entity);
+        if (text.Text.empty())
+            return;
 
-            auto &transform = view.get<TransformComponent>(entity);
-            WorldTransform2D w = DecomposeWorld(transform);
+        auto font = text.FontPath.empty() ? Font::GetDefault() : Font::Load(text.FontPath);
+        if (!font)
+            return;
 
-            float width = w.Scale.x;
-            float height = w.Scale.y;
+        WorldTransform2D w = DecomposeWorld(transform);
+        float size = text.Size * std::abs(w.Scale.y);
+        glm::vec2 extent = font->MeasureText(text.Text, size);
 
-            if (auto *render = m_Registry.try_get<RenderComponent>(entity))
-            {
-                width = render->width * w.Scale.x;
-                height = render->height * w.Scale.y;
-            }
+        float r = glm::radians(w.Rotation);
+        glm::vec2 up(-std::sin(r), std::cos(r));
+        glm::vec2 anchor = w.Position + up * (extent.y * 0.5f);
 
-            SpriteComponent *sprite = m_Registry.try_get<SpriteComponent>(entity);
-            if (sprite)
-            {
-                width = sprite->width * w.Scale.x;
-                height = sprite->height * w.Scale.y;
-            }
-
-            if (hasAnim)
-            {
-                auto &anim = m_Registry.get<AnimatedSpriteComponent>(entity);
-                if (anim.animation)
-                {
-                    SDL_Color tint = sprite ? sprite->tint : SDL_Color{255, 255, 255, 255};
-                    anim.animation->Draw(w.Position.x, w.Position.y, width, height, tint, w.Rotation, transform.zIndex);
-                    continue;
-                }
-            }
-
-            if (sprite && sprite->texture)
-            {
-                SpriteDesc desc;
-                desc.TextureRef = sprite->texture;
-                desc.Position = w.Position;
-                desc.Size = {width, height};
-                desc.Rotation = w.Rotation;
-                desc.Z = transform.zIndex;
-                desc.Tint = sprite->tint;
-                desc.FlipX = sprite->flipX;
-                desc.FlipY = sprite->flipY;
-                desc.SourceRect = sprite->useRegion ? &sprite->region : nullptr;
-                Renderer::DrawSprite(desc);
-            }
-        }
+        TextAlign align = text.Align == 0 ? TextAlign::Left : text.Align == 2 ? TextAlign::Right : TextAlign::Center;
+        Renderer::DrawText(text.Text, anchor.x, anchor.y, size, text.Color, align, w.Rotation, transform.zIndex, font.get());
     }
 
-    void RenderSystem::RenderText(entt::registry &m_Registry)
+    void RenderSystem::DrawEntity(entt::registry &registry, entt::entity entity)
     {
-        auto view = m_Registry.view<TransformComponent, TextComponent>();
+        if (!registry.valid(entity) || !registry.all_of<TransformComponent>(entity))
+            return;
 
-        for (auto entity : view)
+        if (registry.all_of<TilemapComponent>(entity))
         {
-            auto &transform = view.get<TransformComponent>(entity);
-            auto &text = view.get<TextComponent>(entity);
-            if (text.Text.empty())
-                continue;
-
-            auto font = text.FontPath.empty() ? Font::GetDefault() : Font::Load(text.FontPath);
-            if (!font)
-                continue;
-
-            WorldTransform2D w = DecomposeWorld(transform);
-            float size = text.Size * std::abs(w.Scale.y);
-            glm::vec2 extent = font->MeasureText(text.Text, size);
-
-            float r = glm::radians(w.Rotation);
-            glm::vec2 up(-std::sin(r), std::cos(r));
-            glm::vec2 anchor = w.Position + up * (extent.y * 0.5f);
-
-            TextAlign align = text.Align == 0 ? TextAlign::Left : text.Align == 2 ? TextAlign::Right : TextAlign::Center;
-            Renderer::DrawText(text.Text, anchor.x, anchor.y, size, text.Color, align, w.Rotation, transform.zIndex, font.get());
+            glm::vec2 viewMin, viewMax;
+            TilemapSystem::VisibleWorldBounds(viewMin, viewMax);
+            TilemapSystem::DrawTilemap(registry.get<TilemapComponent>(entity), registry.get<TransformComponent>(entity), viewMin, viewMax);
         }
+        DrawQuad(registry, entity);
+        DrawSprite(registry, entity);
+        if (auto *emitter = registry.try_get<ParticleEmitterComponent>(entity))
+        {
+            auto &transform = registry.get<TransformComponent>(entity);
+            ParticleEmitter::Render(emitter->effect, emitter->state, ParticleSystem::FrameOf(transform), transform.zIndex);
+        }
+        DrawText(registry, entity);
+    }
+
+    void RenderSystem::RenderQuads(entt::registry &registry)
+    {
+        for (auto entity : registry.view<TransformComponent, RenderComponent>())
+            DrawQuad(registry, entity);
+    }
+
+    void RenderSystem::RenderSprites(entt::registry &registry)
+    {
+        for (auto entity : registry.view<TransformComponent>())
+            DrawSprite(registry, entity);
+    }
+
+    void RenderSystem::RenderText(entt::registry &registry)
+    {
+        for (auto entity : registry.view<TransformComponent, TextComponent>())
+            DrawText(registry, entity);
     }
 }

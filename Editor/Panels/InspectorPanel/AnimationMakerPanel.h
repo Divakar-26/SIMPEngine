@@ -4,6 +4,7 @@
 #include "../../EditorContext.h"
 #include <Engine/Scene/Entity.h>
 #include <Engine/Rendering/Texture.h>
+#include <Engine/Rendering/SpriteSheetSlicer.h>
 
 #include <memory>
 #include <string>
@@ -25,6 +26,7 @@ public:
 private:
     void Close();
     bool LoadSpriteSheet(const std::string& vpath);
+    void AutoSlice();
 
 private:
     EditorContext *m_Context = nullptr;
@@ -43,6 +45,8 @@ private:
     int   m_PreviewFrame   = 0;
     float m_PreviewElapsed = 0.0f;
     bool  m_PreviewPlaying = true;
+
+    SIMPEngine::SpriteSheetSlice m_Slice;
 
     void TickPreview(float dt);
 };

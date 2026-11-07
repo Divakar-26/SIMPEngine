@@ -12,7 +12,7 @@ namespace SIMPEngine
     {
     public:
         void Update(entt::registry &registry, float dt);
-        void Render(entt::registry &registry);
+        void Render(entt::registry &registry, int emissiveFilter = -1);
 
         static EmitterFrame FrameOf(const TransformComponent &transform);
     };

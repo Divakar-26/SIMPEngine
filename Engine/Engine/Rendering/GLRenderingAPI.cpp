@@ -162,6 +162,9 @@ namespace SIMPEngine
         case PrimitiveMode::SdfText:
             m_Stats.glyphCount++;
             break;
+        case PrimitiveMode::Light:
+            m_Stats.shapeCount++;
+            break;
         }
         m_Stats.primitives++;
     }

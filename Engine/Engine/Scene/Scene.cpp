@@ -230,7 +230,8 @@ namespace SIMPEngine
 
         renderSystem.RenderQuads(m_Registry);
         renderSystem.RenderSprites(m_Registry);
-        particleSystem.Render(m_Registry);
+        bool lit = m_Lighting.Enabled && m_LightingVisible;
+        particleSystem.Render(m_Registry, lit ? 0 : -1);
         renderSystem.RenderText(m_Registry);
 
         auto view = m_Registry.view<ScriptComponent>();
@@ -241,8 +242,15 @@ namespace SIMPEngine
                 sc.Instance->OnRender();
         }
 
-        if (m_Lighting.Enabled && m_LightingVisible)
+        if (lit)
+        {
             lightingSystem.Render(m_Registry, m_Lighting);
+            particleSystem.Render(m_Registry, 1);
+        }
+        if (m_LightingVisible)
+            glowSystem.Render(m_Registry);
+        if (m_Bloom.Enabled && m_LightingVisible)
+            bloomRenderer.Apply(m_Bloom);
     }
 
     void Scene::Clear()

@@ -4,6 +4,12 @@ Settings:
   lighting:
     enabled: false
     ambient: [0.16, 0.16, 0.22, 1]
+  bloom:
+    enabled: false
+    threshold: 0.75
+    knee: 0.4
+    intensity: 0.8
+    radius: 1
 Entities:
   - ID: 1
     Tag: Ball 2

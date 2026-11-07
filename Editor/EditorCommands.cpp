@@ -8,6 +8,7 @@
 #include <Engine/Rendering/Tileset.h>
 #include <Engine/Particles/ParticleEmitter.h>
 #include <Engine/Particles/ParticleSerializer.h>
+#include <Engine/Math/EntityUtility.h>
 #include <Engine/Scene/ScriptableEntity.h>
 #include <algorithm>
 #include <cctype>
@@ -351,4 +352,131 @@ bool EditorCommands::ReparentEntity(
 
     ctx.Scene->UpdateTransforms();
     return true;
+}
+
+namespace
+{
+    void Detach(entt::registry &registry, entt::entity child)
+    {
+        auto *hierarchy = registry.try_get<HierarchyComponent>(child);
+        if (!hierarchy)
+            return;
+        if (hierarchy->parent != entt::null && registry.valid(hierarchy->parent))
+        {
+            if (auto *old = registry.try_get<HierarchyComponent>(hierarchy->parent))
+                old->children.erase(std::remove(old->children.begin(), old->children.end(), child), old->children.end());
+        }
+        hierarchy->parent = entt::null;
+    }
+
+    entt::entity ParentOf(entt::registry &registry, entt::entity entity)
+    {
+        auto *hierarchy = registry.try_get<HierarchyComponent>(entity);
+        return hierarchy && registry.valid(hierarchy->parent) ? hierarchy->parent : entt::null;
+    }
+
+    bool HasAncestorIn(entt::registry &registry, entt::entity entity, const std::vector<entt::entity> &set)
+    {
+        for (entt::entity a = ParentOf(registry, entity); a != entt::null; a = ParentOf(registry, a))
+            if (std::find(set.begin(), set.end(), a) != set.end())
+                return true;
+        return false;
+    }
+}
+
+bool EditorCommands::IsGroup(SIMPEngine::Entity entity)
+{
+    if (!entity)
+        return false;
+    auto &registry = entity.GetScene()->GetRegistry();
+    entt::entity handle = entity.GetHandle();
+    auto *hierarchy = registry.try_get<HierarchyComponent>(handle);
+    if (!hierarchy || hierarchy->children.empty())
+        return false;
+    return !registry.any_of<SpriteComponent, RenderComponent, TextComponent, TilemapComponent, AnimatedSpriteComponent, ParticleEmitterComponent,
+                            LightComponent, AudioSourceComponent, CameraComponent, PhysicsComponent, CollisionComponent, ScriptComponent, GlowComponent>(handle);
+}
+
+SIMPEngine::Entity EditorCommands::GroupSelection(EditorContext &ctx, const std::string &name)
+{
+    auto &registry = ctx.Scene->GetRegistry();
+    std::vector<entt::entity> selected;
+    for (entt::entity handle : ctx.SelectedHandles())
+        if (registry.valid(handle))
+            selected.push_back(handle);
+
+    std::vector<entt::entity> tops;
+    for (entt::entity handle : selected)
+        if (!HasAncestorIn(registry, handle, selected))
+            tops.push_back(handle);
+    if (tops.empty())
+        return {};
+
+    RecordEdit(ctx);
+    ctx.Scene->UpdateTransforms();
+
+    entt::entity commonParent = ParentOf(registry, tops.front());
+    bool shared = std::all_of(tops.begin(), tops.end(), [&](entt::entity e) { return ParentOf(registry, e) == commonParent; });
+
+    auto group = ctx.Scene->CreateEntity(name);
+    if (shared && commonParent != entt::null)
+        ctx.Scene->SetParent(group.GetHandle(), commonParent);
+
+    for (entt::entity handle : tops)
+    {
+        auto &transform = registry.get<TransformComponent>(handle);
+        if (!shared)
+        {
+            auto world = SIMPEngine::DecomposeWorld(transform);
+            transform.position = world.Position;
+            transform.rotation = world.Rotation;
+            transform.scale = world.Scale;
+        }
+        Detach(registry, handle);
+        ctx.Scene->SetParent(handle, group.GetHandle());
+        transform.dirty = true;
+    }
+
+    ctx.Scene->UpdateTransforms();
+    ctx.Select(group);
+    return group;
+}
+
+void EditorCommands::Ungroup(EditorContext &ctx, SIMPEngine::Entity group)
+{
+    if (!group || !group.HasComponent<HierarchyComponent>())
+        return;
+    auto &registry = ctx.Scene->GetRegistry();
+    entt::entity handle = group.GetHandle();
+    std::vector<entt::entity> children = registry.get<HierarchyComponent>(handle).children;
+    if (children.empty())
+        return;
+
+    RecordEdit(ctx);
+    entt::entity parent = ParentOf(registry, handle);
+    const auto &groupTransform = registry.get<TransformComponent>(handle);
+    glm::mat4 local = groupTransform.GetLocalTransform();
+    float rotation = groupTransform.rotation;
+    glm::vec2 scale = groupTransform.scale;
+
+    std::vector<entt::entity> moved;
+    for (entt::entity child : children)
+    {
+        if (!registry.valid(child))
+            continue;
+        auto &transform = registry.get<TransformComponent>(child);
+        glm::vec4 p = local * glm::vec4(transform.position, 0.0f, 1.0f);
+        transform.position = {p.x, p.y};
+        transform.rotation += rotation;
+        transform.scale *= scale;
+        transform.dirty = true;
+        Detach(registry, child);
+        if (parent != entt::null)
+            ctx.Scene->SetParent(child, parent);
+        moved.push_back(child);
+    }
+
+    ctx.Scene->DestroyEntity(group);
+    ctx.Scene->UpdateTransforms();
+    ctx.SetSelection(moved);
 }

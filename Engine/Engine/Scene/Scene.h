@@ -15,6 +15,8 @@
 #include <Engine/Scene/Systems/ParticleSystem.h>
 #include <Engine/Scene/Systems/LightingSystem.h>
 #include <Engine/Scene/Systems/AudioSystem.h>
+#include <Engine/Rendering/Bloom.h>
+#include <Engine/Scene/Systems/GlowSystem.h>
 
 #include <AccelEngine/world.h>
 #include <AccelEngine/ForceRegistry.h>
@@ -112,6 +114,8 @@ namespace SIMPEngine
 
         SceneLighting &GetLighting() { return m_Lighting; }
         const SceneLighting &GetLighting() const { return m_Lighting; }
+        BloomSettings &GetBloom() { return m_Bloom; }
+        const BloomSettings &GetBloom() const { return m_Bloom; }
         void SetLightingVisible(bool visible) { m_LightingVisible = visible; }
         void StopAudio();
 
@@ -159,6 +163,7 @@ namespace SIMPEngine
         bool m_PhysicsDirty = false;
         SceneLighting m_Lighting;
         bool m_LightingVisible = true;
+        BloomSettings m_Bloom;
         entt::registry m_Registry;
 
         MovementSystem movementSystem;
@@ -173,6 +178,8 @@ namespace SIMPEngine
         ParticleSystem particleSystem;
         LightingSystem lightingSystem;
         AudioSystem audioSystem;
+        BloomRenderer bloomRenderer;
+        GlowSystem glowSystem;
 
         void OnPhysicsComponentDestroyed(entt::registry &registry, entt::entity entity);
         void OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity);

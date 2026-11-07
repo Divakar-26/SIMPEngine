@@ -28,12 +28,14 @@ namespace SIMPEngine
         }
     }
 
-    void ParticleSystem::Render(entt::registry &registry)
+    void ParticleSystem::Render(entt::registry &registry, int emissiveFilter)
     {
         auto view = registry.view<ParticleEmitterComponent, TransformComponent>();
         for (auto entity : view)
         {
             auto &emitter = view.get<ParticleEmitterComponent>(entity);
+            if (emissiveFilter >= 0 && emitter.effect.Emissive != (emissiveFilter == 1))
+                continue;
             auto &transform = view.get<TransformComponent>(entity);
             ParticleEmitter::Render(emitter.effect, emitter.state, FrameOf(transform), transform.zIndex);
         }

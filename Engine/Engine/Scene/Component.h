@@ -231,3 +231,11 @@ struct AudioSourceComponent
     uint32_t voice = 0;
     bool started = false;
 };
+
+struct GlowComponent
+{
+    SDL_Color color{255, 255, 255, 255};
+    float intensity = 1.5f;
+    float spread = 1.0f;
+    bool enabled = true;
+};

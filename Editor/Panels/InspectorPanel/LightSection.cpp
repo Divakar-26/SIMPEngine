@@ -70,6 +70,17 @@ void InspectorPanel::DrawLightSection(SIMPEngine::Entity &m_SelectedEntity)
         dl->AddRect(pos, max, U32(Colors::Border), Metrics::FrameRounding);
         ImGui::Dummy(ImVec2(w, h)); });
 
+    DrawComponentSection<GlowComponent>(ctx, "Glow", m_SelectedEntity, [](GlowComponent &glow)
+                                        {
+        PropertyBool("Enabled", &glow.enabled);
+        PropertyColor("Color", glow.color);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Multiplies the entity's own colors; white keeps them");
+        PropertyFloat("Intensity", &glow.intensity, 0.01f, 0.0f, 20.0f, "%.2f");
+        PropertyFloat("Spread", &glow.spread, 0.01f, 0.1f, 4.0f, "%.2f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Halo size. Glowing entities share one blur, so the largest spread in view is used"); });
+
     DrawComponentSection<ParallaxComponent>(ctx, "Parallax", m_SelectedEntity, [](ParallaxComponent &parallax)
                                             {
         PropertyVec2("Factor", &parallax.factor.x, 0.01f, "%.2f");

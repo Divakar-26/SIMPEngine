@@ -15,6 +15,10 @@ namespace SIMPEngine
     std::unique_ptr<RenderingAPI> Renderer::s_RenderingAPI = nullptr;
     glm::mat4 Renderer::s_ViewMatrix = glm::mat4(1.0f);
     BlendMode Renderer::s_BlendMode = BlendMode::Alpha;
+    glm::vec4 Renderer::s_ColorMultiplier{1.0f};
+    glm::mat4 Renderer::s_CullViewProjection{0.0f};
+    glm::vec2 Renderer::s_CullMin{0.0f};
+    glm::vec2 Renderer::s_CullMax{0.0f};
 
     namespace
     {
@@ -85,6 +89,25 @@ namespace SIMPEngine
         s_RenderingAPI->BindRenderTarget(nullptr);
     }
 
+    void Renderer::SubmitPrimitive(Primitive &primitive)
+    {
+        float radius = glm::length(primitive.HalfSize + glm::vec2(primitive.Padding));
+        if (!IsVisible(primitive.Center, glm::vec2(radius)))
+            return;
+        primitive.Color *= s_ColorMultiplier;
+        s_RenderingAPI->Submit(primitive);
+    }
+
+    void Renderer::SetColorMultiplier(const glm::vec4 &multiplier)
+    {
+        s_ColorMultiplier = multiplier;
+    }
+
+    const glm::vec4 &Renderer::GetColorMultiplier()
+    {
+        return s_ColorMultiplier;
+    }
+
     void Renderer::SetBlendMode(BlendMode mode)
     {
         s_BlendMode = mode;
@@ -93,6 +116,35 @@ namespace SIMPEngine
     BlendMode Renderer::GetBlendMode()
     {
         return s_BlendMode;
+    }
+
+    void Renderer::GetVisibleBounds(glm::vec2 &min, glm::vec2 &max)
+    {
+        glm::mat4 viewProjection = s_RenderingAPI->GetProjectionMatrix() * s_ViewMatrix;
+        if (viewProjection != s_CullViewProjection)
+        {
+            s_CullViewProjection = viewProjection;
+            glm::mat4 inverse = glm::inverse(viewProjection);
+            const glm::vec2 corners[4] = {{-1.0f, -1.0f}, {1.0f, -1.0f}, {1.0f, 1.0f}, {-1.0f, 1.0f}};
+            for (int i = 0; i < 4; ++i)
+            {
+                glm::vec4 w = inverse * glm::vec4(corners[i], 0.0f, 1.0f);
+                glm::vec2 p(w.x, w.y);
+                s_CullMin = i == 0 ? p : glm::min(s_CullMin, p);
+                s_CullMax = i == 0 ? p : glm::max(s_CullMax, p);
+            }
+        }
+        min = s_CullMin;
+        max = s_CullMax;
+    }
+
+    bool Renderer::IsVisible(const glm::vec2 &center, const glm::vec2 &halfExtent)
+    {
+        glm::vec2 min, max;
+        GetVisibleBounds(min, max);
+        glm::vec2 extent = glm::abs(halfExtent);
+        return center.x + extent.x >= min.x && center.x - extent.x <= max.x &&
+               center.y + extent.y >= min.y && center.y - extent.y <= max.y;
     }
 
     float Renderer::GetWorldPerPixel()
@@ -120,7 +172,7 @@ namespace SIMPEngine
         p.Z = zIndex;
         p.Color = ToVec4(color);
         p.Blend = s_BlendMode;
-        s_RenderingAPI->Submit(p);
+        SubmitPrimitive(p);
     }
 
     void Renderer::DrawRect(float x, float y, float width, float height, float thickness, SDL_Color color, float rotation, float zIndex)
@@ -137,7 +189,7 @@ namespace SIMPEngine
         p.Stroke = std::max(thickness, wpp);
         p.Padding = wpp * 2.0f;
         p.Blend = s_BlendMode;
-        s_RenderingAPI->Submit(p);
+        SubmitPrimitive(p);
     }
 
     void Renderer::DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float w, float h, SDL_Color tint, float rotation, float zIndex, const SDL_FRect *srcRect)
@@ -187,7 +239,7 @@ namespace SIMPEngine
             std::swap(vTop, vBottom);
 
         p.UV = {u0, vTop, u1, vBottom};
-        s_RenderingAPI->Submit(p);
+        SubmitPrimitive(p);
     }
 
     void Renderer::DrawLine(float x1, float y1, float x2, float y2, SDL_Color color, float zIndex)
@@ -212,7 +264,7 @@ namespace SIMPEngine
         p.Color = ToVec4(color);
         p.Padding = wpp;
         p.Blend = s_BlendMode;
-        s_RenderingAPI->Submit(p);
+        SubmitPrimitive(p);
     }
 
     void Renderer::DrawCircle(float cx, float cy, float radius,
@@ -228,7 +280,24 @@ namespace SIMPEngine
         p.Softness = aa;
         p.Padding = GetWorldPerPixel() * 2.0f;
         p.Blend = s_BlendMode;
-        s_RenderingAPI->Submit(p);
+        SubmitPrimitive(p);
+    }
+
+    void Renderer::DrawLight(const glm::vec2 &center, float radius, float rotationDegrees, const glm::vec4 &color,
+                             float falloff, float innerAngleDegrees, float outerAngleDegrees, float zIndex)
+    {
+        Primitive p;
+        p.Mode = PrimitiveMode::Light;
+        p.Center = center;
+        p.HalfSize = {radius, radius};
+        p.Rotation = glm::radians(rotationDegrees);
+        p.Z = zIndex;
+        p.Color = color;
+        p.CornerRadius = falloff;
+        p.Stroke = outerAngleDegrees > 0.0f ? glm::radians(outerAngleDegrees) : 0.0f;
+        p.Softness = glm::radians(std::max(0.0f, innerAngleDegrees));
+        p.Blend = s_BlendMode;
+        SubmitPrimitive(p);
     }
 
     void Renderer::DrawRing(float cx, float cy, float radius, float thickness,
@@ -245,7 +314,7 @@ namespace SIMPEngine
         p.Softness = aa;
         p.Padding = GetWorldPerPixel() * 2.0f;
         p.Blend = s_BlendMode;
-        s_RenderingAPI->Submit(p);
+        SubmitPrimitive(p);
     }
 
     void Renderer::DrawRoundedRect(float cx, float cy, float halfW, float halfH,
@@ -262,7 +331,7 @@ namespace SIMPEngine
         p.Softness = aa;
         p.Padding = GetWorldPerPixel() * 2.0f;
         p.Blend = s_BlendMode;
-        s_RenderingAPI->Submit(p);
+        SubmitPrimitive(p);
     }
 
     void Renderer::DrawCapsuleLine(float x1, float y1, float x2, float y2,
@@ -284,7 +353,7 @@ namespace SIMPEngine
         p.Softness = aa;
         p.Padding = GetWorldPerPixel() * 2.0f;
         p.Blend = s_BlendMode;
-        s_RenderingAPI->Submit(p);
+        SubmitPrimitive(p);
     }
 
     void Renderer::DrawText(const std::string &text, float x, float y, float size, SDL_Color color,
@@ -348,7 +417,7 @@ namespace SIMPEngine
                     prim.Texture = tex;
                     prim.UV = {g->U0, g->V0, g->U1, g->V1};
                     prim.Blend = s_BlendMode;
-                    s_RenderingAPI->Submit(prim);
+                    SubmitPrimitive(prim);
                 }
 
                 penX += g->Advance * s;

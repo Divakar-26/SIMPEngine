@@ -6,8 +6,8 @@
 
 namespace SIMPEngine
 {
-    Framebuffer::Framebuffer(int width, int height)
-        : m_Width(std::max(1, width)), m_Height(std::max(1, height))
+    Framebuffer::Framebuffer(int width, int height, bool hdr)
+        : m_Width(std::max(1, width)), m_Height(std::max(1, height)), m_HDR(hdr)
     {
         Invalidate();
     }
@@ -48,7 +48,7 @@ namespace SIMPEngine
 
         glGenTextures(1, &m_ColorAttachment);
         glBindTexture(GL_TEXTURE_2D, m_ColorAttachment);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+        glTexImage2D(GL_TEXTURE_2D, 0, m_HDR ? GL_RGBA16F : GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, m_HDR ? GL_FLOAT : GL_UNSIGNED_BYTE, nullptr);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

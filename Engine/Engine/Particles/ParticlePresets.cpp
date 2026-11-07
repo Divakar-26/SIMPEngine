@@ -370,6 +370,8 @@ namespace SIMPEngine
                 list.push_back(p);
             }
 
+            for (auto &preset : list)
+                preset.Effect.Emissive = preset.Effect.Blend == BlendMode::Additive;
             return list;
         }
     }

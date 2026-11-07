@@ -219,7 +219,7 @@ void ViewportPanel::DrawToolbar()
         ImGui::MarkIniSettingsDirty();
     }
     ImGui::SameLine();
-    if (IconButton("##lighting", ICON_LC_SUN, "Preview scene lighting", settings.PreviewLighting))
+    if (IconButton("##lighting", ICON_LC_SUN, "Preview lighting and bloom", settings.PreviewLighting))
     {
         settings.PreviewLighting = !settings.PreviewLighting;
         ImGui::MarkIniSettingsDirty();

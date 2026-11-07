@@ -54,37 +54,56 @@ void main()
 {
     int slot = int(vMisc.x + 0.5);
     int mode = int(vMisc.y + 0.5);
-    float softness = max(vMisc.z, 0.0001);
-
-    vec4 tex = texture(uTextures[slot], vUV);
-
-    float r = min(vShape.z, min(vShape.x, vShape.y));
-    float d = sdRoundBox(vLocal, vShape.xy, r);
-    if (vShape.w > 0.0)
-        d = abs(d + vShape.w * 0.5) - vShape.w * 0.5;
-    float dw = max(fwidth(d) * softness, 1e-6);
-
-    float sdf = tex.a;
-    float sw = max(fwidth(sdf) * 0.7 * softness, 1e-4);
 
     if (mode == 0)
     {
-        FragColor = tex * vColor;
+        vec4 color = texture(uTextures[slot], vUV) * vColor;
+        if (color.a <= 0.003)
+            discard;
+        FragColor = color;
+        return;
     }
-    else if (mode == 1)
+
+    if (mode == 3)
     {
+        vec2 n = vLocal / max(vShape.xy, vec2(0.0001));
+        float a = pow(clamp(1.0 - length(n), 0.0, 1.0), max(vShape.z, 0.01));
+        float outer = vShape.w;
+        if (outer > 0.0)
+        {
+            float inner = min(vMisc.z, outer - 0.0001);
+            a *= 1.0 - smoothstep(inner, outer, abs(atan(n.y, n.x)));
+        }
+        float noise = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+        a = max(a + (noise - 0.5) / 255.0, 0.0);
+        if (a <= 0.0)
+            discard;
+        FragColor = vec4(vColor.rgb, vColor.a * a);
+        return;
+    }
+
+    float softness = max(vMisc.z, 0.0001);
+    vec4 tex = texture(uTextures[slot], vUV);
+
+    if (mode == 1)
+    {
+        float r = min(vShape.z, min(vShape.x, vShape.y));
+        float d = sdRoundBox(vLocal, vShape.xy, r);
+        if (vShape.w > 0.0)
+            d = abs(d + vShape.w * 0.5) - vShape.w * 0.5;
+        float dw = max(fwidth(d) * softness, 1e-6);
         float a = 1.0 - smoothstep(-dw, dw, d);
         if (a <= 0.001)
             discard;
         FragColor = vec4(vColor.rgb * tex.rgb, vColor.a * tex.a * a);
+        return;
     }
-    else
-    {
-        float a = smoothstep(0.5 - sw, 0.5 + sw, sdf);
-        if (a <= 0.001)
-            discard;
-        FragColor = vec4(vColor.rgb, vColor.a * a);
-    }
+
+    float sw = max(fwidth(tex.a) * 0.7 * softness, 1e-4);
+    float a = smoothstep(0.5 - sw, 0.5 + sw, tex.a);
+    if (a <= 0.001)
+        discard;
+    FragColor = vec4(vColor.rgb, vColor.a * a);
 }
 )";
 }

@@ -51,6 +51,8 @@ inline void DrawAddComponentItems(EditorContext &ctx, SIMPEngine::Entity entity,
                                                           { entity.AddComponent<ParticleEmitterComponent>(); });
     any |= AddComponentMenuItem<LightComponent>(ctx, entity, ICON_LC_LIGHTBULB, "Light", filter, [&]
                                                 { entity.AddComponent<LightComponent>(); });
+    any |= AddComponentMenuItem<GlowComponent>(ctx, entity, ICON_LC_SPARKLE, "Glow", filter, [&]
+                                               { entity.AddComponent<GlowComponent>(); });
     any |= AddComponentMenuItem<ParallaxComponent>(ctx, entity, ICON_LC_LAYERS, "Parallax", filter, [&]
                                                    { entity.AddComponent<ParallaxComponent>(); });
 

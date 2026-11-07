@@ -1,0 +1,3 @@
+Packed from the "Mossy" cavern tileset, "BlueWizard" character and "Plant Animations" packs supplied by the project owner.
+Regenerate with: python3 Game/Mossveil/tools/prepare_assets.py <source folder> assets/mossveil
+Keep the original packs' license next to them; this folder only contains resized and repacked copies.

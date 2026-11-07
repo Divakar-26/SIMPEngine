@@ -90,12 +90,12 @@ namespace SIMPEngine
         RenderingAPI *api = Renderer::GetAPI();
         Framebuffer *target = api->GetRenderTarget();
         glm::vec2 viewport = api->GetViewportSize();
-        int width = std::max(1, static_cast<int>(viewport.x));
-        int height = std::max(1, static_cast<int>(viewport.y));
+        int width = std::max(1, static_cast<int>(viewport.x) / 2);
+        int height = std::max(1, static_cast<int>(viewport.y) / 2);
 
         auto &lightMap = m_LightMaps[target];
         if (!lightMap)
-            lightMap = std::make_unique<Framebuffer>(width, height);
+            lightMap = std::make_unique<Framebuffer>(width, height, true);
         else
             lightMap->Resize(width, height);
 
@@ -124,20 +124,12 @@ namespace SIMPEngine
 
             auto world = DecomposeWorld(view.get<TransformComponent>(entity));
             float scale = (std::abs(world.Scale.x) + std::abs(world.Scale.y)) * 0.5f;
-
-            SpriteDesc desc;
-            desc.TextureRef = GetLightTexture(light);
-            desc.Position = world.Position;
-            desc.Size = glm::vec2(light.radius * 2.0f * scale);
-            desc.Rotation = world.Rotation;
-
-            for (float remaining = std::min(intensity, 8.0f); remaining > 0.004f; remaining -= 1.0f)
-            {
-                float k = std::min(remaining, 1.0f);
-                desc.Tint = {static_cast<Uint8>(light.color.r * k), static_cast<Uint8>(light.color.g * k),
-                             static_cast<Uint8>(light.color.b * k), 255};
-                Renderer::DrawSprite(desc);
-            }
+            if (!Renderer::IsVisible(world.Position, glm::vec2(light.radius * scale)))
+                continue;
+            glm::vec4 color(light.color.r / 255.0f * intensity, light.color.g / 255.0f * intensity, light.color.b / 255.0f * intensity, 1.0f);
+            bool spot = light.type == LightType::Spot;
+            Renderer::DrawLight(world.Position, light.radius * scale, world.Rotation, color, light.falloff,
+                                spot ? std::min(light.innerAngle, light.outerAngle) : 0.0f, spot ? std::max(light.outerAngle, 0.5f) : 0.0f);
         }
 
         Renderer::Flush();

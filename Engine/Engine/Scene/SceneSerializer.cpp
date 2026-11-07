@@ -76,6 +76,14 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
         << lighting.Ambient.r << lighting.Ambient.g << lighting.Ambient.b
         << lighting.Ambient.a << YAML::EndSeq;
     out << YAML::EndMap;
+    const BloomSettings &bloom = m_Scene->GetBloom();
+    out << YAML::Key << "bloom" << YAML::BeginMap;
+    out << YAML::Key << "enabled" << YAML::Value << bloom.Enabled;
+    out << YAML::Key << "threshold" << YAML::Value << bloom.Threshold;
+    out << YAML::Key << "knee" << YAML::Value << bloom.Knee;
+    out << YAML::Key << "intensity" << YAML::Value << bloom.Intensity;
+    out << YAML::Key << "radius" << YAML::Value << bloom.Radius;
+    out << YAML::EndMap;
     out << YAML::EndMap;
   }
 
@@ -243,6 +251,17 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::Key << "flicker" << YAML::Value << light.flicker;
       out << YAML::Key << "flicker_speed" << YAML::Value << light.flickerSpeed;
       out << YAML::Key << "enabled" << YAML::Value << light.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<GlowComponent>()) {
+      const auto &glow = entity.GetComponent<GlowComponent>();
+      out << YAML::Key << "Glow" << YAML::BeginMap;
+      out << YAML::Key << "color" << YAML::Value;
+      EmitColor(out, glow.color);
+      out << YAML::Key << "intensity" << YAML::Value << glow.intensity;
+      out << YAML::Key << "spread" << YAML::Value << glow.spread;
+      out << YAML::Key << "enabled" << YAML::Value << glow.enabled;
       out << YAML::EndMap;
     }
 
@@ -504,6 +523,21 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
                               a[2].as<float>(), a[3].as<float>()};
       }
       m_Scene->GetLighting() = lighting;
+
+      BloomSettings bloom;
+      if (auto b = settings["bloom"]) {
+        if (b["enabled"])
+          TryGet(b, "enabled", bloom.Enabled);
+        if (b["threshold"])
+          TryGet(b, "threshold", bloom.Threshold);
+        if (b["knee"])
+          TryGet(b, "knee", bloom.Knee);
+        if (b["intensity"])
+          TryGet(b, "intensity", bloom.Intensity);
+        if (b["radius"])
+          TryGet(b, "radius", bloom.Radius);
+      }
+      m_Scene->GetBloom() = bloom;
     }
   }
 
@@ -656,6 +690,17 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
         TryGet(l, "flicker_speed", light.flickerSpeed);
       if (l["enabled"])
         TryGet(l, "enabled", light.enabled);
+    });
+
+    component("Glow", [&](const YAML::Node &g) {
+      auto &glow = entity.AddComponent<GlowComponent>();
+      ReadColor(g["color"], glow.color);
+      if (g["intensity"])
+        TryGet(g, "intensity", glow.intensity);
+      if (g["spread"])
+        TryGet(g, "spread", glow.spread);
+      if (g["enabled"])
+        TryGet(g, "enabled", glow.enabled);
     });
 
     component("Parallax", [&](const YAML::Node &p) {

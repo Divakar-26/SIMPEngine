@@ -55,6 +55,12 @@ public:
 
     static void DeleteSelection(EditorContext &ctx);
 
+    static SIMPEngine::Entity GroupSelection(EditorContext &ctx, const std::string &name = "Group");
+
+    static void Ungroup(EditorContext &ctx, SIMPEngine::Entity group);
+
+    static bool IsGroup(SIMPEngine::Entity entity);
+
     static void DuplicateSelection(EditorContext &ctx);
 
     static void RenameEntity(

@@ -1,195 +1,95 @@
-# SIMPEngine - A Simple 2D Game Engine
+# SIMPEngine
 
-A modern, modular 2D game engine built with C++20, SDL3, OpenGL, and EnTT ECS. Designed for rapid game prototyping and development with integrated editor support.
+A 2D game engine and editor written in C++20 on SDL3 and OpenGL, with an EnTT entity-component system, a batched SDF renderer, 2D lighting, particles, glow and bloom, tilemaps, audio, and an ImGui editor with Play/Stop and undo.
+
+The repository ships with **Mossveil**, a small three-level exploration game built only on the engine's public API. Its last level is procedurally generated.
+
+![Mossveil — The Mossway](docs/images/mossveil-mossway.png)
+
+| | |
+|---|---|
+| ![Thornroot Depths](docs/images/mossveil-thornroot.png) | ![The Shifting Deep (procedural)](docs/images/mossveil-shifting-deep.png) |
+| *II · Thornroot Depths* | *III · The Shifting Deep — generated from a seed* |
+
+![The editor](docs/images/editor.png)
 
 ## Features
 
-- **Entity Component System (ECS)** - Built on EnTT for fast, scalable game logic
-- **Scene Management** - Load, switch, and manage multiple game scenes
-- **Rendering Pipeline** - Hardware-accelerated 2D rendering with Camera2D support
-- **Physics Integration** - Rigid body physics via AccelEngine library
-- **Animation System** - Sprite animation with frame-based timing
-- **Tilemap Support** - Tiled map format support for level design
-- **Input Handling** - Keyboard and mouse input management
-- **Asset Management** - Centralized texture, shader, and resource loading
-- **Layer System** - Modular layer-based architecture for scene organization
-- **Integrated Editor** - Real-time game editor with viewport, hierarchy, and inspector panels
-- **Virtual File System (VFS)** - Asset mounting and path abstraction
+**Engine**
+- EnTT ECS with plain-struct components and per-system update order
+- Batched OpenGL renderer: sprites, SDF shapes (rect, rounded rect, circle, ring, capsule), crisp lines and SDF text in one shader, z-sorted, per-primitive view culling
+- 2D lighting: point and spot lights, ambient colour, flicker, per-pixel falloff (half-resolution HDR light map)
+- Particle engine with 16 built-in presets, `.particle` files, emissive particles that glow in the dark
+- Glow component (per-entity glow) and screen-space bloom
+- Parallax layers, camera follow with dead zone, bounds and shake
+- Chunked tilemaps with flip flags, flood fill and Tiled (`.tmj`/`.tsj`) import
+- Audio sources on SDL3 audio streams (WAV)
+- Rigid bodies through AccelEngine
+- YAML scenes that round-trip every component, a virtual file system (`assets://`)
+- Native C++ scripts (`ScriptableEntity`)
 
-## Quick Start
+**Editor**
+- Viewport with gizmos, snapping, marquee selection, tile painting, light/emitter/collider overlays
+- Game view with Play / Pause / Step / Stop (the scene is restored on Stop)
+- Undo/redo for every edit, scene files with unsaved-change prompts
+- Scene tree with groups, type filters, sorting, group/ungroup and reveal-on-select
+- Inspector for every component, including particle, light, audio and camera settings
+- Particle effect browser with live previews, tile palette, animation maker with automatic sprite-sheet slicing
+- Content browser, asset picker, console, profiler, three themes
 
-### Building the Engine
+![Particle effect browser](docs/images/particle-picker.png)
 
-```bash
-cmake --preset dev
-cmake --build --preset dev
+## Building
+
+Requirements: CMake 3.25+ (for the presets), Ninja, a C++20 compiler (GCC 12+ or Clang 15+), OpenGL 4.6 drivers. All third-party libraries live in `vendor/`.
+
+```sh
+cmake --preset dev && cmake --build --preset dev        # Debug, build/dev
+cmake --preset release && cmake --build --preset release
+cmake --preset asan && cmake --build --preset asan      # Clang + AddressSanitizer
 ```
 
-For a release build:
+Run from the repository root:
 
-```bash
-cmake --preset release
-cmake --build --preset release
-```
-
-Run the game:
-
-```bash
+```sh
 ./build/dev/Game/GameApp
 ```
 
-### Creating a Simple Game
+Configure with `-DNO_EDITOR=ON` to build the game without the editor.
 
-```cpp
-#include <Engine/SIMPEngine.h>
+## Playing Mossveil
 
-class MyGame : public SIMPEngine::Application
-{
-public:
-    MyGame()
-    {
-        auto sceneManager = std::make_shared<SIMPEngine::SceneManager>();
-        auto scene = std::make_shared<SIMPEngine::Scene>("Level1");
-        
-        sceneManager->AddScene("Level1", scene);
-        sceneManager->SetActiveScene("Level1");
-        
-        auto renderingLayer = std::make_unique<SIMPEngine::RenderingLayer>(sceneManager);
-        PushOverlay(std::move(renderingLayer));
-    }
-};
+Press **Play** (F5) in the editor, or build with `NO_EDITOR`.
 
-SIMPEngine::Application *SIMPEngine::CreateApplication()
-{
-    return new MyGame();
-}
-
-int main()
-{
-    SIMPEngine::Log::Init();
-    auto app = SIMPEngine::CreateApplication();
-    app->Run();
-    delete app;
-}
-```
-
-## Project Structure
-
-```
-├── Engine/              # Core engine library
-│   ├── Application/     # Application lifecycle management
-│   ├── Core/            # Logging, windowing, file system
-│   ├── Scene/           # Scene management and ECS systems
-│   ├── Rendering/       # Rendering API and graphics
-│   ├── Input/           # Input handling (keyboard, mouse)
-│   ├── Events/          # Event system
-│   ├── Layer/           # Layer management
-│   ├── Math/            # Camera and math utilities
-│   ├── Assets/          # Asset management
-│   └── UI/              # ImGui integration
-├── Editor/              # Integrated game editor
-│   └── Panels/          # Editor UI panels
-├── Game/                # Example game implementation
-└── vendor/              # Third-party libraries
-```
-
-## Core Concepts
-
-### Application Loop
-
-The engine manages a main game loop that:
-1. Polls SDL events
-2. Updates all active layers
-3. Renders ImGui and game content
-4. Swaps buffers
-
-### Scene & Entity Component System
-
-Scenes are the primary organizational unit, containing entities with components:
-
-```cpp
-auto scene = sceneManager->GetActiveScene();
-auto entity = scene->CreateEntity("MyEntity");
-entity.AddComponent<SpriteComponent>(...);
-entity.AddComponent<TransformComponent>(...);
-```
-
-### Systems
-
-Systems process entities with specific component combinations:
-- **RenderSystem** - Draws sprites and geometry
-- **PhysicsSystem** - Handles rigid body dynamics
-- **CameraSystem** - Manages camera positioning
-- **AnimationSystem** - Updates sprite animations
-- **TilemapSystem** - Renders tilemap layers
-- **CollisionSystem** - Detects entity collisions
-
-### Layers
-
-Layers provide modular scene organization:
-- **RenderingLayer** - Game rendering
-- **EditorLayer** - Editor UI and tools
-- **ImGuiLayer** - ImGui rendering
+| Key | Action |
+|---|---|
+| A / D or ← / → | Walk |
+| Space / W / ↑ | Jump (hold for higher) |
+| Shift / K / X | Dash (unlocked in level II) |
+| S / ↓ | Drop through a platform |
+| R | Restart the level |
+| N | New seed for The Shifting Deep |
+| 1 / 2 / 3 | Jump to a level |
 
 ## Documentation
 
-- [Getting Started](docs/GETTING_STARTED.md) - Step-by-step tutorials
-- [Architecture Overview](docs/ARCHITECTURE.md) - Deep dive into engine design
-- [API Reference](docs/API_GUIDE.md) - Complete API documentation
-- [Component System](docs/COMPONENTS.md) - Built-in components guide
+| Guide | What it covers |
+|---|---|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | How the engine is put together: loop, layers, scene, systems, rendering, editor |
+| [docs/API_GUIDE.md](docs/API_GUIDE.md) | Reference for the public API: application, scene, entities, every component, rendering, lighting, particles, audio, input, assets |
+| [docs/HOW_TO.md](docs/HOW_TO.md) | Step-by-step recipes: first game, scripts, sprites and animation, tilemaps, particles, lights, levels, procedural generation, editor workflow |
 
-## Dependencies
+## Project layout
 
-- SDL3 - Window management and events
-- OpenGL 3.3+ - Graphics rendering
-- EnTT - Entity Component System
-- GLM - Math library
-- spdlog - Logging
-- yaml-cpp - Scene serialization
-- ImGui - Editor UI
-- AccelEngine - Physics simulation
+| Path | Contents |
+|---|---|
+| `Engine/Engine/` | Engine library (`#include <Engine/...>`) |
+| `Editor/` | Editor library: layer, panels, commands, undo, UI kit |
+| `Game/` | `GameApp` executable and the Mossveil game |
+| `assets/` | Runtime data, addressed as `assets://...` |
+| `docs/` | Guides and screenshots |
+| `vendor/` | Third-party code (SDL3, SDL_image, ImGui, ImGuizmo, EnTT, GLM, glad, spdlog, yaml-cpp, nlohmann/json, nanosvg, stb, AccelEngine) |
 
-## Configuration
+## Credits
 
-### Build Options
-
-```bash
-# Debug build
-cmake --preset dev
-
-# Release build
-cmake --preset release
-```
-
-## Editor Features
-
-The integrated editor provides:
-- **Viewport** - Real-time game view with camera control
-- **Hierarchy** - Entity tree view and scene structure
-- **Inspector** - Component property editing
-- **Content Browser** - Asset management and preview
-- **Gizmo System** - Transform manipulation tools
-
-## Performance Profiling
-
-A built-in CPU profiler (`Engine/Core/Profiler/EngineProfiler.h`) records frame times and per-scope statistics and shows them in an ImGui panel.
-
-- `PROFILE_FRAME_BEGIN()` / `PROFILE_FRAME_END()` - Frame boundary
-- `PROFILE_SCOPE("name")` - Scoped timing
-- `PROFILE_FUNCTION()` - Function timing
-
-Define `ENGINE_PROFILER_DISABLED` to compile all profiling macros out.
-
-## License
-
-[Your License Here]
-
-## Contributing
-
-[Contributing Guidelines]
-
----
-
-For detailed implementation guides, see [docs/API_GUIDE.md](docs/API_GUIDE.md).
-
-
+Mossveil's art comes from freely licensed pixel-art packs (a mossy cavern tileset, a blue wizard character and animated plants); see `assets/mossveil/SOURCE.txt`. The Knight Run sample uses the CC0 Brackeys platformer pack (`assets/platformer/LICENSE.txt`). UI fonts: Inter (OFL) and JetBrains Mono; icons: Lucide (ISC).
