@@ -3,6 +3,8 @@
 #include <Scene/Entity.h>
 #include <Engine/Core/Log.h>
 
+#include <algorithm>
+
 namespace SIMPEngine{
   void PhysicsSystem::startFrame(float dt)
   {
@@ -29,6 +31,7 @@ namespace SIMPEngine{
   }
 
   void PhysicsSystem::Update(entt::registry & m_Registry, float dt){
+      m_Contacts.clear();
       float subdt = dt / static_cast<float>(substep);
       for(int i = 0; i < substep; i++)
       {
@@ -45,6 +48,11 @@ namespace SIMPEngine{
                 continue;
 
             CORE_TRACE("Collision detected between entities {} and {}", static_cast<uint32_t>(ea), static_cast<uint32_t>(eb));
+
+            const bool known = std::any_of(m_Contacts.begin(), m_Contacts.end(), [ea, eb](const ContactPair &pair)
+                                           { return (pair.a == ea && pair.b == eb) || (pair.a == eb && pair.b == ea); });
+            if (!known)
+                m_Contacts.push_back({ea, eb});
         }
   }
 

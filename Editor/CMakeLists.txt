@@ -21,6 +21,7 @@ add_library(Editor STATIC
     Panels/InspectorPanel/ParticleSection.cpp
     Panels/InspectorPanel/LightSection.cpp
     Panels/InspectorPanel/AudioSection.cpp
+    Panels/InspectorPanel/LogicSection.cpp
     Panels/ParticlePickerPanel.cpp
     UI/Theme.cpp
     UI/Widgets.cpp

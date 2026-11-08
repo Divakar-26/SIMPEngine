@@ -34,7 +34,7 @@ SceneSnapshot EditorHistory::Capture() const
     auto &registry = scene.GetRegistry();
     for (size_t i = 0; i < entities.size(); ++i)
     {
-        if (auto *sc = registry.try_get<ScriptComponent>(entities[i]); sc && sc->InstantiateScript)
+        if (auto *sc = registry.try_get<ScriptComponent>(entities[i]); sc && sc->InstantiateScript && sc->LuaPath.empty())
             snapshot.Scripts.emplace_back(i, sc->InstantiateScript);
         if (m_Context->IsSelected(entities[i]))
             snapshot.SelectedIndex = static_cast<int>(i);

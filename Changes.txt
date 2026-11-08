@@ -46,3 +46,14 @@ Akshat
     11. Scene panel: collapsed groups with counts and folder icons, type filter + A-Z sort, collapse/expand all, clipped flat results with parent path, reveal selection, Group/Ungroup
     12. Lua scripting foundation: LuaRuntime fixed (it did not compile) with protected calls + tracebacks, VFS loading and an mtime-checked class cache; ScriptComponent::BindLua + LuaScript (OnCreate/OnUpdate/OnRender/OnDestroy); bindings for log, Input, Key and an Entity userdata (name, transform, FindByName, Destroy); sample assets/scripts/rotator.lua, docs/SCRIPTING.md
     13. Lua: Sprite (tint, flip, size, region), Camera (shake, zoom, follow) and Light (color, intensity, radius, enabled) component handles via entity:GetSprite()/GetCamera()/GetLight()
+
+08/11/2026
+    1. Lua scripts are saved with the scene (Script: lua path); inspector Script section with file picker, drop target, New Script template, Clear and failure state; Script added to Add Component
+    2. Script events: OnFixedUpdate (fixed 1/60 s accumulator), OnTriggerEnter/Stay/Exit, OnCollision (from AccelEngine contacts), OnTimer, OnDamaged, OnDeath, OnPathPoint, OnPathEnd; ScriptableEntity::OnEvent + Scene::SendEvent
+    3. Scene script loop iterates a snapshot of handles, so scripts can spawn entities and bind scripts while running
+    4. New components: Trigger Zone, Timer, Path Follower, Health (systems, serializer, inspector sections, Add Component icons under Logic, Hierarchy Triggers filter, viewport overlay for zones and paths)
+    5. Lua API: Scene (Spawn/Find/FindAll/SetAmbient/SetLighting/SetFixedStep), Time, Audio, Math, Input.GetAxis; entity GetParent/GetChildren/GetWorldPosition/GetZIndex/GetScript/SetScript and generic Get/Has/Add/Remove(name); SetPosition/Translate/SetRotation also move rigid bodies
+    6. Lua component handles for Velocity, Collision, Shape, Text, Glow, Particles, Audio, Parallax, Body, Trigger, Timer, Path, Health from one Bindings table
+    7. Sample scripts in assets/scripts, docs/SCRIPTING.md rewritten
+    8. Fix: ScriptComponent constructor, destructor and move operations are defined out of line (LuaScript.cpp), so translation units that only forward-declare ScriptableEntity (SceneSerializer.cpp) compile
+    9. Scripting demo "Coin Dash": ScriptDemo target (Game/ScriptDemo/main.cpp) and assets/scripts/demo/*.lua; docs/SCRIPTING.md section

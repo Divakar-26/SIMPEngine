@@ -45,6 +45,8 @@ void InspectorPanel::OnImGuiRender()
     DrawAudioSection(m_SelectedEntity);
     DrawAnimationSection(m_SelectedEntity);
     DrawPhysicsSection(m_SelectedEntity);
+    DrawLogicSection(m_SelectedEntity);
+    DrawScriptSection(m_SelectedEntity);
 
     ImGui::Dummy(ImVec2(0, 4));
     DrawAddComponentButton(m_SelectedEntity);
@@ -266,11 +268,6 @@ void InspectorPanel::DrawCoreComponents(SIMPEngine::Entity &entity)
 
     DrawComponentSection<LifetimeComponent>(ctx, "Lifetime", entity, [](LifetimeComponent &lf)
                                             { PropertyFloat("Remaining", &lf.remaining, 0.1f, 0.0f, 10000.0f, "%.1f s"); });
-
-    DrawComponentSection<ScriptComponent>(ctx, "Script", entity, [](ScriptComponent &sc)
-                                          {
-        PropertyValue("Type", "Native (C++)");
-        PropertyValue("State", sc.Instance ? "Running" : "Not started", sc.Instance ? &Colors::Success : &Colors::TextDim); }, false);
 
     SIMPEngine::Scene *scene = m_Context->Scene;
     DrawComponentSection<HierarchyComponent>(ctx, "Hierarchy", entity, [scene](HierarchyComponent &hc)

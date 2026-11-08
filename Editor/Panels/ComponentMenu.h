@@ -70,6 +70,19 @@ inline void DrawAddComponentItems(EditorContext &ctx, SIMPEngine::Entity entity,
     any |= AddComponentMenuItem<LifetimeComponent>(ctx, entity, ICON_LC_HOURGLASS, "Lifetime", filter, [&]
                                                    { entity.AddComponent<LifetimeComponent>(); });
 
+    if (!filtering)
+        EditorUI::SectionLabel("Logic");
+    any |= AddComponentMenuItem<ScriptComponent>(ctx, entity, ICON_LC_CODE, "Script", filter, [&]
+                                                 { entity.AddComponent<ScriptComponent>(); });
+    any |= AddComponentMenuItem<TimerComponent>(ctx, entity, ICON_LC_TIMER, "Timer", filter, [&]
+                                                { entity.AddComponent<TimerComponent>(); });
+    any |= AddComponentMenuItem<TriggerComponent>(ctx, entity, ICON_LC_RADAR, "Trigger Zone", filter, [&]
+                                                  { entity.AddComponent<TriggerComponent>(); });
+    any |= AddComponentMenuItem<PathFollowerComponent>(ctx, entity, ICON_LC_ROUTE, "Path Follower", filter, [&]
+                                                       { entity.AddComponent<PathFollowerComponent>(); });
+    any |= AddComponentMenuItem<HealthComponent>(ctx, entity, ICON_LC_HEART, "Health", filter, [&]
+                                                 { entity.AddComponent<HealthComponent>(); });
+
     if (!any)
         ImGui::TextDisabled(filtering ? "No match" : "Nothing to add");
 }

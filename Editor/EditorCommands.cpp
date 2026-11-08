@@ -265,7 +265,7 @@ SIMPEngine::Entity EditorCommands::DuplicateEntity(EditorContext &ctx, SIMPEngin
 
     for (size_t i = 0; i < subtree.size() && i < created.size(); ++i)
     {
-        if (auto *sc = registry.try_get<ScriptComponent>(subtree[i]); sc && sc->InstantiateScript)
+        if (auto *sc = registry.try_get<ScriptComponent>(subtree[i]); sc && sc->InstantiateScript && sc->LuaPath.empty())
             registry.emplace_or_replace<ScriptComponent>(created[i]).InstantiateScript = sc->InstantiateScript;
     }
 
@@ -394,7 +394,7 @@ bool EditorCommands::IsGroup(SIMPEngine::Entity entity)
     if (!hierarchy || hierarchy->children.empty())
         return false;
     return !registry.any_of<SpriteComponent, RenderComponent, TextComponent, TilemapComponent, AnimatedSpriteComponent, ParticleEmitterComponent,
-                            LightComponent, AudioSourceComponent, CameraComponent, PhysicsComponent, CollisionComponent, ScriptComponent, GlowComponent>(handle);
+                            LightComponent, AudioSourceComponent, CameraComponent, PhysicsComponent, CollisionComponent, ScriptComponent, GlowComponent, TriggerComponent>(handle);
 }
 
 SIMPEngine::Entity EditorCommands::GroupSelection(EditorContext &ctx, const std::string &name)

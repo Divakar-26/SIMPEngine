@@ -35,6 +35,7 @@ private:
         Physics,
         Colliders,
         Scripts,
+        Triggers,
         Count
     };
 

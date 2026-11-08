@@ -133,7 +133,15 @@ struct ScriptComponent
         { return std::make_unique<T>(); };
     }
 
+    std::string LuaPath;
+
+    ScriptComponent();
+    ~ScriptComponent();
+    ScriptComponent(ScriptComponent &&) noexcept;
+    ScriptComponent &operator=(ScriptComponent &&) noexcept;
+
     void BindLua(const std::string &path);
+    void ClearScript();
 };
 
 struct PhysicsComponent
@@ -240,4 +248,60 @@ struct GlowComponent
     float intensity = 1.5f;
     float spread = 1.0f;
     bool enabled = true;
+};
+
+struct TriggerComponent
+{
+    float width = 64.0f;
+    float height = 64.0f;
+    float offsetX = 0.0f;
+    float offsetY = 0.0f;
+    std::string filter;
+    bool enabled = true;
+
+    std::vector<entt::entity> inside;
+};
+
+struct TimerComponent
+{
+    float interval = 1.0f;
+    bool repeat = true;
+    bool running = true;
+
+    float elapsed = 0.0f;
+};
+
+enum class PathMode : uint8_t
+{
+    Once,
+    Loop,
+    PingPong
+};
+
+struct PathFollowerComponent
+{
+    std::vector<glm::vec2> points;
+    float speed = 100.0f;
+    float waitTime = 0.0f;
+    PathMode mode = PathMode::Loop;
+    bool relative = true;
+    bool playing = true;
+    bool faceDirection = false;
+
+    glm::vec2 origin{0.0f, 0.0f};
+    bool originSet = false;
+    int target = 0;
+    int direction = 1;
+    float waiting = 0.0f;
+};
+
+struct HealthComponent
+{
+    float max = 100.0f;
+    float current = 100.0f;
+    float invulnerability = 0.0f;
+    bool destroyOnDeath = false;
+
+    float invulnerableRemaining = 0.0f;
+    bool dead = false;
 };

@@ -13,22 +13,32 @@ namespace SIMPEngine
 
 namespace
 {
+    constexpr const char *EventHooks[] = {
+        "OnFixedUpdate",
+        "OnTriggerEnter",
+        "OnTriggerStay",
+        "OnTriggerExit",
+        "OnCollision",
+        "OnTimer",
+        "OnDamaged",
+        "OnDeath",
+        "OnPathPoint",
+        "OnPathEnd"};
+
+    static_assert(sizeof(EventHooks) / sizeof(EventHooks[0]) == static_cast<size_t>(SIMPEngine::ScriptEvent::Count));
+
     int CallHook(lua_State *L)
     {
         const char *name = lua_tostring(L, 2);
-        const bool hasDelta = lua_gettop(L) >= 3;
+        const int extra = lua_gettop(L) - 2;
         lua_getfield(L, 1, name);
         if (!lua_isfunction(L, -1))
             return 0;
 
         lua_pushvalue(L, 1);
-        int argCount = 1;
-        if (hasDelta)
-        {
-            lua_pushvalue(L, 3);
-            argCount = 2;
-        }
-        lua_call(L, argCount, 0);
+        for (int i = 0; i < extra; ++i)
+            lua_pushvalue(L, 3 + i);
+        lua_call(L, extra + 1, 0);
         return 0;
     }
 
@@ -62,6 +72,18 @@ namespace SIMPEngine
         return m_SelfRef != NoRef && runtime.IsInitialized() && runtime.GetGeneration() == m_Generation;
     }
 
+    bool LuaScript::PushSelf(lua_State *L) const
+    {
+        if (!IsLive())
+        {
+            lua_pushnil(L);
+            return false;
+        }
+
+        lua_rawgeti(L, LUA_REGISTRYINDEX, m_SelfRef);
+        return true;
+    }
+
     bool LuaScript::HasHook(const char *name) const
     {
         LuaRuntime &runtime = LuaRuntime::Get();
@@ -80,20 +102,26 @@ namespace SIMPEngine
         return found;
     }
 
-    bool LuaScript::Invoke(const char *hook, bool passDelta, float dt)
+    bool LuaScript::Invoke(const char *hook, bool hasNumber, float number, const Entity &other)
     {
         LuaRuntime &runtime = LuaRuntime::Get();
         lua_State *L = runtime.GetState();
         const int top = lua_gettop(L);
+        LuaBindings::SceneScope scope(GetEntity().GetScene());
 
         lua_pushcfunction(L, CallHook);
         lua_rawgeti(L, LUA_REGISTRYINDEX, m_SelfRef);
         lua_pushstring(L, hook);
         int argCount = 2;
-        if (passDelta)
+        if (hasNumber)
         {
-            lua_pushnumber(L, dt);
-            argCount = 3;
+            lua_pushnumber(L, number);
+            ++argCount;
+        }
+        if (static_cast<bool>(other))
+        {
+            LuaBindings::PushEntity(L, other);
+            ++argCount;
         }
 
         const bool ok = runtime.Call(argCount, 0);
@@ -128,14 +156,13 @@ namespace SIMPEngine
         m_Generation = runtime.GetGeneration();
         lua_pop(L, 2);
 
-        if (!Invoke("OnCreate", false, 0.0f))
-        {
-            Disable();
-            return;
-        }
-
         m_HasUpdate = HasHook("OnUpdate");
         m_HasRender = HasHook("OnRender");
+        for (size_t i = 0; i < m_EventHooks.size(); ++i)
+            m_EventHooks[i] = HasHook(EventHooks[i]);
+
+        if (!Invoke("OnCreate", false, 0.0f, Entity{}))
+            Disable();
     }
 
     void LuaScript::OnDestroy()
@@ -143,7 +170,7 @@ namespace SIMPEngine
         if (m_Failed || !IsLive())
             return;
 
-        Invoke("OnDestroy", false, 0.0f);
+        Invoke("OnDestroy", false, 0.0f, Entity{});
     }
 
     void LuaScript::OnUpdate(float dt)
@@ -151,7 +178,7 @@ namespace SIMPEngine
         if (m_Failed || !m_HasUpdate || !IsLive())
             return;
 
-        if (!Invoke("OnUpdate", true, dt))
+        if (!Invoke("OnUpdate", true, dt, Entity{}))
             Disable();
     }
 
@@ -160,15 +187,68 @@ namespace SIMPEngine
         if (m_Failed || !m_HasRender || !IsLive())
             return;
 
-        if (!Invoke("OnRender", false, 0.0f))
+        if (!Invoke("OnRender", false, 0.0f, Entity{}))
+            Disable();
+    }
+
+    void LuaScript::OnEvent(const ScriptMessage &message)
+    {
+        const size_t index = static_cast<size_t>(message.Type);
+        if (m_Failed || index >= m_EventHooks.size() || !m_EventHooks[index] || !IsLive())
+            return;
+
+        bool hasNumber = false;
+        float number = message.Value;
+        bool passOther = false;
+
+        switch (message.Type)
+        {
+        case ScriptEvent::FixedUpdate:
+            hasNumber = true;
+            break;
+        case ScriptEvent::Damaged:
+            hasNumber = true;
+            passOther = true;
+            break;
+        case ScriptEvent::PathPoint:
+            hasNumber = true;
+            number += 1.0f;
+            break;
+        case ScriptEvent::TriggerEnter:
+        case ScriptEvent::TriggerStay:
+        case ScriptEvent::TriggerExit:
+        case ScriptEvent::Collision:
+        case ScriptEvent::Death:
+            passOther = true;
+            break;
+        case ScriptEvent::Timer:
+        case ScriptEvent::PathEnd:
+        case ScriptEvent::Count:
+            break;
+        }
+
+        if (!Invoke(EventHooks[index], hasNumber, number, passOther ? message.Other : Entity{}))
             Disable();
     }
 }
 
+ScriptComponent::ScriptComponent() = default;
+ScriptComponent::~ScriptComponent() = default;
+ScriptComponent::ScriptComponent(ScriptComponent &&) noexcept = default;
+ScriptComponent &ScriptComponent::operator=(ScriptComponent &&) noexcept = default;
+
 void ScriptComponent::BindLua(const std::string &path)
 {
+    LuaPath = path;
     InstantiateScript = [path]() -> std::unique_ptr<SIMPEngine::ScriptableEntity>
     {
         return std::make_unique<SIMPEngine::LuaScript>(path);
     };
+}
+
+void ScriptComponent::ClearScript()
+{
+    Instance.reset();
+    InstantiateScript = nullptr;
+    LuaPath.clear();
 }

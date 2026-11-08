@@ -2,8 +2,11 @@
 
 #include <Engine/Scene/ScriptableEntity.h>
 
+#include <array>
 #include <cstdint>
 #include <string>
+
+struct lua_State;
 
 namespace SIMPEngine
 {
@@ -15,6 +18,7 @@ namespace SIMPEngine
 
         const std::string &GetPath() const { return m_Path; }
         bool HasFailed() const { return m_Failed; }
+        bool PushSelf(lua_State *L) const;
 
         static constexpr int NoRef = -2;
 
@@ -23,11 +27,12 @@ namespace SIMPEngine
         void OnDestroy() override;
         void OnUpdate(float dt) override;
         void OnRender() override;
+        void OnEvent(const ScriptMessage &message) override;
 
     private:
         bool IsLive() const;
         bool HasHook(const char *name) const;
-        bool Invoke(const char *hook, bool passDelta, float dt);
+        bool Invoke(const char *hook, bool hasNumber, float number, const Entity &other);
         void Disable();
 
         std::string m_Path;
@@ -36,5 +41,6 @@ namespace SIMPEngine
         bool m_HasUpdate = false;
         bool m_HasRender = false;
         bool m_Failed = false;
+        std::array<bool, static_cast<size_t>(ScriptEvent::Count)> m_EventHooks{};
     };
 }

@@ -334,6 +334,7 @@ void ViewportPanel::RenderScene()
     DrawLightShapes();
     if (EditorUI::Settings().ShowColliders)
         DrawColliders();
+    DrawLogicShapes();
     m_TileEditor.RenderWorld(SIMPEngine::Renderer::GetWorldPerPixel());
 
     SIMPEngine::Renderer::EndScene();
@@ -515,6 +516,45 @@ void ViewportPanel::DrawColliders()
             Renderer::DrawRing(world.Position.x, world.Position.y, physics.body->circle.radius, wpp * 1.5f, color, 1.0f, 99994.0f);
         else
             Renderer::DrawRect(world.Position.x, world.Position.y, physics.body->aabb.halfSize.x * 2.0f, physics.body->aabb.halfSize.y * 2.0f, wpp * 1.5f, color, world.Rotation, 99994.0f);
+    }
+}
+
+void ViewportPanel::DrawLogicShapes()
+{
+    using SIMPEngine::Renderer;
+    auto &registry = m_Context->Scene->GetRegistry();
+    float wpp = Renderer::GetWorldPerPixel();
+    const bool showAll = EditorUI::Settings().ShowColliders;
+
+    for (auto entity : registry.view<TriggerComponent, TransformComponent>())
+    {
+        if (!showAll && !m_Context->IsSelected(entity))
+            continue;
+
+        const auto &trigger = registry.get<TriggerComponent>(entity);
+        auto world = SIMPEngine::DecomposeWorld(registry.get<TransformComponent>(entity));
+        glm::vec2 size(trigger.width * std::abs(world.Scale.x), trigger.height * std::abs(world.Scale.y));
+        glm::vec2 center = world.Position + glm::vec2(trigger.offsetX, trigger.offsetY) + size * 0.5f;
+        SDL_Color color = ToSDL(EditorUI::Colors::Warning, trigger.enabled ? 0.9f : 0.35f);
+        Renderer::DrawRect(center.x, center.y, size.x, size.y, wpp * 1.5f, color, 0.0f, 99994.0f);
+    }
+
+    SDL_Color pathColor = ToSDL(EditorUI::Colors::Accent, 0.85f);
+    for (entt::entity handle : m_Context->SelectedHandles())
+    {
+        if (!registry.valid(handle) || !registry.all_of<PathFollowerComponent, TransformComponent>(handle))
+            continue;
+
+        const auto &path = registry.get<PathFollowerComponent>(handle);
+        auto world = SIMPEngine::DecomposeWorld(registry.get<TransformComponent>(handle));
+        glm::vec2 previous = world.Position;
+        for (const glm::vec2 &point : path.points)
+        {
+            glm::vec2 target = path.relative ? world.Position + point : point;
+            Renderer::DrawLine(previous.x, previous.y, target.x, target.y, wpp * 1.5f, pathColor, 99994.0f);
+            Renderer::DrawCircle(target.x, target.y, wpp * 4.0f, pathColor, 1.0f, 99995.0f);
+            previous = target;
+        }
     }
 }
 

@@ -52,6 +52,10 @@ add_library(Engine STATIC
     Engine/Scene/TilemapUtils.cpp
     Engine/Rendering/SvgTextureCache.cpp
     Engine/Scene/Systems/MovementSystem.cpp
+    Engine/Scene/Systems/TriggerSystem.cpp
+    Engine/Scene/Systems/TimerSystem.cpp
+    Engine/Scene/Systems/PathFollowerSystem.cpp
+    Engine/Scene/Systems/HealthSystem.cpp
     Engine/Scripting/LuaRuntime.cpp
     Engine/Scripting/LuaBindings.cpp
     Engine/Scripting/LuaScript.cpp

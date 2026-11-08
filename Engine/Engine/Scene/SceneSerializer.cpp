@@ -285,6 +285,70 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::EndMap;
     }
 
+    if (entity.HasComponent<ScriptComponent>()) {
+      const auto &script = entity.GetComponent<ScriptComponent>();
+      if (!script.LuaPath.empty()) {
+        out << YAML::Key << "Script" << YAML::BeginMap;
+        out << YAML::Key << "lua" << YAML::Value << script.LuaPath;
+        out << YAML::EndMap;
+      }
+    }
+
+    if (entity.HasComponent<TriggerComponent>()) {
+      const auto &trigger = entity.GetComponent<TriggerComponent>();
+      out << YAML::Key << "Trigger" << YAML::BeginMap;
+      out << YAML::Key << "size" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << trigger.width << trigger.height << YAML::EndSeq;
+      out << YAML::Key << "offset" << YAML::Value << YAML::Flow
+          << YAML::BeginSeq << trigger.offsetX << trigger.offsetY
+          << YAML::EndSeq;
+      if (!trigger.filter.empty())
+        out << YAML::Key << "filter" << YAML::Value << trigger.filter;
+      out << YAML::Key << "enabled" << YAML::Value << trigger.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<TimerComponent>()) {
+      const auto &timer = entity.GetComponent<TimerComponent>();
+      out << YAML::Key << "Timer" << YAML::BeginMap;
+      out << YAML::Key << "interval" << YAML::Value << timer.interval;
+      out << YAML::Key << "repeat" << YAML::Value << timer.repeat;
+      out << YAML::Key << "running" << YAML::Value << timer.running;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<PathFollowerComponent>()) {
+      const auto &path = entity.GetComponent<PathFollowerComponent>();
+      out << YAML::Key << "PathFollower" << YAML::BeginMap;
+      out << YAML::Key << "speed" << YAML::Value << path.speed;
+      out << YAML::Key << "wait" << YAML::Value << path.waitTime;
+      out << YAML::Key << "mode" << YAML::Value
+          << (path.mode == PathMode::Once   ? "once"
+              : path.mode == PathMode::Loop ? "loop"
+                                            : "pingpong");
+      out << YAML::Key << "relative" << YAML::Value << path.relative;
+      out << YAML::Key << "playing" << YAML::Value << path.playing;
+      out << YAML::Key << "face_direction" << YAML::Value << path.faceDirection;
+      out << YAML::Key << "points" << YAML::Value << YAML::BeginSeq;
+      for (const auto &point : path.points)
+        out << YAML::Flow << YAML::BeginSeq << point.x << point.y
+            << YAML::EndSeq;
+      out << YAML::EndSeq;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<HealthComponent>()) {
+      const auto &health = entity.GetComponent<HealthComponent>();
+      out << YAML::Key << "Health" << YAML::BeginMap;
+      out << YAML::Key << "max" << YAML::Value << health.max;
+      out << YAML::Key << "current" << YAML::Value << health.current;
+      out << YAML::Key << "invulnerability" << YAML::Value
+          << health.invulnerability;
+      out << YAML::Key << "destroy_on_death" << YAML::Value
+          << health.destroyOnDeath;
+      out << YAML::EndMap;
+    }
+
     if (entity.HasComponent<HierarchyComponent>()) {
       const auto &hierarchy = entity.GetComponent<HierarchyComponent>();
       std::uint64_t parentId = 0;
@@ -720,6 +784,78 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
         TryGet(a, "loop", audio.loop);
       if (a["play_on_start"])
         TryGet(a, "play_on_start", audio.playOnStart);
+    });
+
+    component("Script", [&](const YAML::Node &sn) {
+      std::string lua;
+      if (sn["lua"])
+        TryGet(sn, "lua", lua);
+      if (lua.empty())
+        return;
+      entity.AddComponent<ScriptComponent>().BindLua(lua);
+    });
+
+    component("Trigger", [&](const YAML::Node &t) {
+      auto &trigger = entity.AddComponent<TriggerComponent>();
+      ReadVec2(t["size"], trigger.width, trigger.height);
+      ReadVec2(t["offset"], trigger.offsetX, trigger.offsetY);
+      if (t["filter"])
+        TryGet(t, "filter", trigger.filter);
+      if (t["enabled"])
+        TryGet(t, "enabled", trigger.enabled);
+    });
+
+    component("Timer", [&](const YAML::Node &t) {
+      auto &timer = entity.AddComponent<TimerComponent>();
+      if (t["interval"])
+        TryGet(t, "interval", timer.interval);
+      if (t["repeat"])
+        TryGet(t, "repeat", timer.repeat);
+      if (t["running"])
+        TryGet(t, "running", timer.running);
+    });
+
+    component("PathFollower", [&](const YAML::Node &p) {
+      auto &path = entity.AddComponent<PathFollowerComponent>();
+      if (p["speed"])
+        TryGet(p, "speed", path.speed);
+      if (p["wait"])
+        TryGet(p, "wait", path.waitTime);
+      if (p["mode"]) {
+        std::string mode;
+        TryGet(p, "mode", mode);
+        path.mode = mode == "once"   ? PathMode::Once
+                    : mode == "loop" ? PathMode::Loop
+                                     : PathMode::PingPong;
+      }
+      if (p["relative"])
+        TryGet(p, "relative", path.relative);
+      if (p["playing"])
+        TryGet(p, "playing", path.playing);
+      if (p["face_direction"])
+        TryGet(p, "face_direction", path.faceDirection);
+      if (auto points = p["points"]; points && points.IsSequence()) {
+        for (const auto &pointNode : points) {
+          float x = 0.0f;
+          float y = 0.0f;
+          if (ReadVec2(pointNode, x, y))
+            path.points.emplace_back(x, y);
+        }
+      }
+    });
+
+    component("Health", [&](const YAML::Node &h) {
+      auto &health = entity.AddComponent<HealthComponent>();
+      if (h["max"])
+        TryGet(h, "max", health.max);
+      health.current = health.max;
+      if (h["current"])
+        TryGet(h, "current", health.current);
+      if (h["invulnerability"])
+        TryGet(h, "invulnerability", health.invulnerability);
+      if (h["destroy_on_death"])
+        TryGet(h, "destroy_on_death", health.destroyOnDeath);
+      health.dead = health.current <= 0.0f;
     });
 
     component("Lifetime", [&](const YAML::Node &l) {

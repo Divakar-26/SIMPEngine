@@ -17,12 +17,18 @@
 #include <Engine/Scene/Systems/AudioSystem.h>
 #include <Engine/Rendering/Bloom.h>
 #include <Engine/Scene/Systems/GlowSystem.h>
+#include <Engine/Scene/Systems/TriggerSystem.h>
+#include <Engine/Scene/Systems/TimerSystem.h>
+#include <Engine/Scene/Systems/PathFollowerSystem.h>
+#include <Engine/Scene/Systems/HealthSystem.h>
+#include <Engine/Scene/ScriptEvent.h>
 
 #include <AccelEngine/world.h>
 #include <AccelEngine/ForceRegistry.h>
 
 #include <entt/entt.hpp>
 #include <string>
+#include <vector>
 
 namespace SIMPEngine
 {
@@ -119,6 +125,13 @@ namespace SIMPEngine
         void SetLightingVisible(bool visible) { m_LightingVisible = visible; }
         void StopAudio();
 
+        void SendEvent(entt::entity target, ScriptEvent type, entt::entity other = entt::null, float value = 0.0f);
+
+        float GetTime() const { return m_Time; }
+        float GetDeltaTime() const { return m_LastDelta; }
+        float GetFixedTimeStep() const { return m_FixedStep; }
+        void SetFixedTimeStep(float seconds);
+
         void Clear();
 
         Entity CreateEntity(const std::string &name = "");
@@ -180,6 +193,16 @@ namespace SIMPEngine
         AudioSystem audioSystem;
         BloomRenderer bloomRenderer;
         GlowSystem glowSystem;
+        TriggerSystem triggerSystem;
+        TimerSystem timerSystem;
+        PathFollowerSystem pathFollowerSystem;
+        HealthSystem healthSystem;
+
+        std::vector<entt::entity> m_ScriptOrder;
+        float m_Time = 0.0f;
+        float m_LastDelta = 0.0f;
+        float m_FixedStep = 1.0f / 60.0f;
+        float m_FixedAccumulator = 0.0f;
 
         void OnPhysicsComponentDestroyed(entt::registry &registry, entt::entity entity);
         void OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity);

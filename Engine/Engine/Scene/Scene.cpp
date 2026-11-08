@@ -23,6 +23,45 @@ namespace SIMPEngine
         return Input::IsMouseInViewport();
     }
 
+    void ScriptableEntity::OnEvent(const ScriptMessage &message)
+    {
+        switch (message.Type)
+        {
+        case ScriptEvent::FixedUpdate:
+            OnFixedUpdate(message.Value);
+            break;
+        case ScriptEvent::TriggerEnter:
+            OnTriggerEnter(message.Other);
+            break;
+        case ScriptEvent::TriggerStay:
+            OnTriggerStay(message.Other);
+            break;
+        case ScriptEvent::TriggerExit:
+            OnTriggerExit(message.Other);
+            break;
+        case ScriptEvent::Collision:
+            OnCollision(message.Other);
+            break;
+        case ScriptEvent::Timer:
+            OnTimer();
+            break;
+        case ScriptEvent::Damaged:
+            OnDamaged(message.Value, message.Other);
+            break;
+        case ScriptEvent::Death:
+            OnDeath();
+            break;
+        case ScriptEvent::PathPoint:
+            OnPathPoint(static_cast<int>(message.Value));
+            break;
+        case ScriptEvent::PathEnd:
+            OnPathEnd();
+            break;
+        case ScriptEvent::Count:
+            break;
+        }
+    }
+
     Entity::operator bool() const
     {
         return m_Scene != nullptr && m_EntityHandle != entt::null &&
@@ -111,10 +150,36 @@ namespace SIMPEngine
         }
     }
 
+    void Scene::SetFixedTimeStep(float seconds)
+    {
+        m_FixedStep = std::clamp(seconds, 1.0f / 240.0f, 1.0f / 10.0f);
+    }
+
+    void Scene::SendEvent(entt::entity target, ScriptEvent type, entt::entity other, float value)
+    {
+        if (target == entt::null || !m_Registry.valid(target))
+            return;
+
+        ScriptComponent *script = m_Registry.try_get<ScriptComponent>(target);
+        if (!script || !script->Instance)
+            return;
+
+        ScriptMessage message;
+        message.Type = type;
+        message.Value = value;
+        if (other != entt::null && m_Registry.valid(other))
+            message.Other = Entity(other, this);
+
+        script->Instance->SendEvent(message);
+    }
+
     void Scene::OnUpdate(float deltaTime)
     {
         if (m_PhysicsDirty)
             RebuildPhysicsWorld();
+
+        m_Time += deltaTime;
+        m_LastDelta = deltaTime;
 
         physicsSystem.startFrame(deltaTime);
         physicsSystem.UpdateTransform(m_Registry);
@@ -125,25 +190,57 @@ namespace SIMPEngine
         hierarchySystem.Update(m_Registry, deltaTime);
         lifetimeSystem.Update(m_Registry, deltaTime);
 
-        auto view = m_Registry.view<ScriptComponent>();
-        for (auto entityHandle : view)
-        {
-            auto &sc = view.get<ScriptComponent>(entityHandle);
+        m_ScriptOrder.clear();
+        for (entt::entity handle : m_Registry.view<ScriptComponent>())
+            m_ScriptOrder.push_back(handle);
 
-            if (!sc.InstantiateScript)
+        for (size_t i = 0; i < m_ScriptOrder.size(); ++i)
+        {
+            const entt::entity handle = m_ScriptOrder[i];
+            if (!m_Registry.valid(handle))
                 continue;
 
-            if (!sc.Instance)
+            ScriptComponent *sc = m_Registry.try_get<ScriptComponent>(handle);
+            if (!sc || !sc->InstantiateScript)
+                continue;
+
+            if (!sc->Instance)
             {
-                sc.Instance = sc.InstantiateScript();
-                sc.Instance->m_Entity = Entity(entityHandle, this);
-                sc.Instance->OnCreate();
+                sc->Instance = sc->InstantiateScript();
+                sc->Instance->m_Entity = Entity(handle, this);
+                sc->Instance->OnCreate();
+
+                if (!m_Registry.valid(handle))
+                    continue;
+                sc = m_Registry.try_get<ScriptComponent>(handle);
+                if (!sc || !sc->Instance)
+                    continue;
             }
 
-            sc.Instance->OnUpdate(deltaTime);
+            sc->Instance->OnUpdate(deltaTime);
         }
 
+        m_FixedAccumulator = std::min(m_FixedAccumulator + deltaTime, m_FixedStep * 5.0f);
+        while (m_FixedAccumulator >= m_FixedStep)
+        {
+            for (size_t i = 0; i < m_ScriptOrder.size(); ++i)
+                SendEvent(m_ScriptOrder[i], ScriptEvent::FixedUpdate, entt::null, m_FixedStep);
+            m_FixedAccumulator -= m_FixedStep;
+        }
+
+        pathFollowerSystem.Update(*this, deltaTime);
+        triggerSystem.Update(*this);
+        timerSystem.Update(*this, deltaTime);
+        healthSystem.Update(*this, deltaTime);
+
         physicsSystem.Update(m_Registry, deltaTime);
+
+        const std::vector<PhysicsSystem::ContactPair> contacts = physicsSystem.GetContacts();
+        for (const PhysicsSystem::ContactPair &contact : contacts)
+        {
+            SendEvent(contact.a, ScriptEvent::Collision, contact.b);
+            SendEvent(contact.b, ScriptEvent::Collision, contact.a);
+        }
 
         animationSystem.Update(m_Registry, deltaTime);
         particleSystem.Update(m_Registry, deltaTime);
@@ -258,6 +355,10 @@ namespace SIMPEngine
         physicsSystem.DestroyBodies();
         physicsSystem.DestroyWorld();
 
+        m_ScriptOrder.clear();
+        m_Time = 0.0f;
+        m_LastDelta = 0.0f;
+        m_FixedAccumulator = 0.0f;
         m_Registry.clear();
     }
 

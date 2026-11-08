@@ -35,6 +35,6 @@ Stability (before 1.0)
 5.  Undo / redo + save prompt
 6.  One texture / asset path
 7.  VFS picks empty build/assets, AssetManager uses cwd paths
-8.  Script component serialised
+8.  Script component serialised                                    -> DONE (Lua path)
 9.  Fixed timestep
 10. NO_EDITOR release build with profiler off

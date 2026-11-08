@@ -16,7 +16,7 @@
 namespace
 {
     constexpr const char *EntityPayload = "HIERARCHY_ENTITY";
-    constexpr const char *FilterNames[] = {"Everything", "Groups", "Sprites", "Shapes", "Text", "Tilemaps", "Particles", "Lights", "Glow", "Cameras", "Audio", "Rigid Bodies", "Colliders", "Scripts"};
+    constexpr const char *FilterNames[] = {"Everything", "Groups", "Sprites", "Shapes", "Text", "Tilemaps", "Particles", "Lights", "Glow", "Cameras", "Audio", "Rigid Bodies", "Colliders", "Scripts", "Triggers"};
 }
 
 HierarchyPanel::HierarchyPanel(
@@ -63,6 +63,8 @@ bool HierarchyPanel::PassesFilter(entt::entity handle)
         return registry.all_of<CollisionComponent>(handle);
     case TypeFilter::Scripts:
         return registry.all_of<ScriptComponent>(handle);
+    case TypeFilter::Triggers:
+        return registry.all_of<TriggerComponent>(handle);
     default:
         return true;
     }
