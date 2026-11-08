@@ -1,0 +1,25 @@
+Scene: Untitled
+Settings:
+  background: [0.329, 0.329, 0.329, 1]
+  lighting:
+    enabled: true
+    ambient: [0.34, 0.43, 0.45, 1]
+  bloom:
+    enabled: true
+    threshold: 0.72
+    knee: 0.35
+    intensity: 0.55
+    radius: 1.2
+Entities:
+  - ID: 1
+    Tag: Entity
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      zIndex: 0
+      scale: [1, 1]
+    Render:
+      color: [255, 255, 255, 255]
+      size: [64, 64]
+    Script:
+      lua: assets://scripts/Entity_3.lua

@@ -59,6 +59,26 @@ add_library(Engine STATIC
     Engine/Scripting/LuaRuntime.cpp
     Engine/Scripting/LuaBindings.cpp
     Engine/Scripting/LuaScript.cpp
+    Engine/Scripting/LuaHelpers.cpp
+    Engine/Scripting/Components/LuaComponents.cpp
+    Engine/Scripting/Components/LuaSprite.cpp
+    Engine/Scripting/Components/LuaCamera.cpp
+    Engine/Scripting/Components/LuaLight.cpp
+    Engine/Scripting/Components/LuaVelocity.cpp
+    Engine/Scripting/Components/LuaCollision.cpp
+    Engine/Scripting/Components/LuaShape.cpp
+    Engine/Scripting/Components/LuaText.cpp
+    Engine/Scripting/Components/LuaGlow.cpp
+    Engine/Scripting/Components/LuaParticles.cpp
+    Engine/Scripting/Components/LuaAudioSource.cpp
+    Engine/Scripting/Components/LuaParallax.cpp
+    Engine/Scripting/Components/LuaBody.cpp
+    Engine/Scripting/Components/LuaTrigger.cpp
+    Engine/Scripting/Components/LuaTimer.cpp
+    Engine/Scripting/Components/LuaPath.cpp
+    Engine/Scripting/Components/LuaHealth.cpp
+    Engine/Scripting/Components/LuaTilemap.cpp
+    Engine/Scripting/Components/LuaAnimation.cpp
 )
 
 target_include_directories(Engine

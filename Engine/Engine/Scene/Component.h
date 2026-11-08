@@ -154,6 +154,9 @@ struct AnimatedSpriteComponent
     std::unique_ptr<SIMPEngine::Animation> animation;
 
     std::unique_ptr<SIMPEngine::AnimationController> controller;
+
+    bool playing = true;
+    float speed = 1.0f;
 };
 
 struct HierarchyComponent

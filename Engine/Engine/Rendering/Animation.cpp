@@ -66,6 +66,16 @@ namespace SIMPEngine
         tempSprite.Draw(x, y, width, height, tint, rotation, zIndex);
     }
 
+    SDL_FRect Animation::GetFrameRect() const
+    {
+        if (!m_Texture || m_FrameWidth <= 0 || m_FrameHeight <= 0)
+            return SDL_FRect{0.0f, 0.0f, 0.0f, 0.0f};
+        int framesPerRow = std::max(1, m_Texture->GetWidth() / m_FrameWidth);
+        return SDL_FRect{static_cast<float>((m_CurrentFrame % framesPerRow) * m_FrameWidth),
+                         static_cast<float>((m_CurrentFrame / framesPerRow) * m_FrameHeight),
+                         static_cast<float>(m_FrameWidth), static_cast<float>(m_FrameHeight)};
+    }
+
     void Animation::Reset()
     {
         m_CurrentFrame = 0;

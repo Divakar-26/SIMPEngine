@@ -79,7 +79,7 @@ Events are delivered after the frame's `OnUpdate` calls. A script is created on 
 | `Input` | `IsKeyDown`, `IsKeyJustPressed`, `IsKeyJustReleased`, `IsMouseDown`, `IsMouseJustPressed`, `IsMouseJustReleased`, `IsMouseInViewport`, `GetMouseWheel`, `GetAxis(negativeKey, positiveKey)` returning -1, 0 or 1 |
 | `Key` | constants named after `SIMPK_*` without the prefix: `Key.W`, `Key.SPACE`, `Key.LEFT`, `Key.F1`, `Key.NUM_0`, `Key.MOUSE_LEFT` |
 | `Time` | `Now()` scene seconds since Play, `Delta()` last frame time, `FixedDelta()` |
-| `Scene` | `Spawn(name [, x, y [, parent]])`, `Find(name)`, `FindAll(name)`, `SetAmbient(r, g, b)` (0-255), `SetLighting(bool)`, `SetFixedStep(seconds)` |
+| `Scene` | `Spawn(name [, x, y [, parent]])`, `Find(name)`, `FindAll(name)`, `SetAmbient(r, g, b)` (0-255), `SetLighting(bool)`, `SetFixedStep(seconds)`, `IsSolidAt(x, y)` and `OverlapsSolid(x1, y1, x2, y2)` (against tilemaps marked solid) |
 | `Audio` | `Play(path [, volume, pitch, loop])` returns a voice id, `Stop(voice)`, `StopAll()`, `IsPlaying(voice)`, `SetVolume(voice, v)`, `SetMasterVolume(v)`, `GetMasterVolume()` |
 | `Math` | `Lerp(a, b, t)`, `Clamp(v, min, max)`, `Sign(v)`, `MoveTowards(current, target, maxDelta)`, `Length(x, y)`, `Distance(x1, y1, x2, y2)`, `Normalize(x, y)`, `Angle(x1, y1, x2, y2)` in degrees |
 
@@ -117,7 +117,7 @@ boss:TakeDamage(3)
 
 ## Components
 
-`entity:Get("Sprite")` returns a handle or `nil`. Every component also has a shortcut: `GetSprite()`, `GetCamera()`, `GetLight()`, `GetVelocity()`, `GetCollision()`, `GetShape()`, `GetText()`, `GetGlow()`, `GetParticles()`, `GetAudio()`, `GetParallax()`, `GetBody()`, `GetTrigger()`, `GetTimer()`, `GetPath()`, `GetHealth()`. `Add(name)` adds the component if missing and returns the handle (Body cannot be added from a script). Colors are 0-255 and clamped.
+`entity:Get("Sprite")` returns a handle or `nil`. Every component also has a shortcut: `GetSprite()`, `GetCamera()`, `GetLight()`, `GetVelocity()`, `GetCollision()`, `GetShape()`, `GetText()`, `GetGlow()`, `GetParticles()`, `GetAudio()`, `GetParallax()`, `GetBody()`, `GetTrigger()`, `GetTimer()`, `GetPath()`, `GetHealth()`, `GetTilemap()`, `GetAnimation()`. `Add(name)` adds the component if missing and returns the handle (Body cannot be added from a script). Colors are 0-255 and clamped.
 
 | Handle | Methods |
 |---|---|
@@ -136,7 +136,11 @@ boss:TakeDamage(3)
 | Trigger | `GetSize()` / `SetSize(w, h)`, `GetOffset()` / `SetOffset(x, y)`, `GetFilter()` / `SetFilter(name)`, `IsEnabled()` / `SetEnabled(bool)`, `GetInside()` table of entities, `Contains(entity)` |
 | Timer | `Start()`, `Stop()`, `Restart()`, `IsRunning()`, `GetInterval()` / `SetInterval(s)`, `IsRepeating()` / `SetRepeat(bool)`, `GetElapsed()`, `GetRemaining()` |
 | Path | `Play()`, `Pause()`, `Restart()`, `IsPlaying()`, `GetSpeed()` / `SetSpeed(v)`, `AddPoint(x, y)`, `ClearPoints()`, `GetPointCount()`, `GetPoint(i)`, `SetPoint(i, x, y)` (1-based) |
+| Tilemap | `GetTile(x, y)` returns id, flipX, flipY (id -1 is empty), `SetTile(x, y, id [, flipX, flipY])`, `EraseTile(x, y)`, `FillRect(x1, y1, x2, y2, id)` (inclusive, -1 erases), `FloodFill(x, y, id)` returns the count, `Clear()`, `GetBounds()` returns minX, minY, maxX, maxY or `nil`, `GetTileCount()`, `WorldToTile(wx, wy)`, `TileToWorld(x, y)` (cell center), `GetTileAt(wx, wy)`, `GetCellSize()` (world units), `GetTileSize()` / `SetTileSize(v)`, `IsSolid()` / `SetSolid(bool)`, `IsVisible()` / `SetVisible(bool)`, `GetTint()` / `SetTint(r, g, b [, a])`, `SetTileset(path, tileW, tileH [, margin, spacing])` returns whether it loaded, `GetTilesetSize()` returns columns, rows or `nil` |
+| Animation | `SetSheet(path, frameW, frameH, frameCount [, frameDuration = 0.1, loop = true])` returns whether it loaded, `GetSheet()`, `Play()`, `Pause()`, `IsPlaying()`, `Restart()`, `GetFrame()` / `SetFrame(n)` (1-based), `GetFrameCount()`, `GetFrameSize()`, `GetFrameDuration()` / `SetFrameDuration(s)`, `IsLooping()` / `SetLoop(bool)`, `IsFinished()`, `GetSpeed()` / `SetSpeed(v)` |
 | Health | `GetCurrent()` / `SetCurrent(v)`, `GetMax()` / `SetMax(v)`, `GetFraction()`, `IsDead()`, `IsInvulnerable()`, `GetInvulnerability()` / `SetInvulnerability(s)`, `Damage(amount [, source])` returns whether it applied, `Heal(amount)` returns the amount healed, `Kill([source])`, `Revive()` |
+
+Tile ids count from 0 at the top-left of the tileset image, row by row. Cell y grows upward like world y. Tilemap and `GetWorldPosition` conversions use the world transform from the last update, so a tilemap moved this frame converts with its old position until the next frame. Animation `playing` and `speed` are saved with the scene.
 
 ```lua
 local sprite = self.entity:GetSprite()
@@ -202,13 +206,22 @@ To add a theme, drop its `.json` into `assets/editor/themes/` and press the refr
 |---|---|
 | `LuaRuntime` (`Scripting/LuaRuntime.h`) | owns the `lua_State`; `LuaRuntime::Get()` creates it on first use, `Application` shuts it down. `ExecuteFile`, `ExecuteString`, `Call` (protected call with traceback), `PushScriptClass` |
 | `LuaScript` (`Scripting/LuaScript.h`) | a `ScriptableEntity` that hosts one script instance, forwards the hooks and the `ScriptMessage` events |
-| `LuaBindings` (`Scripting/LuaBindings.cpp`) | registers the globals, the `Entity` userdata and the component handles. Components are listed once in the `Bindings` table (name, metatable, methods, has/add/remove) |
+| `LuaBindings` (`Scripting/LuaBindings.cpp`) | registers the globals (`log`, `Input`, `Key`, `Time`, `Scene`, `Audio`, `Math`), the `Entity` userdata, and one metatable per component binding |
+| `LuaHelpers` (`Scripting/LuaHelpers.h`) | shared helpers for binding code: `CheckLiveEntity`, `CheckComponent<T>`, `CheckHandleEntity<T>`, `PushHandle`, `PushRgba`/`ReadRgba`, `RequireScene`, and `ComponentBinding` with `HasOf/AddOf/RemoveOf<T>` |
+| `Scripting/Components/Lua<Name>.cpp` | one file per component handle (Sprite, Camera, Light, Velocity, Collision, Shape, Text, Glow, Particles, AudioSource, Parallax, Body, Trigger, Timer, Path, Health, Tilemap, Animation); each defines its methods and a `<Name>Binding()` |
+| `Scripting/Components/LuaComponents.h/.cpp` | declares every `<Name>Binding()` and lists them in `ComponentBindings()`, which drives `Get/Has/Add/Remove(name)`, the generated `Get<Name>()` and metatable registration |
 | `Scene::SendEvent(entity, ScriptEvent, other, value)` | how systems deliver events; C++ scripts override `OnTriggerEnter`, `OnTimer`, `OnDamaged`, ... on `ScriptableEntity` |
 
-Adding a component binding: write the methods as `lua_CFunction`s with `CheckComponent<T>`, add a `luaL_Reg` table, add a metatable name and a row in `Bindings`. `Get<Name>()` is generated from the row. Do not keep `std::string` or other objects with destructors alive across `luaL_check*` or `luaL_error` calls, since Lua unwinds with `longjmp`.
+Adding a component binding:
+
+1. Create `Engine/Engine/Scripting/Components/Lua<Name>.cpp`. In an anonymous namespace, define the metatable name (`"SIMP.<Name>"`), the methods as `lua_CFunction`s that start with `CheckComponent<T>(L, Meta)`, and a `luaL_Reg` table ending in `{nullptr, nullptr}`.
+2. Define `const ComponentBinding &<Name>Binding()` returning a function-local static `ComponentBinding{"<Name>", Meta, Methods, &HasOf<T>, &AddOf<T> or a custom adder or nullptr, &RemoveOf<T>}`.
+3. Declare it in `LuaComponents.h`, add it to the list in `LuaComponents.cpp`, and add the `.cpp` to `Engine/CMakeLists.txt`.
+
+`Get<Name>()`, `Get/Has/Add/Remove("<Name>")` and script editor autocomplete pick it up automatically. Do not keep `std::string` or other objects with destructors alive across `luaL_check*` or `luaL_error` calls, since Lua unwinds with `longjmp`.
 
 ## Not yet done
 
 - Script fields set in the inspector are not serialized (only the script path).
-- No bindings for Tilemap or Animated Sprite.
+- Animation drives the component's single clip; `AnimationController` clips are not exposed (switch clips with `SetSheet`).
 - `OnRender` iterates the live script pool, so adding or removing script components from it is not supported.

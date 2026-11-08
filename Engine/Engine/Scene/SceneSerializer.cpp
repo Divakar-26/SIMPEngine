@@ -187,6 +187,10 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
             << anim->GetElapsedTime();
         out << YAML::Key << "finished" << YAML::Value
             << anim->IsFinished();
+        if (!ac.playing)
+          out << YAML::Key << "playing" << YAML::Value << false;
+        if (ac.speed != 1.0f)
+          out << YAML::Key << "speed" << YAML::Value << ac.speed;
         out << YAML::EndMap;
       }
     }
@@ -891,6 +895,10 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
       if (a["finished"])
         TryGet(a, "finished", finished);
       ac.animation->SetPlaybackState(currentFrame, elapsedTime, finished);
+      if (a["playing"])
+        TryGet(a, "playing", ac.playing);
+      if (a["speed"])
+        TryGet(a, "speed", ac.speed);
     });
 
     component("ParticleEmitter", [&](const YAML::Node &p) {

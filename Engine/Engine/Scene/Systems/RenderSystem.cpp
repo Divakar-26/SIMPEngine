@@ -52,10 +52,20 @@ namespace SIMPEngine
         if (hasAnim)
         {
             auto &anim = registry.get<AnimatedSpriteComponent>(entity);
-            if (anim.animation)
+            if (anim.animation && anim.animation->GetTexture())
             {
-                SDL_Color tint = sprite ? sprite->tint : SDL_Color{255, 255, 255, 255};
-                anim.animation->Draw(w.Position.x, w.Position.y, width, height, tint, w.Rotation, transform.zIndex);
+                const SDL_FRect frame = anim.animation->GetFrameRect();
+                SpriteDesc desc;
+                desc.TextureRef = anim.animation->GetTexture();
+                desc.Position = w.Position;
+                desc.Size = {width, height};
+                desc.Rotation = w.Rotation;
+                desc.Z = transform.zIndex;
+                desc.Tint = sprite ? sprite->tint : SDL_Color{255, 255, 255, 255};
+                desc.FlipX = sprite && sprite->flipX;
+                desc.FlipY = sprite && sprite->flipY;
+                desc.SourceRect = &frame;
+                Renderer::DrawSprite(desc);
                 return;
             }
         }

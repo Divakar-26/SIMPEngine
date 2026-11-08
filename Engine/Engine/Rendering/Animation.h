@@ -35,6 +35,7 @@ namespace SIMPEngine
         float GetElapsedTime() const { return m_ElapsedTime; }
         bool IsFinished() const { return m_Finished; }
         void SetPlaybackState(int currentFrame, float elapsedTime, bool finished);
+        SDL_FRect GetFrameRect() const;
         bool &GetLooping()
         {
             return m_Loop;
