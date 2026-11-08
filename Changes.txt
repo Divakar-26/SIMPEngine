@@ -57,3 +57,4 @@ Akshat
     7. Sample scripts in assets/scripts, docs/SCRIPTING.md rewritten
     8. Fix: ScriptComponent constructor, destructor and move operations are defined out of line (LuaScript.cpp), so translation units that only forward-declare ScriptableEntity (SceneSerializer.cpp) compile
     9. Scripting demo "Coin Dash": ScriptDemo target (Game/ScriptDemo/main.cpp) and assets/scripts/demo/*.lua; docs/SCRIPTING.md section
+    10. Script editor panel (View > Script Editor, double-click a .lua in FileSystem, or Edit Script on the Script component): tabs, Lua highlighting, API-aware autocomplete (globals, Entity and component handle methods with type inference from Get<X>()/locals), live syntax check, find, undo, auto-indent, comment toggle; VS Code color themes from assets/editor/themes plus installed VS Code themes and extensions

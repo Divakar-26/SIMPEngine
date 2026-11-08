@@ -31,7 +31,7 @@ namespace
 }
 
 EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
-    : Layer("EditorLayer"), m_History(&m_EditorContext), m_ViewportPanel(renderingLayer, &m_EditorContext), m_GameViewPanel(&m_EditorContext), m_HieararchyPanel(&m_EditorContext), m_InspectorPanel(&m_EditorContext), m_TilePalettePanel(&m_EditorContext), serializer(&renderingLayer->GetScene())
+    : Layer("EditorLayer"), m_History(&m_EditorContext), m_ViewportPanel(renderingLayer, &m_EditorContext), m_GameViewPanel(&m_EditorContext), m_HieararchyPanel(&m_EditorContext), m_InspectorPanel(&m_EditorContext), m_TilePalettePanel(&m_EditorContext), m_ScriptEditorPanel(&m_EditorContext), serializer(&renderingLayer->GetScene())
 {
     this->m_RenderingLayer = renderingLayer;
 
@@ -48,6 +48,7 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
 
     m_AssetPicker = std::make_unique<AssetPickerPanel>("assets://", m_AssetManager.get());
     m_InspectorPanel.SetAssetPicker(m_AssetPicker.get());
+    m_ScriptEditorPanel.SetAssetPicker(m_AssetPicker.get());
 
     m_ParticlePicker = std::make_unique<ParticlePickerPanel>();
     m_InspectorPanel.SetParticlePicker(m_ParticlePicker.get());
@@ -280,17 +281,6 @@ void EditorLayer::HandleShortcuts()
     bool typing = io.WantTextInput;
     EditorContext &ctx = m_EditorContext;
 
-    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_S, ImGuiInputFlags_RouteGlobal))
-        SaveScene();
-    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S, ImGuiInputFlags_RouteGlobal))
-    {
-        m_SaveAsName = DisplayName(ctx.ScenePath.empty() ? "scene.yaml" : ctx.ScenePath);
-        m_ShowSaveAs = true;
-    }
-    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O, ImGuiInputFlags_RouteGlobal))
-        RequestAction(PendingAction::OpenScene);
-    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_N, ImGuiInputFlags_RouteGlobal))
-        RequestAction(PendingAction::NewScene);
     if (ImGui::Shortcut(ImGuiKey_F5, ImGuiInputFlags_RouteGlobal))
     {
         if (ctx.State == SceneState::Edit)
@@ -302,6 +292,21 @@ void EditorLayer::HandleShortcuts()
         TogglePause();
     if (ImGui::Shortcut(ImGuiKey_F7, ImGuiInputFlags_RouteGlobal) && ctx.State == SceneState::Pause)
         ctx.StepRequested = true;
+
+    if (m_ScriptEditorPanel.WantsKeyboard())
+        return;
+
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_S, ImGuiInputFlags_RouteGlobal))
+        SaveScene();
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_S, ImGuiInputFlags_RouteGlobal))
+    {
+        m_SaveAsName = DisplayName(ctx.ScenePath.empty() ? "scene.yaml" : ctx.ScenePath);
+        m_ShowSaveAs = true;
+    }
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_O, ImGuiInputFlags_RouteGlobal))
+        RequestAction(PendingAction::OpenScene);
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_N, ImGuiInputFlags_RouteGlobal))
+        RequestAction(PendingAction::NewScene);
 
     if (typing || ImGui::IsAnyItemActive())
         return;
@@ -337,6 +342,7 @@ void EditorLayer::OnRender()
     m_InspectorPanel.OnImGuiRender();
     m_ContentBrowser->OnImGuiRender();
     m_ConsolePanel.OnImGuiRender();
+    m_ScriptEditorPanel.OnImGuiRender();
     m_AssetPicker->OnImGuiRender();
     m_ParticlePicker->OnImGuiRender();
     m_AnimationMakerPanel->OnImGuiRender();
@@ -456,6 +462,8 @@ void EditorLayer::DrawMenuBar()
         {
             if (ImGui::MenuItem("Console", nullptr, m_ConsolePanel.IsVisible()))
                 *m_ConsolePanel.VisibleFlag() = !m_ConsolePanel.IsVisible();
+            if (ImGui::MenuItem("Script Editor", nullptr, m_ScriptEditorPanel.IsVisible()))
+                *m_ScriptEditorPanel.VisibleFlag() = !m_ScriptEditorPanel.IsVisible();
             ImGui::MenuItem("Profiler", nullptr, &m_ShowProfiler);
             if (ImGui::MenuItem("Render Stats", nullptr, Settings().ShowStats))
             {
@@ -752,6 +760,7 @@ void EditorLayer::BuildDefaultLayout(unsigned int dockspaceId)
     ImGui::DockBuilderDockWindow("###Profiler", bottom);
     ImGui::DockBuilderDockWindow(ViewportPanel::WindowId, center);
     ImGui::DockBuilderDockWindow(GameViewPanel::WindowId, center);
+    ImGui::DockBuilderDockWindow(ScriptEditorPanel::WindowId, center);
 
     ImGui::DockBuilderFinish(dockspaceId);
 

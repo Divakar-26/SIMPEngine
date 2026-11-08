@@ -177,6 +177,25 @@ The demo scripts were run against a mock of this API (method names taken from `L
 
 `assets/scripts/`: `patrol_enemy.lua` (health, trigger damage, hit flash), `pickup.lua` (bobbing trigger that heals), `spawner.lua` (timer + `Scene.Spawn` + `SetScript`), `moving_platform.lua` (path follower), `fixed_step_demo.lua`.
 
+## Script editor
+
+The editor has a built-in code editor for `.lua` files. Open it with View > Script Editor, by double-clicking a script in the FileSystem panel, or with Edit Script on a Script component (New Script opens the new file too).
+
+- Autocomplete pops up while typing and after `.` or `:`; Ctrl+Space opens it by hand. It knows the Lua globals (`Scene`, `Input`, `Time`, ...), the `Entity` methods, and the methods of component handles. It infers handle types from `GetSprite()`, `Get("Health")`, `Add("Timer")`, `FindByName(...)`, hook arguments like `other`, and local variables assigned from those. Functions and `self.` fields written in the file are offered too.
+- The file is syntax-checked a moment after you stop typing. The error line gets a red squiggle and the message shows in the status bar; click the message to jump to the line.
+- Ctrl+S saves. Running scripts reload on the next Play because the runtime reloads files when their modification time changes. Files changed on disk reload in the editor when the tab has no unsaved edits.
+- Keys: Ctrl+Z / Ctrl+Y undo and redo, Ctrl+F find (F3 / Shift+F3 next and previous), Ctrl+/ toggle comment, Ctrl+D duplicate line, Alt+Up/Down move lines, Tab / Shift+Tab indent, Ctrl+wheel text size.
+
+### Themes
+
+Themes use the VS Code color theme format (`colors` and `tokenColors`, JSON with comments). The theme menu in the editor toolbar lists:
+
+- **Project**: every `.json` in `assets/editor/themes/` (Mossveil Night, Ember, Midnight Ink and Paper are bundled).
+- **VS Code**: themes that ship with a local VS Code install.
+- **VS Code extensions**: themes from installed extensions in `~/.vscode/extensions` and `~/.vscode-oss/extensions`.
+
+To add a theme, drop its `.json` into `assets/editor/themes/` and press the refresh button next to the theme menu. Themes that `include` a base theme work as long as the included file sits next to them. The chosen theme and text size are saved in `imgui.ini`.
+
 ## C++ side
 
 | Piece | Role |

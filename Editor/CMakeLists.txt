@@ -23,8 +23,13 @@ add_library(Editor STATIC
     Panels/InspectorPanel/AudioSection.cpp
     Panels/InspectorPanel/LogicSection.cpp
     Panels/ParticlePickerPanel.cpp
+    Panels/ScriptEditorPanel.cpp
     UI/Theme.cpp
     UI/Widgets.cpp
+    ScriptEditor/LuaLexer.cpp
+    ScriptEditor/CodeTheme.cpp
+    ScriptEditor/LuaCompletion.cpp
+    ScriptEditor/CodeEditor.cpp
 )
 
 target_compile_definitions(Editor PRIVATE ENGINE_PROFILER_ENABLE_IMGUI)

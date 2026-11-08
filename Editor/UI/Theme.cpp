@@ -110,7 +110,11 @@ namespace EditorUI
         {
             int i = 0;
             float f = 0.0f;
-            if (std::sscanf(line, "Theme=%d", &i) == 1)
+            if (std::strncmp(line, "ScriptTheme=", 12) == 0)
+                s_Settings.ScriptTheme = line + 12;
+            else if (std::sscanf(line, "ScriptFontSize=%f", &f) == 1)
+                s_Settings.ScriptFontSize = std::clamp(f, 9.0f, 32.0f);
+            else if (std::sscanf(line, "Theme=%d", &i) == 1)
                 s_Settings.Theme = (ThemeId)std::clamp(i, 0, 2);
             else if (std::sscanf(line, "Font=%d", &i) == 1)
                 s_Settings.Font = (UIFont)std::clamp(i, 0, 1);
@@ -145,9 +149,10 @@ namespace EditorUI
         {
             const EditorSettings &s = s_Settings;
             buf->appendf("[%s][Editor]\n", handler->TypeName);
-            buf->appendf("Theme=%d\nFont=%d\nScale=%.2f\nVSync=%d\nGrid=%d\nStats=%d\nGridSize=%.2f\nSnap=%d\nSnapMove=%.2f\nSnapRotate=%.2f\nLighting=%d\nColliders=%d\n\n",
+            buf->appendf("Theme=%d\nFont=%d\nScale=%.2f\nVSync=%d\nGrid=%d\nStats=%d\nGridSize=%.2f\nSnap=%d\nSnapMove=%.2f\nSnapRotate=%.2f\nLighting=%d\nColliders=%d\n",
                          static_cast<int>(s.Theme), static_cast<int>(s.Font), s.Scale, s.VSync ? 1 : 0, s.ShowGrid ? 1 : 0, s.ShowStats ? 1 : 0,
                          s.GridSize, s.Snap ? 1 : 0, s.SnapMove, s.SnapRotate, s.PreviewLighting ? 1 : 0, s.ShowColliders ? 1 : 0);
+            buf->appendf("ScriptTheme=%s\nScriptFontSize=%.1f\n\n", s.ScriptTheme.c_str(), s.ScriptFontSize);
         }
     }
 

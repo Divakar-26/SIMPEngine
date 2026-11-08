@@ -2,6 +2,8 @@
 
 #include <imgui.h>
 
+#include <string>
+
 namespace EditorUI
 {
     constexpr ImVec4 Hex(unsigned int rgb, float a = 1.0f)
@@ -83,6 +85,8 @@ namespace EditorUI
         float SnapRotate = 15.0f;
         bool PreviewLighting = true;
         bool ShowColliders = false;
+        std::string ScriptTheme = "Mossveil Night";
+        float ScriptFontSize = 15.0f;
     };
 
     EditorSettings &Settings();

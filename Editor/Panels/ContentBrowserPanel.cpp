@@ -322,6 +322,8 @@ void ContentBrowserPanel::DrawItems()
                 Navigate(item.VPath);
                 break;
             }
+            if (open && m_Context && LowerExtension(item.Name) == ".lua")
+                m_Context->OpenScriptRequest = item.VPath;
         }
         ImGui::PopStyleVar();
     }
@@ -376,6 +378,8 @@ void ContentBrowserPanel::DrawItems()
                 Navigate(item.VPath);
                 break;
             }
+            if (r.DoubleClicked && m_Context && LowerExtension(item.Name) == ".lua")
+                m_Context->OpenScriptRequest = item.VPath;
         }
         ImGui::PopStyleVar();
     }

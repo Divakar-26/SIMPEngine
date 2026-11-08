@@ -66,6 +66,7 @@ struct EditorContext
     bool Dirty = false;
 
     entt::entity RenameRequest = entt::null;
+    std::string OpenScriptRequest;
     bool FocusGameView = false;
     bool FocusSceneView = false;
 

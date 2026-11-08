@@ -1,0 +1,112 @@
+{
+  "name": "Paper",
+  "type": "light",
+  "colors": {
+    "editor.background": "#FAF8F3",
+    "editor.foreground": "#2E3135",
+    "editorGutter.background": "#F4F1EA",
+    "editorLineNumber.foreground": "#B4B0A6",
+    "editorLineNumber.activeForeground": "#4A4D52",
+    "editor.lineHighlightBackground": "#F0ECE2",
+    "editor.selectionBackground": "#D6E4F5",
+    "editorCursor.foreground": "#2459C9",
+    "editorIndentGuide.background1": "#E6E1D6",
+    "editorBracketMatch.background": "#D9D2BF",
+    "editor.findMatchHighlightBackground": "#F2C94C66",
+    "editorError.foreground": "#C62828",
+    "editorSuggestWidget.background": "#FFFFFF",
+    "editorSuggestWidget.foreground": "#2E3135",
+    "editorSuggestWidget.selectedBackground": "#E1EBF8",
+    "editorSuggestWidget.border": "#DDD7CA",
+    "editorSuggestWidget.highlightForeground": "#2459C9"
+  },
+  "tokenColors": [
+    {
+      "scope": "comment",
+      "settings": {
+        "foreground": "#9A968C",
+        "fontStyle": "italic"
+      }
+    },
+    {
+      "scope": "string",
+      "settings": {
+        "foreground": "#3D7A2A"
+      }
+    },
+    {
+      "scope": "constant.numeric",
+      "settings": {
+        "foreground": "#9A6B00"
+      }
+    },
+    {
+      "scope": "constant.language",
+      "settings": {
+        "foreground": "#B85C00"
+      }
+    },
+    {
+      "scope": "keyword.control",
+      "settings": {
+        "foreground": "#A8326B"
+      }
+    },
+    {
+      "scope": "keyword.operator",
+      "settings": {
+        "foreground": "#5F6670"
+      }
+    },
+    {
+      "scope": [
+        "storage.type",
+        "storage.modifier",
+        "keyword.local"
+      ],
+      "settings": {
+        "foreground": "#2459C9"
+      }
+    },
+    {
+      "scope": [
+        "entity.name.function",
+        "support.function",
+        "meta.function-call"
+      ],
+      "settings": {
+        "foreground": "#1F6FA8"
+      }
+    },
+    {
+      "scope": [
+        "support.class",
+        "entity.name.type"
+      ],
+      "settings": {
+        "foreground": "#7A4CB0"
+      }
+    },
+    {
+      "scope": "variable.language.self",
+      "settings": {
+        "foreground": "#C23B3B"
+      }
+    },
+    {
+      "scope": [
+        "variable.other.property",
+        "variable.other.member"
+      ],
+      "settings": {
+        "foreground": "#3D4450"
+      }
+    },
+    {
+      "scope": "punctuation",
+      "settings": {
+        "foreground": "#7A7F87"
+      }
+    }
+  ]
+}

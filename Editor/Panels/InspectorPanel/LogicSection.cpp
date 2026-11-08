@@ -131,6 +131,7 @@ void InspectorPanel::DrawScriptSection(SIMPEngine::Entity &m_SelectedEntity)
             {
                 EditorCommands::RecordEdit(ctx);
                 BindScript(script, created);
+                ctx.OpenScriptRequest = created;
             }
         }
         ImGui::SameLine();
@@ -152,7 +153,11 @@ void InspectorPanel::DrawScriptSection(SIMPEngine::Entity &m_SelectedEntity)
         if (lua && lua->HasFailed())
             PropertyValue("State", "Failed, see Console", &Colors::Error);
         else
-            PropertyValue("State", script.Instance ? "Running" : "Not started", script.Instance ? &Colors::Success : &Colors::TextDim); });
+            PropertyValue("State", script.Instance ? "Running" : "Not started", script.Instance ? &Colors::Success : &Colors::TextDim);
+
+        PropertyLabel("");
+        if (Button("Edit Script", ButtonKind::Primary, ImVec2(-FLT_MIN, 0)))
+            ctx.OpenScriptRequest = script.LuaPath; });
 }
 
 void InspectorPanel::DrawLogicSection(SIMPEngine::Entity &m_SelectedEntity)
