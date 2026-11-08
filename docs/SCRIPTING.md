@@ -81,6 +81,9 @@ Events are delivered after the frame's `OnUpdate` calls. A script is created on 
 | `Time` | `Now()` scene seconds since Play, `Delta()` last frame time, `FixedDelta()` |
 | `Scene` | `Spawn(name [, x, y [, parent]])`, `Find(name)`, `FindAll(name)`, `SetAmbient(r, g, b)` (0-255), `SetLighting(bool)`, `SetFixedStep(seconds)`, `IsSolidAt(x, y)` and `OverlapsSolid(x1, y1, x2, y2)` (against tilemaps marked solid) |
 | `Audio` | `Play(path [, volume, pitch, loop])` returns a voice id, `Stop(voice)`, `StopAll()`, `IsPlaying(voice)`, `SetVolume(voice, v)`, `SetMasterVolume(v)`, `GetMasterVolume()` |
+| `Tween`, `Curves` | Flutter-style animation: `Tween.To/From/FromTo/Value/Along/Spring/Sequence/Parallel/Stagger`, all Flutter curves. See [ANIMATION.md](ANIMATION.md) |
+| `Path` | vector paths: `Path.Circle/Rect/Star/Heart/Svg/...`, builders and queries. See [ANIMATION.md](ANIMATION.md) |
+| `Draw` | immediate drawing (lines, curves, polygons, paths, text) inside `OnRender`. See [ANIMATION.md](ANIMATION.md) |
 | `Math` | `Lerp(a, b, t)`, `Clamp(v, min, max)`, `Sign(v)`, `MoveTowards(current, target, maxDelta)`, `Length(x, y)`, `Distance(x1, y1, x2, y2)`, `Normalize(x, y)`, `Angle(x1, y1, x2, y2)` in degrees |
 
 `Scene.*` and `Time.*` use the scene of the script that is currently running. `Scene.Spawn` creates an entity with a Transform and a tag; with a parent, the position is local to that parent.
@@ -117,7 +120,7 @@ boss:TakeDamage(3)
 
 ## Components
 
-`entity:Get("Sprite")` returns a handle or `nil`. Every component also has a shortcut: `GetSprite()`, `GetCamera()`, `GetLight()`, `GetVelocity()`, `GetCollision()`, `GetShape()`, `GetText()`, `GetGlow()`, `GetParticles()`, `GetAudio()`, `GetParallax()`, `GetBody()`, `GetTrigger()`, `GetTimer()`, `GetPath()`, `GetHealth()`, `GetTilemap()`, `GetAnimation()`. `Add(name)` adds the component if missing and returns the handle (Body cannot be added from a script). Colors are 0-255 and clamped.
+`entity:Get("Sprite")` returns a handle or `nil`. Every component also has a shortcut: `GetSprite()`, `GetCamera()`, `GetLight()`, `GetVelocity()`, `GetCollision()`, `GetShape()`, `GetText()`, `GetGlow()`, `GetParticles()`, `GetAudio()`, `GetParallax()`, `GetBody()`, `GetTrigger()`, `GetTimer()`, `GetPath()`, `GetHealth()`, `GetTilemap()`, `GetAnimation()`, `GetVector()`. `Add(name)` adds the component if missing and returns the handle (Body cannot be added from a script). Colors are 0-255 and clamped.
 
 | Handle | Methods |
 |---|---|
@@ -138,6 +141,7 @@ boss:TakeDamage(3)
 | Path | `Play()`, `Pause()`, `Restart()`, `IsPlaying()`, `GetSpeed()` / `SetSpeed(v)`, `AddPoint(x, y)`, `ClearPoints()`, `GetPointCount()`, `GetPoint(i)`, `SetPoint(i, x, y)` (1-based) |
 | Tilemap | `GetTile(x, y)` returns id, flipX, flipY (id -1 is empty), `SetTile(x, y, id [, flipX, flipY])`, `EraseTile(x, y)`, `FillRect(x1, y1, x2, y2, id)` (inclusive, -1 erases), `FloodFill(x, y, id)` returns the count, `Clear()`, `GetBounds()` returns minX, minY, maxX, maxY or `nil`, `GetTileCount()`, `WorldToTile(wx, wy)`, `TileToWorld(x, y)` (cell center), `GetTileAt(wx, wy)`, `GetCellSize()` (world units), `GetTileSize()` / `SetTileSize(v)`, `IsSolid()` / `SetSolid(bool)`, `IsVisible()` / `SetVisible(bool)`, `GetTint()` / `SetTint(r, g, b [, a])`, `SetTileset(path, tileW, tileH [, margin, spacing])` returns whether it loaded, `GetTilesetSize()` returns columns, rows or `nil` |
 | Animation | `SetSheet(path, frameW, frameH, frameCount [, frameDuration = 0.1, loop = true])` returns whether it loaded, `GetSheet()`, `Play()`, `Pause()`, `IsPlaying()`, `Restart()`, `GetFrame()` / `SetFrame(n)` (1-based), `GetFrameCount()`, `GetFrameSize()`, `GetFrameDuration()` / `SetFrameDuration(s)`, `IsLooping()` / `SetLoop(bool)`, `IsFinished()`, `GetSpeed()` / `SetSpeed(v)` |
+| Vector | shapes (`SetCircle`, `SetRect`, `SetStar`, `SetHeart`, `SetPolygon`, `SetSvg`, `SetPath/GetPath`), fill/stroke/gradient, caps and joins, `SetTrim`, `SetDash`, `SetMorphTarget`, `SetMorph`, `MorphTo(path, seconds [, curve])`, `GetLength`, `GetPointAt(t)`, `GetBounds`. Details in [ANIMATION.md](ANIMATION.md) |
 | Health | `GetCurrent()` / `SetCurrent(v)`, `GetMax()` / `SetMax(v)`, `GetFraction()`, `IsDead()`, `IsInvulnerable()`, `GetInvulnerability()` / `SetInvulnerability(s)`, `Damage(amount [, source])` returns whether it applied, `Heal(amount)` returns the amount healed, `Kill([source])`, `Revive()` |
 
 Tile ids count from 0 at the top-left of the tileset image, row by row. Cell y grows upward like world y. Tilemap and `GetWorldPosition` conversions use the world transform from the last update, so a tilemap moved this frame converts with its old position until the next frame. Animation `playing` and `speed` are saved with the scene.

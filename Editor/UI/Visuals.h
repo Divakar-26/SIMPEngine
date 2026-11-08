@@ -91,6 +91,8 @@ namespace EditorUI
             return {ICON_LC_FILM, &Colors::NodeTint, "Animated Sprite"};
         if (entity.HasComponent<SpriteComponent>())
             return {ICON_LC_IMAGE, &Colors::NodeTint, "Sprite"};
+        if (entity.HasComponent<VectorShapeComponent>())
+            return {ICON_LC_PEN_TOOL, &Colors::NodeTint, "Vector Shape"};
         if (entity.HasComponent<TextComponent>())
             return {ICON_LC_TYPE, &Colors::NodeTint, "Text"};
         if (entity.HasComponent<PhysicsComponent>())

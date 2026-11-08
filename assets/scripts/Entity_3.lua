@@ -1,18 +1,26 @@
 local Script = {}
 
-local r = 0
-local g = 255
-local b = 255
-
+local radius = 100
 function Script:OnCreate()
+    local e = self.entity
+    e:Add("Light"):SetRadius(radius)
 end
 
 function Script:OnUpdate(dt)
-    self.entity:GetShape():SetColor(r,g,b,255)
-    r = r + 20 * dt
-    -- g = g + 20 * dt
-    -- b = b + 20 * dt
+    local e = self.entity
+    if Input.IsKeyDown(Key.UP) then
+        e:GetLight():SetIntensity(e:GetLight():GetIntensity() + 10 * dt)
+    end
     
+    if Input.IsKeyDown(Key.RIGHT) then
+        e:GetLight():SetRadius(e:GetLight():GetRadius() + 100 * dt)
+    end
+    
+    
+    if Input.IsMouseJustPressed(Key.MOUSE_LEFT) and Input.IsMouseInViewport() then
+        local mx, my = self.entity:GetMouseWorld()  
+        print(mx, my)
+    end
 end
 
 return Script

@@ -53,6 +53,7 @@ namespace SIMPEngine
         static void DrawRect(float x, float y, float width, float height, float thickness, SDL_Color color, float rotation = 0.0f, float zIndex = 0.0f);
         static void DrawTexture(std::shared_ptr<Texture> texture, float x, float y, float width, float height, SDL_Color color, float rotation, float zIndex, const SDL_FRect *srcRect = nullptr);
         static void DrawSprite(const SpriteDesc &desc);
+        static void DrawTriangles(const glm::vec2 *positions, const glm::vec4 *colors, size_t vertexCount, const uint32_t *indices, size_t indexCount, float zIndex = 0.0f);
 
         static void DrawLine(float x1, float y1, float x2, float y2, SDL_Color color, float zIndex = 0.0f);
         static void DrawLine(float x1, float y1, float x2, float y2, float width, SDL_Color color, float zIndex = 0.0f);

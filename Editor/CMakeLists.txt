@@ -22,8 +22,10 @@ add_library(Editor STATIC
     Panels/InspectorPanel/LightSection.cpp
     Panels/InspectorPanel/AudioSection.cpp
     Panels/InspectorPanel/LogicSection.cpp
+    Panels/InspectorPanel/VectorSection.cpp
     Panels/ParticlePickerPanel.cpp
     Panels/ScriptEditorPanel.cpp
+    Panels/TweenLabPanel.cpp
     UI/Theme.cpp
     UI/Widgets.cpp
     ScriptEditor/LuaLexer.cpp

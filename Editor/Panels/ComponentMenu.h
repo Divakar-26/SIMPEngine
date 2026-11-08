@@ -43,6 +43,8 @@ inline void DrawAddComponentItems(EditorContext &ctx, SIMPEngine::Entity entity,
                                                  { auto &s = entity.AddComponent<SpriteComponent>(); s.width = 64.0f; s.height = 64.0f; });
     any |= AddComponentMenuItem<AnimatedSpriteComponent>(ctx, entity, ICON_LC_FILM, "Animated Sprite", filter, [&]
                                                          { entity.AddComponent<AnimatedSpriteComponent>(); });
+    any |= AddComponentMenuItem<VectorShapeComponent>(ctx, entity, ICON_LC_PEN_TOOL, "Vector Shape", filter, [&]
+                                                      { entity.AddComponent<VectorShapeComponent>(); });
     any |= AddComponentMenuItem<TextComponent>(ctx, entity, ICON_LC_TYPE, "Text", filter, [&]
                                                { entity.AddComponent<TextComponent>(); });
     any |= AddComponentMenuItem<TilemapComponent>(ctx, entity, ICON_LC_GRID_3X3, "Tilemap", filter, [&]

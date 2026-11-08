@@ -393,7 +393,7 @@ bool EditorCommands::IsGroup(SIMPEngine::Entity entity)
     auto *hierarchy = registry.try_get<HierarchyComponent>(handle);
     if (!hierarchy || hierarchy->children.empty())
         return false;
-    return !registry.any_of<SpriteComponent, RenderComponent, TextComponent, TilemapComponent, AnimatedSpriteComponent, ParticleEmitterComponent,
+    return !registry.any_of<SpriteComponent, RenderComponent, TextComponent, TilemapComponent, AnimatedSpriteComponent, ParticleEmitterComponent, VectorShapeComponent,
                             LightComponent, AudioSourceComponent, CameraComponent, PhysicsComponent, CollisionComponent, ScriptComponent, GlowComponent, TriggerComponent>(handle);
 }
 

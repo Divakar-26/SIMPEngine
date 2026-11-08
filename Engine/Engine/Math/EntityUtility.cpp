@@ -53,6 +53,16 @@ namespace SIMPEngine
             if (ac.animation && ac.animation->GetTexture())
                 return glm::vec2(static_cast<float>(ac.animation->GetFrameWidth()), static_cast<float>(ac.animation->GetFrameHeight()));
         }
+        if (entity.HasComponent<VectorShapeComponent>())
+        {
+            glm::vec2 min, max;
+            const auto &vc = entity.GetComponent<VectorShapeComponent>();
+            if (vc.path.GetBounds(min, max))
+            {
+                const float pad = vc.stroke ? vc.strokeWidth : 0.0f;
+                return glm::max(glm::abs(min), glm::abs(max)) * 2.0f + glm::vec2(pad);
+            }
+        }
         if (entity.HasComponent<TextComponent>())
         {
             auto &tx = entity.GetComponent<TextComponent>();

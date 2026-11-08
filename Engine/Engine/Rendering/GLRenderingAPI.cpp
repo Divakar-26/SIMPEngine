@@ -163,10 +163,59 @@ namespace SIMPEngine
             m_Stats.glyphCount++;
             break;
         case PrimitiveMode::Light:
+        case PrimitiveMode::Mesh:
             m_Stats.shapeCount++;
             break;
         }
         m_Stats.primitives++;
+    }
+
+    void GLRenderingAPI::SubmitMesh(const glm::vec2 *positions, const glm::vec4 *colors, const uint32_t *indices, size_t indexCount, float z, BlendMode blend)
+    {
+        if (indexCount < 3)
+            return;
+        if (m_Pending.size() >= MAX_PENDING)
+            Flush();
+
+        Primitive p;
+        p.Mode = PrimitiveMode::Mesh;
+        p.Z = z;
+        p.Blend = blend;
+        p.MeshFirst = static_cast<uint32_t>(m_MeshPositions.size() / 3);
+        p.MeshCount = static_cast<uint32_t>(indexCount / 3);
+        for (size_t i = 0; i + 2 < indexCount; i += 3)
+        {
+            for (size_t k = 0; k < 3; ++k)
+            {
+                m_MeshPositions.push_back(positions[indices[i + k]]);
+                m_MeshColors.push_back(colors[indices[i + k]]);
+            }
+        }
+        Submit(p);
+    }
+
+    void GLRenderingAPI::WriteMesh(const Primitive &p)
+    {
+        const glm::vec4 shape(0.0f);
+        const glm::vec3 misc(0.0f, static_cast<float>(PrimitiveMode::Mesh), 1.0f);
+        for (uint32_t t = 0; t < p.MeshCount; ++t)
+        {
+            if (m_QuadCount >= MAX_QUADS)
+                DrawBatch();
+            const size_t first = static_cast<size_t>(p.MeshFirst + t) * 3;
+            Vertex2D *v = &m_Vertices[m_QuadCount * 4];
+            for (int i = 0; i < 4; ++i)
+            {
+                const size_t k = first + static_cast<size_t>(i == 3 ? 0 : i);
+                v[i].Position = glm::vec3(m_MeshPositions[k], p.Z);
+                v[i].UV = glm::vec2(0.0f);
+                v[i].Color = m_MeshColors[k];
+                v[i].Local = glm::vec2(0.0f);
+                v[i].Shape = shape;
+                v[i].Misc = misc;
+            }
+            m_QuadCount++;
+        }
     }
 
     void GLRenderingAPI::WriteQuad(const Primitive &p, float slot)
@@ -275,6 +324,12 @@ namespace SIMPEngine
                 m_BatchBlend = p.Blend;
             }
 
+            if (p.Mode == PrimitiveMode::Mesh)
+            {
+                WriteMesh(p);
+                continue;
+            }
+
             float slot = 0.0f;
             if (p.Texture && p.Texture != m_WhiteTexture)
             {
@@ -307,6 +362,8 @@ namespace SIMPEngine
         m_Shader->Unbind();
 
         m_Pending.clear();
+        m_MeshPositions.clear();
+        m_MeshColors.clear();
     }
 
     void GLRenderingAPI::SetViewMatrix(const glm::mat4 &view)
@@ -324,6 +381,8 @@ namespace SIMPEngine
     void GLRenderingAPI::BeginFrame()
     {
         m_Pending.clear();
+        m_MeshPositions.clear();
+        m_MeshColors.clear();
         m_QuadCount = 0;
         m_UsedTextureSlots = 1;
     }

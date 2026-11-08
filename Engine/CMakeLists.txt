@@ -56,10 +56,21 @@ add_library(Engine STATIC
     Engine/Scene/Systems/TimerSystem.cpp
     Engine/Scene/Systems/PathFollowerSystem.cpp
     Engine/Scene/Systems/HealthSystem.cpp
+    Engine/Animation/Curves.cpp
+    Engine/Animation/Tween.cpp
+    Engine/Vector/VectorPath.cpp
+    Engine/Vector/VectorTessellator.cpp
+    Engine/Vector/VectorShape.cpp
+    Engine/Scene/Systems/VectorSystem.cpp
     Engine/Scripting/LuaRuntime.cpp
     Engine/Scripting/LuaBindings.cpp
     Engine/Scripting/LuaScript.cpp
     Engine/Scripting/LuaHelpers.cpp
+    Engine/Scripting/LuaCallback.cpp
+    Engine/Scripting/LuaTween.cpp
+    Engine/Scripting/LuaPath.cpp
+    Engine/Scripting/LuaDraw.cpp
+    Engine/Scripting/Components/LuaVector.cpp
     Engine/Scripting/Components/LuaComponents.cpp
     Engine/Scripting/Components/LuaSprite.cpp
     Engine/Scripting/Components/LuaCamera.cpp

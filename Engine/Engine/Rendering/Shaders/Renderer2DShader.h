@@ -55,6 +55,14 @@ void main()
     int slot = int(vMisc.x + 0.5);
     int mode = int(vMisc.y + 0.5);
 
+    if (mode == 4)
+    {
+        if (vColor.a <= 0.001)
+            discard;
+        FragColor = vColor;
+        return;
+    }
+
     if (mode == 0)
     {
         vec4 color = texture(uTextures[slot], vUV) * vColor;

@@ -6,6 +6,8 @@
 #include <Engine/Rendering/Tileset.h>
 #include <Engine/Particles/ParticleEffect.h>
 #include <Engine/Math/Camera2D.h>
+#include <Engine/Vector/VectorPath.h>
+#include <Engine/Vector/VectorTessellator.h>
 
 #include <AccelEngine/world.h>
 
@@ -23,6 +25,7 @@
 namespace SIMPEngine
 {
     class ScriptableEntity;
+    struct VectorShapeCache;
 }
 
 struct TransformComponent
@@ -307,4 +310,47 @@ struct HealthComponent
 
     float invulnerableRemaining = 0.0f;
     bool dead = false;
+};
+
+struct VectorCacheHandle
+{
+    std::shared_ptr<SIMPEngine::VectorShapeCache> Ptr;
+
+    VectorCacheHandle() = default;
+    VectorCacheHandle(const VectorCacheHandle &) {}
+    VectorCacheHandle &operator=(const VectorCacheHandle &) { return *this; }
+    VectorCacheHandle(VectorCacheHandle &&) noexcept = default;
+    VectorCacheHandle &operator=(VectorCacheHandle &&) noexcept = default;
+};
+
+struct VectorShapeComponent
+{
+    SIMPEngine::VectorPath path = SIMPEngine::VectorPath::Circle(50.0f);
+    SIMPEngine::VectorPath morphTarget;
+    float morph = 0.0f;
+
+    bool fill = true;
+    SDL_Color fillColor{90, 170, 255, 255};
+    bool stroke = false;
+    SDL_Color strokeColor{255, 255, 255, 255};
+    float strokeWidth = 4.0f;
+    SIMPEngine::StrokeCap cap = SIMPEngine::StrokeCap::Round;
+    SIMPEngine::StrokeJoin join = SIMPEngine::StrokeJoin::Round;
+    float miterLimit = 4.0f;
+
+    float trimStart = 0.0f;
+    float trimEnd = 1.0f;
+    float trimOffset = 0.0f;
+
+    float dashLength = 0.0f;
+    float dashGap = 0.0f;
+    float dashOffset = 0.0f;
+
+    bool gradient = false;
+    glm::vec2 gradientFrom{0.0f, 50.0f};
+    glm::vec2 gradientTo{0.0f, -50.0f};
+    SDL_Color gradientFromColor{255, 120, 200, 255};
+    SDL_Color gradientToColor{90, 170, 255, 255};
+
+    VectorCacheHandle cache;
 };

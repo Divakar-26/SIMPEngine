@@ -34,7 +34,8 @@ namespace SIMPEngine
         Sprite = 0,
         Shape = 1,
         SdfText = 2,
-        Light = 3
+        Light = 3,
+        Mesh = 4
     };
 
     struct Primitive
@@ -52,6 +53,8 @@ namespace SIMPEngine
         float Stroke = 0.0f;
         float Softness = 1.0f;
         float Padding = 0.0f;
+        uint32_t MeshFirst = 0;
+        uint32_t MeshCount = 0;
     };
 
     class RenderingAPI
@@ -72,6 +75,7 @@ namespace SIMPEngine
         virtual const glm::mat4 &GetProjectionMatrix() const = 0;
 
         virtual void Submit(const Primitive &primitive) = 0;
+        virtual void SubmitMesh(const glm::vec2 *positions, const glm::vec4 *colors, const uint32_t *indices, size_t indexCount, float z, BlendMode blend) = 0;
         virtual void Flush() = 0;
 
         virtual void BindRenderTarget(Framebuffer *target) = 0;

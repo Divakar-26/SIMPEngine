@@ -23,6 +23,7 @@ namespace SIMPEngine::LuaBindings
             &HealthBinding(),
             &TilemapBinding(),
             &AnimationBinding(),
+            &VectorBinding(),
         };
         return bindings;
     }

@@ -16,6 +16,7 @@
 #include "Panels/TilePalettePanel.h"
 #include "Panels/ParticlePickerPanel.h"
 #include "Panels/ScriptEditorPanel.h"
+#include "Panels/TweenLabPanel.h"
 #include "Panels/InspectorPanel/AnimationMakerPanel.h"
 #include "EditorContext.h"
 #include "EditorHistory.h"
@@ -77,6 +78,7 @@ private:
     ConsolePanel m_ConsolePanel;
     SettingsPanel m_SettingsPanel;
     ScriptEditorPanel m_ScriptEditorPanel;
+    TweenLabPanel m_TweenLabPanel;
     SIMPEngine::RenderingLayer *m_RenderingLayer;
 
     std::unique_ptr<ContentBrowserPanel> m_ContentBrowser;

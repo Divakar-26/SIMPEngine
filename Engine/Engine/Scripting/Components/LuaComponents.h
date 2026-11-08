@@ -24,6 +24,7 @@ namespace SIMPEngine::LuaBindings
     const ComponentBinding &HealthBinding();
     const ComponentBinding &TilemapBinding();
     const ComponentBinding &AnimationBinding();
+    const ComponentBinding &VectorBinding();
 
     const std::vector<const ComponentBinding *> &ComponentBindings();
 }

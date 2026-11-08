@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cmath>
 #include <utility>
+#include <vector>
 
 namespace SIMPEngine
 {
@@ -96,6 +97,32 @@ namespace SIMPEngine
             return;
         primitive.Color *= s_ColorMultiplier;
         s_RenderingAPI->Submit(primitive);
+    }
+
+    void Renderer::DrawTriangles(const glm::vec2 *positions, const glm::vec4 *colors, size_t vertexCount, const uint32_t *indices, size_t indexCount, float zIndex)
+    {
+        if (!positions || !colors || !indices || vertexCount == 0 || indexCount < 3)
+            return;
+        glm::vec2 min = positions[0];
+        glm::vec2 max = positions[0];
+        for (size_t i = 1; i < vertexCount; ++i)
+        {
+            min = glm::min(min, positions[i]);
+            max = glm::max(max, positions[i]);
+        }
+        if (!IsVisible((min + max) * 0.5f, (max - min) * 0.5f))
+            return;
+
+        if (s_ColorMultiplier == glm::vec4(1.0f))
+        {
+            s_RenderingAPI->SubmitMesh(positions, colors, indices, indexCount, zIndex, s_BlendMode);
+            return;
+        }
+        thread_local std::vector<glm::vec4> tinted;
+        tinted.resize(vertexCount);
+        for (size_t i = 0; i < vertexCount; ++i)
+            tinted[i] = colors[i] * s_ColorMultiplier;
+        s_RenderingAPI->SubmitMesh(positions, tinted.data(), indices, indexCount, zIndex, s_BlendMode);
     }
 
     void Renderer::SetColorMultiplier(const glm::vec4 &multiplier)

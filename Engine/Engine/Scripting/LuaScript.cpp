@@ -1,6 +1,7 @@
 #include "LuaScript.h"
 #include "LuaBindings.h"
 #include "LuaInclude.h"
+#include "LuaModules.h"
 #include "LuaRuntime.h"
 
 #include <Engine/Core/Log.h>
@@ -187,7 +188,13 @@ namespace SIMPEngine
         if (m_Failed || !m_HasRender || !IsLive())
             return;
 
-        if (!Invoke("OnRender", false, 0.0f, Entity{}))
+        float z = 0.0f;
+        if (Entity entity = GetEntity(); entity && entity.HasComponent<TransformComponent>())
+            z = entity.GetComponent<TransformComponent>().zIndex;
+        LuaBindings::BeginDraw(z);
+        const bool ok = Invoke("OnRender", false, 0.0f, Entity{});
+        LuaBindings::EndDraw();
+        if (!ok)
             Disable();
     }
 

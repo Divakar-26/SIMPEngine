@@ -228,6 +228,7 @@ namespace SIMPEngine
             m_FixedAccumulator -= m_FixedStep;
         }
 
+        m_Tweens.Update(deltaTime);
         pathFollowerSystem.Update(*this, deltaTime);
         triggerSystem.Update(*this);
         timerSystem.Update(*this, deltaTime);
@@ -327,6 +328,7 @@ namespace SIMPEngine
 
         renderSystem.RenderQuads(m_Registry);
         renderSystem.RenderSprites(m_Registry);
+        vectorSystem.Render(m_Registry);
         bool lit = m_Lighting.Enabled && m_LightingVisible;
         particleSystem.Render(m_Registry, lit ? 0 : -1);
         renderSystem.RenderText(m_Registry);
@@ -355,6 +357,7 @@ namespace SIMPEngine
         physicsSystem.DestroyBodies();
         physicsSystem.DestroyWorld();
 
+        m_Tweens.Clear();
         m_ScriptOrder.clear();
         m_Time = 0.0f;
         m_LastDelta = 0.0f;

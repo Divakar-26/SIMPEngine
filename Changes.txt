@@ -60,3 +60,12 @@ Akshat
     10. Script editor panel (View > Script Editor, double-click a .lua in FileSystem, or Edit Script on the Script component): tabs, Lua highlighting, API-aware autocomplete (globals, Entity and component handle methods with type inference from Get<X>()/locals), live syntax check, find, undo, auto-indent, comment toggle; VS Code color themes from assets/editor/themes plus installed VS Code themes and extensions
     11. Lua bindings split: one file per component handle under Engine/Scripting/Components/ (LuaComponents.h/.cpp lists them), shared helpers in Scripting/LuaHelpers.h/.cpp
     12. New Lua handles: Tilemap (get/set/erase/fill/flood tiles, world<->tile, solid, tint, tileset) and Animation (SetSheet, play/pause, frame, speed, loop); Scene.IsSolidAt/OverlapsSolid; AnimatedSpriteComponent gains playing/speed (saved with the scene)
+09/11/2026
+    1. Flutter-style animation: Curve library (all Flutter Curves + Material 3 easing, Cubic/Interval/Steps/SawTooth/Threshold/Elastic/Spring/Sine/Flipped/Reversed) and per-scene TweenSystem (property, value, motion-path, sequence/parallel/stagger groups, callbacks, springs; reverse, yoyo, repeat, seek, speed; implicit overwrite); 36 animatable properties
+    2. Lua: Tween, Curves, Path and Draw globals, Vector component handle, tween handles as controllers
+    3. Vector Shape component: Bezier paths, presets, SVG import, fill (solid/linear gradient, holes), strokes with caps/joins, trim, dash, morphing between any shapes; anti-aliased triangle meshes through a new Mesh primitive in the batch renderer; serialized; inspector section and Add Component entry
+    4. docs/ANIMATION.md
+    5. ArrowOut target: one-level line-arrow puzzle in Lua (assets/scripts/arrowout/main.lua) built on tweens and vector shapes; solvable seeded generator, snake slide-out via trim, bump/flash on blocked taps, hearts, win/lose screens
+    6. Playground target: curve explorer (all curves, draggable custom cubic, live graph and real-tween previews, copyable Lua) and morph playground (10 shapes, any curve, scrub, fill/stroke/points toggles, auto cycle) in assets/scripts/playground/main.lua
+    7. Fix: Tween.KillAll() / TweenSystem::Clear() called from inside a tween callback now kills only the tweens that existed at that moment (it used to defer and also kill tweens created later in the same update)
+    8. Tween Lab editor panel (View > Tween Lab): live preview of tweens on a vector shape with tracks, curves (hover preview), timing, springs, follow-path, trail, transport/scrub and generated Lua

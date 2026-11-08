@@ -34,6 +34,58 @@ bool ReadColor(const YAML::Node &node, SDL_Color &c) {
   return true;
 }
 
+void EmitPath(YAML::Emitter &out, const VectorPath &path) {
+  out << YAML::BeginSeq;
+  for (const VectorContour &contour : path.Contours) {
+    out << YAML::BeginMap;
+    out << YAML::Key << "closed" << YAML::Value << contour.Closed;
+    out << YAML::Key << "nodes" << YAML::Value << YAML::BeginSeq;
+    for (const VectorNode &n : contour.Nodes) {
+      out << YAML::Flow << YAML::BeginSeq << n.Position.x << n.Position.y;
+      if (n.In != glm::vec2(0.0f) || n.Out != glm::vec2(0.0f))
+        out << n.In.x << n.In.y << n.Out.x << n.Out.y;
+      out << YAML::EndSeq;
+    }
+    out << YAML::EndSeq;
+    out << YAML::EndMap;
+  }
+  out << YAML::EndSeq;
+}
+
+bool ReadPath(const YAML::Node &node, VectorPath &path) {
+  if (!node || !node.IsSequence())
+    return false;
+  path.Clear();
+  for (const YAML::Node &c : node) {
+    VectorContour contour;
+    if (c["closed"])
+      contour.Closed = c["closed"].as<bool>();
+    if (c["nodes"] && c["nodes"].IsSequence()) {
+      for (const YAML::Node &n : c["nodes"]) {
+        if (!n.IsSequence() || n.size() < 2)
+          continue;
+        VectorNode vn;
+        vn.Position = {n[0].as<float>(), n[1].as<float>()};
+        if (n.size() >= 6) {
+          vn.In = {n[2].as<float>(), n[3].as<float>()};
+          vn.Out = {n[4].as<float>(), n[5].as<float>()};
+        }
+        contour.Nodes.push_back(vn);
+      }
+    }
+    path.Contours.push_back(std::move(contour));
+  }
+  return true;
+}
+
+const char *CapName(StrokeCap cap) {
+  return cap == StrokeCap::Butt ? "butt" : cap == StrokeCap::Square ? "square" : "round";
+}
+
+const char *JoinName(StrokeJoin join) {
+  return join == StrokeJoin::Miter ? "miter" : join == StrokeJoin::Bevel ? "bevel" : "round";
+}
+
 bool ReadVec2(const YAML::Node &node, float &x, float &y) {
   if (!node || !node.IsSequence() || node.size() < 2)
     return false;
@@ -266,6 +318,42 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::Key << "intensity" << YAML::Value << glow.intensity;
       out << YAML::Key << "spread" << YAML::Value << glow.spread;
       out << YAML::Key << "enabled" << YAML::Value << glow.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<VectorShapeComponent>()) {
+      const auto &v = entity.GetComponent<VectorShapeComponent>();
+      out << YAML::Key << "VectorShape" << YAML::BeginMap;
+      out << YAML::Key << "path" << YAML::Value;
+      EmitPath(out, v.path);
+      if (!v.morphTarget.Empty()) {
+        out << YAML::Key << "morph_target" << YAML::Value;
+        EmitPath(out, v.morphTarget);
+        out << YAML::Key << "morph" << YAML::Value << v.morph;
+      }
+      out << YAML::Key << "fill" << YAML::Value << v.fill;
+      out << YAML::Key << "fill_color" << YAML::Value;
+      EmitColor(out, v.fillColor);
+      out << YAML::Key << "stroke" << YAML::Value << v.stroke;
+      out << YAML::Key << "stroke_color" << YAML::Value;
+      EmitColor(out, v.strokeColor);
+      out << YAML::Key << "stroke_width" << YAML::Value << v.strokeWidth;
+      out << YAML::Key << "cap" << YAML::Value << CapName(v.cap);
+      out << YAML::Key << "join" << YAML::Value << JoinName(v.join);
+      out << YAML::Key << "miter_limit" << YAML::Value << v.miterLimit;
+      out << YAML::Key << "trim" << YAML::Value << YAML::Flow << YAML::BeginSeq << v.trimStart << v.trimEnd << v.trimOffset << YAML::EndSeq;
+      if (v.dashLength > 0.0f)
+        out << YAML::Key << "dash" << YAML::Value << YAML::Flow << YAML::BeginSeq << v.dashLength << v.dashGap << v.dashOffset << YAML::EndSeq;
+      if (v.gradient) {
+        out << YAML::Key << "gradient" << YAML::BeginMap;
+        out << YAML::Key << "from" << YAML::Value << YAML::Flow << YAML::BeginSeq << v.gradientFrom.x << v.gradientFrom.y << YAML::EndSeq;
+        out << YAML::Key << "to" << YAML::Value << YAML::Flow << YAML::BeginSeq << v.gradientTo.x << v.gradientTo.y << YAML::EndSeq;
+        out << YAML::Key << "from_color" << YAML::Value;
+        EmitColor(out, v.gradientFromColor);
+        out << YAML::Key << "to_color" << YAML::Value;
+        EmitColor(out, v.gradientToColor);
+        out << YAML::EndMap;
+      }
       out << YAML::EndMap;
     }
 
@@ -769,6 +857,51 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
         TryGet(g, "spread", glow.spread);
       if (g["enabled"])
         TryGet(g, "enabled", glow.enabled);
+    });
+
+    component("VectorShape", [&](const YAML::Node &n) {
+      auto &v = entity.AddComponent<VectorShapeComponent>();
+      ReadPath(n["path"], v.path);
+      ReadPath(n["morph_target"], v.morphTarget);
+      if (n["morph"])
+        TryGet(n, "morph", v.morph);
+      if (n["fill"])
+        TryGet(n, "fill", v.fill);
+      ReadColor(n["fill_color"], v.fillColor);
+      if (n["stroke"])
+        TryGet(n, "stroke", v.stroke);
+      ReadColor(n["stroke_color"], v.strokeColor);
+      if (n["stroke_width"])
+        TryGet(n, "stroke_width", v.strokeWidth);
+      if (n["cap"]) {
+        const std::string cap = n["cap"].as<std::string>();
+        v.cap = cap == "butt" ? StrokeCap::Butt : cap == "square" ? StrokeCap::Square : StrokeCap::Round;
+      }
+      if (n["join"]) {
+        const std::string join = n["join"].as<std::string>();
+        v.join = join == "miter" ? StrokeJoin::Miter : join == "bevel" ? StrokeJoin::Bevel : StrokeJoin::Round;
+      }
+      if (n["miter_limit"])
+        TryGet(n, "miter_limit", v.miterLimit);
+      if (n["trim"] && n["trim"].IsSequence() && n["trim"].size() >= 2) {
+        v.trimStart = n["trim"][0].as<float>();
+        v.trimEnd = n["trim"][1].as<float>();
+        if (n["trim"].size() >= 3)
+          v.trimOffset = n["trim"][2].as<float>();
+      }
+      if (n["dash"] && n["dash"].IsSequence() && n["dash"].size() >= 2) {
+        v.dashLength = n["dash"][0].as<float>();
+        v.dashGap = n["dash"][1].as<float>();
+        if (n["dash"].size() >= 3)
+          v.dashOffset = n["dash"][2].as<float>();
+      }
+      if (const YAML::Node g = n["gradient"]) {
+        v.gradient = true;
+        ReadVec2(g["from"], v.gradientFrom.x, v.gradientFrom.y);
+        ReadVec2(g["to"], v.gradientTo.x, v.gradientTo.y);
+        ReadColor(g["from_color"], v.gradientFromColor);
+        ReadColor(g["to_color"], v.gradientToColor);
+      }
     });
 
     component("Parallax", [&](const YAML::Node &p) {

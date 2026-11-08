@@ -5,6 +5,7 @@
 #include <Engine/Rendering/Font.h>
 #include <Engine/Scene/Systems/TilemapSystem.h>
 #include <Engine/Scene/Systems/ParticleSystem.h>
+#include <Engine/Scene/Systems/VectorSystem.h>
 
 #include <cmath>
 
@@ -125,6 +126,7 @@ namespace SIMPEngine
         }
         DrawQuad(registry, entity);
         DrawSprite(registry, entity);
+        VectorSystem::DrawVector(registry, entity);
         if (auto *emitter = registry.try_get<ParticleEmitterComponent>(entity))
         {
             auto &transform = registry.get<TransformComponent>(entity);

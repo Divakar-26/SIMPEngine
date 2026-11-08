@@ -37,6 +37,7 @@ namespace SIMPEngine
         const glm::mat4 &GetProjectionMatrix() const override { return m_Projection; }
 
         void Submit(const Primitive &primitive) override;
+        void SubmitMesh(const glm::vec2 *positions, const glm::vec4 *colors, const uint32_t *indices, size_t indexCount, float z, BlendMode blend) override;
         void Flush() override;
 
         void BindRenderTarget(Framebuffer *target) override;
@@ -52,6 +53,7 @@ namespace SIMPEngine
         void CreateWhiteTexture();
         void DrawBatch();
         void WriteQuad(const Primitive &p, float slot);
+        void WriteMesh(const Primitive &p);
         void ApplyBlend(BlendMode mode);
 
         static constexpr size_t MAX_QUADS = 10000;
@@ -69,6 +71,8 @@ namespace SIMPEngine
         std::vector<Primitive> m_Pending;
         std::vector<uint32_t> m_Order;
         std::vector<Vertex2D> m_Vertices;
+        std::vector<glm::vec2> m_MeshPositions;
+        std::vector<glm::vec4> m_MeshColors;
         size_t m_QuadCount = 0;
 
         std::array<GLuint, MAX_TEXTURE_SLOTS> m_TextureSlots{};

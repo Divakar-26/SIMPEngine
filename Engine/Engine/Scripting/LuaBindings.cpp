@@ -4,6 +4,7 @@
 #include "LuaHelpers.h"
 #include "LuaScript.h"
 #include "Components/LuaComponents.h"
+#include "LuaModules.h"
 
 #include <Engine/Audio/AudioEngine.h>
 #include <Engine/Core/Log.h>
@@ -980,6 +981,9 @@ namespace SIMPEngine::LuaBindings
 
         RegisterKeys(L);
         RegisterEntity(L);
+        RegisterTween(L);
+        RegisterPath(L);
+        RegisterDraw(L);
         for (const ComponentBinding *binding : ComponentBindings())
             RegisterHandle(L, binding->Meta, binding->Methods);
     }

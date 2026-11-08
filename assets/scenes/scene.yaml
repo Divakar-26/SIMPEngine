@@ -18,8 +18,5 @@ Entities:
       rotation: 0
       zIndex: 0
       scale: [1, 1]
-    Render:
-      color: [255, 255, 255, 255]
-      size: [64, 64]
     Script:
-      lua: assets://scripts/Entity_3.lua
+      lua: assets://scripts/Entity_4.lua

@@ -21,7 +21,9 @@
 #include <Engine/Scene/Systems/TimerSystem.h>
 #include <Engine/Scene/Systems/PathFollowerSystem.h>
 #include <Engine/Scene/Systems/HealthSystem.h>
+#include <Engine/Scene/Systems/VectorSystem.h>
 #include <Engine/Scene/ScriptEvent.h>
+#include <Engine/Animation/Tween.h>
 
 #include <AccelEngine/world.h>
 #include <AccelEngine/ForceRegistry.h>
@@ -134,6 +136,8 @@ namespace SIMPEngine
 
         void Clear();
 
+        TweenSystem &GetTweens() { return m_Tweens; }
+
         Entity CreateEntity(const std::string &name = "");
         EntityBuilder BuildEntity(const std::string &name = "");
         Entity GetEntityByName(const std::string &name);
@@ -197,6 +201,8 @@ namespace SIMPEngine
         TimerSystem timerSystem;
         PathFollowerSystem pathFollowerSystem;
         HealthSystem healthSystem;
+        VectorSystem vectorSystem;
+        TweenSystem m_Tweens{*this};
 
         std::vector<entt::entity> m_ScriptOrder;
         float m_Time = 0.0f;

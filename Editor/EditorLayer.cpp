@@ -343,6 +343,7 @@ void EditorLayer::OnRender()
     m_ContentBrowser->OnImGuiRender();
     m_ConsolePanel.OnImGuiRender();
     m_ScriptEditorPanel.OnImGuiRender();
+    m_TweenLabPanel.OnImGuiRender();
     m_AssetPicker->OnImGuiRender();
     m_ParticlePicker->OnImGuiRender();
     m_AnimationMakerPanel->OnImGuiRender();
@@ -464,6 +465,8 @@ void EditorLayer::DrawMenuBar()
                 *m_ConsolePanel.VisibleFlag() = !m_ConsolePanel.IsVisible();
             if (ImGui::MenuItem("Script Editor", nullptr, m_ScriptEditorPanel.IsVisible()))
                 *m_ScriptEditorPanel.VisibleFlag() = !m_ScriptEditorPanel.IsVisible();
+            if (ImGui::MenuItem("Tween Lab", nullptr, m_TweenLabPanel.IsVisible()))
+                *m_TweenLabPanel.VisibleFlag() = !m_TweenLabPanel.IsVisible();
             ImGui::MenuItem("Profiler", nullptr, &m_ShowProfiler);
             if (ImGui::MenuItem("Render Stats", nullptr, Settings().ShowStats))
             {
@@ -761,6 +764,7 @@ void EditorLayer::BuildDefaultLayout(unsigned int dockspaceId)
     ImGui::DockBuilderDockWindow(ViewportPanel::WindowId, center);
     ImGui::DockBuilderDockWindow(GameViewPanel::WindowId, center);
     ImGui::DockBuilderDockWindow(ScriptEditorPanel::WindowId, center);
+    ImGui::DockBuilderDockWindow(TweenLabPanel::WindowId, center);
 
     ImGui::DockBuilderFinish(dockspaceId);
 

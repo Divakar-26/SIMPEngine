@@ -34,3 +34,37 @@ else()
     )
     target_compile_definitions(ScriptDemo PRIVATE NO_EDITOR)
 endif()
+
+add_executable(ArrowOut
+    ArrowOut/main.cpp
+)
+
+set_target_properties(ArrowOut PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+
+if(NOT NO_EDITOR)
+    target_link_libraries(ArrowOut
+        PRIVATE Engine Editor imgui
+    )
+else()
+    target_link_libraries(ArrowOut
+        PRIVATE Engine imgui
+    )
+    target_compile_definitions(ArrowOut PRIVATE NO_EDITOR)
+endif()
+
+add_executable(Playground
+    Playground/main.cpp
+)
+
+set_target_properties(Playground PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+
+if(NOT NO_EDITOR)
+    target_link_libraries(Playground
+        PRIVATE Engine Editor imgui
+    )
+else()
+    target_link_libraries(Playground
+        PRIVATE Engine imgui
+    )
+    target_compile_definitions(Playground PRIVATE NO_EDITOR)
+endif()
