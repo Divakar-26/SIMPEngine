@@ -62,6 +62,7 @@ add_library(Engine STATIC
     Engine/Vector/VectorTessellator.cpp
     Engine/Vector/VectorShape.cpp
     Engine/Scene/Systems/VectorSystem.cpp
+    Engine/Scene/Systems/CharacterControllerSystem.cpp
     Engine/Scripting/LuaRuntime.cpp
     Engine/Scripting/LuaBindings.cpp
     Engine/Scripting/LuaScript.cpp
@@ -88,6 +89,7 @@ add_library(Engine STATIC
     Engine/Scripting/Components/LuaTimer.cpp
     Engine/Scripting/Components/LuaPath.cpp
     Engine/Scripting/Components/LuaHealth.cpp
+    Engine/Scripting/Components/LuaCharacterController.cpp
     Engine/Scripting/Components/LuaTilemap.cpp
     Engine/Scripting/Components/LuaAnimation.cpp
 )

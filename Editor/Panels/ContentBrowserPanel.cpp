@@ -429,7 +429,7 @@ void ContentBrowserPanel::DrawFooter()
     ImGui::SetCursorPosX(ImGui::GetCursorPosX() + 8.0f);
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(m_Selected.empty() ? m_CurrentDir.c_str() : m_Selected.c_str());
+    EditorUI::TextEllipsis(m_Selected.empty() ? m_CurrentDir.c_str() : m_Selected.c_str());
     ImGui::PopStyleColor();
 
     if (!m_ListView)

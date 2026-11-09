@@ -126,7 +126,7 @@ void AssetPickerPanel::OnImGuiRender()
 
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(valid ? m_SelectedVPath.c_str() : "Select a file, or double-click to pick it");
+    EditorUI::TextEllipsis(valid ? m_SelectedVPath.c_str() : "Select a file, or double-click to pick it");
     ImGui::PopStyleColor();
 
     ImGui::SameLine(ImGui::GetWindowContentRegionMax().x - bw * 2.0f - spacing);

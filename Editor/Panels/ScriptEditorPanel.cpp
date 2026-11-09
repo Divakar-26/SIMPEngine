@@ -100,6 +100,13 @@ ScriptEditorPanel::Document *ScriptEditorPanel::Active()
     return m_Documents[static_cast<size_t>(m_Active)].get();
 }
 
+void ScriptEditorPanel::FocusEditor()
+{
+    m_FocusWindow = true;
+    if (Document *doc = Active())
+        doc->Editor.Focus();
+}
+
 void ScriptEditorPanel::EnsureInitialized()
 {
     if (m_Initialized)

@@ -47,6 +47,7 @@ namespace EditorUI
     void EmptyState(const char *title, const char *subtitle = nullptr);
     void VerticalSeparator(float height = 0.0f);
     void IconText(const char *icon, const ImVec4 &iconColor, const char *text);
+    void TextEllipsis(const char *text, const ImVec4 *color = nullptr, bool middle = true);
     bool IconMenuItem(const char *icon, const ImVec4 &iconColor, const char *label);
 
     struct TreeRowOptions

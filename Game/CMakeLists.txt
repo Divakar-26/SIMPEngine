@@ -68,3 +68,20 @@ else()
     )
     target_compile_definitions(Playground PRIVATE NO_EDITOR)
 endif()
+
+add_executable(Snake
+    Snake/main.cpp
+)
+
+set_target_properties(Snake PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+
+if(NOT NO_EDITOR)
+    target_link_libraries(Snake
+        PRIVATE Engine Editor imgui
+    )
+else()
+    target_link_libraries(Snake
+        PRIVATE Engine imgui
+    )
+    target_compile_definitions(Snake PRIVATE NO_EDITOR)
+endif()

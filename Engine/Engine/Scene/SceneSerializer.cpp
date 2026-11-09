@@ -441,6 +441,34 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::EndMap;
     }
 
+    if (entity.HasComponent<CharacterControllerComponent>()) {
+      const auto &cc = entity.GetComponent<CharacterControllerComponent>();
+      out << YAML::Key << "CharacterController" << YAML::BeginMap;
+      out << YAML::Key << "mode" << YAML::Value
+          << (cc.mode == ControllerMode::TopDown ? "top_down" : "platformer");
+      out << YAML::Key << "player_input" << YAML::Value << cc.playerInput;
+      out << YAML::Key << "size" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << cc.size.x << cc.size.y << YAML::EndSeq;
+      out << YAML::Key << "offset" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << cc.offset.x << cc.offset.y << YAML::EndSeq;
+      out << YAML::Key << "move_speed" << YAML::Value << cc.moveSpeed;
+      out << YAML::Key << "acceleration" << YAML::Value << cc.acceleration;
+      out << YAML::Key << "deceleration" << YAML::Value << cc.deceleration;
+      out << YAML::Key << "air_control" << YAML::Value << cc.airControl;
+      out << YAML::Key << "gravity" << YAML::Value << cc.gravity;
+      out << YAML::Key << "max_fall_speed" << YAML::Value << cc.maxFallSpeed;
+      out << YAML::Key << "jump_speed" << YAML::Value << cc.jumpSpeed;
+      out << YAML::Key << "jump_cut" << YAML::Value << cc.jumpCut;
+      out << YAML::Key << "coyote_time" << YAML::Value << cc.coyoteTime;
+      out << YAML::Key << "jump_buffer" << YAML::Value << cc.jumpBuffer;
+      out << YAML::Key << "max_jumps" << YAML::Value << cc.maxJumps;
+      out << YAML::Key << "solid_tag" << YAML::Value << cc.solidTag;
+      out << YAML::Key << "one_way_tag" << YAML::Value << cc.oneWayTag;
+      out << YAML::Key << "collide_tilemaps" << YAML::Value << cc.collideTilemaps;
+      out << YAML::Key << "flip_sprite" << YAML::Value << cc.flipSprite;
+      out << YAML::EndMap;
+    }
+
     if (entity.HasComponent<HierarchyComponent>()) {
       const auto &hierarchy = entity.GetComponent<HierarchyComponent>();
       std::uint64_t parentId = 0;
@@ -979,6 +1007,31 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
             path.points.emplace_back(x, y);
         }
       }
+    });
+
+    component("CharacterController", [&](const YAML::Node &n) {
+      auto &cc = entity.AddComponent<CharacterControllerComponent>();
+      std::string mode;
+      if (n["mode"] && TryGet(n, "mode", mode))
+        cc.mode = mode == "top_down" ? ControllerMode::TopDown : ControllerMode::Platformer;
+      if (n["player_input"]) TryGet(n, "player_input", cc.playerInput);
+      ReadVec2(n["size"], cc.size.x, cc.size.y);
+      ReadVec2(n["offset"], cc.offset.x, cc.offset.y);
+      if (n["move_speed"]) TryGet(n, "move_speed", cc.moveSpeed);
+      if (n["acceleration"]) TryGet(n, "acceleration", cc.acceleration);
+      if (n["deceleration"]) TryGet(n, "deceleration", cc.deceleration);
+      if (n["air_control"]) TryGet(n, "air_control", cc.airControl);
+      if (n["gravity"]) TryGet(n, "gravity", cc.gravity);
+      if (n["max_fall_speed"]) TryGet(n, "max_fall_speed", cc.maxFallSpeed);
+      if (n["jump_speed"]) TryGet(n, "jump_speed", cc.jumpSpeed);
+      if (n["jump_cut"]) TryGet(n, "jump_cut", cc.jumpCut);
+      if (n["coyote_time"]) TryGet(n, "coyote_time", cc.coyoteTime);
+      if (n["jump_buffer"]) TryGet(n, "jump_buffer", cc.jumpBuffer);
+      if (n["max_jumps"]) TryGet(n, "max_jumps", cc.maxJumps);
+      if (n["solid_tag"]) TryGet(n, "solid_tag", cc.solidTag);
+      if (n["one_way_tag"]) TryGet(n, "one_way_tag", cc.oneWayTag);
+      if (n["collide_tilemaps"]) TryGet(n, "collide_tilemaps", cc.collideTilemaps);
+      if (n["flip_sprite"]) TryGet(n, "flip_sprite", cc.flipSprite);
     });
 
     component("Health", [&](const YAML::Node &h) {

@@ -14,6 +14,8 @@ namespace SIMPEngine
         Death,
         PathPoint,
         PathEnd,
+        Landed,
+        Jumped,
         Count
     };
 }

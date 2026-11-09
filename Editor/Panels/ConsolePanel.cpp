@@ -6,7 +6,9 @@
 #include <Engine/Core/Log.h>
 #include <Engine/ImGuiSink.h>
 
+#include <algorithm>
 #include <cstdio>
+#include <string>
 #include <vector>
 
 namespace
@@ -127,48 +129,97 @@ void ConsolePanel::OnImGuiRender()
         sink->ForEach([&](const std::vector<SIMPEngine::LogEntry> &entries)
                       {
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 0));
-            float rowH = ImGui::GetTextLineHeight() + 3.0f;
-            float timeW = ImGui::CalcTextSize("00:00:00").x;
-            float loggerW = ImGui::CalcTextSize("ENGINE").x;
+            const float lineH = ImGui::GetTextLineHeight();
+            const float timeW = ImGui::CalcTextSize("00:00:00").x;
+            const float loggerW = ImGui::CalcTextSize("ENGINE").x;
+            const float indentW = ImGui::CalcTextSize("  ").x;
 
-            ImGuiListClipper clipper;
-            clipper.Begin(static_cast<int>(rows.size()), rowH);
-            while (clipper.Step())
+            std::vector<float> offsets(rows.size() + 1, 0.0f);
+            for (size_t i = 0; i < rows.size(); ++i)
             {
-                for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; ++i)
+                int lines = 1;
+                if (rows[i] < static_cast<int>(entries.size()))
                 {
-                    if (rows[i] >= static_cast<int>(entries.size()))
-                        continue;
-                    const SIMPEngine::LogEntry &e = entries[rows[i]];
-                    const ImVec4 &color = LevelColor(e.Level);
-
-                    ImVec2 pos = ImGui::GetCursorScreenPos();
-                    float width = ImGui::GetContentRegionAvail().x;
-                    ImDrawList *dl = ImGui::GetWindowDrawList();
-
-                    if (e.Level >= spdlog::level::warn)
-                        dl->AddRectFilled(pos, ImVec2(pos.x + width, pos.y + rowH), U32(color, 0.08f));
-
-                    float y = pos.y + 1.5f;
-                    float x = pos.x;
-                    dl->AddText(ImVec2(x, y), U32(Colors::TextFaint), e.Time.c_str());
-                    x += timeW + 12.0f;
-                    dl->AddText(ImVec2(x, y), U32(Colors::TextDim), e.Logger.c_str());
-                    x += loggerW + 12.0f;
-                    dl->AddText(ImVec2(x, y), U32(color), e.Message.c_str());
-
-                    float textW = ImGui::CalcTextSize(e.Message.c_str()).x;
-                    ImGui::PushID(i);
-                    ImGui::InvisibleButton("##row", ImVec2(std::max(width, x - pos.x + textW + 8.0f), rowH));
-                    if (ImGui::BeginPopupContextItem("##rowctx"))
-                    {
-                        if (ImGui::MenuItem("Copy Message"))
-                            ImGui::SetClipboardText(e.Message.c_str());
-                        ImGui::EndPopup();
-                    }
-                    ImGui::PopID();
+                    const std::string &message = entries[rows[i]].Message;
+                    size_t end = message.find_last_not_of("\n\r\t ");
+                    if (end != std::string::npos)
+                        lines += static_cast<int>(std::count(message.begin(), message.begin() + static_cast<std::ptrdiff_t>(end), '\n'));
                 }
+                offsets[i + 1] = offsets[i] + lines * lineH + 3.0f;
             }
+
+            const float originY = ImGui::GetCursorPosY();
+            const float viewTop = ImGui::GetScrollY() - originY;
+            const float viewBottom = viewTop + ImGui::GetWindowHeight();
+            size_t first = static_cast<size_t>(std::upper_bound(offsets.begin(), offsets.end(), viewTop) - offsets.begin());
+            first = first > 0 ? first - 1 : 0;
+
+            for (size_t i = first; i < rows.size() && offsets[i] <= viewBottom; ++i)
+            {
+                if (rows[i] >= static_cast<int>(entries.size()))
+                    continue;
+                const SIMPEngine::LogEntry &e = entries[rows[i]];
+                const ImVec4 &color = LevelColor(e.Level);
+                const float rowH = offsets[i + 1] - offsets[i];
+
+                ImGui::SetCursorPosY(originY + offsets[i]);
+                ImVec2 pos = ImGui::GetCursorScreenPos();
+                float width = ImGui::GetContentRegionAvail().x;
+                ImDrawList *dl = ImGui::GetWindowDrawList();
+
+                if (e.Level >= spdlog::level::warn)
+                    dl->AddRectFilled(pos, ImVec2(pos.x + width, pos.y + rowH), U32(color, 0.08f));
+
+                float y = pos.y + 1.5f;
+                float x = pos.x;
+                dl->AddText(ImVec2(x, y), U32(Colors::TextFaint), e.Time.c_str());
+                x += timeW + 12.0f;
+                dl->AddText(ImVec2(x, y), U32(Colors::TextDim), e.Logger.c_str());
+                x += loggerW + 12.0f;
+
+                const std::string &message = e.Message;
+                const ImU32 detail = U32(ImVec4((color.x + Colors::TextDim.x) * 0.5f, (color.y + Colors::TextDim.y) * 0.5f,
+                                                (color.z + Colors::TextDim.z) * 0.5f, 1.0f));
+                float textW = 0.0f;
+                size_t lineStart = 0;
+                int line = 0;
+                while (lineStart <= message.size() && y < pos.y + rowH)
+                {
+                    size_t lineEnd = message.find('\n', lineStart);
+                    if (lineEnd == std::string::npos)
+                        lineEnd = message.size();
+                    size_t textStart = lineStart;
+                    float lineX = x;
+                    if (line > 0)
+                    {
+                        while (textStart < lineEnd && (message[textStart] == '\t' || message[textStart] == ' '))
+                            ++textStart;
+                        lineX += indentW;
+                    }
+                    size_t textEnd = lineEnd;
+                    while (textEnd > textStart && (message[textEnd - 1] == '\r' || message[textEnd - 1] == '\t'))
+                        --textEnd;
+                    const char *begin = message.c_str() + textStart;
+                    const char *finish = message.c_str() + textEnd;
+                    dl->AddText(ImVec2(lineX, y), line == 0 ? U32(color) : detail, begin, finish);
+                    textW = std::max(textW, lineX - x + ImGui::CalcTextSize(begin, finish).x);
+                    y += lineH;
+                    ++line;
+                    lineStart = lineEnd + 1;
+                }
+
+                ImGui::PushID(static_cast<int>(i));
+                ImGui::InvisibleButton("##row", ImVec2(std::max(width, x - pos.x + textW + 8.0f), rowH));
+                if (ImGui::BeginPopupContextItem("##rowctx"))
+                {
+                    if (ImGui::MenuItem("Copy Message"))
+                        ImGui::SetClipboardText(message.c_str());
+                    ImGui::EndPopup();
+                }
+                ImGui::PopID();
+            }
+            ImGui::SetCursorPosY(originY + offsets.back());
+            ImGui::Dummy(ImVec2(0.0f, 0.0f));
             ImGui::PopStyleVar(); });
         ImGui::PopFont();
 

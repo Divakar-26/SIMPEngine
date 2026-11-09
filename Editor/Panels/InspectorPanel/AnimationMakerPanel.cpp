@@ -147,7 +147,7 @@ void AnimationMakerPanel::OnImGuiRender()
     } suppress;
 
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
-    ImGui::TextUnformatted(m_SpriteSheetVPath.c_str());
+    EditorUI::TextEllipsis(m_SpriteSheetVPath.c_str());
     ImGui::PopStyleColor();
     ImGui::Dummy(ImVec2(0, 2));
 

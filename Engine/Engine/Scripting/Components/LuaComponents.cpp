@@ -21,6 +21,7 @@ namespace SIMPEngine::LuaBindings
             &TimerBinding(),
             &PathBinding(),
             &HealthBinding(),
+            &CharacterControllerBinding(),
             &TilemapBinding(),
             &AnimationBinding(),
             &VectorBinding(),

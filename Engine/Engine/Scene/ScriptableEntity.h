@@ -45,6 +45,8 @@ namespace SIMPEngine
         virtual void OnDeath() {}
         virtual void OnPathPoint(int) {}
         virtual void OnPathEnd() {}
+        virtual void OnLand(float) {}
+        virtual void OnJump() {}
         virtual void OnEvent(const ScriptMessage &message);
 
     private:

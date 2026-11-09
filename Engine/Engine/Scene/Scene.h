@@ -22,6 +22,7 @@
 #include <Engine/Scene/Systems/PathFollowerSystem.h>
 #include <Engine/Scene/Systems/HealthSystem.h>
 #include <Engine/Scene/Systems/VectorSystem.h>
+#include <Engine/Scene/Systems/CharacterControllerSystem.h>
 #include <Engine/Scene/ScriptEvent.h>
 #include <Engine/Animation/Tween.h>
 
@@ -202,6 +203,7 @@ namespace SIMPEngine
         PathFollowerSystem pathFollowerSystem;
         HealthSystem healthSystem;
         VectorSystem vectorSystem;
+        CharacterControllerSystem characterControllerSystem;
         TweenSystem m_Tweens{*this};
 
         std::vector<entt::entity> m_ScriptOrder;

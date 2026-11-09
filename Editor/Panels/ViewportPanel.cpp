@@ -539,6 +539,22 @@ void ViewportPanel::DrawLogicShapes()
         Renderer::DrawRect(center.x, center.y, size.x, size.y, wpp * 1.5f, color, 0.0f, 99994.0f);
     }
 
+    SDL_Color controllerColor = ToSDL(EditorUI::Colors::Accent, 0.9f);
+    for (auto entity : registry.view<CharacterControllerComponent, TransformComponent>())
+    {
+        if (!showAll && !m_Context->IsSelected(entity))
+            continue;
+
+        const auto &controller = registry.get<CharacterControllerComponent>(entity);
+        auto world = SIMPEngine::DecomposeWorld(registry.get<TransformComponent>(entity));
+        glm::vec2 center = world.Position + controller.offset;
+        glm::vec2 size = glm::abs(controller.size);
+        Renderer::DrawRect(center.x, center.y, size.x, size.y, wpp * 1.5f, controllerColor, 0.0f, 99994.0f);
+        if (controller.mode == ControllerMode::Platformer)
+            Renderer::DrawLine(center.x - size.x * 0.3f, center.y - size.y * 0.5f, center.x + size.x * 0.3f, center.y - size.y * 0.5f,
+                               wpp * 3.0f, controllerColor, 99994.0f);
+    }
+
     SDL_Color pathColor = ToSDL(EditorUI::Colors::Accent, 0.85f);
     for (entt::entity handle : m_Context->SelectedHandles())
     {

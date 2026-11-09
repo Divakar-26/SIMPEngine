@@ -138,6 +138,10 @@ void EditorLayer::Play()
     scene.SyncPhysicsFromTransforms();
     scene.MarkPhysicsDirty();
 
+    m_TabBeforePlay.clear();
+    if (ImGuiWindow *game = ImGui::FindWindowByName(GameViewPanel::WindowId); game && game->DockNode && game->DockNode->VisibleWindow)
+        m_TabBeforePlay = game->DockNode->VisibleWindow->Name;
+
     m_EditorContext.State = SceneState::Play;
     m_EditorContext.FocusGameView = true;
 }
@@ -155,7 +159,18 @@ void EditorLayer::Stop()
     m_History.Restore(m_PlaySnapshot);
     m_History.RefreshStable();
     m_EditorContext.Dirty = m_DirtyBeforePlay;
-    m_EditorContext.FocusSceneView = true;
+
+    ImGuiWindow *previous = m_TabBeforePlay.empty() ? nullptr : ImGui::FindWindowByName(m_TabBeforePlay.c_str());
+    ImGuiWindow *game = ImGui::FindWindowByName(GameViewPanel::WindowId);
+    if (previous && previous != game && (previous->WasActive || previous->Active))
+    {
+        if (previous == ImGui::FindWindowByName(ScriptEditorPanel::WindowId))
+            m_ScriptEditorPanel.FocusEditor();
+        else
+            ImGui::SetWindowFocus(m_TabBeforePlay.c_str());
+    }
+    else
+        m_EditorContext.FocusSceneView = true;
 }
 
 void EditorLayer::TogglePause()

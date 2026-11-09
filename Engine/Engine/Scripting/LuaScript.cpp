@@ -24,7 +24,9 @@ namespace
         "OnDamaged",
         "OnDeath",
         "OnPathPoint",
-        "OnPathEnd"};
+        "OnPathEnd",
+        "OnLand",
+        "OnJump"};
 
     static_assert(sizeof(EventHooks) / sizeof(EventHooks[0]) == static_cast<size_t>(SIMPEngine::ScriptEvent::Count));
 
@@ -230,7 +232,11 @@ namespace SIMPEngine
             break;
         case ScriptEvent::Timer:
         case ScriptEvent::PathEnd:
+        case ScriptEvent::Jumped:
         case ScriptEvent::Count:
+            break;
+        case ScriptEvent::Landed:
+            hasNumber = true;
             break;
         }
 

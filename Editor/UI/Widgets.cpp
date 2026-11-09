@@ -9,6 +9,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <string_view>
 #include <vector>
 
 namespace EditorUI
@@ -63,6 +64,60 @@ namespace EditorUI
 
             dl->AddText(font, size, pos, color, text, cut);
             dl->AddText(font, size, ImVec2(pos.x + w, pos.y), color, ellipsis);
+        }
+
+        std::string Ellipsize(ImFont *font, float size, const char *text, const char *end, float maxW, bool middle)
+        {
+            const float full = font->CalcTextSizeA(size, FLT_MAX, 0.0f, text, end).x;
+            if (full <= maxW)
+                return std::string(text, end);
+            const char *ellipsis = "...";
+            const float ellipsisW = font->CalcTextSizeA(size, FLT_MAX, 0.0f, ellipsis).x;
+            float avail = maxW - ellipsisW;
+            if (avail <= 0.0f)
+                return std::string();
+
+            std::vector<const char *> starts;
+            for (const char *p = text; p < end;)
+            {
+                starts.push_back(p);
+                unsigned int c = 0;
+                int len = ImTextCharFromUtf8(&c, p, end);
+                p += len > 0 ? len : 1;
+            }
+            const size_t n = starts.size();
+            auto width = [&](size_t a, size_t b)
+            {
+                const char *s = a < n ? starts[a] : end;
+                const char *e = b < n ? starts[b] : end;
+                return font->CalcTextSizeA(size, FLT_MAX, 0.0f, s, e).x;
+            };
+
+            if (!middle)
+            {
+                size_t keep = 0;
+                while (keep < n && width(0, keep + 1) <= avail)
+                    ++keep;
+                return std::string(text, keep < n ? starts[keep] : end) + ellipsis;
+            }
+
+            size_t head = 0, tail = 0;
+            bool takeTail = true;
+            while (head + tail < n)
+            {
+                const size_t nh = takeTail ? head : head + 1;
+                const size_t nt = takeTail ? tail + 1 : tail;
+                if (width(0, nh) + width(n - nt, n) > avail)
+                {
+                    if (takeTail && width(0, head + 1) + width(n - tail, n) <= avail)
+                        ++head;
+                    break;
+                }
+                head = nh;
+                tail = nt;
+                takeTail = !takeTail;
+            }
+            return std::string(text, head < n ? starts[head] : end) + ellipsis + std::string(n - tail < n ? starts[n - tail] : end, end);
         }
 
         float LabelWidth()
@@ -208,8 +263,23 @@ namespace EditorUI
         if (kind == ButtonKind::Secondary || kind == ButtonKind::Danger)
             dl->AddRect(bb.Min, bb.Max, U32(Colors::Border), Metrics::FrameRounding);
 
-        ImVec2 tp(std::floor(bb.GetCenter().x - labelSize.x * 0.5f), std::floor(bb.GetCenter().y - labelSize.y * 0.5f));
-        dl->AddText(tp, U32(fg), label, labelEnd);
+        const float room = size.x - style.FramePadding.x * 2.0f;
+        if (labelSize.x > room && room > 0.0f)
+        {
+            const std::string_view text(label, static_cast<size_t>(labelEnd - label));
+            const bool path = text.find_first_of("/\\") != std::string_view::npos;
+            const std::string shown = Ellipsize(ImGui::GetFont(), ImGui::GetFontSize(), label, labelEnd, room, path);
+            const float shownW = ImGui::CalcTextSize(shown.c_str()).x;
+            ImVec2 tp(std::floor(bb.GetCenter().x - shownW * 0.5f), std::floor(bb.GetCenter().y - labelSize.y * 0.5f));
+            dl->AddText(tp, U32(fg), shown.c_str());
+            if (hovered)
+                ImGui::SetTooltip("%.*s", static_cast<int>(labelEnd - label), label);
+        }
+        else
+        {
+            ImVec2 tp(std::floor(bb.GetCenter().x - labelSize.x * 0.5f), std::floor(bb.GetCenter().y - labelSize.y * 0.5f));
+            dl->AddText(tp, U32(fg), label, labelEnd);
+        }
 
         return pressed;
     }
@@ -621,6 +691,22 @@ namespace EditorUI
         float right = p.x + ImGui::GetContentRegionAvail().x;
         DrawTextClipped(window->DrawList, ImGui::GetFont(), fontSize, ImVec2(p.x + 2.0f, std::floor(p.y + (h - fontSize) * 0.5f)), right, U32(color ? *color : Colors::Text), value);
         ImGui::Dummy(ImVec2(right - p.x, h));
+        if (ImGui::CalcTextSize(value).x > right - p.x - 2.0f && ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("%s", value);
+    }
+
+    void TextEllipsis(const char *text, const ImVec4 *color, bool middle)
+    {
+        const float avail = std::max(1.0f, ImGui::GetContentRegionAvail().x);
+        const char *end = text + std::strlen(text);
+        const std::string shown = Ellipsize(ImGui::GetFont(), ImGui::GetFontSize(), text, end, avail, middle);
+        if (color)
+            ImGui::PushStyleColor(ImGuiCol_Text, *color);
+        ImGui::TextUnformatted(shown.c_str());
+        if (color)
+            ImGui::PopStyleColor();
+        if (shown.size() != static_cast<size_t>(end - text) && ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("%s", text);
     }
 
     bool PropertySegmented(const char *label, int *current, const char *const *items, int count)
@@ -825,6 +911,22 @@ namespace EditorUI
         ImGui::PushID("##crumbs");
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, ImGui::GetStyle().FramePadding.y));
 
+        const float avail = ImGui::GetContentRegionAvail().x;
+        const float slashW = ImGui::CalcTextSize("/").x;
+        auto crumbW = [&](const std::string &s)
+        { return ImGui::CalcTextSize(s.c_str()).x + 8.0f + 8.0f + slashW; };
+        size_t skip = 0;
+        float total = crumbW(root);
+        for (const std::string &part : parts)
+            total += crumbW(part);
+        while (skip + 1 < parts.size() && total > avail)
+        {
+            total -= crumbW(parts[skip]);
+            ++skip;
+        }
+        if (skip > 0)
+            total += crumbW("...");
+
         std::string rootLabel = root.substr(0, root.find("://"));
         if (Button(rootLabel.c_str(), ButtonKind::Ghost))
         {
@@ -835,6 +937,21 @@ namespace EditorUI
         std::string accum = root;
         for (size_t i = 0; i < parts.size(); ++i)
         {
+            if (i < skip)
+            {
+                accum += (i == 0 ? "" : "/") + parts[i];
+                if (i + 1 == skip)
+                {
+                    ImGui::SameLine(0.0f, 0.0f);
+                    ImGui::AlignTextToFramePadding();
+                    ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+                    ImGui::TextUnformatted("/ ...");
+                    ImGui::PopStyleColor();
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                        ImGui::SetTooltip("%s", virtualPath.c_str());
+                }
+                continue;
+            }
             ImGui::SameLine(0.0f, 0.0f);
             ImGui::AlignTextToFramePadding();
             ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);

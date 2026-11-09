@@ -57,6 +57,12 @@ namespace SIMPEngine
         case ScriptEvent::PathEnd:
             OnPathEnd();
             break;
+        case ScriptEvent::Landed:
+            OnLand(message.Value);
+            break;
+        case ScriptEvent::Jumped:
+            OnJump();
+            break;
         case ScriptEvent::Count:
             break;
         }
@@ -228,6 +234,7 @@ namespace SIMPEngine
             m_FixedAccumulator -= m_FixedStep;
         }
 
+        characterControllerSystem.Update(*this, deltaTime);
         m_Tweens.Update(deltaTime);
         pathFollowerSystem.Update(*this, deltaTime);
         triggerSystem.Update(*this);

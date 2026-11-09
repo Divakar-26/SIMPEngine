@@ -354,3 +354,49 @@ struct VectorShapeComponent
 
     VectorCacheHandle cache;
 };
+
+enum class ControllerMode : uint8_t
+{
+    Platformer,
+    TopDown
+};
+
+struct CharacterControllerComponent
+{
+    ControllerMode mode = ControllerMode::Platformer;
+    bool playerInput = true;
+    glm::vec2 size{32.0f, 48.0f};
+    glm::vec2 offset{0.0f, 0.0f};
+
+    float moveSpeed = 280.0f;
+    float acceleration = 2600.0f;
+    float deceleration = 3200.0f;
+    float airControl = 0.65f;
+
+    float gravity = 1900.0f;
+    float maxFallSpeed = 1100.0f;
+    float jumpSpeed = 680.0f;
+    float jumpCut = 0.45f;
+    float coyoteTime = 0.1f;
+    float jumpBuffer = 0.12f;
+    int maxJumps = 1;
+
+    std::string solidTag;
+    std::string oneWayTag = "OneWay";
+    bool collideTilemaps = true;
+    bool flipSprite = true;
+
+    glm::vec2 velocity{0.0f, 0.0f};
+    glm::vec2 scriptInput{0.0f, 0.0f};
+    bool scriptJump = false;
+    bool scriptRelease = false;
+    bool grounded = false;
+    bool justLanded = false;
+    bool justJumped = false;
+    bool hitWall = false;
+    bool hitCeiling = false;
+    float coyoteLeft = 0.0f;
+    float bufferLeft = 0.0f;
+    int jumpsUsed = 0;
+    int facing = 1;
+};

@@ -31,6 +31,7 @@ public:
     bool IsVisible() const { return m_Visible; }
     bool *VisibleFlag() { return &m_Visible; }
     bool HasUnsavedChanges() const;
+    void FocusEditor();
     bool WantsKeyboard() const { return m_Visible && m_EditorFocused; }
 
 private:

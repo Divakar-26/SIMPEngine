@@ -84,6 +84,16 @@ inline void DrawAddComponentItems(EditorContext &ctx, SIMPEngine::Entity entity,
                                                        { entity.AddComponent<PathFollowerComponent>(); });
     any |= AddComponentMenuItem<HealthComponent>(ctx, entity, ICON_LC_HEART, "Health", filter, [&]
                                                  { entity.AddComponent<HealthComponent>(); });
+    any |= AddComponentMenuItem<CharacterControllerComponent>(ctx, entity, ICON_LC_GAMEPAD_2, "Character Controller", filter, [&]
+                                                              {
+        auto &controller = entity.AddComponent<CharacterControllerComponent>();
+        if (entity.HasComponent<SpriteComponent>())
+        {
+            const auto &sprite = entity.GetComponent<SpriteComponent>();
+            const glm::vec2 scale = glm::abs(entity.GetComponent<TransformComponent>().scale);
+            if (sprite.width > 0.0f && sprite.height > 0.0f)
+                controller.size = glm::vec2(sprite.width, sprite.height) * scale;
+        } });
 
     if (!any)
         ImGui::TextDisabled(filtering ? "No match" : "Nothing to add");

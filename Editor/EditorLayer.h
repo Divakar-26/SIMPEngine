@@ -95,6 +95,7 @@ private:
     PendingAction m_PendingAction = PendingAction::None;
     std::string m_PendingPath;
     bool m_ShowConfirm = false;
+    std::string m_TabBeforePlay;
     bool m_ShowSaveAs = false;
     bool m_ShowShortcuts = false;
     std::string m_SaveAsName;

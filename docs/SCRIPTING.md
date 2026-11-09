@@ -68,6 +68,8 @@ If a hook raises an error, the message and a traceback go to the log and that sc
 | `OnDeath(killer)` | Health reached zero; `killer` may be `nil` |
 | `OnPathPoint(index)` | Path Follower reached a point (1-based) |
 | `OnPathEnd()` | a `Once` path finished |
+| `OnJump()` | the Character Controller jumped |
+| `OnLand(speed)` | the Character Controller touched ground; `speed` is the fall speed at impact |
 
 Events are delivered after the frame's `OnUpdate` calls. A script is created on its entity's first update, so events that arrive earlier are dropped.
 
@@ -120,7 +122,7 @@ boss:TakeDamage(3)
 
 ## Components
 
-`entity:Get("Sprite")` returns a handle or `nil`. Every component also has a shortcut: `GetSprite()`, `GetCamera()`, `GetLight()`, `GetVelocity()`, `GetCollision()`, `GetShape()`, `GetText()`, `GetGlow()`, `GetParticles()`, `GetAudio()`, `GetParallax()`, `GetBody()`, `GetTrigger()`, `GetTimer()`, `GetPath()`, `GetHealth()`, `GetTilemap()`, `GetAnimation()`, `GetVector()`. `Add(name)` adds the component if missing and returns the handle (Body cannot be added from a script). Colors are 0-255 and clamped.
+`entity:Get("Sprite")` returns a handle or `nil`. Every component also has a shortcut: `GetSprite()`, `GetCamera()`, `GetLight()`, `GetVelocity()`, `GetCollision()`, `GetShape()`, `GetText()`, `GetGlow()`, `GetParticles()`, `GetAudio()`, `GetParallax()`, `GetBody()`, `GetTrigger()`, `GetTimer()`, `GetPath()`, `GetHealth()`, `GetTilemap()`, `GetAnimation()`, `GetVector()`, `GetCharacterController()`. `Add(name)` adds the component if missing and returns the handle (Body cannot be added from a script). Colors are 0-255 and clamped.
 
 | Handle | Methods |
 |---|---|
@@ -142,6 +144,7 @@ boss:TakeDamage(3)
 | Tilemap | `GetTile(x, y)` returns id, flipX, flipY (id -1 is empty), `SetTile(x, y, id [, flipX, flipY])`, `EraseTile(x, y)`, `FillRect(x1, y1, x2, y2, id)` (inclusive, -1 erases), `FloodFill(x, y, id)` returns the count, `Clear()`, `GetBounds()` returns minX, minY, maxX, maxY or `nil`, `GetTileCount()`, `WorldToTile(wx, wy)`, `TileToWorld(x, y)` (cell center), `GetTileAt(wx, wy)`, `GetCellSize()` (world units), `GetTileSize()` / `SetTileSize(v)`, `IsSolid()` / `SetSolid(bool)`, `IsVisible()` / `SetVisible(bool)`, `GetTint()` / `SetTint(r, g, b [, a])`, `SetTileset(path, tileW, tileH [, margin, spacing])` returns whether it loaded, `GetTilesetSize()` returns columns, rows or `nil` |
 | Animation | `SetSheet(path, frameW, frameH, frameCount [, frameDuration = 0.1, loop = true])` returns whether it loaded, `GetSheet()`, `Play()`, `Pause()`, `IsPlaying()`, `Restart()`, `GetFrame()` / `SetFrame(n)` (1-based), `GetFrameCount()`, `GetFrameSize()`, `GetFrameDuration()` / `SetFrameDuration(s)`, `IsLooping()` / `SetLoop(bool)`, `IsFinished()`, `GetSpeed()` / `SetSpeed(v)` |
 | Vector | shapes (`SetCircle`, `SetRect`, `SetStar`, `SetHeart`, `SetPolygon`, `SetSvg`, `SetPath/GetPath`), fill/stroke/gradient, caps and joins, `SetTrim`, `SetDash`, `SetMorphTarget`, `SetMorph`, `MorphTo(path, seconds [, curve])`, `GetLength`, `GetPointAt(t)`, `GetBounds`. Details in [ANIMATION.md](ANIMATION.md) |
+| CharacterController | `SetInput(x [, y])` (-1..1, added to keyboard input), `Jump()`, `ReleaseJump()` (cuts the jump short), `IsGrounded()`, `JustLanded()`, `JustJumped()`, `HitWall()`, `HitCeiling()`, `GetFacing()` (1 or -1), `GetVelocity()` / `SetVelocity(x, y)`, `GetPlayerInput()` / `SetPlayerInput(bool)`, `GetMode()` / `SetMode("platformer" or "topdown")`, `GetMaxJumps()` / `SetMaxJumps(n)`, and Get/Set for `MoveSpeed`, `Acceleration`, `Deceleration`, `AirControl`, `Gravity`, `MaxFallSpeed`, `JumpSpeed`, `JumpCut`, `CoyoteTime`, `JumpBuffer` |
 | Health | `GetCurrent()` / `SetCurrent(v)`, `GetMax()` / `SetMax(v)`, `GetFraction()`, `IsDead()`, `IsInvulnerable()`, `GetInvulnerability()` / `SetInvulnerability(s)`, `Damage(amount [, source])` returns whether it applied, `Heal(amount)` returns the amount healed, `Kill([source])`, `Revive()` |
 
 Tile ids count from 0 at the top-left of the tileset image, row by row. Cell y grows upward like world y. Tilemap and `GetWorldPosition` conversions use the world transform from the last update, so a tilemap moved this frame converts with its old position until the next frame. Animation `playing` and `speed` are saved with the scene.
@@ -163,8 +166,9 @@ self.entity:Add("Health"):SetMax(50)
 | Timer | fires after an interval, once or repeating | `OnTimer` |
 | Path Follower | moves the entity through a list of points (Once, Loop, Ping-Pong), optional wait and facing | `OnPathPoint`, `OnPathEnd` |
 | Health | max/current health, post-hit invulnerability, optional destroy on death | `OnDamaged`, `OnDeath` |
+| Character Controller | moves the entity with a box against Collision components (except triggers; optionally only those tagged `Solid Tag`), one-way platforms (tag `One Way Tag`) and solid tilemaps. Platformer mode: acceleration, air control, variable jump height (jump cut), coyote time, jump buffer, multi-jump, gravity. Top Down mode: 8-way movement that slides along walls. Reads A/D/arrows and Space/W/Up unless Player Input is off; scripts steer it with `SetInput`/`Jump` | `OnJump`, `OnLand` |
 
-All four are saved with the scene, appear in the Add Component menu under Logic, and have inspector sections. Trigger zones and the selected entity's path are drawn in the viewport (zones always when the collider overlay is on).
+All five are saved with the scene, appear in the Add Component menu under Logic, and have inspector sections. Trigger zones and the selected entity's path are drawn in the viewport (zones always when the collider overlay is on).
 
 ## Samples
 

@@ -22,6 +22,7 @@ namespace SIMPEngine::LuaBindings
     const ComponentBinding &TimerBinding();
     const ComponentBinding &PathBinding();
     const ComponentBinding &HealthBinding();
+    const ComponentBinding &CharacterControllerBinding();
     const ComponentBinding &TilemapBinding();
     const ComponentBinding &AnimationBinding();
     const ComponentBinding &VectorBinding();

@@ -252,7 +252,7 @@ void main()
         s_Upsample->Unbind();
         glBindVertexArray(0);
         glBindTexture(GL_TEXTURE_2D, 0);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
         if (target)
             Renderer::BeginRenderTarget(*target);
         else
