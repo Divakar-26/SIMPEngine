@@ -111,7 +111,7 @@ namespace SIMPEngine
     std::shared_ptr<Texture> SvgDocument::RasterizeToTexture(
         int width,
         int height,
-        SDL_Color tint) const
+        SDL_Color) const
     {
         if (!m_Image)
             return nullptr;

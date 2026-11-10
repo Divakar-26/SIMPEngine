@@ -208,7 +208,7 @@ void InspectorPanel::DrawLogicSection(SIMPEngine::Entity &m_SelectedEntity)
         SectionLabel("Points");
         for (size_t i = 0; i < path.points.size(); ++i)
         {
-            char label[24];
+            char label[32];
             std::snprintf(label, sizeof(label), "Point %zu", i + 1);
             PropertyVec2(label, &path.points[i].x, 1.0f, "%.1f");
         }

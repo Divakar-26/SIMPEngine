@@ -63,6 +63,7 @@ add_library(Engine STATIC
     Engine/Vector/VectorShape.cpp
     Engine/Scene/Systems/VectorSystem.cpp
     Engine/Scene/Systems/CharacterControllerSystem.cpp
+    Engine/Project/Project.cpp
     Engine/Scripting/LuaRuntime.cpp
     Engine/Scripting/LuaBindings.cpp
     Engine/Scripting/LuaScript.cpp
@@ -105,7 +106,7 @@ target_include_directories(Engine
     PUBLIC ${CMAKE_SOURCE_DIR}/vendor/AccelEngine/include
 )
 
-target_compile_definitions(Engine PUBLIC ENGINE_PROFILER_ENABLE_IMGUI)
+target_compile_definitions(Engine PUBLIC ENGINE_PROFILER_ENABLE_IMGUI SIMP_VERSION_STRING="${PROJECT_VERSION}")
 target_precompile_headers(Engine PRIVATE Engine/PCH.h)
 
 target_link_libraries(Engine

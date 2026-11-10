@@ -67,12 +67,6 @@ namespace SIMPEngine
         glm::vec2 m_TargetPosition;
         float m_SmoothFactor;
         float m_MoveSpeed;
-        float m_ZoomSpeed;
-
-        bool m_MoveLeft = false;
-        bool m_MoveRight = false;
-        bool m_MoveUp = false;
-        bool m_MoveDown = false;
 
         int m_ViewportWidth = 0;
         int m_ViewportHeight = 0;

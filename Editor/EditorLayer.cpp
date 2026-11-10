@@ -9,6 +9,9 @@
 #include <Engine/Input/Input.h>
 #include "UI/Theme.h"
 #include "UI/Widgets.h"
+#include "UI/FileDialogs.h"
+#include <Engine/Events/ApplicationEvent.h>
+#include <Engine/Project/Project.h>
 
 #include <Engine/Core/Profiler/EngineProfiler.h>
 
@@ -41,7 +44,8 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     m_EditorContext.State = SceneState::Edit;
 
     m_AssetManager = std::make_unique<SIMPEngine::AssetManager>();
-    m_AssetManager->Init("assets", "assets/registry.asset");
+    const std::string assetRoot = SIMPEngine::VFS::Resolve("assets://").value_or("assets");
+    m_AssetManager->Init(assetRoot, SIMPEngine::FileSystem::Join(assetRoot, "registry.asset"));
 
     m_ContentBrowser = std::make_unique<ContentBrowserPanel>("assets://", m_AssetManager.get());
     m_ContentBrowser->SetContext(&m_EditorContext);
@@ -59,7 +63,47 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
     m_InspectorPanel.SetAnimationMaker(
         m_AnimationMakerPanel.get());
 
-    SIMPEngine::FileSystem::CreateDirectories("assets");
+    m_BuildPanel.SetBeforeBuild([this] { return SaveBeforeLaunch(); });
+    m_BuildPanel.SetOpenSettings([this] { m_ProjectSettingsPanel.Open(); });
+}
+
+void EditorLayer::OpenStartScene(const std::string &path)
+{
+    if (auto real = SIMPEngine::VFS::Resolve(path); real && SIMPEngine::FileSystem::Exists(*real))
+        OpenScene(path);
+}
+
+bool EditorLayer::SaveBeforeLaunch()
+{
+    if (m_EditorContext.State != SceneState::Edit)
+        Stop();
+    if (!m_EditorContext.Dirty)
+        return true;
+    if (m_EditorContext.ScenePath.empty())
+    {
+        SaveScene();
+        return false;
+    }
+    SaveSceneAs(m_EditorContext.ScenePath);
+    return !m_EditorContext.Dirty;
+}
+
+void EditorLayer::RunStandalone()
+{
+    if (!SIMPEngine::Project::IsOpen() || !SaveBeforeLaunch())
+        return;
+    const std::filesystem::path player = GameBuilder::PlayerBinary();
+    if (!std::filesystem::exists(player))
+    {
+        m_StatusMessage = "SIMPPlayer was not found next to the editor";
+        m_StatusFlash = 3.0f;
+        return;
+    }
+    if (EditorUI::LaunchProcess(player.string(), SIMPEngine::Project::Directory().string()))
+    {
+        m_StatusMessage = "Started " + SIMPEngine::Project::Settings().Name;
+        m_StatusFlash = 3.0f;
+    }
 }
 
 void EditorLayer::OnAttach()
@@ -114,12 +158,24 @@ void EditorLayer::OpenNewParticleEffect()
 
 void EditorLayer::OnEvent(SIMPEngine::Event &e)
 {
+    if (e.GetEventType() == SIMPEngine::EventType::WindowClose)
+    {
+        if (m_EditorContext.Dirty)
+        {
+            e.Handled = true;
+            RequestAction(PendingAction::Quit);
+        }
+        return;
+    }
     m_RenderingLayer->OnEvent(e);
 }
 
 void EditorLayer::UpdateWindowTitle()
 {
-    std::string title = DisplayName(m_EditorContext.ScenePath) + (m_EditorContext.Dirty ? " *" : "") + " - SIMPEngine";
+    std::string title = DisplayName(m_EditorContext.ScenePath) + (m_EditorContext.Dirty ? " *" : "");
+    if (SIMPEngine::Project::IsOpen())
+        title += " - " + SIMPEngine::Project::Settings().Name;
+    title += " - SIMPEngine";
     if (title == m_WindowTitle)
         return;
     m_WindowTitle = title;
@@ -207,6 +263,13 @@ void EditorLayer::RunAction(PendingAction action, const std::string &path)
         else
             OpenScene(path);
     }
+    else if (action == PendingAction::CloseProject)
+    {
+        if (m_OnCloseProject)
+            m_OnCloseProject();
+    }
+    else if (action == PendingAction::Quit)
+        SIMPEngine::Application::Get().Close();
 }
 
 void EditorLayer::NewScene()
@@ -303,6 +366,10 @@ void EditorLayer::HandleShortcuts()
         else
             Stop();
     }
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_F5, ImGuiInputFlags_RouteGlobal))
+        RunStandalone();
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_B, ImGuiInputFlags_RouteGlobal) && SIMPEngine::Project::IsOpen())
+        m_BuildPanel.Open();
     if (ImGui::Shortcut(ImGuiKey_F6, ImGuiInputFlags_RouteGlobal))
         TogglePause();
     if (ImGui::Shortcut(ImGuiKey_F7, ImGuiInputFlags_RouteGlobal) && ctx.State == SceneState::Pause)
@@ -363,6 +430,9 @@ void EditorLayer::OnRender()
     m_ParticlePicker->OnImGuiRender();
     m_AnimationMakerPanel->OnImGuiRender();
     m_SettingsPanel.OnImGuiRender();
+    m_ProjectSettingsPanel.SetCurrentScene(m_EditorContext.ScenePath);
+    m_ProjectSettingsPanel.OnImGuiRender();
+    m_BuildPanel.OnImGuiRender();
     m_TilePalettePanel.OnImGuiRender();
 
     if (m_ShowProfiler)
@@ -442,6 +512,19 @@ void EditorLayer::DrawMenuBar()
             }
             ImGui::EndMenu();
         }
+        if (SIMPEngine::Project::IsOpen() && ImGui::BeginMenu("Project"))
+        {
+            if (ImGui::MenuItem("Project Settings..."))
+                m_ProjectSettingsPanel.Open();
+            if (ImGui::MenuItem("Build Game...", "Ctrl+B"))
+                m_BuildPanel.Open();
+            if (ImGui::MenuItem("Open Project Folder"))
+                EditorUI::OpenInFileManager(SIMPEngine::Project::Directory().string());
+            ImGui::Separator();
+            if (ImGui::MenuItem("Close Project", nullptr, false, static_cast<bool>(m_OnCloseProject) && !m_BuildPanel.IsBuilding()))
+                RequestAction(PendingAction::CloseProject);
+            ImGui::EndMenu();
+        }
         if (ImGui::BeginMenu("Edit"))
         {
             bool hasSelection = ctx.SelectedEntity && ctx.Scene->GetRegistry().valid(ctx.SelectedEntity.GetHandle());
@@ -509,6 +592,12 @@ void EditorLayer::DrawMenuBar()
                 TogglePause();
             if (ImGui::MenuItem("Step Frame", "F7", false, ctx.State == SceneState::Pause))
                 ctx.StepRequested = true;
+            if (SIMPEngine::Project::IsOpen())
+            {
+                ImGui::Separator();
+                if (ImGui::MenuItem("Run Standalone", "Ctrl+F5"))
+                    RunStandalone();
+            }
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Help"))

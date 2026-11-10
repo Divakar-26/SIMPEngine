@@ -38,11 +38,11 @@ namespace SIMPEngine
         if (!scene)
             return;
 
-        if (Input::IsKeyPressed(SIMPK_F1))
+        if (!m_ReloadScenePath.empty() && Input::IsKeyJustPressed(SIMPK_F1))
         {
             SceneSerializer s(scene.get());
             scene->Clear();
-            s.Deserialize("assets://scenes/Level1.yaml");
+            s.Deserialize(m_ReloadScenePath);
         }
 
         if (m_SimulationEnabled)
@@ -93,8 +93,9 @@ namespace SIMPEngine
         Renderer::GetAPI()->ResizeViewport(width, height);
         EngineDimensions::SetDimensions(width, height);
 
-        auto &camera = m_SceneManager->GetActiveScene()->GetActiveCamera();
-        camera.SetViewportSize(static_cast<float>(width), static_cast<float>(height));
+        if (m_RenderToBackbuffer)
+            if (auto scene = m_SceneManager->GetActiveScene())
+                scene->GetActiveCamera().SetViewportSize(static_cast<float>(width), static_cast<float>(height));
 
         CORE_INFO("Viewport resized: {}x{}", width, height);
         return false; });

@@ -25,6 +25,7 @@ public:
         PushLayer(std::make_unique<Mossveil::MossveilLayer>(scene.get()));
 
         auto renderingLayer = std::make_unique<SIMPEngine::RenderingLayer>(sceneManager);
+        renderingLayer->SetReloadScene("assets://scenes/Level1.yaml");
         SIMPEngine::RenderingLayer *renderingLayerPtr = renderingLayer.get();
         PushOverlay(std::move(renderingLayer));
 

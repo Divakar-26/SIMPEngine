@@ -190,7 +190,6 @@ namespace SIMPEngine
         physicsSystem.startFrame(deltaTime);
         physicsSystem.UpdateTransform(m_Registry);
 
-        cameraSystem.OnUpdate(m_Registry, deltaTime);
         movementSystem.Update(m_Registry, deltaTime);
         collisionSystem.Update(m_Registry, deltaTime);
         hierarchySystem.Update(m_Registry, deltaTime);
@@ -249,6 +248,8 @@ namespace SIMPEngine
             SendEvent(contact.a, ScriptEvent::Collision, contact.b);
             SendEvent(contact.b, ScriptEvent::Collision, contact.a);
         }
+
+        cameraSystem.OnUpdate(m_Registry, deltaTime);
 
         animationSystem.Update(m_Registry, deltaTime);
         particleSystem.Update(m_Registry, deltaTime);

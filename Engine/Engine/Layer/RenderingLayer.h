@@ -39,6 +39,7 @@ namespace SIMPEngine
 
         void SetRenderToBackbuffer(bool enabled) { m_RenderToBackbuffer = enabled; }
         void SetSimulationEnabled(bool enabled) { m_SimulationEnabled = enabled; }
+        void SetReloadScene(const std::string &path) { m_ReloadScenePath = path; }
         bool IsSimulationEnabled() const { return m_SimulationEnabled; }
         void Step(float dt);
 
@@ -46,5 +47,6 @@ namespace SIMPEngine
         std::shared_ptr<SceneManager> m_SceneManager;
         bool m_SimulationEnabled = true;
         bool m_RenderToBackbuffer = true;
+        std::string m_ReloadScenePath;
     };
 }

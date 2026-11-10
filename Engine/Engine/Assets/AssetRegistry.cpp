@@ -31,7 +31,7 @@ namespace SIMPEngine
             if (!getline(ls, rp, '|'))
                 continue;
             if (!getline(ls, imp, '|'))
-                imp = "0";
+                imp.assign(1, '0');
 
             AssetMetadata md;
             try

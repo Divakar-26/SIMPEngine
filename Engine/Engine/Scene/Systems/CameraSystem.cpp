@@ -8,6 +8,24 @@ namespace SIMPEngine
 {
     namespace
     {
+        glm::vec2 CurrentWorldPosition(entt::registry &registry, entt::entity entity)
+        {
+            glm::mat4 world = registry.get<TransformComponent>(entity).GetLocalTransform();
+            entt::entity parent = entt::null;
+            if (const auto *hierarchy = registry.try_get<HierarchyComponent>(entity))
+                parent = hierarchy->parent;
+            for (int depth = 0; depth < 64 && parent != entt::null && registry.valid(parent); ++depth)
+            {
+                const auto *transform = registry.try_get<TransformComponent>(parent);
+                if (!transform)
+                    break;
+                world = transform->GetLocalTransform() * world;
+                const auto *hierarchy = registry.try_get<HierarchyComponent>(parent);
+                parent = hierarchy ? hierarchy->parent : entt::null;
+            }
+            return {world[3][0], world[3][1]};
+        }
+
         void Follow(entt::registry &registry, CameraComponent &cam, TransformComponent &transform, float dt)
         {
             if (cam.followTarget.empty())
@@ -33,7 +51,7 @@ namespace SIMPEngine
             if (target == entt::null)
                 return;
 
-            glm::vec2 goal = DecomposeWorld(registry.get<TransformComponent>(target)).Position + cam.followOffset;
+            glm::vec2 goal = CurrentWorldPosition(registry, target) + cam.followOffset;
             glm::vec2 current = transform.position;
             glm::vec2 delta = goal - current;
             glm::vec2 half = glm::max(cam.deadZone, glm::vec2(0.0f)) * 0.5f;

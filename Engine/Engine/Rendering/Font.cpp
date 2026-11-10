@@ -161,9 +161,10 @@ namespace SIMPEngine
     std::shared_ptr<Font> Font::GetDefault()
     {
         static const char *candidates[] = {
+            "engine://fonts/Inter-SemiBold.ttf",
+            "engine://fonts/Inter-Regular.ttf",
             "assets://fonts/Inter-SemiBold.ttf",
-            "assets://fonts/Inter-Regular.ttf",
-            "assets://fonts/JetBrainsMonoNerdFont-Regular.ttf"};
+            "assets://fonts/Inter-Regular.ttf"};
 
         for (const char *c : candidates)
         {

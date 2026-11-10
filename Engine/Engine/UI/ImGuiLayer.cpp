@@ -57,17 +57,18 @@ namespace SIMPEngine
         cfg.OversampleV = 2;
         cfg.PixelSnapH = true;
 
-        auto fontPath = VFS::Resolve("assets://fonts/JetBrainsMonoNerdFont-Regular.ttf");
-
-        if (fontPath && FileSystem::Exists(*fontPath))
+        for (const char *candidate : {"engine://fonts/JetBrainsMonoNerdFont-Regular.ttf", "engine://fonts/Inter-Regular.ttf"})
         {
-            m_FontRegular = io.Fonts->AddFontFromFileTTF(fontPath->c_str(), EditorStyleMetrics::FontSize, &cfg);
+            auto fontPath = VFS::Resolve(candidate);
+            if (fontPath && FileSystem::Exists(*fontPath))
+                m_FontRegular = io.Fonts->AddFontFromFileTTF(fontPath->c_str(), EditorStyleMetrics::FontSize, &cfg);
+            if (m_FontRegular)
+                break;
         }
 
         if (!m_FontRegular)
         {
-            CORE_ERROR("ImGuiLayer: font not found at {}, falling back to default font.",
-                       fontPath.value_or("<unresolved>"));
+            CORE_WARN("ImGuiLayer: engine fonts not found, using the built-in ImGui font");
             m_FontRegular = io.Fonts->AddFontDefault();
         }
 
@@ -229,7 +230,7 @@ namespace SIMPEngine
     {
     }
 
-    void ImGuiLayer::OnUpdate(TimeStep ts)
+    void ImGuiLayer::OnUpdate(TimeStep)
     {
     }
 

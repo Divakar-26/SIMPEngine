@@ -19,6 +19,8 @@
 #include <Engine/Scripting/LuaRuntime.h>
 #include <Engine/Rendering/Bloom.h>
 #include <Engine/Rendering/Font.h>
+#include <Engine/Core/Version.h>
+#include <Engine/Project/Project.h>
 
 namespace SIMPEngine
 {
@@ -27,10 +29,21 @@ namespace SIMPEngine
     class WindowCloseEvent;
     Application *Application::s_Instance = nullptr;
 
-    Application::Application()
+    Application::Application(const ApplicationSpecification &specification)
     {
         s_Instance = this;
-        m_Window.Init("SIMPEngine", 1920, 1080);
+        CORE_INFO("{} {}", EngineName, EngineVersion);
+        Project::MountEngineResources();
+
+        SDL_WindowFlags flags = 0;
+        if (specification.Resizable)
+            flags |= SDL_WINDOW_RESIZABLE;
+        if (specification.Fullscreen)
+            flags |= SDL_WINDOW_FULLSCREEN;
+        if (specification.Maximized)
+            flags |= SDL_WINDOW_MAXIMIZED;
+        m_Window.SetVSync(specification.VSync);
+        m_Window.Init(specification.Title.c_str(), specification.Width, specification.Height, flags);
 
         int w, h;
         SDL_GetWindowSize(m_Window.GetNativeWindow(), &w, &h);
@@ -77,6 +90,15 @@ namespace SIMPEngine
             uint64_t currentFrameTime = SDL_GetPerformanceCounter();
             float deltaTime = static_cast<float>(static_cast<double>(currentFrameTime - lastFrameTime) / freq);
             lastFrameTime = currentFrameTime;
+            deltaTime = std::min(deltaTime, 0.1f);
+
+            if (!m_Queued.empty())
+            {
+                std::vector<std::function<void()>> queued;
+                queued.swap(m_Queued);
+                for (auto &action : queued)
+                    action();
+            }
 
             Input::BeginFrame();
 
@@ -91,6 +113,9 @@ namespace SIMPEngine
                     SDLEventToEngine(sdlEvent);
                 }
             }
+
+            if (SDL_GetWindowFlags(m_Window.GetNativeWindow()) & SDL_WINDOW_MINIMIZED)
+                SDL_Delay(16);
 
             {
                 PROFILE_SCOPE("LayerUpdate");
@@ -146,6 +171,21 @@ namespace SIMPEngine
         m_LayerStack.PushOverlay(std::move(overlay));
     }
 
+    void Application::PopLayer(Layer *layer)
+    {
+        m_LayerStack.PopLayer(layer);
+    }
+
+    void Application::PopOverlay(Layer *overlay)
+    {
+        m_LayerStack.PopOverlay(overlay);
+    }
+
+    void Application::Queue(std::function<void()> action)
+    {
+        m_Queued.push_back(std::move(action));
+    }
+
     void Application::SDLEventToEngine(SDL_Event &sdlEvent)
     {
         switch (sdlEvent.type)
@@ -156,6 +196,9 @@ namespace SIMPEngine
             OnEvent(e);
             break;
         }
+        case SDL_EVENT_WINDOW_FOCUS_LOST:
+            Input::ResetAllKeys();
+            break;
         case SDL_EVENT_WINDOW_RESIZED:
         {
             WindowResizeEvent e(sdlEvent.window.data1, sdlEvent.window.data2);
@@ -216,10 +259,17 @@ namespace SIMPEngine
 
         EventDispatcher dispatcher(e);
 
-        dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent &)
-                                              {
-        m_Running = false;
-        return true; });
+        if (e.GetEventType() == EventType::WindowClose)
+        {
+            for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
+            {
+                (*--it)->OnEvent(e);
+                if (e.Handled)
+                    return;
+            }
+            m_Running = false;
+            return;
+        }
 
         dispatcher.Dispatch<WindowResizeEvent>([](WindowResizeEvent &ev)
                                                {
@@ -249,7 +299,7 @@ namespace SIMPEngine
 
         dispatcher.Dispatch<MouseMovedEvent>([](MouseMovedEvent &ev)
                                              {
-        Input::OnMouseMoved(static_cast<int>(ev.GetX()), static_cast<int>(ev.GetY()));
+        Input::OnMouseMoved(ev.GetX(), ev.GetY());
         return false; });
 
         dispatcher.Dispatch<MouseScrolledEvent>([](MouseScrolledEvent &ev)

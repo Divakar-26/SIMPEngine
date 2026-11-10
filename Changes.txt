@@ -74,3 +74,21 @@ Akshat
     11. Snake target ("Glowworm"): Lua-only snake game in assets/scripts/snake/main.lua with smooth interpolated movement, buffered turns, gradient glowing body with taper and swallow bulges, eyes that follow the berry, eat bursts, speed-up, pause, game over/best score
     12. Fix: normal blending now keeps render targets opaque (separate alpha blend), so overlapping anti-aliased edges no longer show as dark seams in the editor's Game/Viewport panels
     13. Fix: Console rows grow to fit multi-line messages (Lua errors with stack tracebacks no longer draw over the following rows); traceback lines are indented and dimmed
+    14. Fix: mouse-to-world in Play was off by the camera's movement and shake for the frame, because the camera updated before scripts; the camera now updates after gameplay (and follows the target's current position, removing a frame of follow lag)
+    15. Mouse position kept with sub-pixel precision; Game and Viewport canvases snapped to whole pixels (no stretched or half-pixel offset framebuffer); window resizes no longer overwrite the Game panel's camera viewport
+    16. Core: input resets when the window loses focus (no stuck keys after alt-tab), frame delta clamped to 0.1 s (no jumps or tunneling after a hitch), the loop idles while minimized
+    17. Editor: property labels, component section titles and segmented toggles ellipsize with a tooltip in narrow panels
+    18. Version 1.0.0 (CMake project version, Engine/Core/Version.h, CHANGELOG.md, README)
+    19. Projects: project.simp + assets folder (Engine/Project), Project Settings window, engine resources on their own engine:// mount
+    20. SIMPEditor: project hub landing page (recent projects, New Project with Empty/Platformer templates, Open, Learn guides), then the editor; Close Project returns to the hub
+    21. SIMPPlayer runtime and Build Game (Ctrl+B): standalone folder with the executable, shared libraries, assets, default font and project.simp; Build and Run; Run Standalone (Ctrl+F5)
+    22. Packaging: install component Editor and CPack archives (SIMPEngine-1.0.0-Linux.tar.gz) with the editor, player, libraries, fonts, themes and docs; docs/SHIPPING.md
+    23. Application: window settings through ApplicationSpecification, Queue() for deferred layer changes, layers can veto window close (editor asks to save unsaved changes before quitting)
+    24. Fix: F1 no longer reloads Level1.yaml in every game (opt-in through RenderingLayer::SetReloadScene); the editor no longer creates an empty assets folder in the working directory
+    25. Warnings: project code builds with zero warnings in Debug and Release (unnamed virtual default parameters, GCC 12 string false positives avoided)
+    26. Tests: SIMPTests (tests/, ctest) with serializer round trip of every component, malformed scenes, VFS, camera, layer stack, tilemaps, curves, tweens, character controller and projects; GitHub Actions CI (Linux GCC/Clang Debug/Release, ASan, Windows MSVC, packages as artifacts)
+    27. Fix: Camera2D rotation rotated around the world origin (view matrix multiplied in the wrong order); tilemap chunks saved in sorted order (deterministic scene files)
+    28. Scene format Version field; malformed scenes (parse errors, missing Scene key, bad Entities, bad values in Settings) fail with an error instead of throwing
+    29. MIT LICENSE (shipped in the package); stray Editor/Build folder removed
+    30. asan preset fixed (it instrumented vendored shared libraries, and SDL failed to link with --no-undefined): new SIMP_ASAN option sanitizes only project code; tests and editor sessions run clean under ASan
+    31. Clang fixes: ImTextureID cast that failed to compile under Clang, missing override specifiers, unused private fields in Camera2D and CameraSystem, empty format string in the script editor's find bar

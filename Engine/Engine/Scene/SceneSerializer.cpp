@@ -115,6 +115,7 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
   out << YAML::BeginMap;
 
   out << YAML::Key << "Scene" << YAML::Value << m_Scene->GetName();
+  out << YAML::Key << "Version" << YAML::Value << FormatVersion;
 
   if (includeSettings) {
     const glm::vec4 &bg = m_Scene->GetBackgroundColor();
@@ -509,7 +510,13 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::Key << "solid" << YAML::Value << tilemap.solid;
 
       out << YAML::Key << "chunks" << YAML::Value << YAML::BeginSeq;
-      for (const auto &[key, chunk] : tilemap.chunks) {
+      std::vector<std::int64_t> chunkKeys;
+      chunkKeys.reserve(tilemap.chunks.size());
+      for (const auto &entry : tilemap.chunks)
+        chunkKeys.push_back(entry.first);
+      std::sort(chunkKeys.begin(), chunkKeys.end());
+      for (const std::int64_t key : chunkKeys) {
+        const TileChunk &chunk = tilemap.chunks.at(key);
         const auto packed = static_cast<std::uint64_t>(key);
         const auto chunkX = static_cast<std::int32_t>(packed >> 32);
         const auto chunkY = static_cast<std::int32_t>(static_cast<std::uint32_t>(packed));
@@ -667,7 +674,20 @@ bool SceneSerializer::DeserializeFromString(const std::string &yaml,
     CORE_ERROR("Failed to parse scene: {}", e.what());
     return false;
   }
-  return Load(data, true, created);
+  if (!data.IsMap() || !data["Scene"]) {
+    CORE_ERROR("Not a scene file (no 'Scene' key)");
+    return false;
+  }
+  if (auto entities = data["Entities"]; entities && !entities.IsSequence() && !entities.IsNull()) {
+    CORE_ERROR("Scene 'Entities' must be a list");
+    return false;
+  }
+  try {
+    return Load(data, true, created);
+  } catch (const std::exception &e) {
+    CORE_ERROR("Failed to load scene: {}", e.what());
+    return false;
+  }
 }
 
 std::vector<entt::entity>
@@ -675,7 +695,7 @@ SceneSerializer::DeserializeEntities(const std::string &yaml) {
   std::vector<entt::entity> created;
   try {
     Load(YAML::Load(yaml), false, &created);
-  } catch (const YAML::Exception &e) {
+  } catch (const std::exception &e) {
     CORE_ERROR("Failed to parse entities: {}", e.what());
   }
   return created;
@@ -685,6 +705,12 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
                            std::vector<entt::entity> *created) {
   if (!data["Scene"])
     return false;
+
+  int version = 0;
+  if (data["Version"])
+    TryGet(data, "Version", version);
+  if (version > FormatVersion)
+    CORE_WARN("Scene format {} is newer than this engine ({}); unknown data is skipped", version, FormatVersion);
 
   if (applySettings) {
     std::string sceneName;

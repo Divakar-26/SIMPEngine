@@ -87,7 +87,7 @@ namespace EditorUI
             if (!font)
                 return nullptr;
 
-            auto iconPath = SIMPEngine::VFS::Resolve("assets://fonts/lucide.ttf");
+            auto iconPath = SIMPEngine::VFS::Resolve("engine://fonts/lucide.ttf");
             if (iconPath && SIMPEngine::FileSystem::Exists(*iconPath))
             {
                 ImFontConfig iconCfg;
@@ -176,6 +176,8 @@ namespace EditorUI
 
     void RegisterSettingsHandler()
     {
+        if (ImGui::FindSettingsHandler("SIMPEditor"))
+            return;
         ImGuiSettingsHandler handler;
         handler.TypeName = "SIMPEditor";
         handler.TypeHash = ImHashStr("SIMPEditor");
@@ -189,12 +191,17 @@ namespace EditorUI
     void LoadFonts()
     {
         ImGuiIO &io = ImGui::GetIO();
+        if (s_Inter[0])
+        {
+            io.FontDefault = GetFont(FontRole::Regular);
+            return;
+        }
 
-        s_Inter[0] = LoadFamily("assets://fonts/Inter-Regular.ttf", Metrics::FontSize);
-        s_Inter[1] = LoadFamily("assets://fonts/Inter-Medium.ttf", Metrics::FontSize);
-        s_Inter[2] = LoadFamily("assets://fonts/Inter-SemiBold.ttf", Metrics::FontSize);
-        s_Mono[0] = LoadFamily("assets://fonts/JetBrainsMonoNerdFont-Regular.ttf", Metrics::FontSize - 1.0f);
-        s_Mono[1] = LoadFamily("assets://fonts/JetBrainsMonoNerdFont-Bold.ttf", Metrics::FontSize - 1.0f);
+        s_Inter[0] = LoadFamily("engine://fonts/Inter-Regular.ttf", Metrics::FontSize);
+        s_Inter[1] = LoadFamily("engine://fonts/Inter-Medium.ttf", Metrics::FontSize);
+        s_Inter[2] = LoadFamily("engine://fonts/Inter-SemiBold.ttf", Metrics::FontSize);
+        s_Mono[0] = LoadFamily("engine://fonts/JetBrainsMonoNerdFont-Regular.ttf", Metrics::FontSize - 1.0f);
+        s_Mono[1] = LoadFamily("engine://fonts/JetBrainsMonoNerdFont-Bold.ttf", Metrics::FontSize - 1.0f);
 
         ImFont *fallback = io.FontDefault ? io.FontDefault : io.Fonts->AddFontDefault();
         for (auto &f : s_Inter)

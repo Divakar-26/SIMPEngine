@@ -371,7 +371,7 @@ namespace ScriptEditor
 
     std::string ThemeLibrary::BundledFolder()
     {
-        if (auto resolved = SIMPEngine::VFS::Resolve("assets://editor/themes"))
+        if (auto resolved = SIMPEngine::VFS::Resolve("engine://editor/themes"))
             return *resolved;
         return {};
     }

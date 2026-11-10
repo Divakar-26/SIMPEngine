@@ -6,6 +6,7 @@
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Scene/Scene.h>
 
+#include <cmath>
 #include <cstdio>
 
 void GameViewPanel::OnImGuiRender()
@@ -33,7 +34,10 @@ void GameViewPanel::OnImGuiRender()
     }
 
     ImVec2 pos = ImGui::GetCursorScreenPos();
+    pos = ImVec2(std::round(pos.x), std::round(pos.y));
+    ImGui::SetCursorScreenPos(pos);
     ImVec2 size = ImGui::GetContentRegionAvail();
+    size = ImVec2(std::floor(size.x), std::floor(size.y));
     int w = static_cast<int>(size.x);
     int h = static_cast<int>(size.y);
     if (w < 2 || h < 2)

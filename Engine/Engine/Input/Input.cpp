@@ -2,6 +2,8 @@
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Core/Log.h>
 
+#include <cmath>
+
 namespace SIMPEngine
 {
     std::unordered_set<int> Input::s_KeysPressed;
@@ -11,8 +13,8 @@ namespace SIMPEngine
     std::unordered_set<int> Input::s_MouseButtonsJustPressed;
     std::unordered_set<int> Input::s_KeysJustReleased;
     std::unordered_set<int> Input::s_MouseButtonsJustReleased;
-    int Input::s_MouseX = 0;
-    int Input::s_MouseY = 0;
+    float Input::s_MouseX = 0.0f;
+    float Input::s_MouseY = 0.0f;
     float Input::s_MouseWheel = 0.0f;
 
     bool Input::s_Enabled = true;
@@ -51,6 +53,11 @@ namespace SIMPEngine
 
     std::pair<int, int> Input::GetMousePosition()
     {
+        return {static_cast<int>(std::floor(s_MouseX)), static_cast<int>(std::floor(s_MouseY))};
+    }
+
+    glm::vec2 Input::GetMousePositionF()
+    {
         return {s_MouseX, s_MouseY};
     }
 
@@ -68,8 +75,8 @@ namespace SIMPEngine
     glm::vec2 Input::GetMouseViewportPosition()
     {
         if (!s_HasViewport)
-            return {static_cast<float>(s_MouseX), static_cast<float>(s_MouseY)};
-        return {static_cast<float>(s_MouseX) - s_Viewport.x, static_cast<float>(s_MouseY) - s_Viewport.y};
+            return {s_MouseX, s_MouseY};
+        return {s_MouseX - s_Viewport.x, s_MouseY - s_Viewport.y};
     }
 
     glm::vec2 Input::GetViewportSize()
@@ -122,7 +129,7 @@ namespace SIMPEngine
             s_MouseButtonsJustReleased.insert(button);
     }
 
-    void Input::OnMouseMoved(int x, int y)
+    void Input::OnMouseMoved(float x, float y)
     {
         s_MouseX = x;
         s_MouseY = y;

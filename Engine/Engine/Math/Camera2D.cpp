@@ -16,8 +16,7 @@ namespace SIMPEngine
                                                                 m_ViewMatrix(1.0f),
                                                                 m_TargetPosition(position),
                                                                 m_SmoothFactor(10.0f),
-                                                                m_MoveSpeed(200.0f),
-                                                                m_ZoomSpeed(15.0f)
+                                                                m_MoveSpeed(200.0f)
     {
     }
 
@@ -81,10 +80,7 @@ namespace SIMPEngine
         if (m_AllowZoom && wheelDelta != 0.0f)
             SetZoom(m_ManualZoom + 0.1f * wheelDelta);
 
-        const std::pair<int, int> mouse = Input::GetMousePosition();
-        glm::vec2 mousePixel(
-            static_cast<float>(mouse.first),
-            static_cast<float>(mouse.second));
+        const glm::vec2 mousePixel = Input::GetMousePositionF();
 
         if (Input::IsMouseButtonPressed(SIMPK_MOUSE_MIDDLE))
         {
@@ -130,16 +126,8 @@ namespace SIMPEngine
     }
     void Camera2D::RecalculateViewMatrix() const
     {
-        glm::mat4 view(1.0f);
-
-        view = glm::translate(view,
-                              glm::vec3(-m_Position.x,
-                                        -m_Position.y,
-                                        0.0f));
-
-        view = glm::rotate(view,
-                           glm::radians(-m_Rotation),
-                           glm::vec3(0, 0, 1));
+        glm::mat4 view = glm::rotate(glm::mat4(1.0f), glm::radians(-m_Rotation), glm::vec3(0, 0, 1));
+        view = glm::translate(view, glm::vec3(-m_Position.x, -m_Position.y, 0.0f));
 
         m_ViewMatrix = view;
         m_Dirty = false;

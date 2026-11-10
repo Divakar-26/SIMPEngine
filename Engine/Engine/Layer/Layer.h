@@ -18,13 +18,13 @@ namespace SIMPEngine{
 
         virtual void OnDetach() {}
 
-        virtual void OnUpdate(class TimeStep ts) {}
+        virtual void OnUpdate(class TimeStep) {}
 
         virtual void OnRender() {}
 
-        virtual void OnEvent(Event &e) {}
+        virtual void OnEvent(Event &) {}
 
-        virtual void OnSDLEvent(SDL_Event &e) {}
+        virtual void OnSDLEvent(SDL_Event &) {}
 
         const std::string & GetName() const {return m_DebugName;}
 

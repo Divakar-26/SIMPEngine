@@ -33,7 +33,7 @@ namespace SIMPEngine
     protected:
         virtual void OnCreate() {}
         virtual void OnDestroy() {}
-        virtual void OnUpdate(float dt) {}
+        virtual void OnUpdate(float) {}
         virtual void OnRender()  {}
         virtual void OnFixedUpdate(float) {}
         virtual void OnTriggerEnter(Entity) {}

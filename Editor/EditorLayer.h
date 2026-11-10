@@ -17,10 +17,13 @@
 #include "Panels/ParticlePickerPanel.h"
 #include "Panels/ScriptEditorPanel.h"
 #include "Panels/TweenLabPanel.h"
+#include "Panels/ProjectSettingsPanel.h"
+#include "Panels/BuildPanel.h"
 #include "Panels/InspectorPanel/AnimationMakerPanel.h"
 #include "EditorContext.h"
 #include "EditorHistory.h"
 
+#include <functional>
 #include <string>
 
 class EditorLayer : public SIMPEngine::Layer
@@ -32,15 +35,20 @@ public:
     void OnAttach() override;
     void OnDetach() override;
     void OnUpdate(class SIMPEngine::TimeStep ts) override;
-    void OnEvent(SIMPEngine::Event &e);
+    void OnEvent(SIMPEngine::Event &e) override;
     void OnRender() override;
+
+    void SetCloseProjectCallback(std::function<void()> callback) { m_OnCloseProject = std::move(callback); }
+    void OpenStartScene(const std::string &path);
 
 private:
     enum class PendingAction
     {
         None,
         NewScene,
-        OpenScene
+        OpenScene,
+        CloseProject,
+        Quit
     };
 
     void DrawMenuBar();
@@ -66,6 +74,8 @@ private:
     void Play();
     void Stop();
     void TogglePause();
+    bool SaveBeforeLaunch();
+    void RunStandalone();
 
     EditorContext m_EditorContext;
     EditorHistory m_History;
@@ -79,6 +89,9 @@ private:
     SettingsPanel m_SettingsPanel;
     ScriptEditorPanel m_ScriptEditorPanel;
     TweenLabPanel m_TweenLabPanel;
+    ProjectSettingsPanel m_ProjectSettingsPanel;
+    BuildPanel m_BuildPanel;
+    std::function<void()> m_OnCloseProject;
     SIMPEngine::RenderingLayer *m_RenderingLayer;
 
     std::unique_ptr<ContentBrowserPanel> m_ContentBrowser;

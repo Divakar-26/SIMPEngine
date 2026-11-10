@@ -16,6 +16,7 @@ namespace SIMPEngine{
             static bool IsMouseButtonJustReleased(int button);
 
             static std::pair<int,int> GetMousePosition();
+            static glm::vec2 GetMousePositionF();
 
             static void SetViewport(float x, float y, float width, float height);
             static void ClearViewport();
@@ -30,7 +31,7 @@ namespace SIMPEngine{
             static void OnKeyReleased(int keyCode);
             static void OnMouseButtonPressed(int button);
             static void OnMouseButtonReleased(int button);
-            static void OnMouseMoved(int x, int y);
+            static void OnMouseMoved(float x, float y);
             static void OnMouseWheel(float y);
             static float GetMouseWheel();
             static void BeginFrame();
@@ -44,7 +45,7 @@ namespace SIMPEngine{
             static std::unordered_set<int> s_MouseButtonsJustPressed;
             static std::unordered_set<int> s_KeysJustReleased;
             static std::unordered_set<int> s_MouseButtonsJustReleased;
-            static int s_MouseX, s_MouseY;
+            static float s_MouseX, s_MouseY;
             static float s_MouseWheel;
 
             static bool s_Enabled;

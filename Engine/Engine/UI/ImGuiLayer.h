@@ -24,7 +24,7 @@ namespace SIMPEngine
         void OnUpdate(class TimeStep ts) override;
         void OnRender() override;
         void OnEvent(Event &event) override;
-        void OnSDLEvent(SDL_Event &e);
+        void OnSDLEvent(SDL_Event &e) override;
         void Begin();
         void End();
 

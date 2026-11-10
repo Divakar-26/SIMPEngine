@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SIMPEngine LANGUAGES C CXX)
+project(SIMPEngine VERSION 1.0.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,6 +30,12 @@ add_subdirectory(vendor/glm EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/yaml-cpp EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/AccelEngine)
 add_subdirectory(vendor/json)
+
+option(SIMP_ASAN "Build project code with AddressSanitizer (vendored libraries are not instrumented)" OFF)
+if(SIMP_ASAN)
+    add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address)
+endif()
 
 add_library(imgui STATIC
     vendor/imgui/imgui.cpp
@@ -71,6 +77,13 @@ target_link_libraries(imgui PUBLIC SDL3::SDL3 spdlog)
 add_subdirectory(Engine)
 add_subdirectory(Editor)
 add_subdirectory(Game)
+add_subdirectory(Apps)
+
+option(SIMP_BUILD_TESTS "Build the SIMPTests executable" ON)
+if(SIMP_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 
 file(GLOB LUA_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_SOURCE_DIR}/vendor/lua/*.c"

@@ -22,7 +22,7 @@ public:
 
     ViewportPanel(SIMPEngine::RenderingLayer *renderingLayer, EditorContext *context);
 
-    void OnAttach();
+    void OnAttach() override;
     void OnImGuiRender() override;
 
     bool IsInteracting() const { return m_Drag.Active || m_Panning || m_Marquee.Active || m_TileEditor.IsInteracting(); }

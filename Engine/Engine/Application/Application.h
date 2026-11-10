@@ -8,13 +8,26 @@
 #include <Engine/Scene/SceneManager.h>
 
 #include <functional>
+#include <string>
+#include <vector>
 
 namespace SIMPEngine
 {
+    struct ApplicationSpecification
+    {
+        std::string Title = "SIMPEngine";
+        int Width = 1920;
+        int Height = 1080;
+        bool Resizable = true;
+        bool Fullscreen = false;
+        bool Maximized = false;
+        bool VSync = true;
+    };
+
     class Application
     {
     public:
-        Application();
+        Application(const ApplicationSpecification &specification = {});
         virtual ~Application();
 
         void Run();
@@ -23,6 +36,10 @@ namespace SIMPEngine
 
         void PushLayer(std::unique_ptr<Layer> layer);
         void PushOverlay(std::unique_ptr<Layer> overlay);
+        void PopLayer(Layer *layer);
+        void PopOverlay(Layer *overlay);
+        void Queue(std::function<void()> action);
+        void Close() { m_Running = false; }
 
         Window &GetWindow() { return m_Window; }
 
@@ -35,6 +52,7 @@ namespace SIMPEngine
         bool m_Running = true;
 
         LayerStack m_LayerStack;
+        std::vector<std::function<void()>> m_Queued;
         ImGuiLayer *m_ImGuiLayer = nullptr;
 
         static Application *s_Instance;

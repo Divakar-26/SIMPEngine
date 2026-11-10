@@ -25,10 +25,7 @@ namespace EditorUI
     template <typename T>
     inline ImTextureID TextureId(T id)
     {
-        if constexpr (std::is_pointer_v<ImTextureID>)
-            return reinterpret_cast<ImTextureID>(static_cast<std::uintptr_t>(id));
-        else
-            return static_cast<ImTextureID>(id);
+        return (ImTextureID)static_cast<std::uintptr_t>(id);
     }
 
     void SetEditHook(std::function<void()> hook);

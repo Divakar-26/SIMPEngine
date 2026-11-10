@@ -11,6 +11,8 @@ namespace SIMPEngine
     class SceneSerializer
     {
     public:
+        static constexpr int FormatVersion = 1;
+
         SceneSerializer(Scene *scene) : m_Scene(scene) {}
 
         bool Serialize(const std::string &filepath);

@@ -15,7 +15,7 @@
             ShutDown();
         }
 
-        bool Window::Init(const char *name, int width, int height)
+        bool Window::Init(const char *name, int width, int height, SDL_WindowFlags flags)
         {
             if (SDL_Init(SDL_INIT_VIDEO) == 0)
             {
@@ -28,7 +28,7 @@
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
             SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
-            m_Window = SDL_CreateWindow(name, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+            m_Window = SDL_CreateWindow(name, width, height, SDL_WINDOW_OPENGL | flags);
             if (!m_Window)
             {
                 CORE_ERROR("SDL_CreateWindow failed: {}", SDL_GetError());

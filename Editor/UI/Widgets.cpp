@@ -496,7 +496,8 @@ namespace EditorUI
         float fontSize = ImGui::GetFontSize();
         float cy = p.y + h * 0.5f;
         DrawIcon(dl, open ? ICON_LC_CHEVRON_DOWN : ICON_LC_CHEVRON_RIGHT, ImVec2(left + 12.0f, cy), U32(Colors::TextDim), fontSize * 0.8f);
-        dl->AddText(GetFont(FontRole::Medium), fontSize, ImVec2(left + 22.0f, std::floor(cy - fontSize * 0.5f)), U32(Colors::Text), title);
+        DrawTextClipped(dl, GetFont(FontRole::Medium), fontSize, ImVec2(left + 22.0f, std::floor(cy - fontSize * 0.5f)),
+                        right - menuW - 6.0f, U32(Colors::Text), title);
 
         if (removeRequested)
         {
@@ -534,7 +535,13 @@ namespace EditorUI
 
         const char *end = ImGui::FindRenderedTextEnd(label);
         std::string text(label, end);
-        DrawTextClipped(window->DrawList, ImGui::GetFont(), fontSize, ImVec2(p.x + 4.0f, std::floor(p.y + (h - fontSize) * 0.5f)), p.x + labelW - 6.0f, U32(Colors::TextDim), text.c_str());
+        const ImVec2 textPos(p.x + 4.0f, std::floor(p.y + (h - fontSize) * 0.5f));
+        const float maxX = p.x + labelW - 6.0f;
+        DrawTextClipped(window->DrawList, ImGui::GetFont(), fontSize, textPos, maxX, U32(Colors::TextDim), text.c_str());
+        if (!text.empty() && textPos.x + ImGui::CalcTextSize(text.c_str()).x > maxX &&
+            ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) &&
+            ImGui::IsMouseHoveringRect(p, ImVec2(p.x + labelW, p.y + h)) && !ImGui::IsAnyItemActive())
+            ImGui::SetTooltip("%s", text.c_str());
 
         ImGui::SetCursorScreenPos(ImVec2(p.x + labelW, p.y));
         ImGui::SetNextItemWidth(-FLT_MIN);
@@ -758,9 +765,12 @@ namespace EditorUI
                 dl->AddLine(ImVec2(seg.Min.x, seg.Min.y + 4.0f), ImVec2(seg.Min.x, seg.Max.y - 4.0f), U32(Colors::Border));
 
             const char *end = ImGui::FindRenderedTextEnd(items[i]);
-            ImVec2 ts = ImGui::CalcTextSize(items[i], end);
+            const std::string shown = Ellipsize(ImGui::GetFont(), ImGui::GetFontSize(), items[i], end, seg.GetWidth() - 6.0f, false);
+            ImVec2 ts = ImGui::CalcTextSize(shown.c_str());
             ImVec2 tp(std::floor(seg.GetCenter().x - ts.x * 0.5f), std::floor(seg.GetCenter().y - ts.y * 0.5f));
-            dl->AddText(tp, U32(selected ? Colors::Text : Colors::TextDim), items[i], end);
+            dl->AddText(tp, U32(selected ? Colors::Text : Colors::TextDim), shown.c_str());
+            if (hovered && shown.size() != static_cast<size_t>(end - items[i]))
+                ImGui::SetTooltip("%.*s", static_cast<int>(end - items[i]), items[i]);
         }
 
         ImGui::ItemSize(frame, ImGui::GetStyle().FramePadding.y);

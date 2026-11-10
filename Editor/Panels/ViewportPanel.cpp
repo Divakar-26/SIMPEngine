@@ -109,7 +109,10 @@ void ViewportPanel::OnImGuiRender()
     DrawToolbar();
 
     m_CanvasPos = ImGui::GetCursorScreenPos();
+    m_CanvasPos = ImVec2(std::round(m_CanvasPos.x), std::round(m_CanvasPos.y));
+    ImGui::SetCursorScreenPos(m_CanvasPos);
     m_CanvasSize = ImGui::GetContentRegionAvail();
+    m_CanvasSize = ImVec2(std::floor(m_CanvasSize.x), std::floor(m_CanvasSize.y));
     if (m_CanvasSize.x < 2.0f || m_CanvasSize.y < 2.0f)
     {
         ImGui::End();

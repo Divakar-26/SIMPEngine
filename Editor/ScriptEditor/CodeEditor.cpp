@@ -292,8 +292,12 @@ namespace ScriptEditor
             return m_Lines[static_cast<size_t>(a.Line)].substr(static_cast<size_t>(a.Column), static_cast<size_t>(b.Column - a.Column));
         std::string out = m_Lines[static_cast<size_t>(a.Line)].substr(static_cast<size_t>(a.Column));
         for (int i = a.Line + 1; i < b.Line; ++i)
-            out += "\n" + m_Lines[static_cast<size_t>(i)];
-        out += "\n" + m_Lines[static_cast<size_t>(b.Line)].substr(0, static_cast<size_t>(b.Column));
+        {
+            out.push_back('\n');
+            out.append(m_Lines[static_cast<size_t>(i)]);
+        }
+        out.push_back('\n');
+        out.append(m_Lines[static_cast<size_t>(b.Line)], 0, static_cast<size_t>(b.Column));
         return out;
     }
 
@@ -1191,7 +1195,12 @@ namespace ScriptEditor
                 for (size_t p = l.find(needle); p != std::string::npos; p = l.find(needle, p + needle.size()))
                     ++count;
         ImGui::SameLine();
-        ImGui::TextDisabled(needle.empty() ? "" : count == 1 ? "1 match" : "%d matches", count);
+        if (needle.empty())
+            ImGui::TextDisabled(" ");
+        else if (count == 1)
+            ImGui::TextDisabled("1 match");
+        else
+            ImGui::TextDisabled("%d matches", count);
         ImGui::SameLine();
         if (ImGui::SmallButton("Prev"))
             FindNext(true);

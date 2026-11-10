@@ -12,7 +12,7 @@ namespace SIMPEngine
         Window();
         ~Window();
 
-        bool Init(const char *name, int width, int height);
+        bool Init(const char *name, int width, int height, SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE);
         void ShutDown();
         void OnUpdate();
 

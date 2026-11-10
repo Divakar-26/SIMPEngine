@@ -32,6 +32,12 @@ add_library(Editor STATIC
     ScriptEditor/CodeTheme.cpp
     ScriptEditor/LuaCompletion.cpp
     ScriptEditor/CodeEditor.cpp
+    Export/GameBuilder.cpp
+    UI/FileDialogs.cpp
+    Panels/ProjectSettingsPanel.cpp
+    Panels/BuildPanel.cpp
+    ProjectHub/RecentProjects.cpp
+    ProjectHub/ProjectHubLayer.cpp
 )
 
 target_compile_definitions(Editor PRIVATE ENGINE_PROFILER_ENABLE_IMGUI)
