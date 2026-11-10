@@ -12,9 +12,26 @@
 
 # SIMPEngine
 
-A 2D game engine and editor written in C++20 on SDL3 and OpenGL, with an EnTT entity-component system, a batched SDF renderer, 2D lighting, particles, glow and bloom, tilemaps, audio, Lua scripting, Flutter-style tweens and vector shapes, and an ImGui editor with Play/Stop and undo. Make a game in the editor and ship it as a standalone folder.
+A 2D game engine and editor written from scratch in C++20 on SDL3 and OpenGL. It has an EnTT entity-component system, a batched SDF renderer, 2D lighting, particles, glow and bloom, tilemaps, audio, Lua scripting, Flutter-style tweens and vector shapes. The editor has a project hub, Play/Stop, undo and a built-in script editor. Make a game in the editor and ship it as a standalone folder.
 
-The repository ships with **Mossveil**, a small three-level exploration game built only on the engine's public API. Its last level is procedurally generated.
+## The editor
+
+| | |
+|---|---|
+| ![Project hub](docs/images/editor-hub.png) | ![A Lua game running inside the editor](docs/images/editor-playing.png) |
+| *The project hub: recent projects, new projects from templates, guides* | *Play mode: the game runs in the Game tab while the inspector shows its live state* |
+
+![Mossveil open in the editor, 680 entities, particle inspector](docs/images/editor-mossveil.png)
+
+*Mossveil in the editor: the scene tree groups 680 entities (parallax layers, lights, particle effects, colliders) and the inspector edits a particle emitter while the game plays.*
+
+![The built-in Lua script editor](docs/images/editor-script.png)
+
+*The built-in script editor: Lua highlighting, API-aware autocomplete, live syntax checking and VS Code themes.*
+
+## Mossveil
+
+**Mossveil** is a small three-level exploration game built only on the engine's public API: moss-edged terrain, parallax silhouettes, fog, fireflies, light shafts and a dash. Its last level is procedurally generated.
 
 ![Mossveil — The Mossway](docs/images/mossveil-mossway.png)
 
@@ -23,7 +40,34 @@ The repository ships with **Mossveil**, a small three-level exploration game bui
 | ![Thornroot Depths](docs/images/mossveil-thornroot.png) | ![The Shifting Deep (procedural)](docs/images/mossveil-shifting-deep.png) |
 | *II · Thornroot Depths* | *III · The Shifting Deep — generated from a seed* |
 
-![The editor](docs/images/editor.png)
+## Demos
+
+Each demo is a single Lua script running on the engine, drawn with vector shapes and animated with tweens.
+
+### Sudoku
+
+![Sudoku](docs/images/demo-sudoku.gif)
+
+Puzzles are generated on the spot with a unique solution (Easy, Medium, Hard). Your row, column, box and matching digits are highlighted, and the selection ring glides between cells. Digits pop in, mistakes shake in rose, finished rows, columns and boxes ripple sage, and a solved board sweeps and rains petals. Hints fill a cell for you. [`assets/scripts/sudoku/main.lua`](assets/scripts/sudoku/main.lua)
+
+### Untangle
+
+![Untangle](docs/images/demo-untangle.gif)
+
+Drag the dots until no lines cross. Each edge eases to rose while it crosses another, and the crossing count updates as you drag. Every level is a planar graph, so a solution always exists. **Show me** animates the dots into one, and each level is one size bigger. [`assets/scripts/untangle/main.lua`](assets/scripts/untangle/main.lua)
+
+### Arrow Out
+
+![Arrow Out](docs/images/demo-arrowout.gif)
+
+A board of line arrows packed into a heart. Tap an arrow and it slides out along its own path if nothing is in the way. Blocked arrows bump and flash, and each mistake costs a heart. The board is generated from a seed and always solvable. [`assets/scripts/arrowout/main.lua`](assets/scripts/arrowout/main.lua)
+
+| Run | |
+|---|---|
+| `./build/dev/Game/Sudoku` | `./build/dev/Game/Untangle` |
+| `./build/dev/Game/ArrowOut` | `./build/dev/Game/Logo` (the animated logo above) |
+
+The samples open in the editor; press **F5** to play.
 
 ## Features
 
@@ -55,7 +99,10 @@ The repository ships with **Mossveil**, a small three-level exploration game bui
 - Particle effect browser with live previews, tile palette, animation maker with automatic sprite-sheet slicing
 - Content browser, asset picker, console, profiler, three themes
 
-![Particle effect browser](docs/images/particle-picker.png)
+| | |
+|---|---|
+| ![Particle effect browser](docs/images/particle-picker.png) | ![Untangle solved](docs/images/untangle-solved.png) |
+| *Particle effect browser with live previews* | *Untangle, solved* |
 
 ## Building
 
@@ -97,6 +144,8 @@ The sample games are separate executables:
 ./build/dev/Game/ArrowOut     # line puzzle
 ./build/dev/Game/Snake        # Glowworm
 ./build/dev/Game/Playground   # curves and morphing
+./build/dev/Game/Sudoku       # Sudoku demo
+./build/dev/Game/Untangle     # Untangle demo
 ./build/dev/Game/Logo         # the animated logo at the top of this page
 ```
 
@@ -159,7 +208,7 @@ Press **Play** (F5) in the editor, or build with `NO_EDITOR`.
 | `Engine/Engine/` | Engine library (`#include <Engine/...>`) |
 | `Editor/` | Editor library: layer, panels, commands, undo, UI kit |
 | `Apps/` | `SIMPEditor` (project hub + editor) and `SIMPPlayer` (runtime for shipped games) |
-| `Game/` | Sample executables: Mossveil (`GameApp`), Arrow Out, Glowworm (`Snake`), Playground, the animated logo (`Logo`) |
+| `Game/` | Sample executables: Mossveil (`GameApp`), Arrow Out, Glowworm (`Snake`), Playground, Sudoku, Untangle, the animated logo (`Logo`) |
 | `assets/` | Runtime data, addressed as `assets://...` |
 | `docs/` | Guides and screenshots |
 | `vendor/` | Third-party code (SDL3, SDL_image, ImGui, ImGuizmo, EnTT, GLM, glad, spdlog, yaml-cpp, nlohmann/json, nanosvg, stb, AccelEngine) |

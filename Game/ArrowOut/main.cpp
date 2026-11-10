@@ -18,7 +18,7 @@ public:
     {
         auto sceneManager = std::make_shared<SIMPEngine::SceneManager>();
         auto scene = std::make_shared<SIMPEngine::Scene>("Arrow Out");
-        scene->SetBackgroundColor({0.94f, 0.95f, 0.97f, 1.0f});
+        scene->SetBackgroundColor({0.969f, 0.953f, 0.918f, 1.0f});
         sceneManager->AddScene("Arrow Out", scene);
         sceneManager->SetActiveScene("Arrow Out");
 

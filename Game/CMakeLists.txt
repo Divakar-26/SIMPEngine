@@ -102,3 +102,37 @@ else()
     )
     target_compile_definitions(Logo PRIVATE NO_EDITOR)
 endif()
+
+add_executable(Sudoku
+    Sudoku/main.cpp
+)
+
+set_target_properties(Sudoku PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+
+if(NOT NO_EDITOR)
+    target_link_libraries(Sudoku
+        PRIVATE Engine Editor imgui
+    )
+else()
+    target_link_libraries(Sudoku
+        PRIVATE Engine imgui
+    )
+    target_compile_definitions(Sudoku PRIVATE NO_EDITOR)
+endif()
+
+add_executable(Untangle
+    Untangle/main.cpp
+)
+
+set_target_properties(Untangle PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+
+if(NOT NO_EDITOR)
+    target_link_libraries(Untangle
+        PRIVATE Engine Editor imgui
+    )
+else()
+    target_link_libraries(Untangle
+        PRIVATE Engine imgui
+    )
+    target_compile_definitions(Untangle PRIVATE NO_EDITOR)
+endif()

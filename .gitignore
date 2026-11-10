@@ -15,6 +15,9 @@ Testing/
 _deps/
 install_manifest.txt
 
+# Showcase captures (screenshots and clips for posts)
+showcase/
+
 # Game builds and engine packages
 builds/
 .simpbuild

@@ -1,7 +1,7 @@
 local Game = {}
 
-Game.size = 17
-Game.cell = 40
+Game.size = 19
+Game.cell = 37
 Game.seed = 11
 Game.maxHearts = 8
 Game.lineWidth = 6
@@ -13,11 +13,11 @@ local DIRS = {
     {dc = 0, dr = 1, angle = 270},
 }
 
-local INK = {44, 52, 74}
-local ACCENT = {79, 110, 247}
-local RED = {235, 77, 92}
-local DOT = {178, 184, 198}
-local CONFETTI = {{79, 110, 247}, {235, 77, 92}, {255, 190, 60}, {60, 200, 160}, {170, 110, 250}}
+local INK = {58, 52, 66}
+local ACCENT = {214, 88, 122}
+local RED = {226, 70, 90}
+local DOT = {214, 200, 196}
+local CONFETTI = {{214, 88, 122}, {255, 200, 205}, {142, 166, 107}, {244, 196, 120}, {216, 162, 162}}
 
 local function key(c, r)
     return r * 100 + c
@@ -58,8 +58,10 @@ function Game:InMask(c, r)
         return false
     end
     local half = (self.size + 1) / 2
-    local dx, dy = c - half, r - half
-    return dx * dx + dy * dy <= (self.size / 2) * (self.size / 2) + 0.6
+    local x = (c - half) / (self.size / 2) * 1.22
+    local y = (half - r) / (self.size / 2) * 1.22 + 0.16
+    local a = x * x + y * y - 1
+    return a * a * a - x * x * y * y * y <= 0
 end
 
 function Game:Generate()
@@ -240,7 +242,7 @@ function Game:Build()
 
     local title = self:Spawn("Title", 0, 420)
     local tt = title:Add("Text")
-    tt:SetText("Level 1")
+    tt:SetText("Arrow Out")
     tt:SetFontSize(40)
     tt:SetAlign(1)
     tt:SetColor(INK[1], INK[2], INK[3])
@@ -255,7 +257,7 @@ function Game:Build()
 
     self.heartIcons = {}
     for i = 1, self.maxHearts do
-        local h = self:Spawn("Heart", (i - 2) * 40, 372)
+        local h = self:Spawn("Heart", (i - (self.maxHearts + 1) / 2) * 40, 372)
         h:SetZIndex(5)
         local hv = h:Add("Vector")
         hv:SetHeart(30)
@@ -476,13 +478,14 @@ function Game:Win()
     local ring = self:Spawn("WinRing", 0, 0)
     ring:SetZIndex(15)
     local rv = ring:Add("Vector")
-    rv:SetCircle(self.size * self.cell * 0.5 + 10)
+    rv:SetPath(Path.Heart(self.size * self.cell * 1.08))
     rv:SetFillEnabled(false)
     rv:SetStroke(ACCENT[1], ACCENT[2], ACCENT[3])
-    rv:SetStrokeWidth(6)
+    rv:SetStrokeWidth(7)
     rv:SetTrim(0, 0)
-    Tween.To(ring, {trimEnd = 1}, 0.9, "easeInOutCubic")
-    Tween.To(ring, {rotation = 360}, 10, "linear", {loop = true})
+    ring:SetPosition(0, -14)
+    Tween.To(ring, {trimEnd = 1}, 1.2, "easeInOutCubic")
+    Tween.To(ring, {scale = {1.03, 1.03}}, 0.7, "easeInOutSine", {delay = 1.2, loop = true, yoyo = true})
 
     for i = 1, 80 do
         local piece = self:Spawn("Confetti", 0, 0)
