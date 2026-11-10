@@ -85,3 +85,20 @@ else()
     )
     target_compile_definitions(Snake PRIVATE NO_EDITOR)
 endif()
+
+add_executable(Logo
+    Logo/main.cpp
+)
+
+set_target_properties(Logo PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+
+if(NOT NO_EDITOR)
+    target_link_libraries(Logo
+        PRIVATE Engine Editor imgui
+    )
+else()
+    target_link_libraries(Logo
+        PRIVATE Engine imgui
+    )
+    target_compile_definitions(Logo PRIVATE NO_EDITOR)
+endif()

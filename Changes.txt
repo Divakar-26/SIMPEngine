@@ -92,3 +92,4 @@ Akshat
     29. MIT LICENSE (shipped in the package); stray Editor/Build folder removed
     30. asan preset fixed (it instrumented vendored shared libraries, and SDL failed to link with --no-undefined): new SIMP_ASAN option sanitizes only project code; tests and editor sessions run clean under ASan
     31. Clang fixes: ImTextureID cast that failed to compile under Clang, missing override specifiers, unused private fields in Camera2D and CameraSystem, empty format string in the script editor's find bar
+    32. Animated logo: assets/scripts/logo.lua writes "SIMPEngine" letter by letter as Bezier strokes with live control points and de Casteljau construction, then blooms flowers, turns the i's dot into a rose and floats hearts; Logo sample executable; docs/images/logo.gif at the top of the README

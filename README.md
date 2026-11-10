@@ -1,6 +1,16 @@
-# SIMPEngine
+<p align="center">
+  <img src="docs/images/logo.gif" alt="The SIMPEngine wordmark writing itself letter by letter, with its Bézier control points showing, then flowers blooming and the dot of the i turning into a rose" width="760">
+</p>
 
-**Version 1.0.0** · [Changelog](CHANGELOG.md)
+<p align="center">
+  <sub>Drawn live by the engine: every letter is a Bézier path in <a href="assets/scripts/logo.lua"><code>assets/scripts/logo.lua</code></a>, written with trim tweens.</sub>
+</p>
+
+<p align="center">
+  <b>Version 1.0.0</b> · <a href="CHANGELOG.md">Changelog</a> · <a href="LICENSE">MIT License</a>
+</p>
+
+# SIMPEngine
 
 A 2D game engine and editor written in C++20 on SDL3 and OpenGL, with an EnTT entity-component system, a batched SDF renderer, 2D lighting, particles, glow and bloom, tilemaps, audio, Lua scripting, Flutter-style tweens and vector shapes, and an ImGui editor with Play/Stop and undo. Make a game in the editor and ship it as a standalone folder.
 
@@ -87,6 +97,7 @@ The sample games are separate executables:
 ./build/dev/Game/ArrowOut     # line puzzle
 ./build/dev/Game/Snake        # Glowworm
 ./build/dev/Game/Playground   # curves and morphing
+./build/dev/Game/Logo         # the animated logo at the top of this page
 ```
 
 ### Packaging the engine
@@ -148,7 +159,7 @@ Press **Play** (F5) in the editor, or build with `NO_EDITOR`.
 | `Engine/Engine/` | Engine library (`#include <Engine/...>`) |
 | `Editor/` | Editor library: layer, panels, commands, undo, UI kit |
 | `Apps/` | `SIMPEditor` (project hub + editor) and `SIMPPlayer` (runtime for shipped games) |
-| `Game/` | Sample executables: Mossveil (`GameApp`), Arrow Out, Glowworm (`Snake`), Playground |
+| `Game/` | Sample executables: Mossveil (`GameApp`), Arrow Out, Glowworm (`Snake`), Playground, the animated logo (`Logo`) |
 | `assets/` | Runtime data, addressed as `assets://...` |
 | `docs/` | Guides and screenshots |
 | `vendor/` | Third-party code (SDL3, SDL_image, ImGui, ImGuizmo, EnTT, GLM, glad, spdlog, yaml-cpp, nlohmann/json, nanosvg, stb, AccelEngine) |
