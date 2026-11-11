@@ -191,6 +191,7 @@ namespace SIMPEngine
         physicsSystem.UpdateTransform(m_Registry);
 
         movementSystem.Update(m_Registry, deltaTime);
+        oscillatorSystem.Update(m_Registry, deltaTime);
         collisionSystem.Update(m_Registry, deltaTime);
         hierarchySystem.Update(m_Registry, deltaTime);
         lifetimeSystem.Update(m_Registry, deltaTime);
@@ -237,7 +238,9 @@ namespace SIMPEngine
         m_Tweens.Update(deltaTime);
         pathFollowerSystem.Update(*this, deltaTime);
         triggerSystem.Update(*this);
+        damageSystem.Update(*this, deltaTime);
         timerSystem.Update(*this, deltaTime);
+        spawnerSystem.Update(*this, deltaTime);
         healthSystem.Update(*this, deltaTime);
 
         physicsSystem.Update(m_Registry, deltaTime);
@@ -366,6 +369,7 @@ namespace SIMPEngine
         physicsSystem.DestroyWorld();
 
         m_Tweens.Clear();
+        spawnerSystem.Clear();
         m_ScriptOrder.clear();
         m_Time = 0.0f;
         m_LastDelta = 0.0f;

@@ -99,6 +99,10 @@ namespace EditorUI
             return {ICON_LC_ATOM, &Colors::NodeTint, "Body"};
         if (entity.HasComponent<RenderComponent>())
             return {ICON_LC_SQUARE, &Colors::NodeTint, "Shape"};
+        if (entity.HasComponent<SpawnerComponent>())
+            return {ICON_LC_COPY_PLUS, &Colors::NodeTint, "Spawner"};
+        if (entity.HasComponent<DamageComponent>())
+            return {ICON_LC_SWORDS, &Colors::NodeTint, "Damage"};
         if (entity.HasComponent<TriggerComponent>())
             return {ICON_LC_RADAR, &Colors::NodeTint, "Trigger"};
         if (entity.HasComponent<CollisionComponent>())

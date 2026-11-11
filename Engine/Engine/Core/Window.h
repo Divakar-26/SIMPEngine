@@ -24,6 +24,10 @@ namespace SIMPEngine
         SDL_Renderer *GetRenderer() { return m_Renderer; }
         SDL_GLContext GetGLContetext(){return m_GLContext;}
 
+        void SetFullscreen(bool fullscreen);
+        void ToggleFullscreen() { SetFullscreen(!IsFullscreen()); }
+        bool IsFullscreen() const;
+
         void SetVSync(bool enabled);
         bool IsVSync() const { return m_VSync; }
 

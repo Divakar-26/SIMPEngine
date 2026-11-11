@@ -11,6 +11,9 @@
 
 #include <SDL3/SDL_pixels.h>
 
+#include <string>
+#include <utility>
+
 namespace SIMPEngine
 {
     class RenderingLayer : public Layer
@@ -43,7 +46,15 @@ namespace SIMPEngine
         bool IsSimulationEnabled() const { return m_SimulationEnabled; }
         void Step(float dt);
 
+        bool HasFault() const { return !m_Fault.empty(); }
+        std::string TakeFault() { return std::exchange(m_Fault, std::string()); }
+
     private:
+        void UpdateScene(Scene &scene, float dt);
+        void RecordFault(const char *stage, const char *what);
+
+        std::string m_Fault;
+        std::string m_LastFault;
         std::shared_ptr<SceneManager> m_SceneManager;
         bool m_SimulationEnabled = true;
         bool m_RenderToBackbuffer = true;

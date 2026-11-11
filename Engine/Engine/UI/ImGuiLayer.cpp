@@ -38,6 +38,9 @@ namespace SIMPEngine
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         io.ConfigWindowsMoveFromTitleBarOnly = true;
+        io.ConfigErrorRecovery = true;
+        io.ConfigErrorRecoveryEnableAssert = false;
+        io.ConfigErrorRecoveryEnableTooltip = true;
 
         io.MouseDrawCursor = false;
 

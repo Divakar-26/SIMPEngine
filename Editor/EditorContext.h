@@ -68,6 +68,8 @@ struct EditorContext
     entt::entity RenameRequest = entt::null;
     std::string OpenScriptRequest;
     bool FocusGameView = false;
+    bool GameFullscreen = false;
+    std::string RuntimeError;
     bool FocusSceneView = false;
 
     ViewportPanel *Viewport = nullptr;

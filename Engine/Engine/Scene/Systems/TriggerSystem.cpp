@@ -16,6 +16,7 @@ namespace SIMPEngine
 
         auto triggers = registry.view<TriggerComponent, TransformComponent>();
         auto bodies = registry.view<CollisionComponent, TransformComponent>();
+        auto controllers = registry.view<CharacterControllerComponent, TransformComponent>(entt::exclude<CollisionComponent>);
 
         for (entt::entity triggerHandle : triggers)
         {
@@ -48,6 +49,27 @@ namespace SIMPEngine
                                         otherWorld.Position.y + collision.offsetY,
                                         collision.width * std::abs(otherWorld.Scale.x),
                                         collision.height * std::abs(otherWorld.Scale.y)};
+
+                    if (SDL_HasRectIntersectionFloat(&zone, &box))
+                        current.push_back(other);
+                }
+
+                for (entt::entity other : controllers)
+                {
+                    if (other == triggerHandle)
+                        continue;
+                    if (!trigger.filter.empty())
+                    {
+                        const TagComponent *tag = registry.try_get<TagComponent>(other);
+                        if (!tag || tag->Tag != trigger.filter)
+                            continue;
+                    }
+
+                    const glm::vec2 center = DecomposeWorld(controllers.get<TransformComponent>(other)).Position;
+                    const CharacterControllerComponent &controller = controllers.get<CharacterControllerComponent>(other);
+                    const SDL_FRect box{center.x + controller.offset.x - controller.size.x * 0.5f,
+                                        center.y + controller.offset.y - controller.size.y * 0.5f,
+                                        controller.size.x, controller.size.y};
 
                     if (SDL_HasRectIntersectionFloat(&zone, &box))
                         current.push_back(other);

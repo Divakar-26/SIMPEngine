@@ -18,12 +18,14 @@ namespace SIMPEngine
 {
     bool FileSystem::Exists(const string &path)
     {
-        return fs::exists(ToPath(path));
+        std::error_code ec;
+        return fs::exists(ToPath(path), ec);
     }
 
     bool FileSystem::IsDirectory(const string &path)
     {
-        return fs::is_directory(ToPath(path));
+        std::error_code ec;
+        return fs::is_directory(ToPath(path), ec);
     }
 
     bool FileSystem::CreateDirectories(const string &path)
@@ -52,19 +54,41 @@ namespace SIMPEngine
         if (!Exists(path))
             return std::nullopt;
         ifstream f(ToPath(path), ios::binary);
+        if (!f)
+            return std::nullopt;
         return string((istreambuf_iterator<char>(f)), istreambuf_iterator<char>());
     }
 
     bool FileSystem::WriteText(const string &path, const string &text, bool createDirs)
     {
-        if (createDirs)
+        const fs::path target = ToPath(path);
+        if (createDirs && target.has_parent_path())
+            CreateDirectories(target.parent_path().string());
+
+        fs::path temporary = target;
+        temporary += ".saving";
         {
-            CreateDirectories(ToPath(path).parent_path().string());
+            ofstream f(temporary, ios::binary | ios::trunc);
+            if (!f)
+                return false;
+            f.write(text.data(), static_cast<std::streamsize>(text.size()));
+            f.flush();
+            if (!f)
+            {
+                f.close();
+                std::error_code ignored;
+                fs::remove(temporary, ignored);
+                return false;
+            }
         }
-        ofstream f(ToPath(path), ios::binary);
-        if (!f)
+
+        std::error_code ec;
+        fs::rename(temporary, target, ec);
+        if (ec)
+        {
+            fs::remove(temporary, ec);
             return false;
-        f << text;
+        }
         return true;
     }
 
@@ -74,9 +98,11 @@ namespace SIMPEngine
         if (!IsDirectory(dir))
             return out;
 
-        for (auto &e : fs::directory_iterator(ToPath(dir)))
+        std::error_code ec;
+        for (fs::directory_iterator it(ToPath(dir), fs::directory_options::skip_permission_denied, ec), end; !ec && it != end; it.increment(ec))
         {
-            out.push_back({e.path().string(), e.is_directory()});
+            std::error_code typeError;
+            out.push_back({it->path().string(), it->is_directory(typeError)});
         }
 
         return out;

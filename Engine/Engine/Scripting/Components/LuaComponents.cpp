@@ -25,6 +25,9 @@ namespace SIMPEngine::LuaBindings
             &TilemapBinding(),
             &AnimationBinding(),
             &VectorBinding(),
+            &DamageBinding(),
+            &OscillatorBinding(),
+            &SpawnerBinding(),
         };
         return bindings;
     }

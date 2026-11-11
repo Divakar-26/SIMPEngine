@@ -12,6 +12,7 @@
 #include "UI/FileDialogs.h"
 #include <Engine/Events/ApplicationEvent.h>
 #include <Engine/Project/Project.h>
+#include <Engine/Core/CrashHandler.h>
 
 #include <Engine/Core/Profiler/EngineProfiler.h>
 
@@ -71,6 +72,71 @@ void EditorLayer::OpenStartScene(const std::string &path)
 {
     if (auto real = SIMPEngine::VFS::Resolve(path); real && SIMPEngine::FileSystem::Exists(*real))
         OpenScene(path);
+    if (!m_Recovery)
+        CheckRecovery({});
+}
+
+void EditorLayer::Flash(const std::string &message, bool error)
+{
+    m_StatusMessage = message;
+    m_StatusError = error;
+    m_StatusFlash = error ? 8.0f : 3.0f;
+}
+
+void EditorLayer::CheckRecovery(const std::string &scenePath)
+{
+    m_Recovery = EditorRecovery::Find(scenePath);
+    m_ShowRecovery = m_Recovery.has_value();
+    m_RecoveryUndecided = m_ShowRecovery;
+}
+
+void EditorLayer::WriteRecovery()
+{
+    const EditorContext &ctx = m_EditorContext;
+    if (ctx.State != SceneState::Edit)
+    {
+        if (m_DirtyBeforePlay)
+            EditorRecovery::Write(ctx.ScenePath, m_PlaySnapshot.Yaml);
+        return;
+    }
+    if (ctx.Dirty)
+        EditorRecovery::Write(ctx.ScenePath, serializer.SerializeToString());
+}
+
+void EditorLayer::HandleRuntimeFaults()
+{
+    EditorContext &ctx = m_EditorContext;
+    std::string fault = m_RenderingLayer->TakeFault();
+    if (fault.empty())
+        fault = std::exchange(ctx.RuntimeError, std::string());
+    if (fault.empty() || ctx.State == SceneState::Edit)
+        return;
+
+    ctx.State = SceneState::Pause;
+    SetGameFullscreen(false);
+    *m_ConsolePanel.VisibleFlag() = true;
+    Flash("Paused after an error: " + fault + "  (F5 stops, F6 resumes)", true);
+}
+
+void EditorLayer::SetGameFullscreen(bool fullscreen)
+{
+    EditorContext &ctx = m_EditorContext;
+    if (ctx.GameFullscreen == fullscreen)
+        return;
+    ctx.GameFullscreen = fullscreen;
+
+    SIMPEngine::Window &window = SIMPEngine::Application::Get().GetWindow();
+    if (fullscreen)
+    {
+        m_WindowWasFullscreen = window.IsFullscreen();
+        window.SetFullscreen(true);
+        m_GameViewPanel.ShowFullscreenHint();
+    }
+    else
+    {
+        window.SetFullscreen(m_WindowWasFullscreen);
+        ctx.FocusGameView = ctx.State != SceneState::Edit;
+    }
 }
 
 bool EditorLayer::SaveBeforeLaunch()
@@ -93,17 +159,13 @@ void EditorLayer::RunStandalone()
     if (!SIMPEngine::Project::IsOpen() || !SaveBeforeLaunch())
         return;
     const std::filesystem::path player = GameBuilder::PlayerBinary();
-    if (!std::filesystem::exists(player))
+    if (!SIMPEngine::FileSystem::Exists(player.string()))
     {
-        m_StatusMessage = "SIMPPlayer was not found next to the editor";
-        m_StatusFlash = 3.0f;
+        Flash("SIMPPlayer was not found next to the editor", true);
         return;
     }
     if (EditorUI::LaunchProcess(player.string(), SIMPEngine::Project::Directory().string()))
-    {
-        m_StatusMessage = "Started " + SIMPEngine::Project::Settings().Name;
-        m_StatusFlash = 3.0f;
-    }
+        Flash("Started " + SIMPEngine::Project::Settings().Name);
 }
 
 void EditorLayer::OnAttach()
@@ -123,10 +185,32 @@ void EditorLayer::OnAttach()
 
     m_EditorContext.Scene->UpdateTransforms();
     m_History.Clear();
+
+    SIMPEngine::CrashHandler::SetEmergencyCallback([this]
+                                                   { WriteRecovery(); });
+    SIMPEngine::Application::Get().SetFullscreenOverride(
+        [this](bool fullscreen)
+        {
+            if (m_EditorContext.State != SceneState::Edit)
+                SetGameFullscreen(fullscreen);
+        },
+        [this]
+        { return m_EditorContext.GameFullscreen; });
+    m_CrashReport = SIMPEngine::CrashHandler::TakePreviousCrashReport();
+    if (!m_CrashReport.empty())
+    {
+        CORE_WARN("The editor closed unexpectedly last time. Crash report: {}", m_CrashReport);
+        Flash("The editor closed unexpectedly last time. The crash report is in the Console.", true);
+    }
 }
 
 void EditorLayer::OnDetach()
 {
+    SIMPEngine::CrashHandler::SetEmergencyCallback(nullptr);
+    SIMPEngine::Application::Get().SetFullscreenOverride(nullptr, nullptr);
+    SetGameFullscreen(false);
+    if (!m_EditorContext.Dirty && !m_RecoveryUndecided)
+        EditorRecovery::Discard(m_EditorContext.ScenePath);
     EditorUI::SetEditHook(nullptr);
     m_RenderingLayer->OnDetach();
 }
@@ -141,6 +225,15 @@ void EditorLayer::OnUpdate(class SIMPEngine::TimeStep ts)
     if (m_EditorContext.State == SceneState::Pause && m_EditorContext.StepRequested)
         m_RenderingLayer->Step(1.0f / 60.0f);
     m_EditorContext.StepRequested = false;
+    HandleRuntimeFaults();
+
+    m_AutosaveTimer += ts.GetSeconds();
+    if (m_AutosaveTimer >= 30.0f)
+    {
+        m_AutosaveTimer = 0.0f;
+        if (m_EditorContext.State == SceneState::Edit && m_EditorContext.Dirty)
+            WriteRecovery();
+    }
 
     if (m_EditorContext.State == SceneState::Edit)
         m_EditorContext.Scene->UpdateParticles(ts.GetSeconds());
@@ -200,6 +293,10 @@ void EditorLayer::Play()
 
     m_EditorContext.State = SceneState::Play;
     m_EditorContext.FocusGameView = true;
+    m_EditorContext.RuntimeError.clear();
+    m_RenderingLayer->TakeFault();
+    if (EditorUI::Settings().PlayFullscreen)
+        SetGameFullscreen(true);
 }
 
 void EditorLayer::Stop()
@@ -207,6 +304,7 @@ void EditorLayer::Stop()
     if (m_EditorContext.State == SceneState::Edit)
         return;
 
+    SetGameFullscreen(false);
     m_EditorContext.State = SceneState::Edit;
     m_RenderingLayer->SetSimulationEnabled(false);
     SIMPEngine::Input::SetEnabled(false);
@@ -291,20 +389,22 @@ void EditorLayer::OpenScene(const std::string &path)
     m_EditorContext.SelectedEntity = {};
     m_EditorContext.HoveredEntity = {};
     scene.Clear();
-    if (!serializer.Deserialize(path))
+    const bool opened = serializer.Deserialize(path);
+    if (!opened)
     {
         CORE_ERROR("Could not open scene {}", path);
-        m_StatusMessage = "Could not open " + DisplayName(path);
+        Flash("Could not open " + DisplayName(path), true);
     }
     else
     {
         m_EditorContext.ScenePath = path;
-        m_StatusMessage = "Opened " + DisplayName(path);
+        Flash("Opened " + DisplayName(path));
     }
-    m_StatusFlash = 3.0f;
     m_EditorContext.Dirty = false;
     m_History.Clear();
     m_ViewportPanel.FrameScene();
+    if (opened)
+        CheckRecovery(path);
 }
 
 void EditorLayer::BrowseOpenScene()
@@ -321,8 +421,7 @@ bool EditorLayer::SaveScene()
 {
     if (m_EditorContext.State != SceneState::Edit)
     {
-        m_StatusMessage = "Stop the game before saving";
-        m_StatusFlash = 3.0f;
+        Flash("Stop the game before saving");
         return false;
     }
 
@@ -342,15 +441,17 @@ void EditorLayer::SaveSceneAs(const std::string &path)
 {
     if (serializer.Serialize(path))
     {
+        EditorRecovery::Discard(m_EditorContext.ScenePath);
+        EditorRecovery::Discard(path);
         m_EditorContext.ScenePath = path;
         m_EditorContext.Dirty = false;
-        m_StatusMessage = "Saved " + DisplayName(path);
+        m_AutosaveTimer = 0.0f;
+        Flash("Saved " + DisplayName(path));
     }
     else
     {
-        m_StatusMessage = "Save failed";
+        Flash("Could not save " + DisplayName(path) + ". Check that the folder is writable and the disk is not full.", true);
     }
-    m_StatusFlash = 3.0f;
 }
 
 void EditorLayer::HandleShortcuts()
@@ -372,6 +473,16 @@ void EditorLayer::HandleShortcuts()
         m_BuildPanel.Open();
     if (ImGui::Shortcut(ImGuiKey_F6, ImGuiInputFlags_RouteGlobal))
         TogglePause();
+    if (ImGui::Shortcut(ImGuiKey_F11, ImGuiInputFlags_RouteGlobal))
+    {
+        if (ctx.State == SceneState::Edit)
+        {
+            Play();
+            SetGameFullscreen(true);
+        }
+        else
+            SetGameFullscreen(!ctx.GameFullscreen);
+    }
     if (ImGui::Shortcut(ImGuiKey_F7, ImGuiInputFlags_RouteGlobal) && ctx.State == SceneState::Pause)
         ctx.StepRequested = true;
 
@@ -414,6 +525,17 @@ void EditorLayer::HandleShortcuts()
 void EditorLayer::OnRender()
 {
     HandleShortcuts();
+
+    if (m_EditorContext.GameFullscreen && m_EditorContext.State != SceneState::Edit)
+    {
+        m_GameViewPanel.OnImGuiRenderFullscreen();
+        HandleRuntimeFaults();
+        DrawConfirmModal();
+        DrawSaveAsModal();
+        m_History.EndFrame(ImGui::IsAnyItemActive());
+        return;
+    }
+
     DrawMenuBar();
     DrawStatusBar();
     DrawDockspace();
@@ -440,6 +562,7 @@ void EditorLayer::OnRender()
 
     DrawSaveAsModal();
     DrawConfirmModal();
+    DrawRecoveryModal();
     DrawShortcutsWindow();
 
     if (m_FocusDefaultTabs > 0 && --m_FocusDefaultTabs == 0)
@@ -456,7 +579,7 @@ void EditorLayer::DrawTransport()
     using namespace EditorUI;
 
     float h = ImGui::GetFrameHeight();
-    float groupW = h * 3.0f + 8.0f;
+    float groupW = h * 4.0f + 12.0f;
     float x = std::floor((ImGui::GetWindowWidth() - groupW) * 0.5f);
     ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x));
 
@@ -480,6 +603,13 @@ void EditorLayer::DrawTransport()
         m_EditorContext.StepRequested = true;
     ImGui::EndDisabled();
     ImGui::EndDisabled();
+    ImGui::SameLine(0, 4);
+    if (IconButton("##fullscreen", ICON_LC_MAXIMIZE, "Play fullscreen (F11)", false, h))
+    {
+        if (editing)
+            Play();
+        SetGameFullscreen(true);
+    }
 }
 
 void EditorLayer::DrawMenuBar()
@@ -489,7 +619,12 @@ void EditorLayer::DrawMenuBar()
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(8, 5));
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 6));
-    ImGui::PushStyleColor(ImGuiCol_MenuBarBg, Colors::Canvas);
+    ImVec4 menuBar = Colors::Canvas;
+    if (ctx.State == SceneState::Play)
+        menuBar = ImLerp(Colors::Canvas, Colors::Success, 0.16f);
+    else if (ctx.State == SceneState::Pause)
+        menuBar = ImLerp(Colors::Canvas, Colors::Warning, 0.16f);
+    ImGui::PushStyleColor(ImGuiCol_MenuBarBg, menuBar);
 
     if (ImGui::BeginMainMenuBar())
     {
@@ -592,6 +727,22 @@ void EditorLayer::DrawMenuBar()
                 TogglePause();
             if (ImGui::MenuItem("Step Frame", "F7", false, ctx.State == SceneState::Pause))
                 ctx.StepRequested = true;
+            ImGui::Separator();
+            if (ImGui::MenuItem("Play Fullscreen", "F11", ctx.GameFullscreen))
+            {
+                if (editing)
+                {
+                    Play();
+                    SetGameFullscreen(true);
+                }
+                else
+                    SetGameFullscreen(!ctx.GameFullscreen);
+            }
+            if (ImGui::MenuItem("Always Play Fullscreen", nullptr, Settings().PlayFullscreen))
+            {
+                Settings().PlayFullscreen = !Settings().PlayFullscreen;
+                ImGui::MarkIniSettingsDirty();
+            }
             if (SIMPEngine::Project::IsOpen())
             {
                 ImGui::Separator();
@@ -668,7 +819,7 @@ void EditorLayer::DrawStatusBar()
             segment(ctx.SelectedEntity.GetComponent<TagComponent>().Tag.c_str(), Colors::Text);
 
         if (m_StatusFlash > 0.0f && !m_StatusMessage.empty())
-            segment(m_StatusMessage.c_str(), WithAlpha(Colors::Text, std::min(1.0f, m_StatusFlash)));
+            segment(m_StatusMessage.c_str(), WithAlpha(m_StatusError ? Colors::Error : Colors::Text, std::min(1.0f, m_StatusFlash)));
 
         auto &profiler = EngineProfiler::Profiler::Get();
         std::snprintf(buf, sizeof(buf), "%.2f ms   %.0f fps", profiler.GetCurrentFrameTimeMs(), profiler.GetCurrentFPS());
@@ -757,6 +908,8 @@ void EditorLayer::DrawConfirmModal()
     {
         m_ShowConfirm = false;
         ImGui::CloseCurrentPopup();
+        EditorRecovery::Discard(m_EditorContext.ScenePath);
+        m_EditorContext.Dirty = false;
         RunAction(action, m_PendingPath);
     }
     ImGui::SameLine();
@@ -779,6 +932,72 @@ void EditorLayer::DrawConfirmModal()
     EndModal();
 }
 
+void EditorLayer::DrawRecoveryModal()
+{
+    using namespace EditorUI;
+
+    if (!m_Recovery)
+        return;
+
+    if (!BeginModal("Recover Unsaved Changes", &m_ShowRecovery, ImVec2(460, 0)))
+    {
+        if (!m_ShowRecovery)
+            m_Recovery.reset();
+        return;
+    }
+
+    const long long minutes = m_Recovery->AgeSeconds / 60;
+    std::string age = minutes < 1 ? std::string("less than a minute") : minutes == 1 ? std::string("1 minute") : minutes < 120 ? std::to_string(minutes) + " minutes" : std::to_string(minutes / 60) + " hours";
+    ImGui::TextWrapped("Unsaved changes to %s from %s ago were kept after the editor last closed.", DisplayName(m_Recovery->ScenePath).c_str(), age.c_str());
+    ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextDim);
+    ImGui::TextWrapped("Recover loads them into the editor without saving. Discard deletes them for good.");
+    if (!m_CrashReport.empty())
+        ImGui::TextWrapped("Crash report: %s", m_CrashReport.c_str());
+    ImGui::PopStyleColor();
+    ImGui::Dummy(ImVec2(0, 6));
+
+    const float bw = 96.0f;
+    const float spacing = ImGui::GetStyle().ItemSpacing.x;
+    ImGui::SetCursorPosX(ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - bw * 2.0f - spacing);
+    if (Button("Discard", ButtonKind::Ghost, ImVec2(bw, 0)))
+    {
+        std::error_code ec;
+        std::filesystem::remove(m_Recovery->Path, ec);
+        m_Recovery.reset();
+        m_RecoveryUndecided = false;
+        m_ShowRecovery = false;
+        ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (m_Recovery && Button("Recover", ButtonKind::Primary, ImVec2(bw, 0)))
+    {
+        SIMPEngine::Scene &scene = *m_EditorContext.Scene;
+        m_EditorContext.ClearSelection();
+        m_EditorContext.HoveredEntity = {};
+        scene.Clear();
+        if (serializer.DeserializeFromString(m_Recovery->Yaml))
+        {
+            m_EditorContext.ScenePath = m_Recovery->ScenePath;
+            m_EditorContext.Dirty = true;
+            Flash("Recovered unsaved changes. Save to keep them.");
+        }
+        else
+        {
+            Flash("The recovered changes could not be read", true);
+            if (!m_EditorContext.ScenePath.empty())
+                serializer.Deserialize(m_EditorContext.ScenePath);
+        }
+        m_History.Clear();
+        m_ViewportPanel.FrameScene();
+        m_Recovery.reset();
+        m_RecoveryUndecided = false;
+        m_ShowRecovery = false;
+        ImGui::CloseCurrentPopup();
+    }
+
+    EndModal();
+}
+
 void EditorLayer::DrawShortcutsWindow()
 {
     using namespace EditorUI;
@@ -794,6 +1013,7 @@ void EditorLayer::DrawShortcutsWindow()
             {"Play / Stop", "F5"},
             {"Pause / Resume", "F6"},
             {"Step frame", "F7"},
+            {"Fullscreen play", "F11"},
             {"Select / Move / Rotate / Scale", "Q  W  E  R"},
             {"Snap while dragging", "Hold Ctrl"},
             {"Frame selection", "F"},

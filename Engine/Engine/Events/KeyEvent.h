@@ -19,6 +19,8 @@ namespace SIMPEngine
 
         KeyPressedEvent(int keycode, bool repeat) : KeyEvent(keycode), m_Repeat(repeat) {}
 
+        bool IsRepeat() const { return m_Repeat; }
+
         static EventType StaticType() { return EventType::KeyPressed; }
         EventType GetEventType() const override { return StaticType(); }
         const char *GetName() const override { return "KeyPressed"; }

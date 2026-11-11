@@ -85,6 +85,7 @@ namespace EditorUI
         float SnapRotate = 15.0f;
         bool PreviewLighting = true;
         bool ShowColliders = false;
+        bool PlayFullscreen = false;
         std::string ScriptTheme = "Mossveil Night";
         float ScriptFontSize = 15.0f;
     };

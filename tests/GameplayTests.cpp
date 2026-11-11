@@ -218,3 +218,146 @@ TEST_CASE("project: broken project files report an error")
     std::error_code ec;
     fs::remove_all(dir, ec);
 }
+
+TEST_CASE("trigger: detects character controllers without a collision box")
+{
+    Scene scene("Trigger");
+    Entity zone = scene.CreateEntity("Zone");
+    zone.GetComponent<TransformComponent>().position = {-50.0f, -50.0f};
+    auto &trigger = zone.AddComponent<TriggerComponent>();
+    trigger.width = 100.0f;
+    trigger.height = 100.0f;
+
+    Entity player = scene.CreateEntity("Player");
+    player.GetComponent<TransformComponent>().position = {0.0f, 0.0f};
+    auto &controller = player.AddComponent<CharacterControllerComponent>();
+    controller.playerInput = false;
+    controller.mode = ControllerMode::TopDown;
+
+    Step(scene, 1);
+    CHECK(trigger.inside.size() == 1);
+
+    player.GetComponent<TransformComponent>().position = {500.0f, 0.0f};
+    Step(scene, 1);
+    CHECK(trigger.inside.empty());
+}
+
+TEST_CASE("damage: hurts on an interval, heals with negative amounts, can be consumed")
+{
+    Scene scene("Damage");
+    Entity player = scene.CreateEntity("Player");
+    auto &controller = player.AddComponent<CharacterControllerComponent>();
+    controller.playerInput = false;
+    controller.mode = ControllerMode::TopDown;
+    auto &health = player.AddComponent<HealthComponent>();
+    health.max = 100.0f;
+    health.current = 100.0f;
+
+    Entity spikes = scene.CreateEntity("Spikes");
+    spikes.GetComponent<TransformComponent>().position = {-40.0f, -40.0f};
+    auto &zone = spikes.AddComponent<TriggerComponent>();
+    zone.width = 80.0f;
+    zone.height = 80.0f;
+    auto &damage = spikes.AddComponent<DamageComponent>();
+    damage.amount = 10.0f;
+    damage.interval = 0.5f;
+    damage.filter = "Player";
+
+    Step(scene, 1);
+    CHECK_NEAR(health.current, 90.0f, 1e-3);
+    Step(scene, 20);
+    CHECK_NEAR(health.current, 90.0f, 1e-3);
+    Step(scene, 15);
+    CHECK_NEAR(health.current, 80.0f, 1e-3);
+
+    damage.amount = -50.0f;
+    damage.interval = 0.0f;
+    damage.destroyOnHit = true;
+    damage.cooldowns.clear();
+    Step(scene, 3);
+    CHECK_NEAR(health.current, 100.0f, 1e-3);
+    CHECK(!scene.GetRegistry().valid(spikes.GetHandle()));
+}
+
+TEST_CASE("oscillator: moves around its start and returns to it every cycle")
+{
+    Scene scene("Oscillator");
+    Entity coin = scene.CreateEntity("Coin");
+    coin.GetComponent<TransformComponent>().position = {100.0f, 50.0f};
+    auto &osc = coin.AddComponent<OscillatorComponent>();
+    osc.move = {0.0f, 20.0f};
+    osc.frequency = 1.0f;
+    osc.pulse = 0.2f;
+
+    Step(scene, 15);
+    const auto &transform = coin.GetComponent<TransformComponent>();
+    CHECK_NEAR(transform.position.y, 70.0f, 0.1);
+    CHECK_NEAR(transform.scale.x, 1.2f, 0.01);
+
+    Step(scene, 45);
+    CHECK_NEAR(transform.position.x, 100.0f, 1e-3);
+    CHECK_NEAR(transform.position.y, 50.0f, 0.1);
+    CHECK_NEAR(transform.scale.x, 1.0f, 0.01);
+}
+
+TEST_CASE("spawner: copies its prototype on an interval up to the alive limit")
+{
+    Scene scene("Spawner");
+    Entity bat = scene.CreateEntity("Bat");
+    bat.AddComponent<HealthComponent>().max = 30.0f;
+    Entity wing = scene.CreateEntity("Wing");
+    scene.SetParent(wing.GetHandle(), bat.GetHandle());
+
+    Entity cave = scene.CreateEntity("Cave");
+    cave.GetComponent<TransformComponent>().position = {300.0f, 0.0f};
+    auto &spawner = cave.AddComponent<SpawnerComponent>();
+    spawner.prototype = "Bat";
+    spawner.interval = 0.5f;
+    spawner.maxAlive = 3;
+    spawner.spawnOnStart = true;
+    spawner.velocity = {0.0f, -60.0f};
+
+    auto count = [&](const char *name)
+    {
+        int n = 0;
+        for (auto e : scene.GetRegistry().view<TagComponent>())
+            n += scene.GetRegistry().get<TagComponent>(e).Tag == name;
+        return n;
+    };
+
+    Step(scene, 1);
+    CHECK(count("Bat") == 1);
+    CHECK(count("Wing") == 1);
+    CHECK(spawner.alive.size() == 1);
+    const entt::entity first = spawner.alive.front();
+    CHECK_NEAR(scene.GetRegistry().get<TransformComponent>(first).position.x, 300.0f, 1e-3);
+    CHECK(scene.GetRegistry().all_of<VelocityComponent>(first));
+    CHECK_NEAR(scene.GetRegistry().get<HealthComponent>(first).max, 30.0f, 1e-3);
+
+    Step(scene, 120);
+    CHECK(spawner.alive.size() == 3);
+    CHECK(count("Bat") == 3);
+
+    scene.GetRegistry().destroy(first);
+    Step(scene, 40);
+    CHECK(spawner.alive.size() == 3);
+    CHECK(spawner.spawned == 4);
+}
+
+TEST_CASE("scene: clone copies an entity with its children")
+{
+    Scene scene("Clone");
+    Entity parent = scene.CreateEntity("Enemy");
+    parent.GetComponent<TransformComponent>().position = {12.0f, 34.0f};
+    parent.AddComponent<HealthComponent>().max = 7.0f;
+    Entity child = scene.CreateEntity("Eye");
+    scene.SetParent(child.GetHandle(), parent.GetHandle());
+    scene.UpdateTransforms();
+
+    const entt::entity copy = SpawnerSystem::Clone(scene, parent.GetHandle());
+    CHECK(copy != entt::null && copy != parent.GetHandle());
+    auto &registry = scene.GetRegistry();
+    CHECK_NEAR(registry.get<TransformComponent>(copy).position.y, 34.0f, 1e-3);
+    CHECK_NEAR(registry.get<HealthComponent>(copy).max, 7.0f, 1e-3);
+    CHECK(registry.get<HierarchyComponent>(copy).children.size() == 1);
+}

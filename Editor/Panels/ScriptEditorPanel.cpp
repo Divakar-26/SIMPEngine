@@ -1,4 +1,5 @@
 #include "ScriptEditorPanel.h"
+#include <Engine/Core/FileSystem.h>
 #include "AssetPickerPanel.h"
 #include "EditorContext.h"
 #include "UI/Visuals.h"
@@ -174,17 +175,16 @@ void ScriptEditorPanel::Open(const std::string &vpath)
 
 bool ScriptEditorPanel::Save(Document &doc)
 {
-    std::ofstream file(EditorUI::Utf8Path(doc.RealPath), std::ios::binary | std::ios::trunc);
-    if (!file)
-    {
-        LOG_ERROR("Script editor: could not write {}", doc.RealPath);
-        return false;
-    }
     std::string text = doc.Editor.GetText();
     if (text.empty() || text.back() != '\n')
         text += '\n';
-    file << text;
-    file.close();
+    if (!SIMPEngine::FileSystem::WriteText(doc.RealPath, text, false))
+    {
+        LOG_ERROR("Script editor: could not write {}", doc.RealPath);
+        m_Status = "Could not save " + doc.Name;
+        m_StatusTime = ImGui::GetTime();
+        return false;
+    }
     doc.SavedVersion = doc.Editor.Version();
     doc.DiskTime = DiskTime(doc.RealPath);
     m_Status = "Saved " + doc.Name;

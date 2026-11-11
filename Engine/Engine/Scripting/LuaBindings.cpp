@@ -6,6 +6,7 @@
 #include "Components/LuaComponents.h"
 #include "LuaModules.h"
 
+#include <Engine/Application/Application.h>
 #include <Engine/Audio/AudioEngine.h>
 #include <Engine/Core/Log.h>
 #include <Engine/Input/Input.h>
@@ -489,6 +490,48 @@ namespace SIMPEngine::LuaBindings
             return 1;
         }
 
+        int SceneClone(lua_State *L)
+        {
+            Scene *scene = RequireScene(L);
+            entt::entity source = entt::null;
+            if (lua_type(L, 1) == LUA_TSTRING)
+            {
+                size_t length = 0;
+                const char *name = lua_tolstring(L, 1, &length);
+                source = FindFirstByName(scene, std::string_view(name, length));
+                if (source == entt::null)
+                {
+                    lua_pushnil(L);
+                    return 1;
+                }
+            }
+            else
+            {
+                const Entity *entity = CheckLiveEntity(L, 1);
+                if (entity->GetScene() != scene)
+                    return luaL_error(L, "entity belongs to another scene");
+                source = entity->GetHandle();
+            }
+            const bool place = !lua_isnoneornil(L, 2);
+            const float x = static_cast<float>(luaL_optnumber(L, 2, 0.0));
+            const float y = static_cast<float>(luaL_optnumber(L, 3, 0.0));
+
+            const entt::entity copy = SpawnerSystem::Clone(*scene, source);
+            if (copy == entt::null)
+            {
+                lua_pushnil(L);
+                return 1;
+            }
+            if (place)
+            {
+                auto &transform = scene->GetRegistry().get<TransformComponent>(copy);
+                transform.position = {x, y};
+                transform.dirty = true;
+            }
+            PushEntity(L, Entity(copy, scene));
+            return 1;
+        }
+
         int SceneFind(lua_State *L)
         {
             Scene *scene = RequireScene(L);
@@ -837,6 +880,7 @@ namespace SIMPEngine::LuaBindings
 
         const luaL_Reg SceneFunctions[] = {
             {"Spawn", SceneSpawn},
+            {"Clone", SceneClone},
             {"Find", SceneFind},
             {"FindAll", SceneFindAll},
             {"SetAmbient", SceneSetAmbient},
@@ -844,6 +888,39 @@ namespace SIMPEngine::LuaBindings
             {"SetFixedStep", SceneSetFixedStep},
             {"IsSolidAt", SceneIsSolidAt},
             {"OverlapsSolid", SceneOverlapsSolid},
+            {nullptr, nullptr}};
+
+        int WindowSetFullscreen(lua_State *L)
+        {
+            luaL_checkany(L, 1);
+            const bool fullscreen = lua_toboolean(L, 1) != 0;
+            if (Application *app = Application::TryGet())
+                app->SetFullscreen(fullscreen);
+            return 0;
+        }
+
+        int WindowIsFullscreen(lua_State *L)
+        {
+            Application *app = Application::TryGet();
+            lua_pushboolean(L, app && app->IsFullscreen());
+            return 1;
+        }
+
+        int WindowGetSize(lua_State *L)
+        {
+            int width = 0;
+            int height = 0;
+            if (Application *app = Application::TryGet())
+                SDL_GetWindowSize(app->GetWindow().GetNativeWindow(), &width, &height);
+            lua_pushinteger(L, width);
+            lua_pushinteger(L, height);
+            return 2;
+        }
+
+        const luaL_Reg WindowFunctions[] = {
+            {"SetFullscreen", WindowSetFullscreen},
+            {"IsFullscreen", WindowIsFullscreen},
+            {"GetSize", WindowGetSize},
             {nullptr, nullptr}};
 
         const luaL_Reg AudioFunctions[] = {
@@ -972,6 +1049,9 @@ namespace SIMPEngine::LuaBindings
 
         luaL_newlib(L, AudioFunctions);
         lua_setglobal(L, "Audio");
+
+        luaL_newlib(L, WindowFunctions);
+        lua_setglobal(L, "Window");
 
         luaL_newlib(L, MathFunctions);
         lua_setglobal(L, "Math");

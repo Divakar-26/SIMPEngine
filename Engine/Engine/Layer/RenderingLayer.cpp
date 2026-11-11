@@ -13,6 +13,8 @@
 #include "Events/ApplicationEvent.h"
 #include "Events/EventDispatcher.h"
 #include "Events/MouseEvent.h"
+#include "Events/KeyEvent.h"
+#include <Engine/Application/Application.h>
 #include "Input/Input.h"
 #include "Input/SIMP_Keys.h"
 
@@ -46,14 +48,39 @@ namespace SIMPEngine
         }
 
         if (m_SimulationEnabled)
-            scene->OnUpdate(ts.GetSeconds());
+            UpdateScene(*scene, ts.GetSeconds());
     }
 
     void RenderingLayer::Step(float dt)
     {
         auto scene = m_SceneManager->GetActiveScene();
         if (scene)
-            scene->OnUpdate(dt);
+            UpdateScene(*scene, dt);
+    }
+
+    void RenderingLayer::UpdateScene(Scene &scene, float dt)
+    {
+        try
+        {
+            scene.OnUpdate(dt);
+        }
+        catch (const std::exception &e)
+        {
+            RecordFault("update", e.what());
+        }
+        catch (...)
+        {
+            RecordFault("update", "unknown exception");
+        }
+    }
+
+    void RenderingLayer::RecordFault(const char *stage, const char *what)
+    {
+        std::string message = std::string("Scene ") + stage + ": " + what;
+        if (message != m_LastFault)
+            CORE_ERROR("{}", message);
+        m_LastFault = message;
+        m_Fault = std::move(message);
     }
 
     void RenderingLayer::OnRender()
@@ -75,8 +102,16 @@ namespace SIMPEngine
         Renderer::SetClearColor(bg.r, bg.g, bg.b, bg.a);
         Renderer::Clear();
 
-        scene->OnRender();
-        Renderer::Flush();
+        try
+        {
+            scene->OnRender();
+            Renderer::Flush();
+        }
+        catch (const std::exception &e)
+        {
+            Renderer::Recover();
+            RecordFault("render", e.what());
+        }
     }
 
     void RenderingLayer::OnEvent(Event &e)
@@ -84,6 +119,17 @@ namespace SIMPEngine
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseButtonPressedEvent>([](MouseButtonPressedEvent &)
                                                      { return false; });
+
+        dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent &ev)
+                                             {
+            if (!m_RenderToBackbuffer || ev.IsRepeat())
+                return false;
+            const bool altEnter = ev.GetKeyCode() == SIMPK_RETURN && (SDL_GetModState() & SDL_KMOD_ALT);
+            if (ev.GetKeyCode() != SIMPK_F11 && !altEnter)
+                return false;
+            Application &app = Application::Get();
+            app.SetFullscreen(!app.IsFullscreen());
+            return true; });
 
         dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent &ev)
                                                {

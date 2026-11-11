@@ -42,6 +42,7 @@ namespace SIMPEngine
 
         static void BeginRenderTarget(Framebuffer &target);
         static void EndRenderTarget();
+        static void Recover();
 
         static void SetBlendMode(BlendMode mode);
         static BlendMode GetBlendMode();

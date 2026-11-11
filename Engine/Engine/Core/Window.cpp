@@ -23,10 +23,11 @@
                 return false;
             }
 
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
             SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+#ifdef __APPLE__
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+#endif
 
             m_Window = SDL_CreateWindow(name, width, height, SDL_WINDOW_OPENGL | flags);
             if (!m_Window)
@@ -36,10 +37,24 @@
                 return false;
             }
 
-            m_GLContext = SDL_GL_CreateContext(m_Window);
-            if(!m_GLContext){
-                CORE_ERROR("SDL_GL_CreateContext Failed: {}", SDL_GetError());
+            static constexpr int Versions[][2] = {{4, 6}, {4, 5}, {4, 3}, {4, 1}, {4, 0}};
+            for (const auto &version : Versions)
+            {
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version[0]);
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, version[1]);
+                m_GLContext = SDL_GL_CreateContext(m_Window);
+                if (m_GLContext)
+                {
+                    CORE_INFO("OpenGL {}.{} core context", version[0], version[1]);
+                    break;
+                }
+            }
+            if (!m_GLContext)
+            {
+                CORE_ERROR("SDL_GL_CreateContext failed: {}", SDL_GetError());
+                SDL_SetError("This computer's graphics driver does not support OpenGL 4.0, which SIMPEngine needs. Updating the graphics driver usually fixes this.");
                 SDL_DestroyWindow(m_Window);
+                m_Window = nullptr;
                 SDL_Quit();
                 return false;
             }
@@ -95,6 +110,19 @@
             CORE_INFO("Window shutdown complete.");
         }
     
+    void Window::SetFullscreen(bool fullscreen)
+    {
+        if (!m_Window || IsFullscreen() == fullscreen)
+            return;
+        SDL_SetWindowFullscreen(m_Window, fullscreen);
+        SDL_SyncWindow(m_Window);
+    }
+
+    bool Window::IsFullscreen() const
+    {
+        return m_Window && (SDL_GetWindowFlags(m_Window) & SDL_WINDOW_FULLSCREEN) != 0;
+    }
+
     void Window::SetVSync(bool enabled)
     {
         m_VSync = enabled;

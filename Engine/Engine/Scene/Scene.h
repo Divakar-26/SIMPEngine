@@ -23,6 +23,9 @@
 #include <Engine/Scene/Systems/HealthSystem.h>
 #include <Engine/Scene/Systems/VectorSystem.h>
 #include <Engine/Scene/Systems/CharacterControllerSystem.h>
+#include <Engine/Scene/Systems/DamageSystem.h>
+#include <Engine/Scene/Systems/OscillatorSystem.h>
+#include <Engine/Scene/Systems/SpawnerSystem.h>
 #include <Engine/Scene/ScriptEvent.h>
 #include <Engine/Animation/Tween.h>
 
@@ -204,6 +207,9 @@ namespace SIMPEngine
         HealthSystem healthSystem;
         VectorSystem vectorSystem;
         CharacterControllerSystem characterControllerSystem;
+        DamageSystem damageSystem;
+        OscillatorSystem oscillatorSystem;
+        SpawnerSystem spawnerSystem;
         TweenSystem m_Tweens{*this};
 
         std::vector<entt::entity> m_ScriptOrder;

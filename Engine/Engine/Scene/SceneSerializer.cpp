@@ -1,3 +1,4 @@
+#include <Engine/Core/FileSystem.h>
 #include "yaml-cpp/emittermanip.h"
 #include <Engine/Core/Log.h>
 #include <Engine/Core/VFS.h>
@@ -442,6 +443,54 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::EndMap;
     }
 
+    if (entity.HasComponent<DamageComponent>()) {
+      const auto &damage = entity.GetComponent<DamageComponent>();
+      out << YAML::Key << "Damage" << YAML::BeginMap;
+      out << YAML::Key << "amount" << YAML::Value << damage.amount;
+      out << YAML::Key << "interval" << YAML::Value << damage.interval;
+      if (!damage.filter.empty())
+        out << YAML::Key << "filter" << YAML::Value << damage.filter;
+      out << YAML::Key << "knockback" << YAML::Value << damage.knockback;
+      out << YAML::Key << "destroy_on_hit" << YAML::Value << damage.destroyOnHit;
+      out << YAML::Key << "enabled" << YAML::Value << damage.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<OscillatorComponent>()) {
+      const auto &osc = entity.GetComponent<OscillatorComponent>();
+      out << YAML::Key << "Oscillator" << YAML::BeginMap;
+      out << YAML::Key << "move" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << osc.move.x << osc.move.y << YAML::EndSeq;
+      out << YAML::Key << "frequency" << YAML::Value << osc.frequency;
+      out << YAML::Key << "phase" << YAML::Value << osc.phase;
+      out << YAML::Key << "swing" << YAML::Value << osc.swing;
+      out << YAML::Key << "spin" << YAML::Value << osc.spin;
+      out << YAML::Key << "pulse" << YAML::Value << osc.pulse;
+      out << YAML::Key << "playing" << YAML::Value << osc.playing;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<SpawnerComponent>()) {
+      const auto &spawner = entity.GetComponent<SpawnerComponent>();
+      out << YAML::Key << "Spawner" << YAML::BeginMap;
+      out << YAML::Key << "prototype" << YAML::Value << spawner.prototype;
+      out << YAML::Key << "interval" << YAML::Value << spawner.interval;
+      out << YAML::Key << "per_spawn" << YAML::Value << spawner.perSpawn;
+      out << YAML::Key << "max_alive" << YAML::Value << spawner.maxAlive;
+      out << YAML::Key << "total_limit" << YAML::Value << spawner.totalLimit;
+      out << YAML::Key << "offset" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << spawner.offset.x << spawner.offset.y << YAML::EndSeq;
+      out << YAML::Key << "spread" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << spawner.spread.x << spawner.spread.y << YAML::EndSeq;
+      out << YAML::Key << "velocity" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << spawner.velocity.x << spawner.velocity.y << YAML::EndSeq;
+      out << YAML::Key << "lifetime" << YAML::Value << spawner.lifetime;
+      out << YAML::Key << "hide_prototype" << YAML::Value << spawner.hidePrototype;
+      out << YAML::Key << "spawn_on_start" << YAML::Value << spawner.spawnOnStart;
+      out << YAML::Key << "playing" << YAML::Value << spawner.playing;
+      out << YAML::EndMap;
+    }
+
     if (entity.HasComponent<CharacterControllerComponent>()) {
       const auto &cc = entity.GetComponent<CharacterControllerComponent>();
       out << YAML::Key << "CharacterController" << YAML::BeginMap;
@@ -643,13 +692,10 @@ bool SceneSerializer::Serialize(const std::string &filepath) {
     return false;
 
   std::string realPath = ResolvePath(filepath);
-  std::ofstream fout(realPath);
-  if (!fout.is_open()) {
-    CORE_ERROR("Could not open '{}' for writing", realPath);
+  if (!FileSystem::WriteText(realPath, yaml)) {
+    CORE_ERROR("Could not write '{}'", realPath);
     return false;
   }
-  fout << yaml;
-
   return true;
 }
 
@@ -785,7 +831,7 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
         return;
       try {
         load(node);
-      } catch (const YAML::Exception &e) {
+      } catch (const std::exception &e) {
         CORE_ERROR("'{}': failed to load {}: {}", tag, name, e.what());
       }
     };
@@ -1072,6 +1118,43 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
       if (h["destroy_on_death"])
         TryGet(h, "destroy_on_death", health.destroyOnDeath);
       health.dead = health.current <= 0.0f;
+    });
+
+    component("Damage", [&](const YAML::Node &d) {
+      auto &damage = entity.AddComponent<DamageComponent>();
+      if (d["amount"]) TryGet(d, "amount", damage.amount);
+      if (d["interval"]) TryGet(d, "interval", damage.interval);
+      if (d["filter"]) TryGet(d, "filter", damage.filter);
+      if (d["knockback"]) TryGet(d, "knockback", damage.knockback);
+      if (d["destroy_on_hit"]) TryGet(d, "destroy_on_hit", damage.destroyOnHit);
+      if (d["enabled"]) TryGet(d, "enabled", damage.enabled);
+    });
+
+    component("Oscillator", [&](const YAML::Node &o) {
+      auto &osc = entity.AddComponent<OscillatorComponent>();
+      ReadVec2(o["move"], osc.move.x, osc.move.y);
+      if (o["frequency"]) TryGet(o, "frequency", osc.frequency);
+      if (o["phase"]) TryGet(o, "phase", osc.phase);
+      if (o["swing"]) TryGet(o, "swing", osc.swing);
+      if (o["spin"]) TryGet(o, "spin", osc.spin);
+      if (o["pulse"]) TryGet(o, "pulse", osc.pulse);
+      if (o["playing"]) TryGet(o, "playing", osc.playing);
+    });
+
+    component("Spawner", [&](const YAML::Node &n) {
+      auto &spawner = entity.AddComponent<SpawnerComponent>();
+      if (n["prototype"]) TryGet(n, "prototype", spawner.prototype);
+      if (n["interval"]) TryGet(n, "interval", spawner.interval);
+      if (n["per_spawn"]) TryGet(n, "per_spawn", spawner.perSpawn);
+      if (n["max_alive"]) TryGet(n, "max_alive", spawner.maxAlive);
+      if (n["total_limit"]) TryGet(n, "total_limit", spawner.totalLimit);
+      ReadVec2(n["offset"], spawner.offset.x, spawner.offset.y);
+      ReadVec2(n["spread"], spawner.spread.x, spawner.spread.y);
+      ReadVec2(n["velocity"], spawner.velocity.x, spawner.velocity.y);
+      if (n["lifetime"]) TryGet(n, "lifetime", spawner.lifetime);
+      if (n["hide_prototype"]) TryGet(n, "hide_prototype", spawner.hidePrototype);
+      if (n["spawn_on_start"]) TryGet(n, "spawn_on_start", spawner.spawnOnStart);
+      if (n["playing"]) TryGet(n, "playing", spawner.playing);
     });
 
     component("Lifetime", [&](const YAML::Node &l) {

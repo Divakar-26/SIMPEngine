@@ -2,6 +2,7 @@ add_library(Editor STATIC
     EditorLayer.cpp
     EditorCommands.cpp
     EditorHistory.cpp
+    EditorRecovery.cpp
     EditorCamera.cpp
     TileEditor.cpp
     Panels/HierarchyPanel.cpp

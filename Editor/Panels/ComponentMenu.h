@@ -84,6 +84,15 @@ inline void DrawAddComponentItems(EditorContext &ctx, SIMPEngine::Entity entity,
                                                        { entity.AddComponent<PathFollowerComponent>(); });
     any |= AddComponentMenuItem<HealthComponent>(ctx, entity, ICON_LC_HEART, "Health", filter, [&]
                                                  { entity.AddComponent<HealthComponent>(); });
+    any |= AddComponentMenuItem<DamageComponent>(ctx, entity, ICON_LC_SWORDS, "Damage", filter, [&]
+                                                 {
+        entity.AddComponent<DamageComponent>();
+        if (!entity.HasComponent<TriggerComponent>())
+            entity.AddComponent<TriggerComponent>(); });
+    any |= AddComponentMenuItem<OscillatorComponent>(ctx, entity, ICON_LC_ACTIVITY, "Oscillator", filter, [&]
+                                                     { entity.AddComponent<OscillatorComponent>(); });
+    any |= AddComponentMenuItem<SpawnerComponent>(ctx, entity, ICON_LC_COPY_PLUS, "Spawner", filter, [&]
+                                                  { entity.AddComponent<SpawnerComponent>(); });
     any |= AddComponentMenuItem<CharacterControllerComponent>(ctx, entity, ICON_LC_GAMEPAD_2, "Character Controller", filter, [&]
                                                               {
         auto &controller = entity.AddComponent<CharacterControllerComponent>();

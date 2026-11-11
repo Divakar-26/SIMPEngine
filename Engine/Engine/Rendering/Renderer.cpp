@@ -90,6 +90,15 @@ namespace SIMPEngine
         s_RenderingAPI->BindRenderTarget(nullptr);
     }
 
+    void Renderer::Recover()
+    {
+        if (!s_RenderingAPI)
+            return;
+        s_RenderingAPI->BindRenderTarget(nullptr);
+        s_BlendMode = BlendMode::Alpha;
+        s_ColorMultiplier = glm::vec4(1.0f);
+    }
+
     void Renderer::SubmitPrimitive(Primitive &primitive)
     {
         float radius = glm::length(primitive.HalfSize + glm::vec2(primitive.Padding));

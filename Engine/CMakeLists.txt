@@ -63,7 +63,12 @@ add_library(Engine STATIC
     Engine/Vector/VectorShape.cpp
     Engine/Scene/Systems/VectorSystem.cpp
     Engine/Scene/Systems/CharacterControllerSystem.cpp
+    Engine/Scene/Systems/DamageSystem.cpp
+    Engine/Scene/Systems/OscillatorSystem.cpp
+    Engine/Scene/Systems/SpawnerSystem.cpp
     Engine/Project/Project.cpp
+    Engine/Application/FrameCapture.cpp
+    Engine/Core/CrashHandler.cpp
     Engine/Scripting/LuaRuntime.cpp
     Engine/Scripting/LuaBindings.cpp
     Engine/Scripting/LuaScript.cpp
@@ -88,6 +93,9 @@ add_library(Engine STATIC
     Engine/Scripting/Components/LuaBody.cpp
     Engine/Scripting/Components/LuaTrigger.cpp
     Engine/Scripting/Components/LuaTimer.cpp
+    Engine/Scripting/Components/LuaDamage.cpp
+    Engine/Scripting/Components/LuaOscillator.cpp
+    Engine/Scripting/Components/LuaSpawner.cpp
     Engine/Scripting/Components/LuaPath.cpp
     Engine/Scripting/Components/LuaHealth.cpp
     Engine/Scripting/Components/LuaCharacterController.cpp
@@ -120,3 +128,7 @@ target_link_libraries(Engine
     PUBLIC AccelEngine
     PUBLIC lua
 )
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_options(Engine INTERFACE -rdynamic)
+endif()

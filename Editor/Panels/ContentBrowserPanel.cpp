@@ -251,7 +251,7 @@ void ContentBrowserPanel::HandleDropInto(const std::string &vdir)
             {
                 CORE_WARN("Cannot move {} into {}", srcPath.string(), dstReal->c_str());
             }
-            else if (std::filesystem::exists(dstPath))
+            else if (SIMPEngine::FileSystem::Exists(dstPath.string()))
             {
                 CORE_WARN("{} already exists", dstPath.string());
             }
@@ -453,7 +453,7 @@ void ContentBrowserPanel::CreateFolder()
 
     std::filesystem::path base(*real);
     std::string name = "New Folder";
-    for (int i = 2; std::filesystem::exists(base / name); ++i)
+    for (int i = 2; i < 10000 && SIMPEngine::FileSystem::Exists((base / name).string()); ++i)
         name = "New Folder " + std::to_string(i);
 
     if (SIMPEngine::FileSystem::CreateDirectories((base / name).string()))

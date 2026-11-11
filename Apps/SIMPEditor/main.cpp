@@ -25,6 +25,7 @@ namespace
     {
         SIMPEngine::ApplicationSpecification spec;
         spec.Title = std::string(SIMPEngine::EngineName) + " " + SIMPEngine::EngineVersion;
+        spec.Name = "Editor";
         spec.Width = 1180;
         spec.Height = 720;
         return spec;

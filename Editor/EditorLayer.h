@@ -22,6 +22,9 @@
 #include "Panels/InspectorPanel/AnimationMakerPanel.h"
 #include "EditorContext.h"
 #include "EditorHistory.h"
+#include "EditorRecovery.h"
+
+#include <optional>
 
 #include <functional>
 #include <string>
@@ -58,6 +61,12 @@ private:
     void DrawSaveAsModal();
     void DrawConfirmModal();
     void DrawShortcutsWindow();
+    void DrawRecoveryModal();
+    void CheckRecovery(const std::string &scenePath);
+    void WriteRecovery();
+    void HandleRuntimeFaults();
+    void SetGameFullscreen(bool fullscreen);
+    void Flash(const std::string &message, bool error = false);
     void OpenNewParticleEffect();
     void BuildDefaultLayout(unsigned int dockspaceId);
     void HandleShortcuts();
@@ -120,5 +129,13 @@ private:
     int m_FocusDefaultTabs = 0;
     float m_StatusFlash = 0.0f;
     std::string m_StatusMessage;
+    bool m_StatusError = false;
+
+    float m_AutosaveTimer = 0.0f;
+    std::optional<RecoveryFile> m_Recovery;
+    bool m_ShowRecovery = false;
+    bool m_RecoveryUndecided = false;
+    std::string m_CrashReport;
+    bool m_WindowWasFullscreen = false;
     std::string m_WindowTitle;
 };

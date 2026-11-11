@@ -122,6 +122,34 @@ namespace
         controller.solidTag = "Ground";
         controller.playerInput = false;
 
+        auto &damage = e.AddComponent<DamageComponent>();
+        damage.amount = -15.0f;
+        damage.interval = 0.0f;
+        damage.filter = "Player";
+        damage.knockback = 320.0f;
+        damage.destroyOnHit = true;
+
+        auto &osc = e.AddComponent<OscillatorComponent>();
+        osc.move = {4.0f, 12.0f};
+        osc.frequency = 2.0f;
+        osc.phase = 0.25f;
+        osc.swing = 10.0f;
+        osc.spin = 90.0f;
+        osc.pulse = 0.1f;
+
+        auto &spawner = e.AddComponent<SpawnerComponent>();
+        spawner.prototype = "Bat";
+        spawner.interval = 2.5f;
+        spawner.perSpawn = 3;
+        spawner.maxAlive = 7;
+        spawner.totalLimit = 20;
+        spawner.offset = {10.0f, -5.0f};
+        spawner.spread = {30.0f, 0.0f};
+        spawner.velocity = {0.0f, 120.0f};
+        spawner.lifetime = 4.0f;
+        spawner.hidePrototype = false;
+        spawner.spawnOnStart = true;
+
         Entity camera = scene.CreateEntity("Camera");
         auto &cam = camera.AddComponent<CameraComponent>(1.5f, glm::vec2(0.0f, 0.0f));
         cam.primary = true;
@@ -154,7 +182,7 @@ TEST_CASE("serializer: save, load, save gives identical YAML")
 
     for (const char *key : {"Transform", "Collision", "Sprite", "Text", "Render", "Velocity", "Camera", "Script", "Lifetime",
                             "Tilemap", "ParticleEmitter", "Light", "Parallax", "AudioSource", "Glow", "Trigger", "Timer",
-                            "PathFollower", "Health", "VectorShape", "CharacterController", "Hierarchy", "Physics", "lighting", "bloom", "Version"})
+                            "PathFollower", "Health", "VectorShape", "CharacterController", "Damage", "Oscillator", "Spawner", "Hierarchy", "Physics", "lighting", "bloom", "Version"})
     {
         if (first.find(key) == std::string::npos)
             SIMPTest::Fail(__FILE__, __LINE__, std::string("first save is missing ") + key);
@@ -202,6 +230,15 @@ TEST_CASE("serializer: loaded values match what was saved")
         CHECK_NEAR(registry.get<HealthComponent>(entity).current, 20.0f, 1e-4);
         CHECK(registry.get<CharacterControllerComponent>(entity).mode == ControllerMode::TopDown);
         CHECK(registry.get<CharacterControllerComponent>(entity).maxJumps == 3);
+        CHECK_NEAR(registry.get<DamageComponent>(entity).amount, -15.0f, 1e-4);
+        CHECK(registry.get<DamageComponent>(entity).filter == "Player");
+        CHECK(registry.get<DamageComponent>(entity).destroyOnHit);
+        CHECK_NEAR(registry.get<OscillatorComponent>(entity).move.y, 12.0f, 1e-4);
+        CHECK_NEAR(registry.get<OscillatorComponent>(entity).spin, 90.0f, 1e-4);
+        CHECK(registry.get<SpawnerComponent>(entity).prototype == "Bat");
+        CHECK(registry.get<SpawnerComponent>(entity).perSpawn == 3);
+        CHECK_NEAR(registry.get<SpawnerComponent>(entity).velocity.y, 120.0f, 1e-4);
+        CHECK(!registry.get<SpawnerComponent>(entity).hidePrototype);
         CHECK(registry.get<HierarchyComponent>(entity).children.size() == 1);
     }
     CHECK(checked == 1);
@@ -237,4 +274,35 @@ TEST_CASE("serializer: newer format versions still load")
 {
     Scene scene("Future");
     CHECK(SceneSerializer(&scene).DeserializeFromString("Scene: Future\nVersion: 99\nEntities: []\n"));
+}
+
+TEST_CASE("serializer: truncated and corrupted scenes never crash the loader")
+{
+    Scene original("Fuzz");
+    FillScene(original);
+    const std::string yaml = SceneSerializer(&original).SerializeToString();
+
+    uint32_t state = 12345u;
+    auto next = [&state]
+    {
+        state = state * 1664525u + 1013904223u;
+        return state >> 8;
+    };
+    const char noise[] = "-:[]{}#&*!|>'\"%@` \n\t0123456789.eE+nan";
+
+    for (int i = 0; i < 400; ++i)
+    {
+        std::string mutated = yaml;
+        if (i % 4 == 0)
+            mutated.resize(next() % mutated.size());
+        const int edits = 1 + static_cast<int>(next() % 6);
+        for (int e = 0; e < edits && !mutated.empty(); ++e)
+            mutated[next() % mutated.size()] = noise[next() % (sizeof(noise) - 1)];
+
+        Scene scene("Mutated");
+        SceneSerializer(&scene).DeserializeFromString(mutated);
+        scene.OnUpdate(1.0f / 60.0f);
+        SceneSerializer(&scene).SerializeToString();
+    }
+    CHECK(true);
 }

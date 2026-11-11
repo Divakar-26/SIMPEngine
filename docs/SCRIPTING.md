@@ -81,7 +81,8 @@ Events are delivered after the frame's `OnUpdate` calls. A script is created on 
 | `Input` | `IsKeyDown`, `IsKeyJustPressed`, `IsKeyJustReleased`, `IsMouseDown`, `IsMouseJustPressed`, `IsMouseJustReleased`, `IsMouseInViewport`, `GetMouseWheel`, `GetAxis(negativeKey, positiveKey)` returning -1, 0 or 1 |
 | `Key` | constants named after `SIMPK_*` without the prefix: `Key.W`, `Key.SPACE`, `Key.LEFT`, `Key.F1`, `Key.NUM_0`, `Key.MOUSE_LEFT` |
 | `Time` | `Now()` scene seconds since Play, `Delta()` last frame time, `FixedDelta()` |
-| `Scene` | `Spawn(name [, x, y [, parent]])`, `Find(name)`, `FindAll(name)`, `SetAmbient(r, g, b)` (0-255), `SetLighting(bool)`, `SetFixedStep(seconds)`, `IsSolidAt(x, y)` and `OverlapsSolid(x1, y1, x2, y2)` (against tilemaps marked solid) |
+| `Scene` | `Spawn(name [, x, y [, parent]])`, `Clone(entityOrName [, x, y])` (copies an entity and its children, returns the copy or `nil`), `Find(name)`, `FindAll(name)`, `SetAmbient(r, g, b)` (0-255), `SetLighting(bool)`, `SetFixedStep(seconds)`, `IsSolidAt(x, y)` and `OverlapsSolid(x1, y1, x2, y2)` (against tilemaps marked solid) |
+| `Window` | `SetFullscreen(bool)`, `IsFullscreen()`, `GetSize()` returns width, height in window points. In the editor this toggles fullscreen Play |
 | `Audio` | `Play(path [, volume, pitch, loop])` returns a voice id, `Stop(voice)`, `StopAll()`, `IsPlaying(voice)`, `SetVolume(voice, v)`, `SetMasterVolume(v)`, `GetMasterVolume()` |
 | `Tween`, `Curves` | Flutter-style animation: `Tween.To/From/FromTo/Value/Along/Spring/Sequence/Parallel/Stagger`, all Flutter curves. See [ANIMATION.md](ANIMATION.md) |
 | `Path` | vector paths: `Path.Circle/Rect/Star/Heart/Svg/...`, builders and queries. See [ANIMATION.md](ANIMATION.md) |
@@ -122,7 +123,7 @@ boss:TakeDamage(3)
 
 ## Components
 
-`entity:Get("Sprite")` returns a handle or `nil`. Every component also has a shortcut: `GetSprite()`, `GetCamera()`, `GetLight()`, `GetVelocity()`, `GetCollision()`, `GetShape()`, `GetText()`, `GetGlow()`, `GetParticles()`, `GetAudio()`, `GetParallax()`, `GetBody()`, `GetTrigger()`, `GetTimer()`, `GetPath()`, `GetHealth()`, `GetTilemap()`, `GetAnimation()`, `GetVector()`, `GetCharacterController()`. `Add(name)` adds the component if missing and returns the handle (Body cannot be added from a script). Colors are 0-255 and clamped.
+`entity:Get("Sprite")` returns a handle or `nil`. Every component also has a shortcut: `GetSprite()`, `GetCamera()`, `GetLight()`, `GetVelocity()`, `GetCollision()`, `GetShape()`, `GetText()`, `GetGlow()`, `GetParticles()`, `GetAudio()`, `GetParallax()`, `GetBody()`, `GetTrigger()`, `GetTimer()`, `GetPath()`, `GetHealth()`, `GetTilemap()`, `GetAnimation()`, `GetVector()`, `GetCharacterController()`, `GetDamage()`, `GetOscillator()`, `GetSpawner()`. `Add(name)` adds the component if missing and returns the handle (Body cannot be added from a script). Colors are 0-255 and clamped.
 
 | Handle | Methods |
 |---|---|
@@ -145,6 +146,9 @@ boss:TakeDamage(3)
 | Animation | `SetSheet(path, frameW, frameH, frameCount [, frameDuration = 0.1, loop = true])` returns whether it loaded, `GetSheet()`, `Play()`, `Pause()`, `IsPlaying()`, `Restart()`, `GetFrame()` / `SetFrame(n)` (1-based), `GetFrameCount()`, `GetFrameSize()`, `GetFrameDuration()` / `SetFrameDuration(s)`, `IsLooping()` / `SetLoop(bool)`, `IsFinished()`, `GetSpeed()` / `SetSpeed(v)` |
 | Vector | shapes (`SetCircle`, `SetRect`, `SetStar`, `SetHeart`, `SetPolygon`, `SetSvg`, `SetPath/GetPath`), fill/stroke/gradient, caps and joins, `SetTrim`, `SetDash`, `SetMorphTarget`, `SetMorph`, `MorphTo(path, seconds [, curve])`, `GetLength`, `GetPointAt(t)`, `GetBounds`. Details in [ANIMATION.md](ANIMATION.md) |
 | CharacterController | `SetInput(x [, y])` (-1..1, added to keyboard input), `Jump()`, `ReleaseJump()` (cuts the jump short), `IsGrounded()`, `JustLanded()`, `JustJumped()`, `HitWall()`, `HitCeiling()`, `GetFacing()` (1 or -1), `GetVelocity()` / `SetVelocity(x, y)`, `GetPlayerInput()` / `SetPlayerInput(bool)`, `GetMode()` / `SetMode("platformer" or "topdown")`, `GetMaxJumps()` / `SetMaxJumps(n)`, and Get/Set for `MoveSpeed`, `Acceleration`, `Deceleration`, `AirControl`, `Gravity`, `MaxFallSpeed`, `JumpSpeed`, `JumpCut`, `CoyoteTime`, `JumpBuffer` |
+| Damage | `GetAmount()` / `SetAmount(v)` (negative heals), `GetInterval()` / `SetInterval(s)`, `GetKnockback()` / `SetKnockback(v)`, `GetFilter()` / `SetFilter(name)`, `IsEnabled()` / `SetEnabled(bool)`, `SetDestroyOnHit(bool)`, `Reset()` (forget cooldowns so targets inside are hit again) |
+| Oscillator | `Play()`, `Stop()`, `IsPlaying()`, `GetMove()` / `SetMove(x, y)`, `GetFrequency()` / `SetFrequency(hz)`, `SetSwing(degrees)`, `SetSpin(degreesPerSecond)`, `SetPulse(fraction)` |
+| Spawner | `Start()`, `Stop()`, `IsRunning()`, `Spawn([count])` (spawns on the next update, limits still apply), `GetAlive()`, `GetSpawned()`, `GetInterval()` / `SetInterval(s)`, `SetMaxAlive(n)`, `SetVelocity(x, y)`, `GetPrototype()` / `SetPrototype(name)` |
 | Health | `GetCurrent()` / `SetCurrent(v)`, `GetMax()` / `SetMax(v)`, `GetFraction()`, `IsDead()`, `IsInvulnerable()`, `GetInvulnerability()` / `SetInvulnerability(s)`, `Damage(amount [, source])` returns whether it applied, `Heal(amount)` returns the amount healed, `Kill([source])`, `Revive()` |
 
 Tile ids count from 0 at the top-left of the tileset image, row by row. Cell y grows upward like world y. Tilemap and `GetWorldPosition` conversions use the world transform from the last update, so a tilemap moved this frame converts with its old position until the next frame. Animation `playing` and `speed` are saved with the scene.
@@ -162,13 +166,17 @@ self.entity:Add("Health"):SetMax(50)
 
 | Component | Purpose | Script events |
 |---|---|---|
-| Trigger Zone | box that reports entities with a Collision component entering, staying in and leaving it (optional name filter) | `OnTriggerEnter/Stay/Exit` |
+| Trigger Zone | box that reports entities with a Collision component or a Character Controller entering, staying in and leaving it (optional name filter) | `OnTriggerEnter/Stay/Exit` |
 | Timer | fires after an interval, once or repeating | `OnTimer` |
 | Path Follower | moves the entity through a list of points (Once, Loop, Ping-Pong), optional wait and facing | `OnPathPoint`, `OnPathEnd` |
 | Health | max/current health, post-hit invulnerability, optional destroy on death | `OnDamaged`, `OnDeath` |
 | Character Controller | moves the entity with a box against Collision components (except triggers; optionally only those tagged `Solid Tag`), one-way platforms (tag `One Way Tag`) and solid tilemaps. Platformer mode: acceleration, air control, variable jump height (jump cut), coyote time, jump buffer, multi-jump, gravity. Top Down mode: 8-way movement that slides along walls. Reads A/D/arrows and Space/W/Up unless Player Input is off; scripts steer it with `SetInput`/`Jump` | `OnJump`, `OnLand` |
 
-All five are saved with the scene, appear in the Add Component menu under Logic, and have inspector sections. Trigger zones and the selected entity's path are drawn in the viewport (zones always when the collider overlay is on).
+| Damage | needs a Trigger Zone on the same entity (added with it). Takes `amount` from the Health of every entity inside (negative heals), again every `interval` seconds while it stays (0 = once per entry), optional name filter, knockback for Character Controllers, optional destroy on hit for projectiles and pickups | the target gets `OnDamaged`/`OnDeath` |
+| Oscillator | sine motion around where the entity is: `move` offset, `swing` rotation, constant `spin`, scale `pulse`, `frequency` and `phase`. Adds deltas, so it combines with other movement | |
+| Spawner | copies the entity named `prototype` (with its children and scripts) every `interval`: `per spawn`, `max alive`, `total limit`, offset, random spread, starting velocity and lifetime for the copies. `Hide Prototype` removes the original from the running game so it can be edited in place as a template | |
+
+All of these are saved with the scene, appear in the Add Component menu under Logic, and have inspector sections. Trigger zones and the selected entity's path are drawn in the viewport (zones always when the collider overlay is on).
 
 ## Samples
 

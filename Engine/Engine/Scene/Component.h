@@ -400,3 +400,53 @@ struct CharacterControllerComponent
     int jumpsUsed = 0;
     int facing = 1;
 };
+
+struct DamageComponent
+{
+    float amount = 10.0f;
+    float interval = 0.5f;
+    std::string filter;
+    float knockback = 0.0f;
+    bool destroyOnHit = false;
+    bool enabled = true;
+
+    std::vector<std::pair<entt::entity, float>> cooldowns;
+};
+
+struct OscillatorComponent
+{
+    glm::vec2 move{0.0f, 16.0f};
+    float frequency = 0.5f;
+    float phase = 0.0f;
+    float swing = 0.0f;
+    float spin = 0.0f;
+    float pulse = 0.0f;
+    bool playing = true;
+
+    float time = 0.0f;
+    glm::vec2 appliedMove{0.0f, 0.0f};
+    float appliedSwing = 0.0f;
+    float appliedPulse = 0.0f;
+};
+
+struct SpawnerComponent
+{
+    std::string prototype;
+    float interval = 1.0f;
+    int perSpawn = 1;
+    int maxAlive = 10;
+    int totalLimit = 0;
+    glm::vec2 offset{0.0f, 0.0f};
+    glm::vec2 spread{0.0f, 0.0f};
+    glm::vec2 velocity{0.0f, 0.0f};
+    float lifetime = 0.0f;
+    bool hidePrototype = true;
+    bool spawnOnStart = false;
+    bool playing = true;
+
+    float elapsed = 0.0f;
+    int spawned = 0;
+    int pending = 0;
+    bool started = false;
+    std::vector<entt::entity> alive;
+};

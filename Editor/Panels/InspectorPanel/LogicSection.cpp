@@ -345,4 +345,109 @@ void InspectorPanel::DrawLogicSection(SIMPEngine::Entity &m_SelectedEntity)
         ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
         ImGui::TextWrapped("Scripts receive OnDamaged and OnDeath");
         ImGui::PopStyleColor(); });
+
+    DrawComponentSection<DamageComponent>(ctx, "Damage", m_SelectedEntity, [&m_SelectedEntity](DamageComponent &damage)
+                                          {
+        PropertyBool("Enabled", &damage.enabled);
+        PropertyFloat("Amount", &damage.amount, 0.5f, -1000000.0f, 1000000.0f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Health taken from whatever enters the trigger zone. Negative heals (pickups)");
+        PropertyFloat("Repeat Every", &damage.interval, 0.05f, 0.0f, 1000.0f, "%.2f s");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Hit again this often while the target stays inside. 0 = once per entry");
+        PropertyText("Only Entity", damage.filter);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Leave empty to hit everything with a Health component, or type an entity name");
+        PropertyFloat("Knockback", &damage.knockback, 5.0f, 0.0f, 100000.0f, "%.0f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Pushes Character Controllers away from this entity");
+        PropertyBool("Destroy On Hit", &damage.destroyOnHit);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Remove this entity after its first hit (projectiles, pickups)");
+        if (!m_SelectedEntity.HasComponent<TriggerComponent>())
+        {
+            PropertyLabel("");
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::Warning);
+            ImGui::TextWrapped("Needs a Trigger Zone on this entity to find targets");
+            ImGui::PopStyleColor();
+        } });
+
+    DrawComponentSection<OscillatorComponent>(ctx, "Oscillator", m_SelectedEntity, [&ctx](OscillatorComponent &osc)
+                                              {
+        PropertyVec2("Move", &osc.move.x, 0.5f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("How far it bobs from where it starts, in pixels");
+        PropertyFloat("Frequency", &osc.frequency, 0.01f, 0.0f, 100.0f, "%.2f Hz");
+        PropertyFloat("Phase", &osc.phase, 0.01f, 0.0f, 1.0f, "%.2f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Offset copies by different phases so they don't move in lockstep");
+        PropertyFloat("Swing", &osc.swing, 0.5f, 0.0f, 180.0f, "%.1f deg");
+        PropertyFloat("Spin", &osc.spin, 1.0f, -100000.0f, 100000.0f, "%.0f deg/s");
+        PropertyFloat("Pulse", &osc.pulse, 0.005f, 0.0f, 0.95f, "%.2f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Scale breathing. 0.1 = grows and shrinks by 10%%");
+        PropertyBool("Autostart", &osc.playing);
+        if (ctx.IsEditing())
+        {
+            PropertyLabel("");
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+            ImGui::TextWrapped("Moves while the game runs");
+            ImGui::PopStyleColor();
+        } });
+
+    DrawComponentSection<SpawnerComponent>(ctx, "Spawner", m_SelectedEntity, [&ctx](SpawnerComponent &spawner)
+                                           {
+        PropertyText("Prototype", spawner.prototype);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Name of the entity to copy. Drag one here from the Scene panel");
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY"); payload && payload->DataSize == sizeof(entt::entity))
+            {
+                const entt::entity dropped = *static_cast<const entt::entity *>(payload->Data);
+                if (const auto *tag = ctx.Scene->GetRegistry().try_get<TagComponent>(dropped))
+                {
+                    EditorCommands::RecordEdit(ctx);
+                    spawner.prototype = tag->Tag;
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+        PropertyBool("Hide Prototype", &spawner.hidePrototype);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Remove the original from the running game so only the copies appear");
+
+        SectionLabel("Timing");
+        PropertyFloat("Interval", &spawner.interval, 0.05f, 0.01f, 100000.0f, "%.2f s");
+        PropertyInt("Per Spawn", &spawner.perSpawn, 0.1f, 1, 1000);
+        PropertyInt("Max Alive", &spawner.maxAlive, 0.1f, 0, 100000);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Stop spawning while this many copies exist. 0 = no limit");
+        PropertyInt("Total Limit", &spawner.totalLimit, 0.1f, 0, 1000000);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Copies made over the whole game. 0 = no limit");
+        PropertyBool("Spawn On Start", &spawner.spawnOnStart);
+        PropertyBool("Autostart", &spawner.playing);
+
+        SectionLabel("Placement");
+        PropertyVec2("Offset", &spawner.offset.x, 0.5f, "%.1f");
+        PropertyVec2("Random Spread", &spawner.spread.x, 0.5f, "%.1f", 0.0f, 100000.0f);
+        PropertyVec2("Velocity", &spawner.velocity.x, 1.0f, "%.1f");
+        PropertyFloat("Lifetime", &spawner.lifetime, 0.05f, 0.0f, 100000.0f, "%.2f s");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Copies remove themselves after this long. 0 = keep them");
+
+        if (!ctx.IsEditing())
+        {
+            char state[64];
+            std::snprintf(state, sizeof(state), "%zu alive, %d spawned", spawner.alive.size(), spawner.spawned);
+            PropertyValue("State", state);
+        }
+        else if (!spawner.prototype.empty() && !ctx.Scene->GetEntityByName(spawner.prototype))
+        {
+            PropertyLabel("");
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::Warning);
+            ImGui::TextWrapped("No entity is named \"%s\"", spawner.prototype.c_str());
+            ImGui::PopStyleColor();
+        } });
 }

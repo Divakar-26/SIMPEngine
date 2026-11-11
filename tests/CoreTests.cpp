@@ -132,3 +132,23 @@ TEST_CASE("filesystem: join and normalise")
     const std::string normal = FileSystem::Normalise("a/b/../c/./d.txt");
     CHECK(std::filesystem::path(normal) == std::filesystem::path("a/c/d.txt"));
 }
+
+TEST_CASE("filesystem: writes replace files whole and failures leave no partial file")
+{
+    const std::filesystem::path dir = std::filesystem::temp_directory_path() / "simp-fs-test";
+    std::error_code ec;
+    std::filesystem::remove_all(dir, ec);
+
+    const std::string file = (dir / "nested" / "scene.yaml").string();
+    CHECK(FileSystem::WriteText(file, "first version, quite long"));
+    CHECK(FileSystem::WriteText(file, "second"));
+    CHECK(FileSystem::ReadText(file).value_or("") == "second");
+    CHECK(!FileSystem::Exists(file + ".saving"));
+
+    CHECK(!FileSystem::WriteText((dir / "missing" / "x.txt").string(), "data", false));
+    CHECK(!FileSystem::ReadText((dir / "missing" / "x.txt").string()).has_value());
+    CHECK(FileSystem::List((dir / "does-not-exist").string()).empty());
+    CHECK(FileSystem::List(dir.string()).size() == 1);
+
+    std::filesystem::remove_all(dir, ec);
+}

@@ -138,6 +138,8 @@ namespace EditorUI
                 s_Settings.PreviewLighting = i != 0;
             else if (std::sscanf(line, "Colliders=%d", &i) == 1)
                 s_Settings.ShowColliders = i != 0;
+            else if (std::sscanf(line, "PlayFullscreen=%d", &i) == 1)
+                s_Settings.PlayFullscreen = i != 0;
         }
 
         void SettingsApplyAll(ImGuiContext *, ImGuiSettingsHandler *)
@@ -152,6 +154,7 @@ namespace EditorUI
             buf->appendf("Theme=%d\nFont=%d\nScale=%.2f\nVSync=%d\nGrid=%d\nStats=%d\nGridSize=%.2f\nSnap=%d\nSnapMove=%.2f\nSnapRotate=%.2f\nLighting=%d\nColliders=%d\n",
                          static_cast<int>(s.Theme), static_cast<int>(s.Font), s.Scale, s.VSync ? 1 : 0, s.ShowGrid ? 1 : 0, s.ShowStats ? 1 : 0,
                          s.GridSize, s.Snap ? 1 : 0, s.SnapMove, s.SnapRotate, s.PreviewLighting ? 1 : 0, s.ShowColliders ? 1 : 0);
+            buf->appendf("PlayFullscreen=%d\n", s.PlayFullscreen ? 1 : 0);
             buf->appendf("ScriptTheme=%s\nScriptFontSize=%.1f\n\n", s.ScriptTheme.c_str(), s.ScriptFontSize);
         }
     }
