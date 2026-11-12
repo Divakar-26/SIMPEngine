@@ -15,6 +15,11 @@ namespace SIMPEngine
         void RegisterTween(lua_State *L);
         void RegisterPath(lua_State *L);
         void RegisterDraw(lua_State *L);
+        void RegisterPhysics(lua_State *L);
+        void RegisterInputActions(lua_State *L);
+        void RegisterColor(lua_State *L);
+        void RegisterEffects(lua_State *L);
+        void RunPrelude(lua_State *L);
 
         VectorPath *TestPath(lua_State *L, int index);
         void PushPath(lua_State *L, const VectorPath &path);

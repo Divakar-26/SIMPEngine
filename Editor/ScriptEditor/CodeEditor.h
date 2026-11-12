@@ -2,7 +2,9 @@
 
 #include "CodeTheme.h"
 #include "LuaCompletion.h"
+#include "LuaContext.h"
 #include "LuaLexer.h"
+#include "LuaNavigation.h"
 
 #include <imgui.h>
 
@@ -22,6 +24,16 @@ namespace ScriptEditor
         bool operator<(const Coord &o) const { return Line != o.Line ? Line < o.Line : Column < o.Column; }
     };
 
+    struct NavigationRequest
+    {
+        bool Back = false;
+        std::string VPath;
+        int Line = 0;
+        int Column = 0;
+        int FromLine = 0;
+        int FromColumn = 0;
+    };
+
     class CodeEditor
     {
     public:
@@ -37,6 +49,8 @@ namespace ScriptEditor
         int LineCount() const { return static_cast<int>(m_Lines.size()); }
         void SetError(int line, const std::string &message);
         void GoToLine(int line);
+        void GoToPosition(int line, int column);
+        bool ConsumeNavigation(NavigationRequest &out);
         void Focus() { m_FocusRequest = true; }
         bool IsFocused() const { return m_Focused; }
         void InvalidateHighlight() { m_DirtyFrom = 0; }
@@ -86,7 +100,12 @@ namespace ScriptEditor
 
         void MoveCursor(Coord to, bool select, bool keepPreferred = false);
         void HandleKeyboard(LuaCompletion &completion);
-        void HandleMouse(const ImVec2 &origin, float gutterRight);
+        void HandleMouse(const ImVec2 &origin, float gutterRight, LuaCompletion &completion);
+        Coord CharacterAt(const ImVec2 &origin, const ImVec2 &mouse) const;
+        bool TryNavigate(Coord at, LuaCompletion &completion);
+        const Definition &ResolveCached(Coord at, LuaCompletion &completion);
+        const CallContext &Context();
+        void DrawHints(const CodeTheme &theme, ImFont *font, float fontSize, const ImVec2 &origin, LuaCompletion &completion);
         void TypeCharacter(unsigned int c);
         void NewLine();
         void Backspace(bool word);
@@ -143,6 +162,29 @@ namespace ScriptEditor
         bool m_FindOpen = false;
         bool m_FindFocus = false;
         char m_FindBuffer[128] = "";
+
+        NavigationRequest m_Nav;
+        bool m_NavPending = false;
+        Coord m_LinkCoord{-1, -1};
+        uint64_t m_LinkVersion = UINT64_MAX;
+        Definition m_Link;
+        bool m_LinkActive = false;
+        Coord m_LinkWordStart{0, 0};
+        int m_LinkWordLength = 0;
+
+        const Signature *m_Signature = nullptr;
+        CallContext m_Context;
+        uint64_t m_ContextVersion = UINT64_MAX;
+        Coord m_ContextCursor{-1, -1};
+
+        ImVec2 m_CompletionMin{0, 0};
+        ImVec2 m_CompletionMax{0, 0};
+        bool m_CompletionDrawn = false;
+        bool m_WindowHovered = false;
+
+        Coord m_HoverCoord{-1, -1};
+        double m_HoverSince = 0.0;
+        ImVec2 m_LastMouse{0, 0};
 
         bool m_CompletionOpen = false;
         CompletionResult m_Completion;

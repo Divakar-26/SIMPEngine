@@ -43,6 +43,31 @@ public:
 
     static bool SaveParticleEffect(const SIMPEngine::ParticleEffect &effect, std::string &outPath);
 
+    enum class UINodeKind
+    {
+        Canvas,
+        Panel,
+        Label,
+        Image,
+        Button,
+        Row,
+        Column
+    };
+
+    static std::string CreateShaderFile(const std::string &name);
+
+    static SIMPEngine::Entity CreateShaderCanvas(EditorContext &ctx);
+
+    static bool SaveAsPrefab(EditorContext &ctx, SIMPEngine::Entity entity, std::string *savedPath = nullptr);
+
+    static bool ApplyToPrefab(EditorContext &ctx, SIMPEngine::Entity entity);
+
+    static SIMPEngine::Entity UpdateFromPrefab(EditorContext &ctx, SIMPEngine::Entity entity);
+
+    static SIMPEngine::Entity InstantiatePrefab(EditorContext &ctx, const std::string &path, const glm::vec2 &position);
+
+    static SIMPEngine::Entity CreateUINode(EditorContext &ctx, UINodeKind kind);
+
     static SIMPEngine::Entity CreateLight(EditorContext &ctx, bool spot, const glm::vec2 &position = glm::vec2(0.0f));
 
     static void DeleteEntity(

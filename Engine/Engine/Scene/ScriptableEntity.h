@@ -47,6 +47,11 @@ namespace SIMPEngine
         virtual void OnPathEnd() {}
         virtual void OnLand(float) {}
         virtual void OnJump() {}
+        virtual void OnGrab() {}
+        virtual void OnDrop() {}
+        virtual void OnClick() {}
+        virtual void OnHoverEnter() {}
+        virtual void OnHoverExit() {}
         virtual void OnEvent(const ScriptMessage &message);
 
     private:

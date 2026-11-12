@@ -31,17 +31,16 @@ A typical game pushes, in order: its own game layer (level switching and other n
 
 `Scene::OnUpdate(dt)` runs, in order:
 
-1. physics frame start and transform sync
-2. camera (follow, bounds, shake)
-3. movement (`VelocityComponent`)
-4. collision
-5. hierarchy (world transforms)
-6. lifetime (`LifetimeComponent` countdown and destroy)
-7. scripts (`OnCreate` lazily on first update, then `OnUpdate`)
-8. physics step
-9. sprite animation
-10. particles
-11. audio sources
+1. movement (`VelocityComponent`)
+2. collision
+3. hierarchy (world transforms)
+4. lifetime (`LifetimeComponent` countdown and destroy)
+5. scripts (`OnCreate` lazily on first update, then `OnUpdate`)
+6. physics: register new bodies, push changed Transforms into bodies, `World::step`, write dynamic bodies back to Transforms, then `OnCollision` and sensor `OnTrigger*` events
+7. camera (follow, bounds, shake)
+8. sprite animation
+9. particles
+10. audio sources
 
 `Scene::OnRender()` runs:
 

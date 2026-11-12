@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
-#include <glad/glad.h>
+#include <Engine/Rendering/GL.h>
 #include <glm/glm.hpp>
 
 namespace SIMPEngine

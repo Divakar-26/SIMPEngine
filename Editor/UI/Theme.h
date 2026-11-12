@@ -88,7 +88,21 @@ namespace EditorUI
         bool PlayFullscreen = false;
         std::string ScriptTheme = "Mossveil Night";
         float ScriptFontSize = 15.0f;
+
+        int WindowWidth = 1180;
+        int WindowHeight = 720;
+        bool WindowMaximized = false;
+        bool RememberWindow = true;
+        float AutosaveSeconds = 30.0f;
+        int UndoSteps = 100;
+        float ZoomStep = 1.15f;
+        bool PausePlayOnError = true;
+        int TabSize = 4;
+        bool ShowCameraFrame = true;
+        bool ShowToasts = true;
     };
+
+    EditorSettings DefaultSettings();
 
     EditorSettings &Settings();
 

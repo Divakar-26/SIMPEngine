@@ -1,0 +1,58 @@
+plugins {
+    id 'com.android.application'
+}
+
+def appId = project.findProperty('appId') ?: 'org.simp.player'
+def appVersionCode = (project.findProperty('appVersionCode') ?: '1').toInteger()
+def appVersionName = project.findProperty('appVersionName') ?: '1.0'
+def simpProps = new Properties()
+def simpFile = new File(rootDir, 'simp.properties')
+if (simpFile.exists()) {
+    simpFile.withInputStream { simpProps.load(it) }
+}
+def appAbis = (project.findProperty('abis') ?: 'arm64-v8a,x86_64').split(',')
+
+android {
+    namespace = 'org.simp.player'
+    compileSdk 35
+    ndkVersion '28.2.13676358'
+
+    defaultConfig {
+        applicationId appId
+        minSdk 24
+        targetSdk 35
+        versionCode appVersionCode
+        versionName appVersionName
+        manifestPlaceholders = [orientation: simpProps.getProperty('orientation', 'sensorLandscape')]
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared', '-DSIMP_GLES=ON', '-DSIMP_BUILD_TESTS=OFF', '-DSIMP_INSTALL=OFF', '-DCMAKE_BUILD_TYPE=Release'
+                abiFilters(*appAbis)
+            }
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path file('../../CMakeLists.txt')
+        }
+    }
+
+    sourceSets {
+        main {
+            java.srcDirs = ['src/main/java', '../../vendor/SDL/android-project/app/src/main/java']
+            assets.srcDirs = ['src/main/assets']
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lint {
+        abortOnError = false
+    }
+}

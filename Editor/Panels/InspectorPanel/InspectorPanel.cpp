@@ -47,6 +47,9 @@ void InspectorPanel::OnImGuiRender()
     DrawAnimationSection(m_SelectedEntity);
     DrawPhysicsSection(m_SelectedEntity);
     DrawLogicSection(m_SelectedEntity);
+    DrawPrefabSection(m_SelectedEntity);
+    DrawUISection(m_SelectedEntity);
+    DrawShaderSection(m_SelectedEntity);
     DrawScriptSection(m_SelectedEntity);
 
     ImGui::Dummy(ImVec2(0, 4));
@@ -93,6 +96,24 @@ void InspectorPanel::DrawSceneProperties()
             PropertyFloat("Intensity", &bloom.Intensity, 0.01f, 0.0f, 10.0f, "%.2f");
             PropertyFloat("Spread", &bloom.Radius, 0.01f, 0.1f, 4.0f, "%.2f");
         }
+
+        auto &world = scene.GetPhysicsWorld();
+        SectionLabel("Physics");
+        PropertyVec2("Gravity", &world.gravity.x, 1.0f, "%.0f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("World units are pixels and Y points up, so the default (0, -980) pulls things down");
+        PropertyInt("Substeps", &world.settings.substeps, 0.1f, 1, 32);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Simulation steps per frame. More is steadier and slower. Joints need at least 6");
+        PropertyInt("Velocity Passes", &world.settings.velocityIterations, 0.1f, 1, 32);
+        PropertyBool("Allow Sleeping", &world.settings.enableSleep);
+        if (!m_Context->IsEditing())
+        {
+            char bodies[48];
+            std::snprintf(bodies, sizeof(bodies), "%d (%d awake)", world.getBodyCount(), world.getAwakeBodyCount());
+            PropertyValue("Bodies", bodies);
+        }
+        SectionLabel("Scene");
 
         char count[32];
         std::snprintf(count, sizeof(count), "%zu", scene.GetRegistry().view<TagComponent>().size());

@@ -1,5 +1,9 @@
 #include "LuaCompletion.h"
+#include "LuaContext.h"
 #include "LuaLexer.h"
+
+#include <Engine/Animation/Curves.h>
+#include <Engine/Animation/Tween.h>
 
 #include <Engine/Scripting/LuaInclude.h>
 #include <Engine/Scripting/LuaRuntime.h>
@@ -208,6 +212,134 @@ namespace ScriptEditor
         m_Loaded = true;
     }
 
+    std::vector<CompletionItem> LuaCompletion::RoleItems(int roleValue, bool inString) const
+    {
+        const ArgRole role = static_cast<ArgRole>(roleValue);
+        std::vector<CompletionItem> items;
+
+        auto propertyItems = [&](bool quoted)
+        {
+            for (int i = 0; i < static_cast<int>(SIMPEngine::TweenProperty::Count); ++i)
+            {
+                const auto property = static_cast<SIMPEngine::TweenProperty>(i);
+                const std::string name = SIMPEngine::TweenSystem::PropertyName(property);
+                const int channels = SIMPEngine::TweenSystem::ChannelCount(property);
+                CompletionItem item;
+                item.Label = name;
+                item.Detail = channels == 1 ? "number" : channels == 2 ? "{x, y}" : "{r, g, b, a}";
+                item.Kind = CompletionKind::Field;
+                item.Insert = quoted ? std::string() : name + " = ";
+                items.push_back(std::move(item));
+            }
+        };
+
+        switch (role)
+        {
+        case ArgRole::Curve:
+            for (const std::string &name : SIMPEngine::Curve::Names())
+            {
+                CompletionItem item;
+                item.Label = name;
+                item.Detail = "curve";
+                item.Kind = CompletionKind::Constant;
+                item.Curve = true;
+                if (!inString)
+                    item.Insert = "\"" + name + "\"";
+                items.push_back(std::move(item));
+            }
+            break;
+        case ArgRole::PropertyKeys:
+            propertyItems(false);
+            break;
+        case ArgRole::PropertyName:
+            propertyItems(true);
+            break;
+        case ArgRole::BusName:
+            for (const char *bus : {"sfx", "music", "ui"})
+            {
+                CompletionItem item;
+                item.Label = bus;
+                item.Detail = "audio bus";
+                item.Kind = CompletionKind::Constant;
+                if (!inString)
+                    item.Insert = std::string("\"") + bus + "\"";
+                items.push_back(std::move(item));
+            }
+            break;
+        case ArgRole::TweenOptionKeys:
+        case ArgRole::SpringOptionKeys:
+        case ArgRole::AlongOptionKeys:
+        case ArgRole::DrawPathOptionKeys:
+            for (const OptionKey &key : OptionKeysFor(role))
+            {
+                CompletionItem item;
+                item.Label = key.Name;
+                item.Detail = key.Detail;
+                item.Kind = CompletionKind::Field;
+                if (key.Insert)
+                {
+                    item.Insert = key.Insert;
+                    const std::string marker = "function() ";
+                    const size_t at = item.Insert.find(marker);
+                    if (at != std::string::npos)
+                        item.CursorOffset = static_cast<int>(at + marker.size());
+                    else if (const size_t paren = item.Insert.find("function("); paren != std::string::npos)
+                        item.CursorOffset = static_cast<int>(item.Insert.find(')', paren) + 2);
+                }
+                else
+                    item.Insert = std::string(key.Name) + " = ";
+                items.push_back(std::move(item));
+            }
+            break;
+        default:
+            break;
+        }
+        return items;
+    }
+
+    std::string LuaCompletion::Describe(const std::string &name, const std::string &member) const
+    {
+        auto format = [](const Signature &s)
+        {
+            std::string text = s.Callee + "(";
+            for (size_t i = 0; i < s.Params.size(); ++i)
+                text += (i ? ", " : "") + s.Params[i];
+            return text + ")  " + s.Summary;
+        };
+
+        if (!member.empty())
+        {
+            const std::string key = member[0] == '.' ? name + member : member;
+            if (const Signature *s = FindSignature(key))
+                return format(*s);
+            if (member[0] == ':')
+            {
+                const std::string method = member.substr(1);
+                for (const auto &[type, methods] : m_Types)
+                    for (const CompletionItem &m : methods)
+                        if (m.Label == method)
+                            return type + ":" + method + "()  engine method";
+            }
+            if (auto table = m_Tables.find(name); table != m_Tables.end())
+                return name + member + "  engine API";
+            return {};
+        }
+        if (m_GlobalNames.count(name))
+            return name + "  engine table";
+        for (const CompletionItem &g : m_Globals)
+            if (g.Label == name)
+                return name + "  engine " + g.Detail;
+        return {};
+    }
+
+    std::string LuaCompletion::ReceiverType(const std::vector<std::string> &lines, int line, const std::string &receiver) const
+    {
+        if (receiver.empty())
+            return {};
+        const std::string type = InferType(lines, line, receiver, 0);
+        return type == "Self" ? std::string() : type;
+    }
+
     std::vector<CompletionItem> LuaCompletion::TypeMembers(const std::string &type) const
     {
         if (auto it = m_Types.find(type); it != m_Types.end())
@@ -327,7 +459,15 @@ namespace ScriptEditor
 
         const std::string &full = lines[static_cast<size_t>(line)];
         std::string text = full.substr(0, std::min<size_t>(static_cast<size_t>(column), full.size()));
-        if (InsideStringOrComment(text))
+
+        const CallContext context = AnalyzeContext(lines, line, column);
+        if (context.InComment)
+            return result;
+        const ArgRole role = ResolveRole(context);
+        const bool stringRole = role == ArgRole::Curve || role == ArgRole::PropertyName || role == ArgRole::BusName;
+        if (context.InString && !stringRole)
+            return result;
+        if (!context.InString && InsideStringOrComment(text))
             return result;
 
         size_t start = text.size();
@@ -342,6 +482,29 @@ namespace ScriptEditor
         if (trigger == '.' && start > 1 && text[start - 2] == '.')
             trigger = 0;
         std::vector<CompletionItem> items;
+
+        if (context.InString)
+        {
+            result.InString = true;
+            result.ForceOpen = true;
+            std::vector<CompletionItem> roleItems = RoleItems(static_cast<int>(role), true);
+            Rank(roleItems, result.Prefix, result);
+            return result;
+        }
+
+        if (trigger != '.' && trigger != ':' && role != ArgRole::None)
+        {
+            std::vector<CompletionItem> roleItems = RoleItems(static_cast<int>(role), false);
+            roleItems.erase(std::remove_if(roleItems.begin(), roleItems.end(), [&](const CompletionItem &item)
+                                           { return std::find(context.UsedKeys.begin(), context.UsedKeys.end(), item.Label) != context.UsedKeys.end(); }),
+                            roleItems.end());
+            Rank(roleItems, result.Prefix, result);
+            if (!result.Items.empty())
+            {
+                result.ForceOpen = true;
+                return result;
+            }
+        }
 
         static const std::regex word(R"([A-Za-z_][A-Za-z0-9_]*)");
         static const std::regex selfField(R"(\bself\.([A-Za-z_][A-Za-z0-9_]*))");

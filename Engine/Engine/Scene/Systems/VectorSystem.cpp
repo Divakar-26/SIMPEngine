@@ -10,7 +10,7 @@ namespace SIMPEngine
     void VectorSystem::Render(entt::registry &registry)
     {
         PROFILE_SCOPE("VectorSystem::Render");
-        for (auto entity : registry.view<TransformComponent, VectorShapeComponent>())
+        for (auto entity : registry.view<TransformComponent, VectorShapeComponent>(entt::exclude<ShaderGroupMemberTag>))
             DrawVector(registry, entity);
     }
 

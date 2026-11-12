@@ -3,6 +3,10 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/ScriptableEntity.h>
 #include <Engine/Input/Input.h>
+#include <Engine/Audio/Music.h>
+#include <Engine/Scene/SceneSerializer.h>
+#include <Engine/Rendering/Renderer.h>
+#include <Engine/Rendering/ShaderEffect.h>
 
 #include <entt/entt.hpp>
 #include <iostream>
@@ -63,6 +67,21 @@ namespace SIMPEngine
         case ScriptEvent::Jumped:
             OnJump();
             break;
+        case ScriptEvent::Grabbed:
+            OnGrab();
+            break;
+        case ScriptEvent::Dropped:
+            OnDrop();
+            break;
+        case ScriptEvent::Clicked:
+            OnClick();
+            break;
+        case ScriptEvent::HoverEnter:
+            OnHoverEnter();
+            break;
+        case ScriptEvent::HoverExit:
+            OnHoverExit();
+            break;
         case ScriptEvent::Count:
             break;
         }
@@ -76,8 +95,6 @@ namespace SIMPEngine
 
     Scene::Scene(const std::string &name) : m_Name(name)
     {
-        physicsSystem.SetSubstep(20);
-
         m_Registry.on_destroy<ScriptComponent>().connect<&Scene::OnScriptComponentDestroyed>(this);
         m_Registry.on_destroy<PhysicsComponent>().connect<&Scene::OnPhysicsComponentDestroyed>(this);
         m_Registry.on_destroy<HierarchyComponent>().connect<&Scene::OnHierarchyComponentDestroyed>(this);
@@ -123,37 +140,20 @@ namespace SIMPEngine
         return Entity{};
     }
 
-    void Scene::RebuildPhysicsWorld()
-    {
-        physicsSystem.DestroyBodies();
-        physicsSystem.DestroyWorld();
-
-        for (auto entity : m_Registry.view<PhysicsComponent>())
-        {
-            auto &pc = m_Registry.get<PhysicsComponent>(entity);
-            if (!pc.body)
-                continue;
-            pc.body->entityID = static_cast<uint32_t>(entity);
-            physicsSystem.GetWorld().addBody(pc.body.get());
-            physicsSystem.bodies.push_back(pc.body.get());
-        }
-
-        m_PhysicsDirty = false;
-    }
-
     void Scene::SyncPhysicsFromTransforms()
     {
-        auto view = m_Registry.view<TransformComponent, PhysicsComponent>();
-        for (auto entity : view)
-        {
-            auto &tc = view.get<TransformComponent>(entity);
-            auto &pc = view.get<PhysicsComponent>(entity);
-            if (!pc.body)
-                continue;
-            pc.body->position = {tc.position.x, tc.position.y};
-            pc.body->orientation = glm::radians(tc.rotation);
-            pc.body->calculateDerivativeData();
-        }
+        physicsSystem.MarkAllUnsynced(m_Registry);
+    }
+
+    PhysicsComponent &Scene::AddBody(entt::entity entity, std::unique_ptr<AccelEngine::RigidBody> body)
+    {
+        physicsSystem.AddBody(m_Registry, entity, std::move(body));
+        return m_Registry.get_or_emplace<PhysicsComponent>(entity);
+    }
+
+    void Scene::RemoveBody(entt::entity entity)
+    {
+        physicsSystem.RemoveBody(m_Registry, entity);
     }
 
     void Scene::SetFixedTimeStep(float seconds)
@@ -179,16 +179,159 @@ namespace SIMPEngine
         script->Instance->SendEvent(message);
     }
 
+    bool Scene::LoadSceneFile(const std::string &path)
+    {
+        SceneSerializer serializer(this);
+        const std::string backup = serializer.SerializeToString();
+        const std::string source = m_SourcePath;
+        Clear();
+        if (serializer.Deserialize(path))
+        {
+            m_SourcePath = path;
+            return true;
+        }
+        CORE_ERROR("Could not load scene '{}'", path);
+        Clear();
+        serializer.DeserializeFromString(backup);
+        m_SourcePath = source;
+        return false;
+    }
+
+    void Scene::RequestLoad(const std::string &path, float fade, const std::string &shader)
+    {
+        if (path.empty())
+        {
+            CORE_WARN("Scene load requested with an empty path");
+            return;
+        }
+        m_Transition.Requested = true;
+        m_Transition.RequestedPath = path;
+        m_Transition.RequestedFade = std::max(fade, 0.0f);
+        m_Transition.RequestedShader = shader;
+    }
+
+    void Scene::RequestReload(float fade, const std::string &shader)
+    {
+        if (m_SourcePath.empty())
+        {
+            CORE_WARN("Scene reload requested but the scene was not loaded from a file");
+            return;
+        }
+        RequestLoad(m_SourcePath, fade, shader);
+    }
+
+    float Scene::GetFadeAlpha() const
+    {
+        if (m_Transition.Duration <= 0.0f)
+            return 0.0f;
+        const float t = std::clamp(m_Transition.Time / m_Transition.Duration, 0.0f, 1.0f);
+        if (m_Transition.Phase == TransitionPhase::Out)
+            return t;
+        if (m_Transition.Phase == TransitionPhase::In)
+            return 1.0f - t;
+        return 0.0f;
+    }
+
+    void Scene::UpdateTransition(float dt)
+    {
+        Transition &t = m_Transition;
+
+        if (t.Phase == TransitionPhase::Out)
+        {
+            t.Time += dt;
+            if (t.Time < t.Duration)
+                return;
+            const std::string path = t.ActivePath;
+            const float duration = t.Duration;
+            const Transition pending = t;
+            LoadSceneFile(path);
+            m_Transition = Transition{};
+            m_Transition.Requested = pending.Requested;
+            m_Transition.RequestedPath = pending.RequestedPath;
+            m_Transition.RequestedFade = pending.RequestedFade;
+            m_Transition.RequestedShader = pending.RequestedShader;
+            m_Transition.Shader = pending.Shader;
+            m_Transition.Phase = TransitionPhase::In;
+            m_Transition.Duration = duration;
+            return;
+        }
+
+        if (t.Phase == TransitionPhase::In)
+        {
+            t.Time += dt;
+            if (t.Time >= t.Duration)
+            {
+                t.Phase = TransitionPhase::None;
+                t.Time = 0.0f;
+            }
+        }
+
+        if (!t.Requested || t.Phase == TransitionPhase::In)
+            return;
+
+        const std::string path = t.RequestedPath;
+        const float fade = t.RequestedFade;
+        const std::string shader = t.RequestedShader;
+        t.Requested = false;
+        if (fade <= 0.0f)
+        {
+            LoadSceneFile(path);
+            m_Transition = Transition{};
+            return;
+        }
+        t.Phase = TransitionPhase::Out;
+        t.Shader = shader;
+        t.ActivePath = path;
+        t.Duration = fade;
+        t.Time = 0.0f;
+    }
+
+    void Scene::RenderFade()
+    {
+        const float alpha = GetFadeAlpha();
+        if (alpha <= 0.0f)
+            return;
+        if (!m_Transition.Shader.empty())
+        {
+            m_TransitionCanvas.shader = m_Transition.Shader;
+            m_TransitionCanvas.effect = ShaderEffect::Load(m_Transition.Shader);
+            m_TransitionCanvas.progress = alpha;
+            if (m_TransitionCanvas.effect->IsValid())
+            {
+                for (const ShaderUniformDecl &decl : m_TransitionCanvas.effect->GetDeclared())
+                    if (!ShaderCanvasSystem::FindUniform(m_TransitionCanvas, decl.Name))
+                    {
+                        ShaderUniformValue value;
+                        value.name = decl.Name;
+                        value.type = static_cast<int>(decl.Type);
+                        for (int i = 0; i < 4; ++i)
+                            value.value[i] = decl.Default[i];
+                        m_TransitionCanvas.uniforms.push_back(std::move(value));
+                    }
+                shaderCanvasSystem.RenderOne(*this, m_TransitionCanvas);
+                return;
+            }
+        }
+        glm::vec2 min, max;
+        Renderer::GetVisibleBounds(min, max);
+        const float width = max.x - min.x;
+        const float height = max.y - min.y;
+        const uint8_t a = static_cast<uint8_t>(std::clamp(alpha, 0.0f, 1.0f) * 255.0f);
+        Renderer::DrawQuad((min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f, width * 1.05f, height * 1.05f, 0.0f, {0, 0, 0, a}, true, 900.0f);
+    }
+
     void Scene::OnUpdate(float deltaTime)
     {
+        UpdateTransition(deltaTime);
+
         if (m_PhysicsDirty)
-            RebuildPhysicsWorld();
+        {
+            physicsSystem.RegisterMissing(m_Registry);
+            m_PhysicsDirty = false;
+        }
 
         m_Time += deltaTime;
         m_LastDelta = deltaTime;
-
-        physicsSystem.startFrame(deltaTime);
-        physicsSystem.UpdateTransform(m_Registry);
 
         movementSystem.Update(m_Registry, deltaTime);
         oscillatorSystem.Update(m_Registry, deltaTime);
@@ -239,24 +382,43 @@ namespace SIMPEngine
         pathFollowerSystem.Update(*this, deltaTime);
         triggerSystem.Update(*this);
         damageSystem.Update(*this, deltaTime);
+        pickupSystem.Update(*this);
+        teleporterSystem.Update(*this);
         timerSystem.Update(*this, deltaTime);
         spawnerSystem.Update(*this, deltaTime);
         healthSystem.Update(*this, deltaTime);
+        respawnSystem.Update(*this, deltaTime);
+        uiSystem.Update(*this, deltaTime);
+        pickableSystem.Update(*this, deltaTime);
+        buttonSystem.Update(*this);
 
         physicsSystem.Update(m_Registry, deltaTime);
 
         const std::vector<PhysicsSystem::ContactPair> contacts = physicsSystem.GetContacts();
+        const std::vector<PhysicsSystem::SensorEvent> sensorEvents = physicsSystem.GetSensorEvents();
         for (const PhysicsSystem::ContactPair &contact : contacts)
         {
             SendEvent(contact.a, ScriptEvent::Collision, contact.b);
             SendEvent(contact.b, ScriptEvent::Collision, contact.a);
         }
+        for (const PhysicsSystem::SensorEvent &event : sensorEvents)
+        {
+            const ScriptEvent type = event.Type == PhysicsSystem::SensorEventType::Enter  ? ScriptEvent::TriggerEnter
+                                     : event.Type == PhysicsSystem::SensorEventType::Stay ? ScriptEvent::TriggerStay
+                                                                                          : ScriptEvent::TriggerExit;
+            SendEvent(event.a, type, event.b);
+            SendEvent(event.b, type, event.a);
+        }
 
+        followSystem.Update(*this, deltaTime);
+        boundsSystem.Update(*this);
+        cameraZoneSystem.Update(*this, deltaTime);
         cameraSystem.OnUpdate(m_Registry, deltaTime);
 
         animationSystem.Update(m_Registry, deltaTime);
         particleSystem.Update(m_Registry, deltaTime);
         audioSystem.Update(m_Registry);
+        musicSystem.Update(*this);
     }
 
     void Scene::StopAudio()
@@ -266,6 +428,13 @@ namespace SIMPEngine
             AudioSystem::StopSource(m_Registry, entity);
             m_Registry.get<AudioSourceComponent>(entity).started = false;
         }
+        for (auto entity : m_Registry.view<MusicComponent>())
+        {
+            auto &music = m_Registry.get<MusicComponent>(entity);
+            music.started = music.active = music.wasInside = false;
+            music.index = -1;
+        }
+        Music::Stop(0.0f);
     }
 
     void Scene::OnAudioSourceDestroyed(entt::registry &registry, entt::entity entity)
@@ -313,7 +482,13 @@ namespace SIMPEngine
 
     glm::vec2 Scene::ScreenToWorld(const glm::vec2 &viewportPixel)
     {
-        return GetActiveCamera().ScreenToWorld(viewportPixel);
+        Camera2D &camera = GetActiveCamera();
+        const auto [cameraWidth, cameraHeight] = camera.GetViewportSize();
+        const glm::vec2 input = Input::GetViewportSize();
+        glm::vec2 pixel = viewportPixel;
+        if (cameraWidth > 0 && cameraHeight > 0 && input.x > 0.0f && input.y > 0.0f)
+            pixel = {viewportPixel.x * static_cast<float>(cameraWidth) / input.x, viewportPixel.y * static_cast<float>(cameraHeight) / input.y};
+        return camera.ScreenToWorld(pixel);
     }
 
     void Scene::OnRender()
@@ -321,7 +496,7 @@ namespace SIMPEngine
         UpdateTransforms();
         ApplyParallax();
         cameraSystem.OnRender(m_Registry);
-        RenderContent();
+        RenderContent(true);
     }
 
     void Scene::OnRender(const glm::mat4 &view, const glm::mat4 &projection)
@@ -330,11 +505,12 @@ namespace SIMPEngine
         ApplyParallax();
         Renderer::SetProjectionMatrix(projection);
         Renderer::SetViewMatrix(view);
-        RenderContent();
+        RenderContent(false);
     }
 
-    void Scene::RenderContent()
+    void Scene::RenderContent(bool screenSpaceUI)
     {
+        shaderCanvasSystem.Prepare(*this, m_LightingVisible);
         tilemapSystem.Render(m_Registry);
 
         renderSystem.RenderQuads(m_Registry);
@@ -352,6 +528,8 @@ namespace SIMPEngine
                 sc.Instance->OnRender();
         }
 
+        shaderCanvasSystem.RenderGroups(*this);
+
         if (lit)
         {
             lightingSystem.Render(m_Registry, m_Lighting);
@@ -361,19 +539,28 @@ namespace SIMPEngine
             glowSystem.Render(m_Registry);
         if (m_Bloom.Enabled && m_LightingVisible)
             bloomRenderer.Apply(m_Bloom);
+        if (m_LightingVisible)
+            shaderCanvasSystem.RenderPost(*this);
+        uiSystem.Render(*this, screenSpaceUI);
+        RenderFade();
     }
 
     void Scene::Clear()
     {
-        physicsSystem.DestroyBodies();
-        physicsSystem.DestroyWorld();
+        physicsSystem.Clear();
+        physicsSystem.ResetSettings();
 
         m_Tweens.Clear();
         spawnerSystem.Clear();
+        teleporterSystem.Clear();
+        cameraZoneSystem.Clear();
+        uiSystem.Clear();
+        shaderCanvasSystem.Clear();
         m_ScriptOrder.clear();
         m_Time = 0.0f;
         m_LastDelta = 0.0f;
         m_FixedAccumulator = 0.0f;
+        m_Transition = Transition{};
         m_Registry.clear();
     }
 
@@ -402,12 +589,8 @@ namespace SIMPEngine
     void Scene::OnPhysicsComponentDestroyed(entt::registry &registry, entt::entity entity)
     {
         auto &physicsComponent = registry.get<PhysicsComponent>(entity);
-        if (!physicsComponent.body)
-            return;
-
-        auto &bodies = physicsSystem.bodies;
-        bodies.erase(std::remove(bodies.begin(), bodies.end(), physicsComponent.body.get()), bodies.end());
-        m_PhysicsDirty = true;
+        if (physicsComponent.body)
+            physicsSystem.OnBodyDestroyed(physicsComponent.body.get());
     }
 
     void Scene::OnHierarchyComponentDestroyed(entt::registry &registry, entt::entity entity)

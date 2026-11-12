@@ -16,6 +16,12 @@ namespace SIMPEngine
     float Input::s_MouseX = 0.0f;
     float Input::s_MouseY = 0.0f;
     float Input::s_MouseWheel = 0.0f;
+    std::unordered_set<int> Input::s_PadButtonsPressed;
+    std::unordered_set<int> Input::s_PadButtonsJustPressed;
+    std::unordered_set<int> Input::s_PadButtonsJustReleased;
+    float Input::s_PadAxes[8] = {};
+    int Input::s_PadCount = 0;
+    float Input::s_PadDeadzone = 0.2f;
 
     bool Input::s_Enabled = true;
     bool Input::s_HasViewport = false;
@@ -135,8 +141,108 @@ namespace SIMPEngine
         s_MouseY = y;
     }
 
+    bool Input::IsGamepadButtonPressed(int button)
+    {
+        return s_Enabled && s_PadButtonsPressed.find(button) != s_PadButtonsPressed.end();
+    }
+
+    bool Input::IsGamepadButtonJustPressed(int button)
+    {
+        return s_Enabled && s_PadButtonsJustPressed.find(button) != s_PadButtonsJustPressed.end();
+    }
+
+    bool Input::IsGamepadButtonJustReleased(int button)
+    {
+        return s_Enabled && s_PadButtonsJustReleased.find(button) != s_PadButtonsJustReleased.end();
+    }
+
+    float Input::GetGamepadAxis(int axis)
+    {
+        if (!s_Enabled || axis < 0 || axis >= 8)
+            return 0.0f;
+        const float raw = s_PadAxes[axis];
+        const float magnitude = std::abs(raw);
+        if (magnitude <= s_PadDeadzone)
+            return 0.0f;
+        const float scaled = (magnitude - s_PadDeadzone) / (1.0f - s_PadDeadzone);
+        return raw < 0.0f ? -scaled : scaled;
+    }
+
+    bool Input::IsGamepadConnected()
+    {
+        return s_PadCount > 0;
+    }
+
+    int Input::GetGamepadCount()
+    {
+        return s_PadCount;
+    }
+
+    float Input::GetGamepadDeadzone()
+    {
+        return s_PadDeadzone;
+    }
+
+    void Input::SetGamepadDeadzone(float deadzone)
+    {
+        s_PadDeadzone = deadzone < 0.0f ? 0.0f : (deadzone > 0.95f ? 0.95f : deadzone);
+    }
+
+    void Input::OnGamepadButton(int button, bool down)
+    {
+        if (down)
+        {
+            if (s_PadButtonsPressed.insert(button).second)
+                s_PadButtonsJustPressed.insert(button);
+        }
+        else if (s_PadButtonsPressed.erase(button))
+            s_PadButtonsJustReleased.insert(button);
+    }
+
+    void Input::OnGamepadAxis(int axis, float value)
+    {
+        if (axis >= 0 && axis < 8)
+            s_PadAxes[axis] = value < -1.0f ? -1.0f : (value > 1.0f ? 1.0f : value);
+    }
+
+    void Input::OnGamepadConnected(bool connected)
+    {
+        if (connected)
+            ++s_PadCount;
+        else if (s_PadCount > 0)
+            --s_PadCount;
+        if (s_PadCount == 0)
+        {
+            s_PadButtonsPressed.clear();
+            s_PadButtonsJustPressed.clear();
+            s_PadButtonsJustReleased.clear();
+            for (float &axis : s_PadAxes)
+                axis = 0.0f;
+        }
+    }
+
+    const std::unordered_set<int> &Input::GetGamepadButtonsJustPressed()
+    {
+        return s_PadButtonsJustPressed;
+    }
+
+    const std::unordered_set<int> &Input::GetKeysJustPressed()
+    {
+        return s_KeysJustPressed;
+    }
+
+    const std::unordered_set<int> &Input::GetMouseButtonsJustPressed()
+    {
+        return s_MouseButtonsJustPressed;
+    }
+
     void Input::ResetAllKeys()
     {
+        s_PadButtonsPressed.clear();
+        s_PadButtonsJustPressed.clear();
+        s_PadButtonsJustReleased.clear();
+        for (float &axis : s_PadAxes)
+            axis = 0.0f;
         s_KeysPressed.clear();
         s_KeysJustPressed.clear();
         s_MouseButtonsPressed.clear();
@@ -167,5 +273,7 @@ namespace SIMPEngine
         s_MouseButtonsJustPressed.clear();
         s_KeysJustReleased.clear();
         s_MouseButtonsJustReleased.clear();
+        s_PadButtonsJustPressed.clear();
+        s_PadButtonsJustReleased.clear();
     }
 }

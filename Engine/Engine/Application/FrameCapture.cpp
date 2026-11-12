@@ -4,7 +4,7 @@
 #include <Engine/Core/Log.h>
 #include <Engine/Events/KeyEvent.h>
 
-#include <glad/glad.h>
+#include <Engine/Rendering/GL.h>
 #include <SDL3/SDL.h>
 
 #include <algorithm>

@@ -1,5 +1,7 @@
 #include "EditorHistory.h"
 
+#include "UI/Theme.h"
+
 #include <Engine/Scene/Component.h>
 #include <Engine/Scene/SceneSerializer.h>
 #include <Engine/Scene/ScriptableEntity.h>
@@ -81,7 +83,8 @@ void EditorHistory::BeginEdit()
         RefreshStable();
 
     m_Undo.push_back(m_Stable);
-    if (m_Undo.size() > MaxSteps)
+    const size_t limit = static_cast<size_t>(std::max(5, EditorUI::Settings().UndoSteps));
+    while (m_Undo.size() > limit)
         m_Undo.erase(m_Undo.begin());
     m_Redo.clear();
     m_EditOpen = true;

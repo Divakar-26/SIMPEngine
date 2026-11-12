@@ -11,12 +11,15 @@
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
 #include "Input/Input.h"
+#include <Engine/Input/InputActions.h>
+#include <Engine/Input/TouchControls.h>
 #include "Rendering/GLRenderingAPI.h"
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Rendering/SvgTextureCache.h>
 #include <Engine/Rendering/TextureManager.h>
 #include <Engine/Particles/ParticleEmitter.h>
 #include <Engine/Scene/Systems/LightingSystem.h>
+#include <Engine/Scene/Systems/ShaderCanvasSystem.h>
 #include <Engine/Audio/AudioEngine.h>
 #include <Engine/Scripting/LuaRuntime.h>
 #include <Engine/Rendering/Bloom.h>
@@ -26,6 +29,10 @@
 #include <Engine/Core/CrashHandler.h>
 
 #include <imgui_internal.h>
+#include <algorithm>
+#include <exception>
+#include <utility>
+#include <memory>
 
 namespace SIMPEngine
 {
@@ -41,6 +48,20 @@ namespace SIMPEngine
         CORE_INFO("{} {}", EngineName, EngineVersion);
         Project::MountEngineResources();
 
+        bool touch = false;
+#if defined(__ANDROID__)
+        touch = true;
+#endif
+        if (const char *forced = std::getenv("SIMP_TOUCH"))
+            touch = std::atoi(forced) != 0;
+        if (touch)
+        {
+            SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
+#if !defined(__ANDROID__)
+            SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
+#endif
+        }
+
         SDL_WindowFlags flags = 0;
         if (specification.Resizable)
             flags |= SDL_WINDOW_RESIZABLE;
@@ -48,6 +69,8 @@ namespace SIMPEngine
             flags |= SDL_WINDOW_FULLSCREEN;
         if (specification.Maximized)
             flags |= SDL_WINDOW_MAXIMIZED;
+        if (specification.Borderless)
+            flags |= SDL_WINDOW_BORDERLESS;
         m_Window.SetVSync(specification.VSync);
         if (!m_Window.Init(specification.Title.c_str(), specification.Width, specification.Height, flags))
         {
@@ -60,6 +83,16 @@ namespace SIMPEngine
         SDL_GetWindowSize(m_Window.GetNativeWindow(), &w, &h);
         Renderer::Init(std::make_unique<GLRenderingAPI>(), w, h);
         AudioEngine::Init();
+        if (!SDL_InitSubSystem(SDL_INIT_GAMEPAD))
+            CORE_WARN("Gamepad support unavailable: {}", SDL_GetError());
+        if (InputActions::GetActions().empty())
+            InputActions::InstallBuiltinDefaults();
+        TouchControls::SetEnabled(touch);
+#if defined(__ANDROID__)
+        m_LogFps = true;
+#endif
+        if (const char *fps = std::getenv("SIMP_LOG_FPS"))
+            m_LogFps = std::atoi(fps) != 0;
 
         auto imguiLayer = std::make_unique<ImGuiLayer>();
 
@@ -83,6 +116,7 @@ namespace SIMPEngine
         ParticleTextures::Release();
         LightingSystem::ReleaseTextures();
         BloomRenderer::ReleaseShared();
+        ShaderCanvasSystem::ReleaseShared();
         TextureManager::Get().UnloadAll();
         Renderer::Shutdown();
         s_Instance = nullptr;
@@ -99,6 +133,7 @@ namespace SIMPEngine
         }
 
         uint64_t lastFrameTime = SDL_GetPerformanceCounter();
+        uint64_t spent[5] = {0, 0, 0, 0, 0};
         const double freq = static_cast<double>(SDL_GetPerformanceFrequency());
 
         while (m_Running)
@@ -109,6 +144,25 @@ namespace SIMPEngine
             float deltaTime = static_cast<float>(static_cast<double>(currentFrameTime - lastFrameTime) / freq);
             lastFrameTime = currentFrameTime;
             deltaTime = std::min(deltaTime, 0.1f);
+            {
+                static float fpsTime = 0.0f;
+                static int fpsFrames = 0;
+                fpsTime += deltaTime;
+                ++fpsFrames;
+                if (fpsTime >= 2.0f)
+                {
+                    if (m_LogFps)
+                    {
+                        const double scale = 1000.0 / static_cast<double>(SDL_GetPerformanceFrequency()) / std::max(1, fpsFrames);
+                        CORE_INFO("FPS {:.1f} ({:.1f} ms per frame) events {:.2f} update {:.2f} render {:.2f} imgui {:.2f} swap {:.2f} ms", fpsFrames / fpsTime,
+                                  1000.0f * fpsTime / fpsFrames, spent[0] * scale, spent[1] * scale, spent[2] * scale, spent[3] * scale, spent[4] * scale);
+                        for (uint64_t &entry : spent)
+                            entry = 0;
+                    }
+                    fpsTime = 0.0f;
+                    fpsFrames = 0;
+                }
+            }
             if (m_Capture.IsActive())
                 deltaTime = m_Capture.FrameTime();
 
@@ -129,6 +183,7 @@ namespace SIMPEngine
                 }
             }
 
+            const uint64_t stamp0 = SDL_GetPerformanceCounter();
             Input::BeginFrame();
             if (m_Capture.IsActive())
                 m_Capture.ApplyInput(*this);
@@ -143,8 +198,11 @@ namespace SIMPEngine
                         m_ImGuiLayer->OnSDLEvent(sdlEvent);
                     SDLEventToEngine(sdlEvent);
                 }
+                TouchControls::Update();
+                InputActions::Update();
             }
 
+            const uint64_t stamp1 = SDL_GetPerformanceCounter();
             if (SDL_GetWindowFlags(m_Window.GetNativeWindow()) & SDL_WINDOW_MINIMIZED)
                 SDL_Delay(16);
 
@@ -156,6 +214,8 @@ namespace SIMPEngine
                             { layer->OnUpdate(TimeStep(deltaTime)); });
                 AudioEngine::Update();
             }
+            const uint64_t stamp2 = SDL_GetPerformanceCounter();
+            uint64_t stamp3 = stamp2;
 
             {
                 {
@@ -188,6 +248,7 @@ namespace SIMPEngine
                     }
                 }
 
+                stamp3 = SDL_GetPerformanceCounter();
                 {
                     PROFILE_SCOPE("Render/ImGuiEnd");
                     m_ImGuiLayer->End();
@@ -197,10 +258,17 @@ namespace SIMPEngine
             if (m_Capture.IsActive() && !m_Capture.Capture())
                 m_Running = false;
 
+            const uint64_t stamp4 = SDL_GetPerformanceCounter();
             {
                 PROFILE_SCOPE("Render/Swap");
                 m_Window.OnUpdate();
             }
+            const uint64_t stamp5 = SDL_GetPerformanceCounter();
+            spent[0] += stamp1 - stamp0;
+            spent[1] += stamp2 - stamp1;
+            spent[2] += stamp3 - stamp2;
+            spent[3] += stamp4 - stamp3;
+            spent[4] += stamp5 - stamp4;
             PROFILE_FRAME_END();
         }
     }
@@ -262,6 +330,61 @@ namespace SIMPEngine
         case SDL_EVENT_WINDOW_FOCUS_LOST:
             Input::ResetAllKeys();
             break;
+        case SDL_EVENT_FINGER_DOWN:
+        case SDL_EVENT_FINGER_MOTION:
+        case SDL_EVENT_FINGER_UP:
+        case SDL_EVENT_FINGER_CANCELED:
+        {
+            int windowW = 1, windowH = 1;
+            SDL_GetWindowSize(m_Window.GetNativeWindow(), &windowW, &windowH);
+            glm::vec2 point{0.0f};
+            bool down = false, up = false;
+            if (TouchControls::HandleEvent(sdlEvent, static_cast<float>(windowW), static_cast<float>(windowH), point, down, up))
+            {
+                if (down || up || sdlEvent.type == SDL_EVENT_FINGER_MOTION)
+                {
+                    MouseMovedEvent moved(point.x, point.y);
+                    OnEvent(moved);
+                }
+                if (down)
+                {
+                    MouseButtonPressedEvent pressed(SDL_BUTTON_LEFT);
+                    OnEvent(pressed);
+                }
+                if (up)
+                {
+                    MouseButtonReleasedEvent released(SDL_BUTTON_LEFT);
+                    OnEvent(released);
+                }
+            }
+            break;
+        }
+        case SDL_EVENT_GAMEPAD_ADDED:
+            if (SDL_Gamepad *pad = SDL_OpenGamepad(sdlEvent.gdevice.which))
+            {
+                CORE_INFO("Gamepad connected: {}", SDL_GetGamepadName(pad));
+                Input::OnGamepadConnected(true);
+            }
+            break;
+        case SDL_EVENT_GAMEPAD_REMOVED:
+            if (SDL_Gamepad *pad = SDL_GetGamepadFromID(sdlEvent.gdevice.which))
+            {
+                SDL_CloseGamepad(pad);
+                Input::OnGamepadConnected(false);
+                CORE_INFO("Gamepad disconnected");
+            }
+            break;
+        case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+        case SDL_EVENT_GAMEPAD_BUTTON_UP:
+            Input::OnGamepadButton(sdlEvent.gbutton.button, sdlEvent.gbutton.down);
+            break;
+        case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+        {
+            const bool trigger = sdlEvent.gaxis.axis == SDL_GAMEPAD_AXIS_LEFT_TRIGGER || sdlEvent.gaxis.axis == SDL_GAMEPAD_AXIS_RIGHT_TRIGGER;
+            const float value = static_cast<float>(sdlEvent.gaxis.value) / (trigger ? 32767.0f : (sdlEvent.gaxis.value < 0 ? 32768.0f : 32767.0f));
+            Input::OnGamepadAxis(sdlEvent.gaxis.axis, value);
+            break;
+        }
         case SDL_EVENT_WINDOW_RESIZED:
         {
             WindowResizeEvent e(sdlEvent.window.data1, sdlEvent.window.data2);

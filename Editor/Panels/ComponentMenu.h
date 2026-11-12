@@ -62,6 +62,8 @@ inline void DrawAddComponentItems(EditorContext &ctx, SIMPEngine::Entity entity,
         EditorUI::SectionLabel("Audio");
     any |= AddComponentMenuItem<AudioSourceComponent>(ctx, entity, ICON_LC_VOLUME_2, "Audio Source", filter, [&]
                                                       { entity.AddComponent<AudioSourceComponent>(); });
+    any |= AddComponentMenuItem<MusicComponent>(ctx, entity, ICON_LC_MUSIC, "Music", filter, [&]
+                                                { entity.AddComponent<MusicComponent>(); });
 
     if (!filtering)
         EditorUI::SectionLabel("Simulation");
@@ -84,6 +86,76 @@ inline void DrawAddComponentItems(EditorContext &ctx, SIMPEngine::Entity entity,
                                                        { entity.AddComponent<PathFollowerComponent>(); });
     any |= AddComponentMenuItem<HealthComponent>(ctx, entity, ICON_LC_HEART, "Health", filter, [&]
                                                  { entity.AddComponent<HealthComponent>(); });
+    any |= AddComponentMenuItem<ButtonComponent>(ctx, entity, ICON_LC_MOUSE_POINTER_CLICK, "Button", filter, [&]
+                                                 { entity.AddComponent<ButtonComponent>(); });
+    any |= AddComponentMenuItem<ShaderCanvasComponent>(ctx, entity, ICON_LC_WAND_SPARKLES, "Shader Canvas", filter, [&]
+                                                       { entity.AddComponent<ShaderCanvasComponent>(); });
+    any |= AddComponentMenuItem<CanvasComponent>(ctx, entity, ICON_LC_MONITOR, "Canvas", filter, [&]
+                                                 { entity.AddComponent<CanvasComponent>(); });
+    any |= AddComponentMenuItem<UIRectComponent>(ctx, entity, ICON_LC_RECTANGLE_HORIZONTAL, "UI Rect", filter, [&]
+                                                 { entity.AddComponent<UIRectComponent>(); });
+    any |= AddComponentMenuItem<UIPanelComponent>(ctx, entity, ICON_LC_PANEL_TOP, "UI Panel", filter, [&]
+                                                  {
+        entity.AddComponent<UIPanelComponent>();
+        if (!entity.HasComponent<UIRectComponent>())
+            entity.AddComponent<UIRectComponent>(); });
+    any |= AddComponentMenuItem<UILabelComponent>(ctx, entity, ICON_LC_TYPE, "UI Label", filter, [&]
+                                                  {
+        entity.AddComponent<UILabelComponent>();
+        if (!entity.HasComponent<UIRectComponent>())
+            entity.AddComponent<UIRectComponent>(); });
+    any |= AddComponentMenuItem<UIImageComponent>(ctx, entity, ICON_LC_IMAGE, "UI Image", filter, [&]
+                                                  {
+        entity.AddComponent<UIImageComponent>();
+        if (!entity.HasComponent<UIRectComponent>())
+            entity.AddComponent<UIRectComponent>(); });
+    any |= AddComponentMenuItem<UIButtonComponent>(ctx, entity, ICON_LC_SQUARE_MOUSE_POINTER, "UI Button", filter, [&]
+                                                   {
+        entity.AddComponent<UIButtonComponent>();
+        if (!entity.HasComponent<UIRectComponent>())
+            entity.AddComponent<UIRectComponent>(); });
+    any |= AddComponentMenuItem<UILayoutComponent>(ctx, entity, ICON_LC_LAYOUT_LIST, "UI Layout", filter, [&]
+                                                   {
+        entity.AddComponent<UILayoutComponent>();
+        if (!entity.HasComponent<UIRectComponent>())
+            entity.AddComponent<UIRectComponent>(); });
+    any |= AddComponentMenuItem<TeleporterComponent>(ctx, entity, ICON_LC_DOOR_OPEN, "Teleporter", filter, [&]
+                                                     {
+        entity.AddComponent<TeleporterComponent>();
+        if (!entity.HasComponent<TriggerComponent>())
+        {
+            auto &zone = entity.AddComponent<TriggerComponent>();
+            zone.filter = "Player";
+        } });
+    any |= AddComponentMenuItem<CameraZoneComponent>(ctx, entity, ICON_LC_SCAN_EYE, "Camera Zone", filter, [&]
+                                                     {
+        entity.AddComponent<CameraZoneComponent>();
+        if (!entity.HasComponent<TriggerComponent>())
+        {
+            auto &zone = entity.AddComponent<TriggerComponent>();
+            zone.filter = "Player";
+        } });
+    any |= AddComponentMenuItem<WorldBoundsComponent>(ctx, entity, ICON_LC_SQUARE_DASHED, "World Bounds", filter, [&]
+                                                      { entity.AddComponent<WorldBoundsComponent>(); });
+    any |= AddComponentMenuItem<PickableComponent>(ctx, entity, ICON_LC_GRAB, "Pickable", filter, [&]
+                                                   { entity.AddComponent<PickableComponent>(); });
+    any |= AddComponentMenuItem<FollowComponent>(ctx, entity, ICON_LC_CROSSHAIR, "Follow", filter, [&]
+                                                 { entity.AddComponent<FollowComponent>(); });
+    any |= AddComponentMenuItem<PickupComponent>(ctx, entity, ICON_LC_GEM, "Pickup", filter, [&]
+                                                 {
+        entity.AddComponent<PickupComponent>();
+        if (!entity.HasComponent<TriggerComponent>())
+        {
+            auto &zone = entity.AddComponent<TriggerComponent>();
+            zone.filter = "Player";
+        } });
+    any |= AddComponentMenuItem<CheckpointComponent>(ctx, entity, ICON_LC_FLAG, "Checkpoint", filter, [&]
+                                                     {
+        entity.AddComponent<CheckpointComponent>();
+        if (!entity.HasComponent<TriggerComponent>())
+            entity.AddComponent<TriggerComponent>(); });
+    any |= AddComponentMenuItem<RespawnComponent>(ctx, entity, ICON_LC_ROTATE_CCW, "Respawn", filter, [&]
+                                                  { entity.AddComponent<RespawnComponent>(); });
     any |= AddComponentMenuItem<DamageComponent>(ctx, entity, ICON_LC_SWORDS, "Damage", filter, [&]
                                                  {
         entity.AddComponent<DamageComponent>();

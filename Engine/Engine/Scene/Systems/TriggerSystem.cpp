@@ -6,6 +6,7 @@
 #include <SDL3/SDL_rect.h>
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace SIMPEngine
 {

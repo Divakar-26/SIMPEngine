@@ -13,6 +13,8 @@
 
 #include <SDL3/SDL_rect.h>
 #include <memory>
+#include <utility>
+#include <functional>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -25,6 +27,7 @@
 namespace SIMPEngine
 {
     class ScriptableEntity;
+    class ShaderEffect;
     struct VectorShapeCache;
 }
 
@@ -150,6 +153,10 @@ struct ScriptComponent
 struct PhysicsComponent
 {
     std::unique_ptr<AccelEngine::RigidBody> body;
+
+    glm::vec2 lastPosition{0.0f, 0.0f};
+    float lastAngle = 0.0f;
+    bool synced = false;
 };
 
 struct AnimatedSpriteComponent
@@ -243,6 +250,7 @@ struct AudioSourceComponent
     float pitch = 1.0f;
     bool loop = false;
     bool playOnStart = true;
+    int bus = 0;
 
     uint32_t voice = 0;
     bool started = false;
@@ -449,4 +457,261 @@ struct SpawnerComponent
     int pending = 0;
     bool started = false;
     std::vector<entt::entity> alive;
+};
+
+struct FollowComponent
+{
+    std::string target;
+    glm::vec2 offset{0.0f, 0.0f};
+    float smoothing = 8.0f;
+    float stopDistance = 0.0f;
+    bool followX = true;
+    bool followY = true;
+    bool enabled = true;
+
+    entt::entity handle = entt::null;
+};
+
+struct PickupComponent
+{
+    std::string key = "score";
+    float amount = 1.0f;
+    std::string sound;
+    float volume = 1.0f;
+    bool destroyOnPickup = true;
+    bool enabled = true;
+
+    bool collected = false;
+};
+
+struct CheckpointComponent
+{
+    glm::vec2 offset{0.0f, 0.0f};
+    std::string sound;
+    bool enabled = true;
+};
+
+struct RespawnComponent
+{
+    float delay = 1.0f;
+    bool useKillY = false;
+    float killY = -1000.0f;
+    bool restoreHealth = true;
+
+    glm::vec2 point{0.0f, 0.0f};
+    bool pointSet = false;
+    float timer = -1.0f;
+};
+
+struct MusicComponent
+{
+    std::vector<std::string> tracks;
+    float volume = 1.0f;
+    float fadeIn = 1.5f;
+    float fadeOut = 1.5f;
+    bool shuffle = false;
+    bool loopPlaylist = true;
+    bool playOnStart = true;
+    bool onTrigger = false;
+    bool stopOnExit = false;
+
+    bool started = false;
+    bool active = false;
+    bool wasInside = false;
+    int index = -1;
+};
+
+struct PickableComponent
+{
+    bool enabled = true;
+    int button = 0;
+    float smoothing = 0.0f;
+    float throwStrength = 1.0f;
+    float liftScale = 1.1f;
+    bool bringToFront = true;
+    bool keepOffset = true;
+    float padding = 0.0f;
+
+    bool held = false;
+    glm::vec2 grabOffset{0.0f, 0.0f};
+    glm::vec2 velocity{0.0f, 0.0f};
+    glm::vec2 baseScale{1.0f, 1.0f};
+    float baseZ = 0.0f;
+};
+
+struct ButtonComponent
+{
+    bool enabled = true;
+    int button = 0;
+    float hoverScale = 1.06f;
+    float pressScale = 0.94f;
+    std::string hoverSound;
+    std::string clickSound;
+    float volume = 1.0f;
+    float padding = 0.0f;
+
+    int state = 0;
+    bool pressed = false;
+    bool hovering = false;
+    glm::vec2 baseScale{1.0f, 1.0f};
+};
+
+struct ShaderUniformValue
+{
+    std::string name;
+    int type = 0;
+    float value[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float min = 0.0f;
+    float max = 1.0f;
+    std::string texturePath;
+    std::shared_ptr<SIMPEngine::Texture> texture;
+};
+
+struct ShaderGroupMemberTag
+{
+};
+
+struct ShaderCanvasComponent
+{
+    std::string shader;
+    int scope = 0;
+    float zMin = 0.0f;
+    float zMax = 1.0f;
+    int order = 0;
+    float resolutionScale = 1.0f;
+    float progress = 0.0f;
+    bool enabled = true;
+    bool limitArea = false;
+    glm::vec2 areaSize{400.0f, 300.0f};
+    std::vector<ShaderUniformValue> uniforms;
+
+    std::string error;
+    std::shared_ptr<SIMPEngine::ShaderEffect> effect;
+    uint32_t effectVersion = 0;
+};
+
+struct PrefabInstanceComponent
+{
+    std::string path;
+};
+
+struct CanvasComponent
+{
+    glm::vec2 referenceSize{1280.0f, 720.0f};
+    int scaleMode = 1;
+    float match = 0.5f;
+    float safeArea = 0.0f;
+    int sortOrder = 0;
+    bool visible = true;
+
+    glm::vec2 size{1280.0f, 720.0f};
+    float scale = 1.0f;
+};
+
+struct UIRectComponent
+{
+    glm::vec2 anchorMin{0.5f, 0.5f};
+    glm::vec2 anchorMax{0.5f, 0.5f};
+    glm::vec2 pivot{0.5f, 0.5f};
+    glm::vec2 position{0.0f, 0.0f};
+    glm::vec2 size{160.0f, 48.0f};
+    glm::vec4 margin{0.0f, 0.0f, 0.0f, 0.0f};
+    bool visible = true;
+    bool blocksInput = true;
+
+    glm::vec4 rect{0.0f, 0.0f, 0.0f, 0.0f};
+};
+
+struct UIPanelComponent
+{
+    SDL_Color color{28, 30, 40, 220};
+    float cornerRadius = 8.0f;
+    SDL_Color borderColor{255, 255, 255, 70};
+    float borderWidth = 0.0f;
+};
+
+struct UILabelComponent
+{
+    std::string text = "Label";
+    float size = 24.0f;
+    SDL_Color color{255, 255, 255, 255};
+    int align = 1;
+    int verticalAlign = 1;
+    std::string fontPath;
+    bool shadow = false;
+};
+
+struct UIImageComponent
+{
+    std::shared_ptr<SIMPEngine::Texture> texture = nullptr;
+    SDL_Color tint{255, 255, 255, 255};
+    bool preserveAspect = true;
+    bool useRegion = false;
+    SDL_FRect region{0.0f, 0.0f, 0.0f, 0.0f};
+};
+
+struct UIButtonComponent
+{
+    bool enabled = true;
+    bool focusable = true;
+    SDL_Color hoverTint{235, 240, 255, 255};
+    SDL_Color pressTint{175, 180, 200, 255};
+    SDL_Color disabledTint{130, 130, 130, 200};
+    float hoverScale = 1.03f;
+    float pressScale = 0.97f;
+    std::string hoverSound;
+    std::string clickSound;
+    float volume = 1.0f;
+
+    bool hovering = false;
+    bool pressed = false;
+    bool focused = false;
+};
+
+struct UILayoutComponent
+{
+    int direction = 1;
+    float spacing = 8.0f;
+    glm::vec4 padding{8.0f, 8.0f, 8.0f, 8.0f};
+    int justify = 0;
+    int align = 1;
+    bool stretch = false;
+    bool enabled = true;
+};
+
+struct TeleporterComponent
+{
+    std::string target;
+    glm::vec2 offset{0.0f, 0.0f};
+    std::string sound;
+    bool keepVelocity = true;
+    bool enabled = true;
+};
+
+struct CameraZoneComponent
+{
+    float zoom = 1.0f;
+    float speed = 4.0f;
+    bool setBounds = false;
+    glm::vec2 boundsMin{-1000.0f, -1000.0f};
+    glm::vec2 boundsMax{1000.0f, 1000.0f};
+    bool restoreOnExit = true;
+    bool enabled = true;
+};
+
+enum class BoundsMode : uint8_t
+{
+    Clamp,
+    Wrap,
+    Bounce,
+    Destroy
+};
+
+struct WorldBoundsComponent
+{
+    glm::vec2 min{-640.0f, -360.0f};
+    glm::vec2 max{640.0f, 360.0f};
+    BoundsMode mode = BoundsMode::Clamp;
+    float margin = 0.0f;
+    bool enabled = true;
 };

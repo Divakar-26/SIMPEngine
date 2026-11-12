@@ -3,8 +3,10 @@
 #include "../EditorCommands.h"
 #include "UI/Visuals.h"
 #include "UI/Widgets.h"
+#include <Engine/Core/Display.h>
 #include <Engine/Core/Log.h>
 #include <Engine/Scene/Component.h>
+#include <Engine/Scene/Prefab.h>
 #include <Engine/Scene/Systems/ParticleSystem.h>
 #include <Engine/Math/EntityUtility.h>
 
@@ -334,6 +336,7 @@ void ViewportPanel::RenderScene()
     scene.SetLightingVisible(true);
     DrawCameraFrame();
     DrawEmitterShapes();
+    DrawShaderAreas();
     DrawLightShapes();
     if (EditorUI::Settings().ShowColliders)
         DrawColliders();
@@ -384,16 +387,37 @@ void ViewportPanel::DrawGrid()
 
 void ViewportPanel::DrawCameraFrame()
 {
+    if (!EditorUI::Settings().ShowCameraFrame)
+        return;
     SIMPEngine::Scene &scene = *m_Context->Scene;
     auto &camera = scene.GetActiveCamera();
-    auto [vw, vh] = camera.GetViewportSize();
-    float aspect = (vw > 0 && vh > 0) ? static_cast<float>(vw) / static_cast<float>(vh) : 16.0f / 9.0f;
-    float hh = 540.0f * camera.GetZoom();
-    float hw = hh * aspect;
+    const SIMPEngine::DisplaySettings &display = SIMPEngine::Display::Get();
+    const float hw = static_cast<float>(display.Width) * 0.5f * camera.GetZoom();
+    const float hh = static_cast<float>(display.Height) * 0.5f * camera.GetZoom();
     glm::vec2 p = camera.GetPosition();
 
     SIMPEngine::Renderer::DrawRect(p.x, p.y, hw * 2.0f, hh * 2.0f, SIMPEngine::Renderer::GetWorldPerPixel() * 1.5f,
                                    ToSDL(EditorUI::Colors::CameraFrame, 0.9f), 0.0f, 100000.0f);
+}
+
+void ViewportPanel::DrawShaderAreas()
+{
+    using SIMPEngine::Renderer;
+    auto &registry = m_Context->Scene->GetRegistry();
+    const float wpp = Renderer::GetWorldPerPixel();
+    const SDL_Color color = ToSDL(EditorUI::Colors::Accent, 0.85f);
+
+    for (entt::entity handle : m_Context->SelectedHandles())
+    {
+        if (!registry.valid(handle) || !registry.all_of<ShaderCanvasComponent, TransformComponent>(handle))
+            continue;
+        const auto &canvas = registry.get<ShaderCanvasComponent>(handle);
+        if (!canvas.limitArea)
+            continue;
+        const auto world = SIMPEngine::DecomposeWorld(registry.get<TransformComponent>(handle));
+        const glm::vec2 size = canvas.areaSize * glm::abs(world.Scale);
+        Renderer::DrawRect(world.Position.x, world.Position.y, size.x, size.y, wpp * 1.5f, color, 0.0f, 99995.0f);
+    }
 }
 
 void ViewportPanel::DrawEmitterShapes()
@@ -493,6 +517,64 @@ void ViewportPanel::DrawLightShapes()
     }
 }
 
+namespace
+{
+    glm::vec2 PlaceLocal(const glm::vec2 &local, const glm::vec2 &position, float angle)
+    {
+        const float c = std::cos(angle), s = std::sin(angle);
+        return position + glm::vec2(c * local.x - s * local.y, s * local.x + c * local.y);
+    }
+
+    void DrawBodyShape(const AccelEngine::RigidBody &body, const glm::vec2 &position, float angle, const SDL_Color &color, float wpp)
+    {
+        using SIMPEngine::Renderer;
+        using AccelEngine::ShapeType;
+        const float thickness = wpp * 1.5f;
+
+        if (body.shapeType == ShapeType::CIRCLE)
+        {
+            Renderer::DrawRing(position.x, position.y, body.circle.radius, thickness, color, 1.0f, 99994.0f);
+            const glm::vec2 tip = PlaceLocal({body.circle.radius, 0.0f}, position, angle);
+            Renderer::DrawLine(position.x, position.y, tip.x, tip.y, thickness, color, 99994.0f);
+            return;
+        }
+        if (body.shapeType == ShapeType::AABB)
+        {
+            Renderer::DrawRect(position.x, position.y, body.aabb.halfSize.x * 2.0f, body.aabb.halfSize.y * 2.0f, thickness, color, glm::degrees(angle), 99994.0f);
+            return;
+        }
+
+        for (const AccelEngine::ConvexPart &part : body.parts)
+        {
+            if (part.count == 1)
+            {
+                const glm::vec2 c = PlaceLocal({part.v[0].x, part.v[0].y}, position, angle);
+                Renderer::DrawRing(c.x, c.y, std::max(part.radius, wpp), thickness, color, 1.0f, 99994.0f);
+                continue;
+            }
+            for (int i = 0; i < part.count; ++i)
+            {
+                const AccelEngine::Vector2 va = part.v[i], vb = part.v[(i + 1) % part.count];
+                const glm::vec2 a = PlaceLocal({va.x, va.y}, position, angle);
+                const glm::vec2 b = PlaceLocal({vb.x, vb.y}, position, angle);
+                if (part.count == 2)
+                {
+                    if (i == 1)
+                        break;
+                    const AccelEngine::Vector2 d = (vb - va).normalized();
+                    const glm::vec2 normal = PlaceLocal({-d.y * part.radius, d.x * part.radius}, glm::vec2(0.0f), angle);
+                    Renderer::DrawLine(a.x + normal.x, a.y + normal.y, b.x + normal.x, b.y + normal.y, thickness, color, 99994.0f);
+                    Renderer::DrawLine(a.x - normal.x, a.y - normal.y, b.x - normal.x, b.y - normal.y, thickness, color, 99994.0f);
+                    Renderer::DrawRing(a.x, a.y, part.radius, thickness, color, 1.0f, 99994.0f);
+                    Renderer::DrawRing(b.x, b.y, part.radius, thickness, color, 1.0f, 99994.0f);
+                }
+                else
+                    Renderer::DrawLine(a.x, a.y, b.x, b.y, thickness, color, 99994.0f);
+            }
+        }
+    }
+}
+
 void ViewportPanel::DrawColliders()
 {
     using SIMPEngine::Renderer;
@@ -509,16 +591,37 @@ void ViewportPanel::DrawColliders()
         Renderer::DrawRect(center.x, center.y, size.x, size.y, wpp * 1.5f, color, 0.0f, 99994.0f);
     }
 
+    SDL_Color sensorColor = ToSDL(EditorUI::Colors::Warning, 0.85f);
+    SDL_Color sleepColor = ToSDL(EditorUI::Colors::TextDim, 0.85f);
     for (auto entity : registry.view<PhysicsComponent, TransformComponent>())
     {
         const auto &physics = registry.get<PhysicsComponent>(entity);
         if (!physics.body)
             continue;
         auto world = SIMPEngine::DecomposeWorld(registry.get<TransformComponent>(entity));
-        if (physics.body->shapeType == AccelEngine::ShapeType::CIRCLE)
-            Renderer::DrawRing(world.Position.x, world.Position.y, physics.body->circle.radius, wpp * 1.5f, color, 1.0f, 99994.0f);
-        else
-            Renderer::DrawRect(world.Position.x, world.Position.y, physics.body->aabb.halfSize.x * 2.0f, physics.body->aabb.halfSize.y * 2.0f, wpp * 1.5f, color, world.Rotation, 99994.0f);
+        const bool asleep = m_Context->State != SceneState::Edit && !physics.body->isAwake && !physics.body->isStatic();
+        DrawBodyShape(*physics.body, world.Position, glm::radians(world.Rotation), physics.body->isSensor ? sensorColor : asleep ? sleepColor : color, wpp);
+    }
+
+    SDL_Color jointColor = ToSDL(EditorUI::Colors::Accent, 0.9f);
+    for (AccelEngine::Joint *joint : m_Context->Scene->GetPhysicsWorld().getJoints())
+    {
+        if (!joint || !joint->A || !joint->B)
+            continue;
+        AccelEngine::Vector2 a = joint->A->position, b = joint->B->position;
+        if (auto *distance = dynamic_cast<AccelEngine::DistanceJoint *>(joint))
+        {
+            a = distance->A->getPointInWorldSpace(distance->localA);
+            b = distance->B->getPointInWorldSpace(distance->localB);
+        }
+        else if (auto *revolute = dynamic_cast<AccelEngine::RevoluteJoint *>(joint))
+        {
+            a = revolute->getAnchorA();
+            b = revolute->getAnchorB();
+        }
+        Renderer::DrawLine(a.x, a.y, b.x, b.y, wpp * 1.5f, jointColor, 99995.0f);
+        Renderer::DrawCircle(a.x, a.y, wpp * 3.0f, jointColor, 1.0f, 99995.0f);
+        Renderer::DrawCircle(b.x, b.y, wpp * 3.0f, jointColor, 1.0f, 99995.0f);
     }
 }
 
@@ -539,6 +642,19 @@ void ViewportPanel::DrawLogicShapes()
         glm::vec2 size(trigger.width * std::abs(world.Scale.x), trigger.height * std::abs(world.Scale.y));
         glm::vec2 center = world.Position + glm::vec2(trigger.offsetX, trigger.offsetY) + size * 0.5f;
         SDL_Color color = ToSDL(EditorUI::Colors::Warning, trigger.enabled ? 0.9f : 0.35f);
+        Renderer::DrawRect(center.x, center.y, size.x, size.y, wpp * 1.5f, color, 0.0f, 99994.0f);
+    }
+
+    for (auto entity : registry.view<WorldBoundsComponent>())
+    {
+        if (!showAll && !m_Context->IsSelected(entity))
+            continue;
+        const auto &bounds = registry.get<WorldBoundsComponent>(entity);
+        const glm::vec2 low = glm::min(bounds.min, bounds.max);
+        const glm::vec2 high = glm::max(bounds.min, bounds.max);
+        const glm::vec2 center = (low + high) * 0.5f;
+        const glm::vec2 size = high - low;
+        SDL_Color color = ToSDL(EditorUI::Colors::Success, bounds.enabled ? 0.9f : 0.35f);
         Renderer::DrawRect(center.x, center.y, size.x, size.y, wpp * 1.5f, color, 0.0f, 99994.0f);
     }
 
@@ -917,6 +1033,17 @@ void ViewportPanel::HandleDrop()
             world = {SnapTo(world.x, EditorUI::Settings().SnapMove), SnapTo(world.y, EditorUI::Settings().SnapMove)};
         if (auto entity = EditorCommands::CreateSprite(*m_Context, vpath, world))
             m_Context->SelectedEntity = entity;
+    }
+    if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+    {
+        std::string vpath(static_cast<const char *>(payload->Data));
+        if (SIMPEngine::Prefab::IsPrefabPath(vpath))
+        {
+            glm::vec2 world = GetMouseWorldPosition();
+            if (EditorUI::Settings().Snap)
+                world = {SnapTo(world.x, EditorUI::Settings().SnapMove), SnapTo(world.y, EditorUI::Settings().SnapMove)};
+            EditorCommands::InstantiatePrefab(*m_Context, vpath, world);
+        }
     }
     ImGui::EndDragDropTarget();
 }

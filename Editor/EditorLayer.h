@@ -17,6 +17,8 @@
 #include "Panels/ParticlePickerPanel.h"
 #include "Panels/ScriptEditorPanel.h"
 #include "Panels/TweenLabPanel.h"
+#include "Panels/EffectsPanel.h"
+#include "Panels/DocsPanel.h"
 #include "Panels/ProjectSettingsPanel.h"
 #include "Panels/BuildPanel.h"
 #include "Panels/InspectorPanel/AnimationMakerPanel.h"
@@ -63,6 +65,8 @@ private:
     void DrawShortcutsWindow();
     void DrawRecoveryModal();
     void CheckRecovery(const std::string &scenePath);
+    void TrackWindow(float dt);
+    void RestoreWindow();
     void WriteRecovery();
     void HandleRuntimeFaults();
     void SetGameFullscreen(bool fullscreen);
@@ -98,6 +102,8 @@ private:
     SettingsPanel m_SettingsPanel;
     ScriptEditorPanel m_ScriptEditorPanel;
     TweenLabPanel m_TweenLabPanel;
+    EffectsPanel m_EffectsPanel;
+    DocsPanel m_DocsPanel;
     ProjectSettingsPanel m_ProjectSettingsPanel;
     BuildPanel m_BuildPanel;
     std::function<void()> m_OnCloseProject;
@@ -125,6 +131,12 @@ private:
 
     bool m_ShowProfiler = false;
     bool m_ResetLayout = false;
+    float m_WindowSettle = 0.0f;
+
+public:
+    void RequestLayoutReset() { m_ResetLayout = true; }
+
+private:
     bool m_LayoutChecked = false;
     int m_FocusDefaultTabs = 0;
     float m_StatusFlash = 0.0f;

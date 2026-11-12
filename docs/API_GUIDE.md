@@ -115,7 +115,9 @@ Updates and draws the active scene of a `SceneManager`.
 | `SceneLighting &GetLighting()` | `{ bool Enabled; glm::vec4 Ambient; }` |
 | `BloomSettings &GetBloom()` | `{ bool Enabled; float Threshold, Knee, Intensity, Radius; }` |
 | `void SetLightingVisible(bool)` | Temporarily skip lighting, glow and bloom (editor preview toggle) |
-| `void MarkPhysicsDirty()` | Rebuild the physics world next update; call after adding/removing bodies |
+| `PhysicsComponent &AddBody(entt::entity, std::unique_ptr<RigidBody>)` / `void RemoveBody(entt::entity)` | Attach or detach a rigid body (registered with the world immediately) |
+| `AccelEngine::World &GetPhysicsWorld()` | Gravity, settings, joints, raycasts and area queries |
+| `void MarkPhysicsDirty()` | Registers bodies that were assigned to a component by hand |
 | `void StopAudio()` | Stops every audio source's voice |
 
 ### EntityBuilder
@@ -466,22 +468,29 @@ Only WAV is supported. For sounds tied to entities use `AudioSourceComponent`.
 
 ## Physics
 
+SIMPEngine uses AccelEngine (`vendor/AccelEngine`, y points up, units are pixels). Shapes: circle, box, capsule, convex polygon and compound. Create bodies through the scene so they are registered immediately and unregistered when removed:
+
 ```cpp
-auto &pc = entity.AddComponent<PhysicsComponent>();
-pc.body = std::make_unique<AccelEngine::RigidBody>();
-pc.body->shapeType = AccelEngine::ShapeType::AABB;   // or CIRCLE
-pc.body->aabb.halfSize = {16.0f, 16.0f};             // or circle.radius
-pc.body->inverseMass = 1.0f;                         // 0 = static
-pc.body->restitution = 0.3f;
-pc.body->entityID = static_cast<uint32_t>(entity.GetHandle());
-glm::vec2 at = entity.GetComponent<TransformComponent>().position;
-pc.body->position = {at.x, at.y};
-scene.MarkPhysicsDirty();
+#include <Engine/Physics/BodyFactory.h>
+
+PhysicsBodies::Options options;          // mass, restitution, friction
+options.Mass = 2.0f;
+scene.AddBody(entity.GetHandle(), PhysicsBodies::Circle(20.0f, options));
+// PhysicsBodies::Box(halfSize), Capsule(halfLength, radius), RegularPolygon(sides, radius),
+// Polygon(points, cornerRadius), FromParts(type, parts, options, recenter)
+
+auto &body = *entity.GetComponent<PhysicsComponent>().body;
+body.categoryBits = 0x0002;              // collision layers (see RigidBody)
+body.isSensor = true;                    // overlap events only
+scene.RemoveBody(entity.GetHandle());    // also happens when the entity or component is destroyed
 ```
 
-- At the start of every update the body position is copied **into** the transform, so a body whose `position` you never set snaps the entity to the origin. Set it, or call `scene.SyncPhysicsFromTransforms()` after placing entities (the editor does this when you press Play).
-- The world is rebuilt from all bodies at the start of the next update after `MarkPhysicsDirty()`.
-- Gravity, friction and collision response come from AccelEngine; see its headers in `include/AccelEngine/`.
+- **The Transform is the pose.** A body takes its entity's position and rotation the moment it is added. Dynamic bodies then drive the Transform (written back right after the step, in the parent's space for child entities); static and locked bodies follow it. If anything changes a Transform (a script, Oscillator, Follow, a tween), the body is moved before the next step. Call `PhysicsSystem::SyncBodyToTransform` to force it immediately.
+- **Gravity and settings** are scene properties: `scene.GetPhysicsWorld().gravity` (default `(0, -980)`) and `.settings` (`substeps` 6, `velocityIterations`, `enableSleep`, ...), saved under `Settings.physics`. One `World::step(dt)` per frame, `dt` clamped to 1/30 s. Small worlds run single-threaded; 256 or more bodies use the worker pool.
+- **Sleeping:** resting bodies stop being simulated. Code that changes a body by hand must call `body.wakeUp()` (or use `setPose`, `setVelocity`, `applyImpulse`, which wake it).
+- **Events:** `OnCollision(other)` for solid contacts, `OnTriggerEnter/Stay/Exit(other)` for sensor overlaps.
+- **Queries:** `scene.GetPhysicsWorld().raycast(origin, direction, maxDistance, hit)`, `queryPoint`, `queryAABB`. Joints: `createDistanceJoint`, `createRevoluteJoint`, `createWheelJoint`, `createWeldJoint`. Or use the Lua `Physics` table.
+- `scene.MarkPhysicsDirty()` is kept for compatibility and only registers bodies that were attached to a component by hand.
 
 ---
 

@@ -23,15 +23,25 @@ add_library(Editor STATIC
     Panels/InspectorPanel/LightSection.cpp
     Panels/InspectorPanel/AudioSection.cpp
     Panels/InspectorPanel/LogicSection.cpp
+    Panels/InspectorPanel/UISection.cpp
+    Panels/DocsPanel.cpp
+    Docs/Markdown.cpp
+    Docs/MarkdownView.cpp
+    Panels/InspectorPanel/ShaderSection.cpp
+    Panels/InspectorPanel/PrefabSection.cpp
     Panels/InspectorPanel/VectorSection.cpp
     Panels/ParticlePickerPanel.cpp
     Panels/ScriptEditorPanel.cpp
     Panels/TweenLabPanel.cpp
+    Panels/EffectsPanel.cpp
     UI/Theme.cpp
     UI/Widgets.cpp
     ScriptEditor/LuaLexer.cpp
     ScriptEditor/CodeTheme.cpp
     ScriptEditor/LuaCompletion.cpp
+    ScriptEditor/LuaContext.cpp
+    ScriptEditor/LuaNavigation.cpp
+    ScriptEditor/CurvePreview.cpp
     ScriptEditor/CodeEditor.cpp
     Export/GameBuilder.cpp
     UI/FileDialogs.cpp

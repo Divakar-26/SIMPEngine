@@ -2,11 +2,13 @@
 
 #include <Engine/Core/Log.h>
 #include <Engine/Math/EntityUtility.h>
+#include <Engine/Scene/Prefab.h>
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/SceneSerializer.h>
 
 #include <algorithm>
 #include <cmath>
+#include <utility>
 
 namespace SIMPEngine
 {
@@ -79,6 +81,19 @@ namespace SIMPEngine
             return &it->second;
 
         entt::registry &registry = scene.GetRegistry();
+        if (Prefab::IsPrefabPath(name))
+        {
+            const std::optional<std::string> yaml = Prefab::LoadYaml(name);
+            if (!yaml)
+            {
+                if (m_Missing.insert(name).second)
+                    CORE_WARN("Spawner: prefab '{}' could not be loaded", name);
+                return nullptr;
+            }
+            Prototype prefab;
+            prefab.Yaml = *yaml;
+            return &m_Prototypes.emplace(name, std::move(prefab)).first->second;
+        }
         const Entity found = scene.GetEntityByName(name);
         if (!found || found.GetHandle() == spawner)
         {
@@ -192,6 +207,8 @@ namespace SIMPEngine
                 }
 
                 const entt::entity root = created.front();
+                if (Prefab::IsPrefabPath(name))
+                    registry.emplace_or_replace<PrefabInstanceComponent>(root, PrefabInstanceComponent{name});
                 if (auto *transform = registry.try_get<TransformComponent>(root))
                 {
                     transform->position = origin + spawner.offset + jitter;

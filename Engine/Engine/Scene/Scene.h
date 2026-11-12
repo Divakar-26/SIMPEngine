@@ -26,6 +26,17 @@
 #include <Engine/Scene/Systems/DamageSystem.h>
 #include <Engine/Scene/Systems/OscillatorSystem.h>
 #include <Engine/Scene/Systems/SpawnerSystem.h>
+#include <Engine/Scene/Systems/FollowSystem.h>
+#include <Engine/Scene/Systems/PickupSystem.h>
+#include <Engine/Scene/Systems/RespawnSystem.h>
+#include <Engine/Scene/Systems/MusicSystem.h>
+#include <Engine/Scene/Systems/PickableSystem.h>
+#include <Engine/Scene/Systems/ButtonSystem.h>
+#include <Engine/Scene/Systems/UISystem.h>
+#include <Engine/Scene/Systems/ShaderCanvasSystem.h>
+#include <Engine/Scene/Systems/TeleporterSystem.h>
+#include <Engine/Scene/Systems/CameraZoneSystem.h>
+#include <Engine/Scene/Systems/BoundsSystem.h>
 #include <Engine/Scene/ScriptEvent.h>
 #include <Engine/Animation/Tween.h>
 
@@ -119,6 +130,16 @@ namespace SIMPEngine
 
         void UpdateTransforms();
         void UpdateParticles(float dt);
+
+        bool LoadSceneFile(const std::string &path);
+        void RequestLoad(const std::string &path, float fade = 0.0f, const std::string &shader = std::string());
+        void RequestReload(float fade = 0.0f, const std::string &shader = std::string());
+        bool IsTransitioning() const { return m_Transition.Phase != TransitionPhase::None || m_Transition.Requested; }
+        float GetFadeAlpha() const;
+        bool IsMouseOverUI() const { return uiSystem.IsMouseOverUI(); }
+        UISystem &GetUI() { return uiSystem; }
+        const std::string &GetSourcePath() const { return m_SourcePath; }
+        void SetSourcePath(const std::string &path) { m_SourcePath = path; }
         glm::vec2 ScreenToWorld(const glm::vec2 &viewportPixel);
 
         const glm::vec4 &GetBackgroundColor() const { return m_BackgroundColor; }
@@ -130,6 +151,7 @@ namespace SIMPEngine
         const BloomSettings &GetBloom() const { return m_Bloom; }
         void SetLightingVisible(bool visible) { m_LightingVisible = visible; }
         void StopAudio();
+        MusicSystem &GetMusicSystem() { return musicSystem; }
 
         void SendEvent(entt::entity target, ScriptEvent type, entt::entity other = entt::null, float value = 0.0f);
 
@@ -172,11 +194,12 @@ namespace SIMPEngine
         void SetParent(entt::entity child, entt::entity parent);
 
         void MarkPhysicsDirty() { m_PhysicsDirty = true; }
-        void RebuildPhysicsWorld();
         void SyncPhysicsFromTransforms();
+        PhysicsComponent &AddBody(entt::entity entity, std::unique_ptr<AccelEngine::RigidBody> body);
+        void RemoveBody(entt::entity entity);
 
     private:
-        void RenderContent();
+        void RenderContent(bool screenSpaceUI);
         void ApplyParallax();
 
         std::string m_Name;
@@ -210,7 +233,45 @@ namespace SIMPEngine
         DamageSystem damageSystem;
         OscillatorSystem oscillatorSystem;
         SpawnerSystem spawnerSystem;
+        FollowSystem followSystem;
+        PickupSystem pickupSystem;
+        RespawnSystem respawnSystem;
+        MusicSystem musicSystem;
+        PickableSystem pickableSystem;
+        ButtonSystem buttonSystem;
+        UISystem uiSystem;
+        ShaderCanvasSystem shaderCanvasSystem;
+        TeleporterSystem teleporterSystem;
+        CameraZoneSystem cameraZoneSystem;
+        BoundsSystem boundsSystem;
         TweenSystem m_Tweens{*this};
+
+        enum class TransitionPhase
+        {
+            None,
+            Out,
+            In
+        };
+
+        struct Transition
+        {
+            TransitionPhase Phase = TransitionPhase::None;
+            bool Requested = false;
+            std::string RequestedPath;
+            std::string RequestedShader;
+            float RequestedFade = 0.0f;
+            std::string Shader;
+            std::string ActivePath;
+            float Duration = 0.0f;
+            float Time = 0.0f;
+        };
+
+        void UpdateTransition(float dt);
+        void RenderFade();
+
+        Transition m_Transition;
+        ShaderCanvasComponent m_TransitionCanvas;
+        std::string m_SourcePath;
 
         std::vector<entt::entity> m_ScriptOrder;
         float m_Time = 0.0f;

@@ -1,3 +1,6 @@
+#include <Engine/Input/InputActions.h>
+#include <Engine/Core/Display.h>
+#include <algorithm>
 #include "Project.h"
 
 #include <Engine/Core/Log.h>
@@ -179,6 +182,25 @@ namespace SIMPEngine
                     loaded.Resizable = window["resizable"].as<bool>();
                 if (window["vsync"])
                     loaded.VSync = window["vsync"].as<bool>();
+                if (window["maximized"])
+                    loaded.Maximized = window["maximized"].as<bool>();
+                if (window["borderless"])
+                    loaded.Borderless = window["borderless"].as<bool>();
+                if (window["orientation"])
+                    loaded.Orientation = window["orientation"].as<std::string>();
+            }
+            if (YAML::Node view = node["display"]; view && view.IsMap())
+            {
+                if (view["width"])
+                    loaded.ViewWidth = std::clamp(view["width"].as<int>(), 64, 16384);
+                if (view["height"])
+                    loaded.ViewHeight = std::clamp(view["height"].as<int>(), 64, 16384);
+                const std::string aspect = view["aspect"] ? view["aspect"].as<std::string>() : std::string("keep_height");
+                loaded.Aspect = aspect == "keep_width" ? 1 : aspect == "expand" ? 2 : aspect == "keep" ? 3 : 0;
+                const std::string stretch = view["stretch"] ? view["stretch"].as<std::string>() : std::string("window");
+                loaded.Stretch = stretch == "fixed" ? 1 : 0;
+                if (view["render_scale"])
+                    loaded.RenderScale = std::clamp(view["render_scale"].as<float>(), 0.2f, 1.0f);
             }
             settings = loaded;
             return true;
@@ -205,7 +227,19 @@ namespace SIMPEngine
         out << YAML::Key << "fullscreen" << YAML::Value << settings.Fullscreen;
         out << YAML::Key << "resizable" << YAML::Value << settings.Resizable;
         out << YAML::Key << "vsync" << YAML::Value << settings.VSync;
-        out << YAML::EndMap << YAML::EndMap << YAML::EndMap;
+        out << YAML::Key << "maximized" << YAML::Value << settings.Maximized;
+        out << YAML::Key << "borderless" << YAML::Value << settings.Borderless;
+        out << YAML::Key << "orientation" << YAML::Value << settings.Orientation;
+        out << YAML::EndMap;
+        out << YAML::Key << "display" << YAML::Value << YAML::BeginMap;
+        out << YAML::Key << "width" << YAML::Value << settings.ViewWidth;
+        out << YAML::Key << "height" << YAML::Value << settings.ViewHeight;
+        out << YAML::Key << "aspect" << YAML::Value
+            << (settings.Aspect == 1 ? "keep_width" : settings.Aspect == 2 ? "expand" : settings.Aspect == 3 ? "keep" : "keep_height");
+        out << YAML::Key << "stretch" << YAML::Value << (settings.Stretch == 1 ? "fixed" : "window");
+        out << YAML::Key << "render_scale" << YAML::Value << settings.RenderScale;
+        out << YAML::EndMap;
+        out << YAML::EndMap << YAML::EndMap;
 
         if (!WriteText(directory / FileName, std::string(out.c_str()) + "\n"))
         {
@@ -275,6 +309,8 @@ namespace SIMPEngine
         s_Directory = directory;
         s_Open = true;
         VFS::Mount("assets", (directory / "assets").string());
+        InputActions::LoadProject(directory.string());
+        ApplyDisplay();
         CORE_INFO("Opened project '{}' at {}", settings.Name, directory.string());
         return true;
     }
@@ -294,6 +330,20 @@ namespace SIMPEngine
         s_Open = false;
         s_Settings = {};
         s_Directory.clear();
+        InputActions::DisableUserBindings();
+        InputActions::CloseProject();
+        Display::Reset();
+    }
+
+    void Project::ApplyDisplay()
+    {
+        DisplaySettings display;
+        display.Width = s_Settings.ViewWidth;
+        display.Height = s_Settings.ViewHeight;
+        display.Aspect = static_cast<AspectMode>(std::clamp(s_Settings.Aspect, 0, 3));
+        display.Stretch = s_Settings.Stretch == 1 ? StretchMode::Fixed : StretchMode::Window;
+        display.RenderScale = s_Settings.RenderScale;
+        Display::Set(display);
     }
 
     fs::path Project::EngineResourceDirectory()

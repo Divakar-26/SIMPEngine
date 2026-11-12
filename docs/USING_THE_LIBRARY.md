@@ -22,13 +22,15 @@ git submodule update --init --recursive
 ```sh
 cmake --preset release
 cmake --build --preset release --target Engine
-sudo cmake --install build/release --prefix /usr/local
+sudo cmake --install build/release --prefix /usr/local --component Unspecified
 ```
+
+`--component Unspecified` installs only the library. Without it CMake also runs the editor install rules, which fail unless the whole project was built (`SIMPPlayer` and the other apps are missing after `--target Engine`).
 
 Without root, install into your home folder instead and tell CMake where to look later:
 
 ```sh
-cmake --install build/release --prefix ~/.local
+cmake --install build/release --prefix ~/.local --component Unspecified
 ```
 
 What gets installed (`<prefix>` is `/usr/local` or `~/.local`):
@@ -175,7 +177,7 @@ After pulling new engine changes:
 ```sh
 git submodule update --init --recursive
 cmake --build --preset release --target Engine
-sudo cmake --install build/release --prefix /usr/local
+sudo cmake --install build/release --prefix /usr/local --component Unspecified
 ```
 
 Then rebuild your game.

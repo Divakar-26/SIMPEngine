@@ -54,6 +54,8 @@ namespace SIMPEngine
         TrimEnd,
         TrimOffset,
         DashOffset,
+        ShaderProgress,
+        ShaderUniform,
         Count
     };
 
@@ -67,6 +69,7 @@ namespace SIMPEngine
         bool Relative = false;
         bool RelativeFrom = false;
         float Velocity[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        std::string Uniform;
     };
 
     enum class TweenKind : uint8_t
@@ -170,7 +173,7 @@ namespace SIMPEngine
         float Progress(uint32_t id) const;
         bool IsRunning(uint32_t id) const;
 
-        void KillTarget(entt::entity target, int property = -1);
+        void KillTarget(entt::entity target, int property = -1, const std::string &uniformName = std::string());
         bool IsTweening(entt::entity target) const;
         void Clear();
         void Update(float dt);
@@ -185,8 +188,8 @@ namespace SIMPEngine
         static bool PropertyFromName(const std::string &name, TweenProperty &property, int &channels);
         static const char *PropertyName(TweenProperty property);
         static int ChannelCount(TweenProperty property);
-        bool Read(entt::entity entity, TweenProperty property, float out[4]) const;
-        void Write(entt::entity entity, TweenProperty property, const float value[4]);
+        bool Read(entt::entity entity, TweenProperty property, float out[4], const std::string *uniform = nullptr) const;
+        void Write(entt::entity entity, TweenProperty property, const float value[4], const std::string *uniform = nullptr);
 
     private:
         uint32_t Add(std::unique_ptr<TweenNode> node);

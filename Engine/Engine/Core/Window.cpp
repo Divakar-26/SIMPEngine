@@ -23,7 +23,11 @@
                 return false;
             }
 
+#if defined(SIMP_GLES)
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+#else
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+#endif
             SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 #ifdef __APPLE__
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
@@ -37,7 +41,11 @@
                 return false;
             }
 
+#if defined(SIMP_GLES)
+            static constexpr int Versions[][2] = {{3, 2}, {3, 1}, {3, 0}};
+#else
             static constexpr int Versions[][2] = {{4, 6}, {4, 5}, {4, 3}, {4, 1}, {4, 0}};
+#endif
             for (const auto &version : Versions)
             {
                 SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, version[0]);
@@ -45,7 +53,7 @@
                 m_GLContext = SDL_GL_CreateContext(m_Window);
                 if (m_GLContext)
                 {
-                    CORE_INFO("OpenGL {}.{} core context", version[0], version[1]);
+                    CORE_INFO("OpenGL {}.{} context created", version[0], version[1]);
                     break;
                 }
             }
@@ -60,6 +68,7 @@
             }
 
             SDL_GL_MakeCurrent(m_Window, m_GLContext);
+#if !defined(SIMP_GLES)
             auto glLoader = [](const char *procName) -> void *
             { return reinterpret_cast<void *>(SDL_GL_GetProcAddress(procName)); };
             if(!gladLoadGLLoader(glLoader)){
@@ -69,6 +78,10 @@
                 SDL_Quit();
                 return false;
             }
+#endif
+
+            if (const char *version = reinterpret_cast<const char *>(glGetString(GL_VERSION)))
+                CORE_INFO("GL_VERSION: {}", version);
 
             SDL_GL_SetSwapInterval(m_VSync ? 1 : 0);
 

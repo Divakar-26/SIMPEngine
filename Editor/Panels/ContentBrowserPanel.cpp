@@ -322,7 +322,7 @@ void ContentBrowserPanel::DrawItems()
                 Navigate(item.VPath);
                 break;
             }
-            if (open && m_Context && LowerExtension(item.Name) == ".lua")
+            if (open && m_Context && (LowerExtension(item.Name) == ".lua" || LowerExtension(item.Name) == ".glsl"))
                 m_Context->OpenScriptRequest = item.VPath;
         }
         ImGui::PopStyleVar();
@@ -378,7 +378,7 @@ void ContentBrowserPanel::DrawItems()
                 Navigate(item.VPath);
                 break;
             }
-            if (r.DoubleClicked && m_Context && LowerExtension(item.Name) == ".lua")
+            if (r.DoubleClicked && m_Context && (LowerExtension(item.Name) == ".lua" || LowerExtension(item.Name) == ".glsl"))
                 m_Context->OpenScriptRequest = item.VPath;
         }
         ImGui::PopStyleVar();

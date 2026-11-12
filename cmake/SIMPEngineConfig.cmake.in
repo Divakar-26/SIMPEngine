@@ -16,7 +16,7 @@ if(NOT TARGET SIMPEngine::Engine)
         list(APPEND _simp_libs "${_simp_libdir}/${_simp_lib}")
     endforeach()
 
-    set(_simp_defines "@SIMP_DEFINES@")
+    set(_simp_defines [==[@SIMP_DEFINES@]==])
     list(REMOVE_ITEM _simp_defines "")
     list(REMOVE_DUPLICATES _simp_defines)
 

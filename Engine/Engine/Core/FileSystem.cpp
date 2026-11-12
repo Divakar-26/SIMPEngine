@@ -1,7 +1,9 @@
 #include <Engine/Core/FileSystem.h>
 
 #include <filesystem>
+#include <chrono>
 #include <fstream>
+#include <thread>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -83,13 +85,15 @@ namespace SIMPEngine
         }
 
         std::error_code ec;
-        fs::rename(temporary, target, ec);
-        if (ec)
+        for (int attempt = 0; attempt < 5; ++attempt)
         {
-            fs::remove(temporary, ec);
-            return false;
+            fs::rename(temporary, target, ec);
+            if (!ec)
+                return true;
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
         }
-        return true;
+        fs::remove(temporary, ec);
+        return false;
     }
 
     vector<FileEntry> FileSystem::List(const string &dir)

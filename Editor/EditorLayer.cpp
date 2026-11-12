@@ -13,6 +13,8 @@
 #include <Engine/Events/ApplicationEvent.h>
 #include <Engine/Project/Project.h>
 #include <Engine/Core/CrashHandler.h>
+#include <Engine/Core/GameVariables.h>
+#include <Engine/Audio/Music.h>
 
 #include <Engine/Core/Profiler/EngineProfiler.h>
 
@@ -20,6 +22,8 @@
 #include <cmath>
 #include <cstdio>
 #include <filesystem>
+#include <utility>
+#include <vector>
 
 namespace
 {
@@ -66,6 +70,7 @@ EditorLayer::EditorLayer(SIMPEngine::RenderingLayer *renderingLayer)
 
     m_BuildPanel.SetBeforeBuild([this] { return SaveBeforeLaunch(); });
     m_BuildPanel.SetOpenSettings([this] { m_ProjectSettingsPanel.Open(); });
+    m_SettingsPanel.SetResetLayout([this] { m_ResetLayout = true; });
 }
 
 void EditorLayer::OpenStartScene(const std::string &path)
@@ -78,6 +83,8 @@ void EditorLayer::OpenStartScene(const std::string &path)
 
 void EditorLayer::Flash(const std::string &message, bool error)
 {
+    if (!error && !EditorUI::Settings().ShowToasts)
+        return;
     m_StatusMessage = message;
     m_StatusError = error;
     m_StatusFlash = error ? 8.0f : 3.0f;
@@ -112,6 +119,12 @@ void EditorLayer::HandleRuntimeFaults()
     if (fault.empty() || ctx.State == SceneState::Edit)
         return;
 
+    *m_ConsolePanel.VisibleFlag() = true;
+    if (!EditorUI::Settings().PausePlayOnError)
+    {
+        Flash("Error: " + fault, true);
+        return;
+    }
     ctx.State = SceneState::Pause;
     SetGameFullscreen(false);
     *m_ConsolePanel.VisibleFlag() = true;
@@ -168,11 +181,69 @@ void EditorLayer::RunStandalone()
         Flash("Started " + SIMPEngine::Project::Settings().Name);
 }
 
+void EditorLayer::TrackWindow(float dt)
+{
+    EditorUI::EditorSettings &s = EditorUI::Settings();
+    if (!s.RememberWindow || m_EditorContext.GameFullscreen)
+        return;
+    SDL_Window *window = SIMPEngine::Application::Get().GetWindow().GetNativeWindow();
+    if (!window)
+        return;
+    const SDL_WindowFlags flags = SDL_GetWindowFlags(window);
+    if (flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_MINIMIZED))
+        return;
+
+    const bool maximized = (flags & SDL_WINDOW_MAXIMIZED) != 0;
+    int width = 0, height = 0;
+    SDL_GetWindowSize(window, &width, &height);
+    bool changed = false;
+    if (maximized != s.WindowMaximized)
+    {
+        s.WindowMaximized = maximized;
+        changed = true;
+    }
+    else if (!maximized && width > 0 && height > 0 && (width != s.WindowWidth || height != s.WindowHeight))
+    {
+        m_WindowSettle += dt;
+        if (m_WindowSettle > 0.6f)
+        {
+            s.WindowWidth = width;
+            s.WindowHeight = height;
+            changed = true;
+        }
+    }
+    else
+        m_WindowSettle = 0.0f;
+    if (changed)
+    {
+        m_WindowSettle = 0.0f;
+        ImGui::MarkIniSettingsDirty();
+    }
+}
+
+void EditorLayer::RestoreWindow()
+{
+    EditorUI::EditorSettings &s = EditorUI::Settings();
+    if (!s.RememberWindow)
+        return;
+    SDL_Window *window = SIMPEngine::Application::Get().GetWindow().GetNativeWindow();
+    if (!window || (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN))
+        return;
+    if (s.WindowMaximized)
+        SDL_MaximizeWindow(window);
+    else
+    {
+        SDL_SetWindowSize(window, s.WindowWidth, s.WindowHeight);
+        SDL_SetWindowPosition(window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+    }
+}
+
 void EditorLayer::OnAttach()
 {
     EditorUI::RegisterSettingsHandler();
     EditorUI::LoadFonts();
     EditorUI::ApplyTheme(EditorUI::Settings().Theme);
+    RestoreWindow();
     EditorUI::SetEditHook([this]
                           { m_History.BeginEdit(); });
 
@@ -227,8 +298,11 @@ void EditorLayer::OnUpdate(class SIMPEngine::TimeStep ts)
     m_EditorContext.StepRequested = false;
     HandleRuntimeFaults();
 
+    TrackWindow(ts.GetSeconds());
+
     m_AutosaveTimer += ts.GetSeconds();
-    if (m_AutosaveTimer >= 30.0f)
+    const float autosave = EditorUI::Settings().AutosaveSeconds;
+    if (autosave >= 1.0f && m_AutosaveTimer >= autosave)
     {
         m_AutosaveTimer = 0.0f;
         if (m_EditorContext.State == SceneState::Edit && m_EditorContext.Dirty)
@@ -284,6 +358,7 @@ void EditorLayer::Play()
     m_DirtyBeforePlay = m_EditorContext.Dirty;
 
     SIMPEngine::Scene &scene = *m_EditorContext.Scene;
+    scene.SetSourcePath(m_EditorContext.ScenePath);
     scene.SyncPhysicsFromTransforms();
     scene.MarkPhysicsDirty();
 
@@ -291,6 +366,8 @@ void EditorLayer::Play()
     if (ImGuiWindow *game = ImGui::FindWindowByName(GameViewPanel::WindowId); game && game->DockNode && game->DockNode->VisibleWindow)
         m_TabBeforePlay = game->DockNode->VisibleWindow->Name;
 
+    SIMPEngine::GameVariables::Clear();
+    SIMPEngine::Music::Stop(0.0f);
     m_EditorContext.State = SceneState::Play;
     m_EditorContext.FocusGameView = true;
     m_EditorContext.RuntimeError.clear();
@@ -310,8 +387,10 @@ void EditorLayer::Stop()
     SIMPEngine::Input::SetEnabled(false);
 
     m_EditorContext.Scene->StopAudio();
+    SIMPEngine::GameVariables::Clear();
     m_History.Restore(m_PlaySnapshot);
     m_History.RefreshStable();
+    m_EditorContext.Scene->SetSourcePath(m_EditorContext.ScenePath);
     m_EditorContext.Dirty = m_DirtyBeforePlay;
 
     ImGuiWindow *previous = m_TabBeforePlay.empty() ? nullptr : ImGui::FindWindowByName(m_TabBeforePlay.c_str());
@@ -548,6 +627,8 @@ void EditorLayer::OnRender()
     m_ConsolePanel.OnImGuiRender();
     m_ScriptEditorPanel.OnImGuiRender();
     m_TweenLabPanel.OnImGuiRender();
+    m_EffectsPanel.OnImGuiRender();
+    m_DocsPanel.OnImGuiRender();
     m_AssetPicker->OnImGuiRender();
     m_ParticlePicker->OnImGuiRender();
     m_AnimationMakerPanel->OnImGuiRender();
@@ -681,6 +762,26 @@ void EditorLayer::DrawMenuBar()
                 EditorCommands::CreateLight(ctx, false, m_ViewportPanel.GetCameraCenter());
             if (ImGui::MenuItem("New Spot Light", nullptr, false, ctx.IsEditing()))
                 EditorCommands::CreateLight(ctx, true, m_ViewportPanel.GetCameraCenter());
+            if (ImGui::MenuItem("New Shader Canvas", nullptr, false, ctx.IsEditing()))
+                EditorCommands::CreateShaderCanvas(ctx);
+            if (ImGui::BeginMenu("New UI", ctx.IsEditing()))
+            {
+                if (ImGui::MenuItem("Canvas"))
+                    EditorCommands::CreateUINode(ctx, EditorCommands::UINodeKind::Canvas);
+                if (ImGui::MenuItem("Panel"))
+                    EditorCommands::CreateUINode(ctx, EditorCommands::UINodeKind::Panel);
+                if (ImGui::MenuItem("Label"))
+                    EditorCommands::CreateUINode(ctx, EditorCommands::UINodeKind::Label);
+                if (ImGui::MenuItem("Image"))
+                    EditorCommands::CreateUINode(ctx, EditorCommands::UINodeKind::Image);
+                if (ImGui::MenuItem("Button"))
+                    EditorCommands::CreateUINode(ctx, EditorCommands::UINodeKind::Button);
+                if (ImGui::MenuItem("Row Layout"))
+                    EditorCommands::CreateUINode(ctx, EditorCommands::UINodeKind::Row);
+                if (ImGui::MenuItem("Column Layout"))
+                    EditorCommands::CreateUINode(ctx, EditorCommands::UINodeKind::Column);
+                ImGui::EndMenu();
+            }
             if (ImGui::MenuItem("Rename", "F2", false, hasSelection))
                 ctx.RenameRequest = ctx.SelectedEntity.GetHandle();
             if (ImGui::MenuItem("Duplicate", "Ctrl+D", false, hasSelection))
@@ -700,6 +801,10 @@ void EditorLayer::DrawMenuBar()
                 *m_ScriptEditorPanel.VisibleFlag() = !m_ScriptEditorPanel.IsVisible();
             if (ImGui::MenuItem("Tween Lab", nullptr, m_TweenLabPanel.IsVisible()))
                 *m_TweenLabPanel.VisibleFlag() = !m_TweenLabPanel.IsVisible();
+            if (ImGui::MenuItem("Effects and Easing", nullptr, m_EffectsPanel.IsVisible()))
+                *m_EffectsPanel.VisibleFlag() = !m_EffectsPanel.IsVisible();
+            if (ImGui::MenuItem("Documentation", nullptr, m_DocsPanel.IsVisible()))
+                *m_DocsPanel.VisibleFlag() = !m_DocsPanel.IsVisible();
             ImGui::MenuItem("Profiler", nullptr, &m_ShowProfiler);
             if (ImGui::MenuItem("Render Stats", nullptr, Settings().ShowStats))
             {
@@ -753,6 +858,13 @@ void EditorLayer::DrawMenuBar()
         }
         if (ImGui::BeginMenu("Help"))
         {
+            if (ImGui::MenuItem("Documentation"))
+                m_DocsPanel.Open();
+            if (ImGui::MenuItem("Scripting Guide"))
+                m_DocsPanel.Open("SCRIPTING.md");
+            if (ImGui::MenuItem("C++ API Guide"))
+                m_DocsPanel.Open("API_GUIDE.md");
+            ImGui::Separator();
             if (ImGui::MenuItem("Keyboard Shortcuts"))
                 m_ShowShortcuts = true;
             ImGui::EndMenu();
@@ -1089,6 +1201,8 @@ void EditorLayer::BuildDefaultLayout(unsigned int dockspaceId)
     ImGui::DockBuilderDockWindow(GameViewPanel::WindowId, center);
     ImGui::DockBuilderDockWindow(ScriptEditorPanel::WindowId, center);
     ImGui::DockBuilderDockWindow(TweenLabPanel::WindowId, center);
+    ImGui::DockBuilderDockWindow(EffectsPanel::WindowId, center);
+    ImGui::DockBuilderDockWindow(DocsPanel::WindowId, center);
 
     ImGui::DockBuilderFinish(dockspaceId);
 

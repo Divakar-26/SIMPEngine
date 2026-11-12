@@ -1,3 +1,4 @@
+#include <Engine/Scene/Systems/PhysicsSystem.h>
 #include "LuaHelpers.h"
 #include "LuaBindings.h"
 
@@ -38,13 +39,8 @@ namespace SIMPEngine::LuaBindings
 
     void SyncBody(Entity *entity, const TransformComponent &transform)
     {
-        PhysicsComponent *physics = entity->GetScene()->GetRegistry().try_get<PhysicsComponent>(entity->GetHandle());
-        if (!physics || !physics->body)
-            return;
-
-        physics->body->position = {transform.position.x, transform.position.y};
-        physics->body->orientation = glm::radians(transform.rotation);
-        physics->body->calculateDerivativeData();
+        (void)transform;
+        PhysicsSystem::SyncBodyToTransform(entity->GetScene()->GetRegistry(), entity->GetHandle());
     }
 
     entt::entity FindFirstByName(Scene *scene, std::string_view wanted)

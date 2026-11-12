@@ -163,7 +163,7 @@ Configure with `-DNO_EDITOR=ON` to build the game without the editor.
 ```sh
 cmake --preset release
 cmake --build --preset release --target Engine
-sudo cmake --install build/release --prefix /usr/local
+sudo cmake --install build/release --prefix /usr/local --component Unspecified
 ```
 
 Then in any CMake project:

@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <string>
+#include <vector>
 
 namespace EditorUI
 {
@@ -106,40 +108,81 @@ namespace EditorUI
             return std::strcmp(name, "Editor") == 0 ? static_cast<void *>(&s_Settings) : nullptr;
         }
 
+        struct Field
+        {
+            const char *Key;
+            char Type;
+            void *Value;
+            float Min;
+            float Max;
+        };
+
+        std::vector<Field> Fields(EditorSettings &s)
+        {
+            return {
+                {"Theme", 'e', &s.Theme, 0, 2},
+                {"Font", 'e', &s.Font, 0, 1},
+                {"Scale", 'f', &s.Scale, 0.75f, 2.0f},
+                {"VSync", 'b', &s.VSync, 0, 1},
+                {"Grid", 'b', &s.ShowGrid, 0, 1},
+                {"Stats", 'b', &s.ShowStats, 0, 1},
+                {"GridSize", 'f', &s.GridSize, 1.0f, 4096.0f},
+                {"Snap", 'b', &s.Snap, 0, 1},
+                {"SnapMove", 'f', &s.SnapMove, 0.01f, 4096.0f},
+                {"SnapRotate", 'f', &s.SnapRotate, 0.1f, 180.0f},
+                {"Lighting", 'b', &s.PreviewLighting, 0, 1},
+                {"Colliders", 'b', &s.ShowColliders, 0, 1},
+                {"PlayFullscreen", 'b', &s.PlayFullscreen, 0, 1},
+                {"ScriptFontSize", 'f', &s.ScriptFontSize, 9.0f, 32.0f},
+                {"WindowWidth", 'i', &s.WindowWidth, 640, 16384},
+                {"WindowHeight", 'i', &s.WindowHeight, 480, 16384},
+                {"WindowMaximized", 'b', &s.WindowMaximized, 0, 1},
+                {"RememberWindow", 'b', &s.RememberWindow, 0, 1},
+                {"AutosaveSeconds", 'f', &s.AutosaveSeconds, 0.0f, 3600.0f},
+                {"UndoSteps", 'i', &s.UndoSteps, 5, 1000},
+                {"ZoomStep", 'f', &s.ZoomStep, 1.02f, 2.0f},
+                {"PausePlayOnError", 'b', &s.PausePlayOnError, 0, 1},
+                {"TabSize", 'i', &s.TabSize, 2, 8},
+                {"ShowCameraFrame", 'b', &s.ShowCameraFrame, 0, 1},
+                {"ShowToasts", 'b', &s.ShowToasts, 0, 1},
+            };
+        }
+
         void SettingsReadLine(ImGuiContext *, ImGuiSettingsHandler *, void *, const char *line)
         {
-            int i = 0;
-            float f = 0.0f;
             if (std::strncmp(line, "ScriptTheme=", 12) == 0)
+            {
                 s_Settings.ScriptTheme = line + 12;
-            else if (std::sscanf(line, "ScriptFontSize=%f", &f) == 1)
-                s_Settings.ScriptFontSize = std::clamp(f, 9.0f, 32.0f);
-            else if (std::sscanf(line, "Theme=%d", &i) == 1)
-                s_Settings.Theme = (ThemeId)std::clamp(i, 0, 2);
-            else if (std::sscanf(line, "Font=%d", &i) == 1)
-                s_Settings.Font = (UIFont)std::clamp(i, 0, 1);
-            else if (std::sscanf(line, "Scale=%f", &f) == 1)
-                s_Settings.Scale = std::clamp(f, 0.75f, 2.0f);
-            else if (std::sscanf(line, "VSync=%d", &i) == 1)
-                s_Settings.VSync = i != 0;
-            else if (std::sscanf(line, "Grid=%d", &i) == 1)
-                s_Settings.ShowGrid = i != 0;
-            else if (std::sscanf(line, "Stats=%d", &i) == 1)
-                s_Settings.ShowStats = i != 0;
-            else if (std::sscanf(line, "GridSize=%f", &f) == 1)
-                s_Settings.GridSize = std::clamp(f, 1.0f, 4096.0f);
-            else if (std::sscanf(line, "Snap=%d", &i) == 1)
-                s_Settings.Snap = i != 0;
-            else if (std::sscanf(line, "SnapMove=%f", &f) == 1)
-                s_Settings.SnapMove = std::clamp(f, 0.01f, 4096.0f);
-            else if (std::sscanf(line, "SnapRotate=%f", &f) == 1)
-                s_Settings.SnapRotate = std::clamp(f, 0.1f, 180.0f);
-            else if (std::sscanf(line, "Lighting=%d", &i) == 1)
-                s_Settings.PreviewLighting = i != 0;
-            else if (std::sscanf(line, "Colliders=%d", &i) == 1)
-                s_Settings.ShowColliders = i != 0;
-            else if (std::sscanf(line, "PlayFullscreen=%d", &i) == 1)
-                s_Settings.PlayFullscreen = i != 0;
+                return;
+            }
+            const char *equals = std::strchr(line, '=');
+            if (!equals)
+                return;
+            const std::string key(line, static_cast<size_t>(equals - line));
+            for (const Field &field : Fields(s_Settings))
+            {
+                if (key != field.Key)
+                    continue;
+                if (field.Type == 'f')
+                {
+                    float value = 0.0f;
+                    if (std::sscanf(equals + 1, "%f", &value) == 1)
+                        *static_cast<float *>(field.Value) = std::clamp(value, field.Min, field.Max);
+                }
+                else
+                {
+                    int value = 0;
+                    if (std::sscanf(equals + 1, "%d", &value) != 1)
+                        return;
+                    if (field.Type == 'b')
+                        *static_cast<bool *>(field.Value) = value != 0;
+                    else if (field.Type == 'i')
+                        *static_cast<int *>(field.Value) = std::clamp(value, static_cast<int>(field.Min), static_cast<int>(field.Max));
+                    else
+                        *static_cast<int *>(field.Value) = std::clamp(value, static_cast<int>(field.Min), static_cast<int>(field.Max));
+                }
+                return;
+            }
         }
 
         void SettingsApplyAll(ImGuiContext *, ImGuiSettingsHandler *)
@@ -149,14 +192,23 @@ namespace EditorUI
 
         void SettingsWriteAll(ImGuiContext *, ImGuiSettingsHandler *handler, ImGuiTextBuffer *buf)
         {
-            const EditorSettings &s = s_Settings;
             buf->appendf("[%s][Editor]\n", handler->TypeName);
-            buf->appendf("Theme=%d\nFont=%d\nScale=%.2f\nVSync=%d\nGrid=%d\nStats=%d\nGridSize=%.2f\nSnap=%d\nSnapMove=%.2f\nSnapRotate=%.2f\nLighting=%d\nColliders=%d\n",
-                         static_cast<int>(s.Theme), static_cast<int>(s.Font), s.Scale, s.VSync ? 1 : 0, s.ShowGrid ? 1 : 0, s.ShowStats ? 1 : 0,
-                         s.GridSize, s.Snap ? 1 : 0, s.SnapMove, s.SnapRotate, s.PreviewLighting ? 1 : 0, s.ShowColliders ? 1 : 0);
-            buf->appendf("PlayFullscreen=%d\n", s.PlayFullscreen ? 1 : 0);
-            buf->appendf("ScriptTheme=%s\nScriptFontSize=%.1f\n\n", s.ScriptTheme.c_str(), s.ScriptFontSize);
+            for (const Field &field : Fields(s_Settings))
+            {
+                if (field.Type == 'f')
+                    buf->appendf("%s=%.3f\n", field.Key, *static_cast<float *>(field.Value));
+                else if (field.Type == 'b')
+                    buf->appendf("%s=%d\n", field.Key, *static_cast<bool *>(field.Value) ? 1 : 0);
+                else
+                    buf->appendf("%s=%d\n", field.Key, *static_cast<int *>(field.Value));
+            }
+            buf->appendf("ScriptTheme=%s\n\n", s_Settings.ScriptTheme.c_str());
         }
+    }
+
+    EditorSettings DefaultSettings()
+    {
+        return EditorSettings{};
     }
 
     EditorSettings &Settings()

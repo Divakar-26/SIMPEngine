@@ -15,9 +15,20 @@ namespace
 {
     constexpr const char *Header = "# SIMPRecovery ";
 
+    std::string Utf8(const fs::path &path)
+    {
+        const std::u8string text = path.u8string();
+        return std::string(reinterpret_cast<const char *>(text.data()), text.size());
+    }
+
+    fs::path FromUtf8(const std::string &text)
+    {
+        return fs::path(std::u8string(reinterpret_cast<const char8_t *>(text.data()), text.size()));
+    }
+
     std::string Key(const std::string &scenePath)
     {
-        std::string text = SIMPEngine::Project::IsOpen() ? SIMPEngine::Project::Directory().string() : std::string();
+        std::string text = SIMPEngine::Project::IsOpen() ? Utf8(SIMPEngine::Project::Directory()) : std::string();
         text += '|';
         text += scenePath.empty() ? std::string("untitled") : scenePath;
 
@@ -47,7 +58,7 @@ bool EditorRecovery::Write(const std::string &scenePath, const std::string &yaml
 {
     if (yaml.empty())
         return false;
-    return SIMPEngine::FileSystem::WriteText(FileFor(scenePath).string(), Header + scenePath + "\n" + yaml);
+    return SIMPEngine::FileSystem::WriteText(Utf8(FileFor(scenePath)), Header + scenePath + "\n" + yaml);
 }
 
 std::optional<RecoveryFile> EditorRecovery::Find(const std::string &scenePath)
@@ -66,7 +77,7 @@ std::optional<RecoveryFile> EditorRecovery::Find(const std::string &scenePath)
         if (auto real = SIMPEngine::VFS::Resolve(scenePath))
         {
             std::error_code sceneError;
-            const auto sceneTime = fs::last_write_time(*real, sceneError);
+            const auto sceneTime = fs::last_write_time(FromUtf8(*real), sceneError);
             if (!sceneError && sceneTime >= recoveryTime)
             {
                 fs::remove(file, ec);
@@ -75,7 +86,7 @@ std::optional<RecoveryFile> EditorRecovery::Find(const std::string &scenePath)
         }
     }
 
-    std::optional<std::string> text = SIMPEngine::FileSystem::ReadText(file.string());
+    std::optional<std::string> text = SIMPEngine::FileSystem::ReadText(Utf8(file));
     if (!text || text->rfind(Header, 0) != 0)
         return std::nullopt;
 

@@ -12,9 +12,17 @@
 #include <ctime>
 #include <exception>
 #include <filesystem>
+#include <optional>
+#include <string>
+#include <utility>
 
 #if defined(_WIN32)
+#ifndef NOMINMAX
 #define NOMINMAX
+#endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #include <windows.h>
 #include <io.h>
 #include <fcntl.h>
@@ -228,7 +236,13 @@ namespace SIMPEngine
 
         char stamp[32];
         const std::time_t now = std::time(nullptr);
-        std::strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", std::localtime(&now));
+        std::tm local{};
+#if defined(_WIN32)
+        localtime_s(&local, &now);
+#else
+        localtime_r(&now, &local);
+#endif
+        std::strftime(stamp, sizeof(stamp), "%Y%m%d-%H%M%S", &local);
         s_ReportPath = FileSystem::Join(s_Directory, std::string("crash-") + stamp + ".txt");
         s_MarkerPath = FileSystem::Join(s_Directory, "last-crash.txt");
 

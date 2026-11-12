@@ -8,6 +8,7 @@
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/SceneManager.h>
 #include <Engine/Math/Camera2D.h>
+#include <Engine/Rendering/GameView.h>
 
 #include <SDL3/SDL_pixels.h>
 
@@ -58,6 +59,7 @@ namespace SIMPEngine
         std::shared_ptr<SceneManager> m_SceneManager;
         bool m_SimulationEnabled = true;
         bool m_RenderToBackbuffer = true;
+        GameView m_GameView;
         std::string m_ReloadScenePath;
     };
 }

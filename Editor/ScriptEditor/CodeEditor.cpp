@@ -1,5 +1,7 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
+#include "UI/Theme.h"
 #include "CodeEditor.h"
+#include "CurvePreview.h"
 
 #include <imgui_internal.h>
 
@@ -14,7 +16,10 @@ namespace ScriptEditor
 {
     namespace
     {
-        constexpr int TabSize = 4;
+        int TabSize()
+        {
+            return EditorUI::Settings().TabSize;
+        }
 
         bool IsWordChar(char c) { return std::isalnum(static_cast<unsigned char>(c)) || c == '_'; }
         bool IsContinuation(char c) { return (static_cast<unsigned char>(c) & 0xC0) == 0x80; }
@@ -28,7 +33,7 @@ namespace ScriptEditor
                 if (c == '\r')
                     continue;
                 if (c == '\t')
-                    out.append(TabSize, ' ');
+                    out.append(TabSize(), ' ');
                 else
                     out += c;
             }
@@ -175,6 +180,28 @@ namespace ScriptEditor
         m_Cursor = m_Anchor = {line, LeadingSpaces(m_Lines[static_cast<size_t>(line)])};
         m_ScrollToCursor = true;
         m_FocusRequest = true;
+    }
+
+    void CodeEditor::GoToPosition(int line, int column)
+    {
+        line = std::clamp(line, 0, LineCount() - 1);
+        column = std::clamp(column, 0, static_cast<int>(m_Lines[static_cast<size_t>(line)].size()));
+        m_Cursor = m_Anchor = {line, column};
+        m_PreferredVisual = -1;
+        m_ScrollToCursor = true;
+        m_FocusRequest = true;
+        m_CompletionOpen = false;
+        m_LastCursorMove = ImGui::GetTime();
+    }
+
+    bool CodeEditor::ConsumeNavigation(NavigationRequest &out)
+    {
+        if (!m_NavPending)
+            return false;
+        out = std::move(m_Nav);
+        m_Nav = NavigationRequest();
+        m_NavPending = false;
+        return true;
     }
 
     bool CodeEditor::ConsumeSaveRequest()
@@ -472,7 +499,7 @@ namespace ScriptEditor
             std::string prevTrim = TrimRight(m_Lines[static_cast<size_t>(prevLine)]);
             bool opener = EndsWithWord(prevTrim, "then") || EndsWithWord(prevTrim, "do") || EndsWithWord(prevTrim, "else") ||
                           EndsWithWord(prevTrim, "repeat") || (!prevTrim.empty() && prevTrim.back() == '{');
-            int target = opener ? prevIndent : prevIndent - TabSize;
+            int target = opener ? prevIndent : prevIndent - TabSize();
             if (indent > 0 && target >= 0 && indent == prevIndent && target < indent)
             {
                 current.erase(0, static_cast<size_t>(indent - target));
@@ -500,7 +527,7 @@ namespace ScriptEditor
                     (before.find("function") != std::string::npos && last == ')' && before.find(" end") == std::string::npos);
         bool between = (last == '{' && next == '}') || (last == '(' && next == ')') || (last == '[' && next == ']');
 
-        std::string inner = open ? indent + std::string(TabSize, ' ') : indent;
+        std::string inner = open ? indent + std::string(TabSize(), ' ') : indent;
         int from = m_Cursor.Line;
         Coord at = InsertAt(m_Cursor, "\n" + inner);
         if (between)
@@ -535,7 +562,7 @@ namespace ScriptEditor
         }
         else if (LeadingSpaces(line) >= m_Cursor.Column)
         {
-            int remove = (m_Cursor.Column - 1) % TabSize + 1;
+            int remove = (m_Cursor.Column - 1) % TabSize() + 1;
             start.Column = m_Cursor.Column - remove;
         }
         else
@@ -587,15 +614,15 @@ namespace ScriptEditor
             int delta;
             if (outdent)
             {
-                delta = -std::min(LeadingSpaces(l), TabSize);
+                delta = -std::min(LeadingSpaces(l), TabSize());
                 l.erase(0, static_cast<size_t>(-delta));
             }
             else
             {
                 if (TrimRight(l).empty())
                     continue;
-                delta = TabSize;
-                l.insert(0, static_cast<size_t>(TabSize), ' ');
+                delta = TabSize();
+                l.insert(0, static_cast<size_t>(TabSize()), ' ');
             }
             if (m_Cursor.Line == i)
                 m_Cursor.Column = std::max(0, m_Cursor.Column + delta);
@@ -866,7 +893,7 @@ namespace ScriptEditor
             m_CompletionOpen = false;
             return;
         }
-        if (result.Items.empty() || (!force && !result.Member && result.Prefix.empty()))
+        if (result.Items.empty() || (!force && !result.Member && !result.ForceOpen && result.Prefix.empty()))
         {
             m_CompletionOpen = false;
             return;
@@ -894,17 +921,34 @@ namespace ScriptEditor
         while (end < static_cast<int>(line.size()) && IsWordChar(line[static_cast<size_t>(end)]))
             ++end;
         int start = std::min(m_Completion.ReplaceStart, m_Cursor.Column);
-        line.replace(static_cast<size_t>(start), static_cast<size_t>(end - start), item.Label);
-        int column = start + static_cast<int>(item.Label.size());
-        bool hasParen = column < static_cast<int>(line.size()) && line[static_cast<size_t>(column)] == '(';
-        if (item.Callable && !hasParen)
+
+        std::string insert = item.Insert.empty() ? item.Label : item.Insert;
+        int cursorOffset = item.CursorOffset;
+        if (!item.Insert.empty() && insert.size() >= 3 && insert.compare(insert.size() - 3, 3, " = ") == 0)
         {
-            line.insert(static_cast<size_t>(column), "()");
-            column += 1;
+            size_t rest = static_cast<size_t>(end);
+            while (rest < line.size() && line[rest] == ' ')
+                ++rest;
+            if (rest < line.size() && line[rest] == '=' && (rest + 1 >= line.size() || line[rest + 1] != '='))
+            {
+                insert = item.Label;
+                cursorOffset = -1;
+            }
         }
-        else if (item.Callable && hasParen)
+        line.replace(static_cast<size_t>(start), static_cast<size_t>(end - start), insert);
+        int column = start + (cursorOffset >= 0 ? cursorOffset : static_cast<int>(insert.size()));
+        if (item.Insert.empty())
         {
-            column += 1;
+            bool hasParen = column < static_cast<int>(line.size()) && line[static_cast<size_t>(column)] == '(';
+            if (item.Callable && !hasParen)
+            {
+                line.insert(static_cast<size_t>(column), "()");
+                column += 1;
+            }
+            else if (item.Callable && hasParen)
+            {
+                column += 1;
+            }
         }
         m_Cursor = m_Anchor = {m_Cursor.Line, column};
         m_CompletionOpen = false;
@@ -1007,6 +1051,16 @@ namespace ScriptEditor
             else
                 m_Anchor = m_Cursor;
         }
+        else if (pressed(ImGuiKey_F12))
+        {
+            TryNavigate(m_Cursor, completion);
+        }
+        else if (shortcut(ImGuiMod_Alt | ImGuiKey_LeftArrow))
+        {
+            m_Nav = NavigationRequest();
+            m_Nav.Back = true;
+            m_NavPending = true;
+        }
         else if (pressed(ImGuiKey_LeftArrow))
         {
             if (HasSelection() && !shift)
@@ -1073,7 +1127,7 @@ namespace ScriptEditor
             if (shift || (HasSelection() && SelectionStart().Line != SelectionEnd().Line))
                 IndentLines(shift);
             else
-                InsertText(std::string(static_cast<size_t>(TabSize - VisualColumn(m_Cursor.Line, m_Cursor.Column) % TabSize), ' '), EditKind::Typing);
+                InsertText(std::string(static_cast<size_t>(TabSize() - VisualColumn(m_Cursor.Line, m_Cursor.Column) % TabSize()), ' '), EditKind::Typing);
         }
 
         bool typed = false;
@@ -1093,7 +1147,7 @@ namespace ScriptEditor
         {
             const std::string &line = m_Lines[static_cast<size_t>(m_Cursor.Line)];
             char last = m_Cursor.Column > 0 ? line[static_cast<size_t>(m_Cursor.Column - 1)] : 0;
-            if (m_CompletionOpen || IsWordChar(last) || last == '.' || last == ':')
+            if (m_CompletionOpen || IsWordChar(last) || last == '.' || last == ':' || last == '{' || last == ',' || last == ' ' || last == '"' || last == '\'' || last == '(')
                 UpdateCompletion(completion, false);
         }
         else if (m_Version != before && m_CompletionOpen)
@@ -1106,9 +1160,73 @@ namespace ScriptEditor
         }
     }
 
-    void CodeEditor::HandleMouse(const ImVec2 &origin, float gutterRight)
+    Coord CodeEditor::CharacterAt(const ImVec2 &origin, const ImVec2 &mouse) const
+    {
+        int line = std::clamp(static_cast<int>(std::floor((mouse.y - origin.y) / m_LineHeight)), 0, LineCount() - 1);
+        int visual = std::max(0, static_cast<int>(std::floor((mouse.x - origin.x) / m_CharWidth)));
+        return Coord{line, ColumnFromVisual(line, visual)};
+    }
+
+    const Definition &CodeEditor::ResolveCached(Coord at, LuaCompletion &completion)
+    {
+        if (at != m_LinkCoord || m_LinkVersion != m_Version)
+        {
+            m_LinkCoord = at;
+            m_LinkVersion = m_Version;
+            const LuaCompletion &api = completion;
+            m_Link = ResolveSymbol(m_Lines, at.Line, at.Column, completion.GetModuleLoader(),
+                                   [&api](const std::string &name, const std::string &member)
+                                   { return api.Describe(name, member); });
+        }
+        return m_Link;
+    }
+
+    bool CodeEditor::TryNavigate(Coord at, LuaCompletion &completion)
+    {
+        const Definition &definition = ResolveCached(at, completion);
+        if (!definition.Found)
+            return false;
+        m_Nav = NavigationRequest();
+        m_Nav.VPath = definition.VPath;
+        m_Nav.Line = definition.Line;
+        m_Nav.Column = definition.Column;
+        m_Nav.FromLine = m_Cursor.Line;
+        m_Nav.FromColumn = m_Cursor.Column;
+        m_NavPending = true;
+        return true;
+    }
+
+    void CodeEditor::HandleMouse(const ImVec2 &origin, float gutterRight, LuaCompletion &completion)
     {
         ImGuiIO &io = ImGui::GetIO();
+
+        m_LinkActive = false;
+        if (io.KeyCtrl && !io.KeyAlt && ImGui::IsWindowHovered() && !m_Selecting && io.MousePos.x >= gutterRight)
+        {
+            Coord at = CharacterAt(origin, io.MousePos);
+            const std::string &lineText = m_Lines[static_cast<size_t>(at.Line)];
+            const bool onText = io.MousePos.y < origin.y + static_cast<float>(LineCount()) * m_LineHeight && at.Column < static_cast<int>(lineText.size());
+            if (onText)
+            {
+                const Definition &definition = ResolveCached(at, completion);
+                WordSpan word = WordAtColumn(lineText, at.Column);
+                if (definition.Found && !word.Text.empty())
+                {
+                    m_LinkActive = true;
+                    m_LinkWordStart = {at.Line, word.Start};
+                    m_LinkWordLength = word.End - word.Start;
+                    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+                    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && TryNavigate(at, completion))
+                    {
+                        m_CompletionOpen = false;
+                        return;
+                    }
+                }
+                else if (!definition.Info.empty())
+                    ImGui::SetTooltip("%s", definition.Info.c_str());
+            }
+        }
+
         auto toCoord = [&](ImVec2 mouse)
         {
             int line = std::clamp(static_cast<int>(std::floor((mouse.y - origin.y) / m_LineHeight)), 0, LineCount() - 1);
@@ -1218,6 +1336,7 @@ namespace ScriptEditor
 
     void CodeEditor::DrawCompletion(const CodeTheme &theme, ImFont *font, float fontSize)
     {
+        m_CompletionDrawn = false;
         if (!m_CompletionOpen || m_Completion.Items.empty())
             return;
         if (m_CompletionLine != m_Cursor.Line)
@@ -1249,6 +1368,9 @@ namespace ScriptEditor
 
         ImDrawList *dl = ImGui::GetForegroundDrawList(viewport);
         ImVec2 max(pos.x + width, pos.y + height);
+        m_CompletionMin = pos;
+        m_CompletionMax = max;
+        m_CompletionDrawn = true;
         dl->AddRectFilled(pos + ImVec2(2, 3), max + ImVec2(2, 3), IM_COL32(0, 0, 0, 60), 6.0f);
         dl->AddRectFilled(pos, max, theme.PopupBackground, 6.0f);
         dl->AddRect(pos, max, theme.PopupBorder, 6.0f);
@@ -1312,6 +1434,183 @@ namespace ScriptEditor
         }
     }
 
+    const CallContext &CodeEditor::Context()
+    {
+        return m_Context;
+    }
+
+    namespace
+    {
+        bool InQuotes(const std::string &line, int column)
+        {
+            char quote = 0;
+            for (int i = 0; i < column && i < static_cast<int>(line.size()); ++i)
+            {
+                const char c = line[static_cast<size_t>(i)];
+                if (quote)
+                {
+                    if (c == '\\')
+                        ++i;
+                    else if (c == quote)
+                        quote = 0;
+                }
+                else if (c == '"' || c == '\'')
+                    quote = c;
+            }
+            return quote != 0;
+        }
+
+        bool IsCurveReference(const std::string &line, const WordSpan &word)
+        {
+            if (word.Text.empty() || !IsCurveName(word.Text))
+                return false;
+            if (word.Start >= 7 && line.compare(static_cast<size_t>(word.Start - 7), 7, "Curves.") == 0)
+                return true;
+            return InQuotes(line, word.Start);
+        }
+    }
+
+    void CodeEditor::DrawHints(const CodeTheme &theme, ImFont *font, float fontSize, const ImVec2 &origin, LuaCompletion &completion)
+    {
+        if (m_ContextVersion != m_Version || m_ContextCursor != m_Cursor)
+        {
+            m_Context = AnalyzeContext(m_Lines, m_Cursor.Line, m_Cursor.Column);
+            m_ContextVersion = m_Version;
+            m_ContextCursor = m_Cursor;
+            m_Signature = nullptr;
+            if (m_Context.InCall && !m_Context.InComment)
+            {
+                const std::string type = m_Context.SigCallee.rfind(':', 0) == 0 ? completion.ReceiverType(m_Lines, m_Cursor.Line, m_Context.SigReceiver) : std::string();
+                m_Signature = FindSignature(m_Context.SigCallee, type);
+            }
+        }
+
+        ImGuiViewport *viewport = ImGui::GetWindowViewport();
+        ImDrawList *dl = ImGui::GetForegroundDrawList(viewport);
+        ImGuiIO &io = ImGui::GetIO();
+        const ImVec2 vpMin = viewport->Pos;
+        const ImVec2 vpMax(viewport->Pos.x + viewport->Size.x, viewport->Pos.y + viewport->Size.y);
+        float bottom = m_CursorScreen.y - 4.0f;
+
+        if (m_Focused && !HasSelection())
+        {
+            const CallContext &context = Context();
+            const Signature *signature = m_Signature;
+            if (signature)
+            {
+                const float fs = std::floor(fontSize * 0.92f);
+                std::string callee = signature->Callee;
+                const std::string head = callee + "(";
+                const int active = std::min(context.SigArg, static_cast<int>(signature->Params.size()) - 1);
+                auto measure = [&](const std::string &t) { return font->CalcTextSizeA(fs, FLT_MAX, 0.0f, t.c_str()).x; };
+
+                float mainWidth = measure(head) + measure(")");
+                for (size_t i = 0; i < signature->Params.size(); ++i)
+                    mainWidth += measure(signature->Params[i]) + (i + 1 < signature->Params.size() ? measure(", ") : 0.0f);
+                const float summaryWidth = font->CalcTextSizeA(fs * 0.9f, FLT_MAX, 0.0f, signature->Summary.c_str()).x;
+                const float width = std::max(mainWidth, summaryWidth) + 22.0f;
+                const float rowH = std::floor(fs * 1.45f);
+                const float height = rowH * (signature->Summary.empty() ? 1.0f : 2.0f) + 8.0f;
+                const float x = std::clamp(m_CursorScreen.x - 8.0f, vpMin.x + 4.0f, std::max(vpMin.x + 4.0f, vpMax.x - width - 4.0f));
+                const float y = bottom - height;
+                if (y > vpMin.y + 4.0f)
+                {
+                    const ImVec2 min(x, y);
+                    const ImVec2 max(x + width, y + height);
+                    dl->AddRectFilled(min + ImVec2(2, 3), max + ImVec2(2, 3), IM_COL32(0, 0, 0, 60), 6.0f);
+                    dl->AddRectFilled(min, max, theme.PopupBackground, 6.0f);
+                    dl->AddRect(min, max, theme.PopupBorder, 6.0f);
+
+                    const ImU32 faint = (theme.PopupForeground & 0x00FFFFFF) | (140u << IM_COL32_A_SHIFT);
+                    float cx = min.x + 11.0f;
+                    const float ty = min.y + 4.0f + (rowH - fs) * 0.5f;
+                    dl->AddText(font, fs, ImVec2(cx, ty), faint, head.c_str());
+                    cx += measure(head);
+                    for (int i = 0; i < static_cast<int>(signature->Params.size()); ++i)
+                    {
+                        const std::string &param = signature->Params[static_cast<size_t>(i)];
+                        const bool current = i == active;
+                        dl->AddText(font, fs, ImVec2(cx, ty), current ? theme.PopupHighlight : theme.PopupForeground, param.c_str());
+                        if (current)
+                            dl->AddLine(ImVec2(cx, ty + fs + 1.0f), ImVec2(cx + measure(param), ty + fs + 1.0f), theme.PopupHighlight, 1.2f);
+                        cx += measure(param);
+                        if (i + 1 < static_cast<int>(signature->Params.size()))
+                        {
+                            dl->AddText(font, fs, ImVec2(cx, ty), faint, ", ");
+                            cx += measure(", ");
+                        }
+                    }
+                    dl->AddText(font, fs, ImVec2(cx, ty), faint, ")");
+                    if (!signature->Summary.empty())
+                        dl->AddText(font, fs * 0.9f, ImVec2(min.x + 11.0f, min.y + 4.0f + rowH + (rowH - fs * 0.9f) * 0.5f), faint, signature->Summary.c_str());
+                    bottom = y - 4.0f;
+                }
+            }
+        }
+
+        const ImVec2 previewSize = CurvePreviewSize(font, fontSize);
+
+        if (m_CompletionOpen && m_CompletionDrawn && !m_Completion.Items.empty())
+        {
+            const CompletionItem &item = m_Completion.Items[static_cast<size_t>(std::clamp(m_CompletionIndex, 0, static_cast<int>(m_Completion.Items.size()) - 1))];
+            const bool isCurve = item.Curve || (m_Completion.Member && item.Detail == "Curves" && IsCurveName(item.Label));
+            if (isCurve)
+            {
+                float x = m_CompletionMax.x + 6.0f;
+                if (x + previewSize.x > vpMax.x - 4.0f)
+                    x = std::max(vpMin.x + 4.0f, m_CompletionMin.x - 6.0f - previewSize.x);
+                const float y = std::clamp(m_CompletionMin.y, vpMin.y + 4.0f, std::max(vpMin.y + 4.0f, vpMax.y - previewSize.y - 4.0f));
+                DrawCurvePreview(dl, font, fontSize, theme, ImVec2(x, y), item.Label);
+            }
+            return;
+        }
+
+        if (m_Focused && !HasSelection() && m_Cursor.Line < LineCount())
+        {
+            const std::string &line = m_Lines[static_cast<size_t>(m_Cursor.Line)];
+            const WordSpan word = WordAtColumn(line, m_Cursor.Column);
+            if (IsCurveReference(line, word))
+            {
+                const float x = std::clamp(m_CursorScreen.x - 8.0f, vpMin.x + 4.0f, std::max(vpMin.x + 4.0f, vpMax.x - previewSize.x - 4.0f));
+                const float y = bottom - previewSize.y;
+                if (y > vpMin.y + 4.0f)
+                    DrawCurvePreview(dl, font, fontSize, theme, ImVec2(x, y), word.Text);
+                return;
+            }
+        }
+
+        if (m_WindowHovered && !io.KeyCtrl && !m_Selecting && io.MousePos.y >= origin.y)
+        {
+            const double now = ImGui::GetTime();
+            const Coord at = CharacterAt(origin, io.MousePos);
+            const float moved = std::abs(io.MousePos.x - m_LastMouse.x) + std::abs(io.MousePos.y - m_LastMouse.y);
+            m_LastMouse = io.MousePos;
+            if (moved > 3.0f || at != m_HoverCoord)
+            {
+                m_HoverCoord = at;
+                m_HoverSince = now;
+            }
+            else if (now - m_HoverSince > 0.4)
+            {
+                const std::string &line = m_Lines[static_cast<size_t>(at.Line)];
+                if (at.Column < static_cast<int>(line.size()))
+                {
+                    const WordSpan word = WordAtColumn(line, at.Column);
+                    if (IsCurveReference(line, word))
+                    {
+                        const float wordX = origin.x + static_cast<float>(VisualColumn(at.Line, word.Start)) * m_CharWidth;
+                        const float wordY = origin.y + static_cast<float>(at.Line) * m_LineHeight;
+                        float y = wordY - previewSize.y - 4.0f;
+                        if (y < vpMin.y + 4.0f)
+                            y = wordY + m_LineHeight + 4.0f;
+                        const float x = std::clamp(wordX, vpMin.x + 4.0f, std::max(vpMin.x + 4.0f, vpMax.x - previewSize.x - 4.0f));
+                        DrawCurvePreview(dl, font, fontSize, theme, ImVec2(x, y), word.Text);
+                    }
+                }
+            }
+        }
+    }
+
     void CodeEditor::Render(const char *id, const CodeTheme &theme, ImFont *font, float fontSize, LuaCompletion &completion)
     {
         ImGui::PushID(id);
@@ -1370,7 +1669,7 @@ namespace ScriptEditor
         float scrollX = ImGui::GetScrollX();
         float scrollY = ImGui::GetScrollY();
         ImVec2 origin(winPos.x + gutterWidth + leftPad - scrollX, winPos.y + 4.0f - scrollY);
-        HandleMouse(origin, winPos.x + gutterWidth);
+        HandleMouse(origin, winPos.x + gutterWidth, completion);
 
         int first = std::max(0, static_cast<int>(scrollY / m_LineHeight) - 1);
         int last = std::min(LineCount() - 1, static_cast<int>((scrollY + m_ViewSize.y) / m_LineHeight) + 1);
@@ -1428,7 +1727,7 @@ namespace ScriptEditor
                     ++j;
                 indent = j < LineCount() ? LeadingSpaces(m_Lines[static_cast<size_t>(j)]) : 0;
             }
-            for (int level = TabSize; level < indent; level += TabSize)
+            for (int level = TabSize(); level < indent; level += TabSize())
             {
                 float x = std::floor(origin.x + static_cast<float>(level) * m_CharWidth) + 0.5f;
                 dl->AddLine(ImVec2(x, lineY(i)), ImVec2(x, lineY(i) + m_LineHeight), theme.IndentGuide);
@@ -1444,6 +1743,14 @@ namespace ScriptEditor
                 ImU32 color = theme.Tokens[static_cast<size_t>(t.Kind)];
                 dl->AddText(font, fontSize, ImVec2(colX(i, t.Start), y), color, l.c_str() + t.Start, l.c_str() + t.Start + t.Length);
             }
+        }
+
+        if (m_LinkActive && m_LinkWordStart.Line >= first && m_LinkWordStart.Line <= last)
+        {
+            const float y = lineY(m_LinkWordStart.Line) + m_LineHeight - 3.0f;
+            dl->AddLine(ImVec2(colX(m_LinkWordStart.Line, m_LinkWordStart.Column), y),
+                        ImVec2(colX(m_LinkWordStart.Line, m_LinkWordStart.Column + m_LinkWordLength), y),
+                        theme.Tokens[static_cast<size_t>(TokenKind::Function)], 1.3f);
         }
 
         if (m_ErrorLine >= first && m_ErrorLine <= last && m_ErrorLine < LineCount())
@@ -1499,10 +1806,12 @@ namespace ScriptEditor
                 ImGui::SetTooltip("%s", m_ErrorMessage.c_str());
         }
 
+        m_WindowHovered = ImGui::IsWindowHovered();
         ImGui::EndChild();
         ImGui::PopStyleColor();
 
         DrawCompletion(theme, font, fontSize);
+        DrawHints(theme, font, fontSize, origin, completion);
         ImGui::PopFont();
         ImGui::PopID();
     }

@@ -65,6 +65,9 @@ public:
     void DrawAudioSection(SIMPEngine::Entity &m_SelectedEntity);
     void DrawScriptSection(SIMPEngine::Entity &m_SelectedEntity);
     void DrawLogicSection(SIMPEngine::Entity &m_SelectedEntity);
+    void DrawUISection(SIMPEngine::Entity &m_SelectedEntity);
+    void DrawShaderSection(SIMPEngine::Entity &m_SelectedEntity);
+    void DrawPrefabSection(SIMPEngine::Entity &m_SelectedEntity);
 
     void SetParticlePicker(ParticlePickerPanel *picker) { m_ParticlePicker = picker; }
 

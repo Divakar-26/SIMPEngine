@@ -30,7 +30,7 @@ namespace SIMPEngine
 
     void ParticleSystem::Render(entt::registry &registry, int emissiveFilter)
     {
-        auto view = registry.view<ParticleEmitterComponent, TransformComponent>();
+        auto view = registry.view<ParticleEmitterComponent, TransformComponent>(entt::exclude<ShaderGroupMemberTag>);
         for (auto entity : view)
         {
             auto &emitter = view.get<ParticleEmitterComponent>(entity);

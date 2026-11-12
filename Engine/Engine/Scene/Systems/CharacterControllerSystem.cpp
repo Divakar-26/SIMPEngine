@@ -1,6 +1,8 @@
+#include "PhysicsSystem.h"
 #include "CharacterControllerSystem.h"
 
 #include <Engine/Core/Profiler/EngineProfiler.h>
+#include <Engine/Input/InputActions.h>
 #include <Engine/Input/Input.h>
 #include <Engine/Input/SIMP_Keys.h>
 #include <Engine/Math/EntityUtility.h>
@@ -150,12 +152,28 @@ namespace SIMPEngine
             bool jumpPressed = false, jumpReleased = false;
             if (c.playerInput)
             {
-                ix = (AnyPressed({SIMPK_D, SIMPK_RIGHT}) ? 1.0f : 0.0f) - (AnyPressed({SIMPK_A, SIMPK_LEFT}) ? 1.0f : 0.0f);
-                iy = (AnyPressed({SIMPK_W, SIMPK_UP}) ? 1.0f : 0.0f) - (AnyPressed({SIMPK_S, SIMPK_DOWN}) ? 1.0f : 0.0f);
+                if (InputActions::Has("MoveX"))
+                {
+                    ix = InputActions::GetAxis("MoveX");
+                    iy = InputActions::GetAxis("MoveY");
+                }
+                else
+                {
+                    ix = (AnyPressed({SIMPK_D, SIMPK_RIGHT}) ? 1.0f : 0.0f) - (AnyPressed({SIMPK_A, SIMPK_LEFT}) ? 1.0f : 0.0f);
+                    iy = (AnyPressed({SIMPK_W, SIMPK_UP}) ? 1.0f : 0.0f) - (AnyPressed({SIMPK_S, SIMPK_DOWN}) ? 1.0f : 0.0f);
+                }
                 if (platformer)
                 {
-                    jumpPressed = AnyJustPressed({SIMPK_SPACE, SIMPK_W, SIMPK_UP});
-                    jumpReleased = AnyJustReleased({SIMPK_SPACE, SIMPK_W, SIMPK_UP});
+                    if (InputActions::Has("Jump"))
+                    {
+                        jumpPressed = InputActions::IsJustPressed("Jump");
+                        jumpReleased = InputActions::IsJustReleased("Jump");
+                    }
+                    else
+                    {
+                        jumpPressed = AnyJustPressed({SIMPK_SPACE, SIMPK_W, SIMPK_UP});
+                        jumpReleased = AnyJustReleased({SIMPK_SPACE, SIMPK_W, SIMPK_UP});
+                    }
                 }
             }
             ix = std::clamp(ix + c.scriptInput.x, -1.0f, 1.0f);
@@ -263,11 +281,7 @@ namespace SIMPEngine
             {
                 transform.position = position;
                 transform.dirty = true;
-                if (auto *physics = registry.try_get<PhysicsComponent>(entity); physics && physics->body)
-                {
-                    physics->body->position = {position.x, position.y};
-                    physics->body->calculateDerivativeData();
-                }
+                PhysicsSystem::SyncBodyToTransform(registry, entity);
             }
 
             if (c.velocity.x > 5.0f)

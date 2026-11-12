@@ -116,6 +116,8 @@ void ScriptEditorPanel::EnsureInitialized()
     m_Themes.Refresh();
     ApplyTheme(EditorUI::Settings().ScriptTheme);
     m_Completion.RefreshApi();
+    m_Completion.SetModuleLoader([this](const std::string &module, std::string &vpath, std::vector<std::string> &lines)
+                                 { return LoadModule(module, vpath, lines); });
     m_Checker = luaL_newstate();
 }
 
@@ -132,6 +134,83 @@ void ScriptEditorPanel::ApplyTheme(const std::string &name)
         EditorUI::Settings().ScriptTheme = m_Themes.CurrentName();
         ImGui::MarkIniSettingsDirty();
     }
+}
+
+ScriptEditorPanel::Document *ScriptEditorPanel::FindDocument(const std::string &vpath)
+{
+    for (auto &doc : m_Documents)
+        if (doc->VPath == vpath)
+            return doc.get();
+    return nullptr;
+}
+
+bool ScriptEditorPanel::LoadModule(const std::string &module, std::string &vpath, std::vector<std::string> &lines)
+{
+    std::string relative = module;
+    for (char &c : relative)
+        if (c == '.')
+            c = '/';
+    if (relative.empty() || relative.find("..") != std::string::npos)
+        return false;
+
+    for (const std::string &candidate : {relative + ".lua", relative + "/init.lua"})
+    {
+        const std::string virtualPath = "assets://scripts/" + candidate;
+        auto resolved = SIMPEngine::VFS::Resolve(virtualPath);
+        if (!resolved || !SIMPEngine::FileSystem::Exists(*resolved))
+            continue;
+
+        std::string text;
+        if (Document *open = FindDocument(virtualPath))
+            text = open->Editor.GetText();
+        else if (!ReadText(*resolved, text))
+            continue;
+
+        lines.clear();
+        size_t from = 0;
+        while (from <= text.size())
+        {
+            size_t end = text.find('\n', from);
+            std::string line = text.substr(from, end == std::string::npos ? std::string::npos : end - from);
+            if (!line.empty() && line.back() == '\r')
+                line.pop_back();
+            lines.push_back(std::move(line));
+            if (end == std::string::npos)
+                break;
+            from = end + 1;
+        }
+        vpath = virtualPath;
+        return true;
+    }
+    return false;
+}
+
+void ScriptEditorPanel::HandleNavigation(Document &from, const ScriptEditor::NavigationRequest &request)
+{
+    if (request.Back)
+    {
+        if (m_JumpHistory.empty())
+        {
+            m_Status = "Nothing to go back to";
+            m_StatusTime = ImGui::GetTime();
+            return;
+        }
+        const JumpEntry entry = m_JumpHistory.back();
+        m_JumpHistory.pop_back();
+        Open(entry.VPath);
+        if (Document *doc = FindDocument(entry.VPath))
+            doc->Editor.GoToPosition(entry.Line, entry.Column);
+        return;
+    }
+
+    m_JumpHistory.push_back({from.VPath, request.FromLine, request.FromColumn});
+    if (m_JumpHistory.size() > 64)
+        m_JumpHistory.erase(m_JumpHistory.begin());
+
+    const std::string target = request.VPath.empty() ? from.VPath : request.VPath;
+    Open(target);
+    if (Document *doc = FindDocument(target))
+        doc->Editor.GoToPosition(request.Line, request.Column);
 }
 
 void ScriptEditorPanel::Open(const std::string &vpath)
@@ -474,6 +553,11 @@ void ScriptEditorPanel::DrawTabs()
     ImGui::BeginChild("##ScriptBody", ImVec2(0, std::max(40.0f, ImGui::GetContentRegionAvail().y - statusHeight)), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, spacing);
     active->Editor.Render(active->VPath.c_str(), m_Themes.Current(), GetFont(FontRole::Mono), fontSize, m_Completion);
+    {
+        ScriptEditor::NavigationRequest navigation;
+        if (active->Editor.ConsumeNavigation(navigation))
+            HandleNavigation(*active, navigation);
+    }
     ImGui::PopStyleVar();
     ImGui::EndChild();
     m_EditorFocused = active->Editor.IsFocused();

@@ -14,7 +14,7 @@ namespace SIMPEngine
             {
                 source.started = true;
                 if (source.playOnStart && !source.clip.empty())
-                    source.voice = AudioEngine::Play(source.clip, source.volume, source.pitch, source.loop);
+                    source.voice = AudioEngine::Play(source.clip, source.volume, source.pitch, source.loop, static_cast<AudioBus>(source.bus));
                 continue;
             }
 

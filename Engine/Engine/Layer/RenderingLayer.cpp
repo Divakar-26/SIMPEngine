@@ -1,4 +1,6 @@
 #include <Engine/Layer/RenderingLayer.h>
+#include <Engine/Input/Input.h>
+#include <Engine/Input/TouchControls.h>
 #include <Engine/Scene/Entity.h>
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/TilemapUtils.h>
@@ -17,6 +19,8 @@
 #include <Engine/Application/Application.h>
 #include "Input/Input.h"
 #include "Input/SIMP_Keys.h"
+#include <exception>
+#include <utility>
 
 namespace SIMPEngine
 {
@@ -93,19 +97,12 @@ namespace SIMPEngine
         if (!scene)
             return;
 
-        auto &camera = scene->GetActiveCamera();
-        auto [cw, ch] = camera.GetViewportSize();
-        if (cw != Renderer::m_WindowWidth || ch != Renderer::m_WindowHeight)
-            camera.SetViewportSize(static_cast<float>(Renderer::m_WindowWidth), static_cast<float>(Renderer::m_WindowHeight));
-
-        const glm::vec4 &bg = scene->GetBackgroundColor();
-        Renderer::SetClearColor(bg.r, bg.g, bg.b, bg.a);
-        Renderer::Clear();
-
         try
         {
-            scene->OnRender();
-            Renderer::Flush();
+            const ViewLayout layout = m_GameView.Render(*scene, Renderer::m_WindowWidth, Renderer::m_WindowHeight, nullptr);
+            Input::SetViewport(static_cast<float>(layout.X), static_cast<float>(layout.WindowHeight - layout.Y - layout.Height),
+                               static_cast<float>(layout.Width), static_cast<float>(layout.Height));
+            TouchControls::Render();
         }
         catch (const std::exception &e)
         {

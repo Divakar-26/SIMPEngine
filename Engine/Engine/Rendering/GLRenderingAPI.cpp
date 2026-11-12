@@ -5,7 +5,7 @@
 #include <Engine/Core/Profiler/EngineProfiler.h>
 #include <Engine/Core/Log.h>
 
-#include <glad/glad.h>
+#include <Engine/Rendering/GL.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 #include <cmath>
@@ -14,7 +14,7 @@
 
 namespace SIMPEngine
 {
-#ifndef NDEBUG
+#if !defined(NDEBUG) && !defined(SIMP_GLES)
     namespace
     {
         void APIENTRY EngineGLDebugCallback(GLenum source, GLenum type, GLuint id,
@@ -63,7 +63,7 @@ namespace SIMPEngine
     {
         glViewport(0, 0, m_BackbufferWidth, m_BackbufferHeight);
 
-#ifndef NDEBUG
+#if !defined(NDEBUG) && !defined(SIMP_GLES)
         if (glDebugMessageCallback)
         {
             glEnable(GL_DEBUG_OUTPUT);

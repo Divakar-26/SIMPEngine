@@ -3,7 +3,13 @@ set(SIMP_APP_DIR "${CMAKE_BINARY_DIR}/bin")
 add_executable(SIMPPlayer SIMPPlayer/main.cpp)
 target_link_libraries(SIMPPlayer PRIVATE Engine imgui)
 
-set(SIMP_APPS SIMPPlayer)
+add_executable(SIMPRecord SIMPRecord/main.cpp)
+target_link_libraries(SIMPRecord PRIVATE Engine imgui)
+
+add_executable(SIMPPreview SIMPPreview/main.cpp)
+target_link_libraries(SIMPPreview PRIVATE Engine imgui)
+
+set(SIMP_APPS SIMPPlayer SIMPRecord SIMPPreview)
 if(NOT NO_EDITOR)
     add_executable(SIMPEditor SIMPEditor/main.cpp)
     target_link_libraries(SIMPEditor PRIVATE Engine Editor imgui)

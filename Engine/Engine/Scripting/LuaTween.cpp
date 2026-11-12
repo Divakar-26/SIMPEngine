@@ -10,6 +10,7 @@
 #include <Engine/Vector/VectorShape.h>
 
 #include <cmath>
+#include <cctype>
 #include <cstdio>
 #include <cstring>
 #include <limits>
@@ -100,6 +101,13 @@ namespace SIMPEngine::LuaBindings
                     TweenProperty property;
                     int channels = 1;
                     known = TweenSystem::PropertyFromName(name, property, channels);
+                    if (!known && name[0] == 'u' && std::isupper(static_cast<unsigned char>(name[1])))
+                    {
+                        known = true;
+                        property = TweenProperty::ShaderUniform;
+                        track.Uniform = name;
+                        channels = lua_type(L, -1) == LUA_TTABLE ? static_cast<int>(std::clamp<lua_Unsigned>(lua_rawlen(L, -1), 1, 4)) : 1;
+                    }
                     track.Property = property;
                     track.Channels = channels;
                 }
@@ -525,14 +533,21 @@ namespace SIMPEngine::LuaBindings
             if (!entity)
                 return 0;
             int property = -1;
+            std::string uniformName;
             if (lua_type(L, 2) == LUA_TSTRING)
             {
                 TweenProperty p;
                 int channels = 1;
-                if (TweenSystem::PropertyFromName(lua_tostring(L, 2), p, channels))
+                const char *text = lua_tostring(L, 2);
+                if (TweenSystem::PropertyFromName(text, p, channels))
                     property = static_cast<int>(p);
+                else if (text[0] == 'u' && std::isupper(static_cast<unsigned char>(text[1])))
+                {
+                    property = static_cast<int>(TweenProperty::ShaderUniform);
+                    uniformName = text;
+                }
             }
-            entity->GetScene()->GetTweens().KillTarget(entity->GetHandle(), property);
+            entity->GetScene()->GetTweens().KillTarget(entity->GetHandle(), property, uniformName);
             return 0;
         }
 

@@ -1,0 +1,39 @@
+Scene: Script Demo
+Version: 1
+Settings:
+  background: [0.329, 0.329, 0.329, 1]
+  lighting:
+    enabled: false
+    ambient: [0.16, 0.16, 0.22, 1]
+  bloom:
+    enabled: false
+    threshold: 0.75
+    knee: 0.4
+    intensity: 0.8
+    radius: 1
+Entities:
+  - ID: 1
+    Tag: Camera
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      zIndex: 0
+      scale: [1, 1]
+    Camera:
+      primary: true
+      zoom: 0.6
+      follow: Player
+      follow_offset: [0, 0]
+      smoothing: 5
+      dead_zone: [0, 0]
+      bounds: [-800, -450, 800, 450]
+      shake_strength: 18
+  - ID: 2
+    Tag: Demo
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      zIndex: 0
+      scale: [1, 1]
+    Script:
+      lua: assets://scripts/Demo.lua

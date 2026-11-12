@@ -75,15 +75,21 @@ The inspector section has shape presets, Load SVG, fill/gradient, stroke, caps, 
 
 ## Paths (`Path` global)
 
-`Path.New()`, `Path.Rect(w, h [, r])`, `Path.Circle(r)`, `Path.Ellipse(rx, ry)`, `Path.Polygon(n, r)`, `Path.Star(n, outer [, inner])`, `Path.Heart(size)`, `Path.Line(x1, y1, x2, y2)`, `Path.Arc(r, startDeg, endDeg)`, `Path.Points({x1, y1, ...} or {{x, y}, ...} [, closed])`, `Path.Svg(source [, fitSize])` (an `.svg` file, SVG text, or path data like `"M0 0 C ..."`; returns `nil, message` on failure).
+`Path.New()`, `Path.Rect(w, h [, r])`, `Path.Circle(r)`, `Path.Ellipse(rx, ry)`, `Path.Polygon(n, r)`, `Path.Star(n, outer [, inner])`, `Path.Heart(size)`, `Path.Line(x1, y1, x2, y2)`, `Path.Arc(r, startDeg, endDeg)`, `Path.Points({x1, y1, ...} or {{x, y}, ...} [, closed])`, `Path.Svg(source [, fitSize])` (an `.svg` file, SVG text, or path data like `"M0 0 C ..."`; returns `nil, message` on failure), `Path.Text(text, size [, align] [, fontPath])` (the glyph outlines of `text`, `align` is `"left"`, `"center"` or `"right"`, laid out like `Draw.Text`: `x, y` is the top of the first line; Greek letters and math symbols work when the font has them; returns `nil, message` when nothing is visible).
+
+Text as a path is how "write it on" effects work: put it in a Vector Shape with a stroke and animate `trimEnd` from 0 to 1, then fade the fill in. Each contour is one closed outline of a glyph (a letter with a hole has two), and morphing one text path into another works like any other morph.
 
 Builders return the path: `MoveTo`, `LineTo`, `QuadTo`, `CubicTo`, `ArcTo(cx, cy, r, a0, a1)`, `Close`, `Append(other)`, `Translate`, `Scale`, `Rotate`. Queries: `Copy()`, `GetBounds()`, `GetLength()`, `GetPointAt(t)`, `IsEmpty()`, `ContourCount()`. Y points up, like the rest of the engine (SVG files are flipped and centered on import).
 
 ## Custom painting (`Draw` global)
 
-Inside a script's `OnRender` only (it errors elsewhere). Coordinates are world space; z defaults to the entity's Z index (`Draw.SetZ(z)` to change it). Colors are 0-255 with optional alpha.
+Inside a script's `OnRender` only (it errors elsewhere; `Draw.MeasureText` and `Draw.Layer` also work outside). Coordinates are world space; z defaults to the entity's Z index (`Draw.SetZ(z)` to change it). A color is `r, g, b [, a]` (0-255), a table `{r, g, b [, a]}` or a `"#rrggbb[aa]"` string; arguments that come after the color (rotation, `closed`, alignment) follow it. Also built in: `Draw.Dashed`, `Draw.Arrow`, `Draw.MeasureText`, `Draw.Layer`, and the `Color`, `Timeline`, `Ease` and extra `Math` helpers, see [SCRIPTING.md](SCRIPTING.md#built-in-helpers).
 
 `Draw.Line(x1, y1, x2, y2, width, r, g, b [, a])`, `Draw.Circle(x, y, radius, ...)`, `Draw.Ring(x, y, radius, thickness, ...)`, `Draw.Rect(x, y, w, h, r, g, b [, a] [, rotation])`, `Draw.RoundRect(x, y, w, h, radius, ...)`, `Draw.Polyline(points, width, r, g, b [, a] [, closed])`, `Draw.Polygon(points, r, g, b [, a])`, `Draw.Bezier(x0, y0, c1x, c1y, c2x, c2y, x1, y1, width, ...)`, `Draw.Path(path, x, y [, {fill = {r,g,b,a} or false, stroke = {r,g,b,a}, width, cap, join, rotation, scale, trim = {s, e, o}}])`, `Draw.Text(text, x, y, size, r, g, b [, a] [, "left"|"center"|"right"])`.
+
+## Effects and easing gallery (editor)
+
+View → Effects and Easing opens a gallery like easings.net. The **Effects** tab shows all premade effects ([EFFECTS.md](EFFECTS.md): fade, slide, pop, drop, spin, shake, pulse, bounce, tada, float and more) as live looping previews; click one for a large preview with Duration, Distance, Amount, Delay and Loop sliders, then copy the one-liner (`Effect.PopIn(self.entity)`), the call with your options, or the expanded `Tween.*` code. Double-click a card to copy its one-liner. The **Easing** tab shows every curve as a graph with a travelling ball, and copies the curve name, a `Tween.To` call, `Ease.<name>(t)` or `Curves.Evaluate`. Both tabs have a search box.
 
 ## Tween Lab (editor)
 

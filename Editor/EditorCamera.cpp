@@ -1,5 +1,7 @@
 #include "EditorCamera.h"
 
+#include "UI/Theme.h"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 #include <cmath>
@@ -48,7 +50,7 @@ void EditorCamera::SetZoom(float zoom)
 void EditorCamera::ZoomAt(float steps, const glm::vec2 &pixel)
 {
     glm::vec2 before = ScreenToWorld(pixel);
-    SetZoom(m_Zoom * std::pow(1.15f, steps));
+    SetZoom(m_Zoom * std::pow(EditorUI::Settings().ZoomStep, steps));
     glm::vec2 after = ScreenToWorld(pixel);
     m_Position += before - after;
 }

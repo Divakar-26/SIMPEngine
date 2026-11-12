@@ -23,6 +23,7 @@ namespace SIMPEngine
         bool Resizable = true;
         bool Fullscreen = false;
         bool Maximized = false;
+        bool Borderless = false;
         bool VSync = true;
     };
 
@@ -60,6 +61,7 @@ namespace SIMPEngine
 
         LayerStack m_LayerStack;
         std::vector<std::function<void()>> m_Queued;
+        bool m_LogFps = false;
         FrameCapture m_Capture;
         ImGuiLayer *m_ImGuiLayer = nullptr;
 

@@ -1,0 +1,36 @@
+Scene: Level1
+Version: 1
+Settings:
+  background: [0.329, 0.329, 0.329, 1]
+  lighting:
+    enabled: false
+    ambient: [0.16, 0.16, 0.22, 1]
+  bloom:
+    enabled: false
+    threshold: 0.75
+    knee: 0.4
+    intensity: 0.8
+    radius: 1
+  physics:
+    gravity: [0, -980]
+    substeps: 6
+    velocity_iterations: 4
+    position_iterations: 2
+    enable_sleep: true
+Entities:
+  - ID: 1
+    Tag: Ball 2
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      zIndex: 0
+      scale: [4, 4]
+    Render:
+      color: [255, 255, 0, 0]
+      size: [40, 40]
+    Camera:
+      primary: true
+      zoom: 1
+      shake_strength: 16
+    Script:
+      lua: assets://scripts/Ball_2.lua

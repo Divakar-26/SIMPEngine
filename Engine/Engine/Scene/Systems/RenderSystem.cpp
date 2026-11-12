@@ -1,6 +1,7 @@
 #include <Engine/Scene/Systems/RenderSystem.h>
 #include <Engine/Scene/Component.h>
 #include <Engine/Math/EntityUtility.h>
+#include <Engine/Core/GameVariables.h>
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Rendering/Font.h>
 #include <Engine/Scene/Systems/TilemapSystem.h>
@@ -96,6 +97,7 @@ namespace SIMPEngine
         auto &text = registry.get<TextComponent>(entity);
         if (text.Text.empty())
             return;
+        const std::string shown = GameVariables::Format(text.Text);
 
         auto font = text.FontPath.empty() ? Font::GetDefault() : Font::Load(text.FontPath);
         if (!font)
@@ -103,14 +105,14 @@ namespace SIMPEngine
 
         WorldTransform2D w = DecomposeWorld(transform);
         float size = text.Size * std::abs(w.Scale.y);
-        glm::vec2 extent = font->MeasureText(text.Text, size);
+        glm::vec2 extent = font->MeasureText(shown, size);
 
         float r = glm::radians(w.Rotation);
         glm::vec2 up(-std::sin(r), std::cos(r));
         glm::vec2 anchor = w.Position + up * (extent.y * 0.5f);
 
         TextAlign align = text.Align == 0 ? TextAlign::Left : text.Align == 2 ? TextAlign::Right : TextAlign::Center;
-        Renderer::DrawText(text.Text, anchor.x, anchor.y, size, text.Color, align, w.Rotation, transform.zIndex, font.get());
+        Renderer::DrawText(shown, anchor.x, anchor.y, size, text.Color, align, w.Rotation, transform.zIndex, font.get());
     }
 
     void RenderSystem::DrawEntity(entt::registry &registry, entt::entity entity)
@@ -137,19 +139,19 @@ namespace SIMPEngine
 
     void RenderSystem::RenderQuads(entt::registry &registry)
     {
-        for (auto entity : registry.view<TransformComponent, RenderComponent>())
+        for (auto entity : registry.view<TransformComponent, RenderComponent>(entt::exclude<ShaderGroupMemberTag>))
             DrawQuad(registry, entity);
     }
 
     void RenderSystem::RenderSprites(entt::registry &registry)
     {
-        for (auto entity : registry.view<TransformComponent>())
+        for (auto entity : registry.view<TransformComponent>(entt::exclude<ShaderGroupMemberTag>))
             DrawSprite(registry, entity);
     }
 
     void RenderSystem::RenderText(entt::registry &registry)
     {
-        for (auto entity : registry.view<TransformComponent, TextComponent>())
+        for (auto entity : registry.view<TransformComponent, TextComponent>(entt::exclude<ShaderGroupMemberTag>))
             DrawText(registry, entity);
     }
 }

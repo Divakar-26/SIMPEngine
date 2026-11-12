@@ -36,6 +36,21 @@ namespace SIMPEngine{
             static float GetMouseWheel();
             static void BeginFrame();
 
+            static bool IsGamepadButtonPressed(int button);
+            static bool IsGamepadButtonJustPressed(int button);
+            static bool IsGamepadButtonJustReleased(int button);
+            static float GetGamepadAxis(int axis);
+            static bool IsGamepadConnected();
+            static int GetGamepadCount();
+            static float GetGamepadDeadzone();
+            static void SetGamepadDeadzone(float deadzone);
+            static void OnGamepadButton(int button, bool down);
+            static void OnGamepadAxis(int axis, float value);
+            static void OnGamepadConnected(bool connected);
+            static const std::unordered_set<int> &GetGamepadButtonsJustPressed();
+            static const std::unordered_set<int> &GetKeysJustPressed();
+            static const std::unordered_set<int> &GetMouseButtonsJustPressed();
+
             static void ResetAllKeys();
         private:
 
@@ -47,6 +62,12 @@ namespace SIMPEngine{
             static std::unordered_set<int> s_MouseButtonsJustReleased;
             static float s_MouseX, s_MouseY;
             static float s_MouseWheel;
+            static std::unordered_set<int> s_PadButtonsPressed;
+            static std::unordered_set<int> s_PadButtonsJustPressed;
+            static std::unordered_set<int> s_PadButtonsJustReleased;
+            static float s_PadAxes[8];
+            static int s_PadCount;
+            static float s_PadDeadzone;
 
             static bool s_Enabled;
             static bool s_HasViewport;

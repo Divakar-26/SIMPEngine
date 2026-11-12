@@ -17,6 +17,14 @@ namespace SIMPEngine
         bool Fullscreen = false;
         bool Resizable = true;
         bool VSync = true;
+        bool Maximized = false;
+        bool Borderless = false;
+        std::string Orientation = "landscape";
+        int ViewWidth = 1920;
+        int ViewHeight = 1080;
+        int Aspect = 0;
+        int Stretch = 0;
+        float RenderScale = 1.0f;
 
         const std::string &Title() const { return WindowTitle.empty() ? Name : WindowTitle; }
     };
@@ -46,6 +54,7 @@ namespace SIMPEngine
         static std::filesystem::path AssetDirectory() { return s_Directory / "assets"; }
 
         static bool MountEngineResources();
+        static void ApplyDisplay();
         static std::filesystem::path EngineResourceDirectory();
 
     private:

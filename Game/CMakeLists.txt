@@ -120,6 +120,23 @@ else()
     target_compile_definitions(Sudoku PRIVATE NO_EDITOR)
 endif()
 
+add_executable(CrossSum
+    CrossSum/main.cpp
+)
+
+set_target_properties(CrossSum PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+
+if(NOT NO_EDITOR)
+    target_link_libraries(CrossSum
+        PRIVATE Engine Editor imgui
+    )
+else()
+    target_link_libraries(CrossSum
+        PRIVATE Engine imgui
+    )
+    target_compile_definitions(CrossSum PRIVATE NO_EDITOR)
+endif()
+
 add_executable(Untangle
     Untangle/main.cpp
 )
@@ -136,3 +153,19 @@ else()
     )
     target_compile_definitions(Untangle PRIVATE NO_EDITOR)
 endif()
+
+add_executable(NeuralNetVideo
+    NeuralNetVideo/main.cpp
+)
+
+set_target_properties(NeuralNetVideo PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+target_link_libraries(NeuralNetVideo PRIVATE Engine)
+target_compile_definitions(NeuralNetVideo PRIVATE SIMP_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets")
+
+add_executable(IntegrationVideo
+    IntegrationVideo/main.cpp
+)
+
+set_target_properties(IntegrationVideo PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/Game")
+target_link_libraries(IntegrationVideo PRIVATE Engine)
+target_compile_definitions(IntegrationVideo PRIVATE SIMP_ASSETS_DIR="${CMAKE_SOURCE_DIR}/assets")

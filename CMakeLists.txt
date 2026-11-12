@@ -16,6 +16,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+if(ANDROID)
+    set(SIMP_GLES_DEFAULT ON)
+else()
+    set(SIMP_GLES_DEFAULT OFF)
+endif()
+option(SIMP_GLES "Render through OpenGL ES 3 instead of desktop OpenGL 4 (always on for Android)" ${SIMP_GLES_DEFAULT})
+
 add_subdirectory(vendor/SDL EXCLUDE_FROM_ALL)
 
 if(WIN32)
@@ -23,12 +30,15 @@ if(WIN32)
 endif()
 
 set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
-add_subdirectory(vendor/SDL_image EXCLUDE_FROM_ALL)
+if(NOT ANDROID)
+    add_subdirectory(vendor/SDL_image EXCLUDE_FROM_ALL)
+endif()
 
 add_subdirectory(vendor/spdlog EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/glm EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/yaml-cpp EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/AccelEngine)
+target_include_directories(AccelEngine PRIVATE ${CMAKE_SOURCE_DIR}/vendor/SDL/include)
 add_subdirectory(vendor/json)
 
 option(SIMP_ASAN "Build project code with AddressSanitizer (vendored libraries are not instrumented)" OFF)
@@ -64,25 +74,39 @@ target_include_directories(imgui PUBLIC
     ${CMAKE_SOURCE_DIR}/vendor/nanosvg
 )
 
-add_library(glad STATIC vendor/glad/src/glad.c)
+if(SIMP_GLES)
+    target_compile_definitions(imgui PUBLIC IMGUI_IMPL_OPENGL_ES3)
+    add_library(glad INTERFACE)
+    if(ANDROID)
+        target_link_libraries(glad INTERFACE GLESv3 EGL)
+    else()
+        target_link_libraries(glad INTERFACE GLESv2 EGL)
+    endif()
+else()
+    add_library(glad STATIC vendor/glad/src/glad.c)
 
-target_include_directories(glad PUBLIC
-    ${CMAKE_SOURCE_DIR}/vendor/glad/include
-)
+    target_include_directories(glad PUBLIC
+        ${CMAKE_SOURCE_DIR}/vendor/glad/include
+    )
 
-set_target_properties(glad PROPERTIES LINKER_LANGUAGE C)
+    set_target_properties(glad PROPERTIES LINKER_LANGUAGE C)
+endif()
 
 target_link_libraries(imgui PUBLIC SDL3::SDL3 spdlog)
 
 add_subdirectory(Engine)
-add_subdirectory(Editor)
-add_subdirectory(Game)
-add_subdirectory(Apps)
+if(ANDROID)
+    add_subdirectory(Android/native)
+else()
+    add_subdirectory(Editor)
+    add_subdirectory(Game)
+    add_subdirectory(Apps)
 
-option(SIMP_BUILD_TESTS "Build the SIMPTests executable" ON)
-if(SIMP_BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(tests)
+    option(SIMP_BUILD_TESTS "Build the SIMPTests executable" ON)
+    if(SIMP_BUILD_TESTS)
+        enable_testing()
+        add_subdirectory(tests)
+    endif()
 endif()
 
 file(GLOB LUA_SOURCES CONFIGURE_DEPENDS
@@ -118,6 +142,6 @@ if(NOT WIN32)
 endif()
 
 option(SIMP_INSTALL "Generate install rules for the SIMPEngine library" ON)
-if(SIMP_INSTALL)
+if(SIMP_INSTALL AND NOT SIMP_GLES)
     include(cmake/SIMPEngineInstall.cmake)
 endif()

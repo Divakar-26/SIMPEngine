@@ -409,6 +409,8 @@ namespace SIMPEngine
         float c = std::cos(rot), sn = std::sin(rot);
         glm::vec2 anchor(x, y);
         glm::vec4 col = ToVec4(color);
+        for (const char *p = text.data(), *e = text.data() + text.size(); p < e;)
+            font->GetGlyph(DecodeUtf8(p, e));
         unsigned int tex = font->GetTextureID();
 
         float baseline = -font->GetAscent() * s;

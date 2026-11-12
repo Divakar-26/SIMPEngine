@@ -4,6 +4,9 @@
 #include <Engine/Rendering/TextureManager.h>
 #include <Engine/Scene/Component.h>
 #include <Engine/Scene/SceneSerializer.h>
+#include <Engine/Scene/Prefab.h>
+#include <Engine/Core/VFS.h>
+#include <Engine/Core/FileSystem.h>
 #include <Engine/Scene/Loaders/TiledLoader.h>
 #include <Engine/Rendering/Tileset.h>
 #include <Engine/Particles/ParticleEmitter.h>
@@ -137,6 +140,200 @@ SIMPEngine::Entity EditorCommands::CreateLight(EditorContext &ctx, bool spot, co
     ctx.Scene->UpdateTransforms();
     ctx.Select(entity);
     return entity;
+}
+
+std::string EditorCommands::CreateShaderFile(const std::string &name)
+{
+    std::string file;
+    for (char c : name)
+        file += (std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_') ? c : '_';
+    if (file.empty())
+        file = "Effect";
+
+    std::string path;
+    for (int index = 1; index < 1000; ++index)
+    {
+        path = "assets://shaders/" + file + (index == 1 ? std::string() : std::to_string(index)) + ".glsl";
+        const std::optional<std::string> real = SIMPEngine::VFS::Resolve(path);
+        if (!real)
+            return {};
+        if (!SIMPEngine::FileSystem::Exists(*real))
+            break;
+    }
+
+    const std::optional<std::string> real = SIMPEngine::VFS::Resolve(path);
+    if (!real)
+        return {};
+    SIMPEngine::FileSystem::CreateDirectories(std::filesystem::path(*real).parent_path().string());
+    const std::string source =
+        "uniform float uAmount; // range(0,1) default(1)\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "    vec4 c = texture(uTexture, uv);\n"
+        "    float g = dot(c.rgb, vec3(0.299, 0.587, 0.114));\n"
+        "    color = vec4(mix(c.rgb, vec3(g) * c.a, uAmount), c.a);\n"
+        "}\n";
+    if (!SIMPEngine::FileSystem::WriteText(*real, source))
+        return {};
+    return path;
+}
+
+SIMPEngine::Entity EditorCommands::CreateShaderCanvas(EditorContext &ctx)
+{
+    auto entity = CreateEntity(ctx, "Shader Canvas");
+    entity.AddComponent<ShaderCanvasComponent>();
+    ctx.Select(entity);
+    return entity;
+}
+
+bool EditorCommands::SaveAsPrefab(EditorContext &ctx, SIMPEngine::Entity entity, std::string *savedPath)
+{
+    if (!entity || !ctx.Scene || !ctx.Scene->GetRegistry().valid(entity.GetHandle()))
+        return false;
+
+    std::string name = entity.HasComponent<TagComponent>() ? entity.GetComponent<TagComponent>().Tag : std::string("Prefab");
+    std::string file;
+    for (char c : name)
+        file += (std::isalnum(static_cast<unsigned char>(c)) || c == '-' || c == '_') ? c : '_';
+    if (file.empty())
+        file = "Prefab";
+
+    std::string path = "assets://prefabs/" + file + ".prefab";
+    for (int index = 2; index < 1000; ++index)
+    {
+        const std::optional<std::string> real = SIMPEngine::VFS::Resolve(path);
+        if (!real || !SIMPEngine::FileSystem::Exists(*real))
+            break;
+        path = "assets://prefabs/" + file + std::to_string(index) + ".prefab";
+    }
+
+    if (const std::optional<std::string> real = SIMPEngine::VFS::Resolve(path))
+        SIMPEngine::FileSystem::CreateDirectories(std::filesystem::path(*real).parent_path().string());
+
+    RecordEdit(ctx);
+    if (!SIMPEngine::Prefab::Save(*ctx.Scene, entity.GetHandle(), path))
+        return false;
+    ctx.Scene->GetRegistry().emplace_or_replace<PrefabInstanceComponent>(entity.GetHandle(), PrefabInstanceComponent{path});
+    if (savedPath)
+        *savedPath = path;
+    CORE_INFO("Saved prefab {}", path);
+    return true;
+}
+
+bool EditorCommands::ApplyToPrefab(EditorContext &ctx, SIMPEngine::Entity entity)
+{
+    if (!entity || !entity.HasComponent<PrefabInstanceComponent>())
+        return false;
+    const std::string path = entity.GetComponent<PrefabInstanceComponent>().path;
+    if (!SIMPEngine::Prefab::Save(*ctx.Scene, entity.GetHandle(), path))
+        return false;
+    CORE_INFO("Updated prefab {}", path);
+    return true;
+}
+
+SIMPEngine::Entity EditorCommands::UpdateFromPrefab(EditorContext &ctx, SIMPEngine::Entity entity)
+{
+    if (!entity || !entity.HasComponent<PrefabInstanceComponent>())
+        return {};
+    RecordEdit(ctx);
+    SIMPEngine::Prefab::ClearCache();
+    const entt::entity fresh = SIMPEngine::Prefab::Refresh(*ctx.Scene, entity.GetHandle());
+    if (fresh == entt::null)
+        return {};
+    ctx.ClearSelection();
+    SIMPEngine::Entity result(fresh, ctx.Scene);
+    ctx.Select(result);
+    return result;
+}
+
+SIMPEngine::Entity EditorCommands::InstantiatePrefab(EditorContext &ctx, const std::string &path, const glm::vec2 &position)
+{
+    RecordEdit(ctx);
+    const entt::entity root = SIMPEngine::Prefab::Instantiate(*ctx.Scene, path, position);
+    if (root == entt::null)
+        return {};
+    SIMPEngine::Entity result(root, ctx.Scene);
+    ctx.Scene->UpdateTransforms();
+    ctx.Select(result);
+    return result;
+}
+
+SIMPEngine::Entity EditorCommands::CreateUINode(EditorContext &ctx, UINodeKind kind)
+{
+    auto isUI = [](SIMPEngine::Entity entity)
+    {
+        return entity && (entity.HasComponent<CanvasComponent>() || entity.HasComponent<UIRectComponent>());
+    };
+
+    if (kind == UINodeKind::Canvas)
+    {
+        auto canvas = CreateEntity(ctx, "Canvas");
+        canvas.AddComponent<CanvasComponent>();
+        ctx.Select(canvas);
+        return canvas;
+    }
+
+    SIMPEngine::Entity parent = isUI(ctx.SelectedEntity) ? ctx.SelectedEntity : SIMPEngine::Entity();
+    if (!parent)
+    {
+        for (auto handle : ctx.Scene->GetRegistry().view<CanvasComponent>())
+        {
+            parent = SIMPEngine::Entity(handle, ctx.Scene);
+            break;
+        }
+    }
+    if (!parent)
+        parent = CreateUINode(ctx, UINodeKind::Canvas);
+
+    const char *name = kind == UINodeKind::Panel ? "Panel" : kind == UINodeKind::Label ? "Label"
+                                                          : kind == UINodeKind::Image   ? "Image"
+                                                          : kind == UINodeKind::Button  ? "Button"
+                                                          : kind == UINodeKind::Row     ? "Row"
+                                                                                        : "Column";
+    auto node = CreateChild(ctx, parent, name);
+    auto &rect = node.AddComponent<UIRectComponent>();
+    switch (kind)
+    {
+    case UINodeKind::Panel:
+        rect.size = {300.0f, 200.0f};
+        node.AddComponent<UIPanelComponent>();
+        break;
+    case UINodeKind::Label:
+        rect.size = {240.0f, 40.0f};
+        node.AddComponent<UILabelComponent>();
+        break;
+    case UINodeKind::Image:
+        rect.size = {128.0f, 128.0f};
+        node.AddComponent<UIImageComponent>();
+        break;
+    case UINodeKind::Button:
+    {
+        rect.size = {220.0f, 56.0f};
+        auto &panel = node.AddComponent<UIPanelComponent>();
+        panel.color = {64, 98, 168, 255};
+        panel.cornerRadius = 10.0f;
+        node.AddComponent<UIButtonComponent>();
+        auto text = CreateChild(ctx, node, "Text");
+        auto &textRect = text.AddComponent<UIRectComponent>();
+        textRect.anchorMin = {0.0f, 0.0f};
+        textRect.anchorMax = {1.0f, 1.0f};
+        text.AddComponent<UILabelComponent>().text = "Button";
+        break;
+    }
+    case UINodeKind::Row:
+    case UINodeKind::Column:
+    {
+        rect.size = {300.0f, 300.0f};
+        auto &layout = node.AddComponent<UILayoutComponent>();
+        layout.direction = kind == UINodeKind::Row ? 0 : 1;
+        break;
+    }
+    default:
+        break;
+    }
+    ctx.Select(node);
+    return node;
 }
 
 SIMPEngine::Entity EditorCommands::CreateTilemap(EditorContext &ctx)
@@ -394,7 +591,7 @@ bool EditorCommands::IsGroup(SIMPEngine::Entity entity)
     if (!hierarchy || hierarchy->children.empty())
         return false;
     return !registry.any_of<SpriteComponent, RenderComponent, TextComponent, TilemapComponent, AnimatedSpriteComponent, ParticleEmitterComponent, VectorShapeComponent,
-                            LightComponent, AudioSourceComponent, CameraComponent, PhysicsComponent, CollisionComponent, ScriptComponent, GlowComponent, TriggerComponent>(handle);
+                            LightComponent, AudioSourceComponent, CameraComponent, PhysicsComponent, CollisionComponent, ScriptComponent, GlowComponent, TriggerComponent, CanvasComponent, UIRectComponent>(handle);
 }
 
 SIMPEngine::Entity EditorCommands::GroupSelection(EditorContext &ctx, const std::string &name)

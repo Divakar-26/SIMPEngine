@@ -2,6 +2,8 @@
 
 #include "LuaHelpers.h"
 
+#include <Engine/Rendering/Font.h>
+#include <Engine/Vector/TextOutline.h>
 #include <Engine/Vector/VectorPath.h>
 
 #include <cmath>
@@ -325,6 +327,86 @@ namespace SIMPEngine::LuaBindings
             return 1;
         }
 
+        int MakeText(lua_State *L)
+        {
+            size_t length = 0;
+            const char *source = luaL_checklstring(L, 1, &length);
+            const float size = Num(L, 2);
+            const char *alignName = luaL_optstring(L, 3, "left");
+            size_t fontLength = 0;
+            const char *fontPath = luaL_optlstring(L, 4, "", &fontLength);
+            const TextAlign align = std::strcmp(alignName, "center") == 0 ? TextAlign::Center : std::strcmp(alignName, "right") == 0 ? TextAlign::Right : TextAlign::Left;
+            bool ok = false;
+            bool noFont = false;
+            {
+                std::shared_ptr<Font> font = fontLength > 0 ? Font::Load(std::string(fontPath, fontLength)) : Font::GetDefault();
+                noFont = !font;
+                TextOutline outline;
+                if (font)
+                    ok = BuildTextOutline(*font, std::string(source, length), size, align, outline);
+                if (ok)
+                    PushPath(L, outline.Path);
+            }
+            if (!ok)
+            {
+                lua_pushnil(L);
+                lua_pushstring(L, noFont ? "font not found" : "no visible glyphs");
+                return 2;
+            }
+            return 1;
+        }
+
+        int MakeTextGlyphs(lua_State *L)
+        {
+            size_t length = 0;
+            const char *source = luaL_checklstring(L, 1, &length);
+            const float size = Num(L, 2);
+            const char *alignName = luaL_optstring(L, 3, "left");
+            size_t fontLength = 0;
+            const char *fontPath = luaL_optlstring(L, 4, "", &fontLength);
+            const TextAlign align = std::strcmp(alignName, "center") == 0 ? TextAlign::Center : std::strcmp(alignName, "right") == 0 ? TextAlign::Right : TextAlign::Left;
+            bool ok = false;
+            bool noFont = false;
+            {
+                std::shared_ptr<Font> font = fontLength > 0 ? Font::Load(std::string(fontPath, fontLength)) : Font::GetDefault();
+                noFont = !font;
+                TextOutline outline;
+                if (font)
+                    ok = BuildTextOutline(*font, std::string(source, length), size, align, outline);
+                if (ok)
+                {
+                    lua_createtable(L, static_cast<int>(outline.Glyphs.size()), 0);
+                    for (size_t i = 0; i < outline.Glyphs.size(); ++i)
+                    {
+                        const TextOutlineGlyph &g = outline.Glyphs[i];
+                        lua_createtable(L, 0, 8);
+                        PushPath(L, outline.GlyphPath(i));
+                        lua_setfield(L, -2, "path");
+                        auto number = [&](const char *key, lua_Number value)
+                        {
+                            lua_pushnumber(L, value);
+                            lua_setfield(L, -2, key);
+                        };
+                        number("index", g.Index + 1);
+                        number("codepoint", g.Codepoint);
+                        number("line", g.Line + 1);
+                        number("minX", g.Min.x);
+                        number("minY", g.Min.y);
+                        number("maxX", g.Max.x);
+                        number("maxY", g.Max.y);
+                        lua_rawseti(L, -2, static_cast<lua_Integer>(i + 1));
+                    }
+                }
+            }
+            if (!ok)
+            {
+                lua_pushnil(L);
+                lua_pushstring(L, noFont ? "font not found" : "no visible glyphs");
+                return 2;
+            }
+            return 1;
+        }
+
         const luaL_Reg PathMethods[] = {
             {"MoveTo", PathMoveTo},
             {"LineTo", PathLineTo},
@@ -356,6 +438,8 @@ namespace SIMPEngine::LuaBindings
             {"Arc", MakeArc},
             {"Points", MakePoints},
             {"Svg", MakeSvg},
+            {"Text", MakeText},
+            {"TextGlyphs", MakeTextGlyphs},
             {nullptr, nullptr}};
     }
 

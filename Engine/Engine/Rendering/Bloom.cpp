@@ -1,8 +1,9 @@
 #include <Engine/Rendering/Bloom.h>
 #include <Engine/Rendering/Renderer.h>
 #include <Engine/Rendering/Shader.h>
+#include <Engine/Rendering/Shaders/GLSLHeader.h>
 
-#include <glad/glad.h>
+#include <Engine/Rendering/GL.h>
 
 #include <algorithm>
 
@@ -10,8 +11,7 @@ namespace SIMPEngine
 {
     namespace
     {
-        constexpr const char *FullscreenVert = R"(
-#version 400 core
+        constexpr const char *FullscreenVert = SIMP_GLSL_VERT R"(
 out vec2 vUV;
 void main()
 {
@@ -21,8 +21,7 @@ void main()
 }
 )";
 
-        constexpr const char *DownsampleFrag = R"(
-#version 400 core
+        constexpr const char *DownsampleFrag = SIMP_GLSL_FRAG R"(
 in vec2 vUV;
 out vec4 FragColor;
 uniform sampler2D uSource;
@@ -68,8 +67,7 @@ void main()
 }
 )";
 
-        constexpr const char *UpsampleFrag = R"(
-#version 400 core
+        constexpr const char *UpsampleFrag = SIMP_GLSL_FRAG R"(
 in vec2 vUV;
 out vec4 FragColor;
 uniform sampler2D uSource;
@@ -173,17 +171,17 @@ void main()
 
         Framebuffer *target = Renderer::GetAPI()->GetRenderTarget();
         GLuint source = 0;
-        if (target)
+        if (target && !target->IsMultisampled())
         {
             source = target->GetColorAttachment();
         }
         else
         {
             if (!chain->Copy)
-                chain->Copy = std::make_unique<Framebuffer>(width, height);
+                chain->Copy = std::make_unique<Framebuffer>(width, height, target && target->IsHDR());
             else
                 chain->Copy->Resize(width, height);
-            glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+            glBindFramebuffer(GL_READ_FRAMEBUFFER, target ? target->GetID() : 0);
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER, chain->Copy->GetID());
             glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
             source = chain->Copy->GetColorAttachment();

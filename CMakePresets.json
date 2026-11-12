@@ -29,6 +29,18 @@
       }
     },
     {
+      "name": "gles",
+      "displayName": "OpenGL ES 3 (desktop test)",
+      "description": "Debug build that renders through OpenGL ES 3, the path Android uses; runs on desktop drivers that expose ES contexts",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/gles",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "SIMP_GLES": "ON"
+      }
+    },
+    {
       "name": "asan",
       "displayName": "AddressSanitizer Debug (Clang)",
       "description": "Debug build of the project code with AddressSanitizer (Clang); vendored libraries stay uninstrumented",
@@ -52,6 +64,11 @@
     {
       "name": "release",
       "configurePreset": "release",
+      "jobs": 4
+    },
+    {
+      "name": "gles",
+      "configurePreset": "gles",
       "jobs": 4
     },
     {

@@ -116,7 +116,8 @@ namespace SIMPEngine
         const std::string chunkName = "@" + path;
         if (luaL_loadbufferx(m_State, text->data() + offset, text->size() - offset, chunkName.c_str(), "t") != LUA_OK)
         {
-            CORE_ERROR("Lua: {}", lua_tostring(m_State, -1));
+            m_LastError = lua_tostring(m_State, -1);
+            CORE_ERROR("Lua: {}", m_LastError);
             lua_pop(m_State, 1);
             return false;
         }
@@ -138,7 +139,9 @@ namespace SIMPEngine
 
         if (status != LUA_OK)
         {
-            CORE_ERROR("Lua: {}", lua_tostring(m_State, -1));
+            const char *message = lua_tostring(m_State, -1);
+            m_LastError = message ? message : "unknown Lua error";
+            CORE_ERROR("Lua: {}", m_LastError);
             lua_pop(m_State, 1);
             return false;
         }

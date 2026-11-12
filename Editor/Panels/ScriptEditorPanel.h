@@ -59,6 +59,9 @@ private:
     void DrawStatusBar(Document *doc);
     void DrawNewScriptPopup();
     void DrawClosePopup();
+    void HandleNavigation(Document &from, const ScriptEditor::NavigationRequest &request);
+    bool LoadModule(const std::string &module, std::string &vpath, std::vector<std::string> &lines);
+    Document *FindDocument(const std::string &vpath);
 
     bool Save(Document &doc);
     void Close(size_t index);
@@ -76,6 +79,14 @@ private:
     bool m_FocusWindow = false;
     bool m_EditorFocused = false;
 
+    struct JumpEntry
+    {
+        std::string VPath;
+        int Line = 0;
+        int Column = 0;
+    };
+
+    std::vector<JumpEntry> m_JumpHistory;
     std::vector<std::unique_ptr<Document>> m_Documents;
     int m_Active = -1;
     int m_SelectTab = -1;

@@ -4,6 +4,7 @@
 #include <SDL3/SDL.h>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 
 namespace SIMPEngine
@@ -24,5 +25,6 @@ namespace SIMPEngine
         ~TextureManager();
 
         std::unordered_map<std::string, std::shared_ptr<Texture>> m_TextureMap;
+        std::unordered_set<std::string> m_Placeholders;
     };
 }

@@ -1,5 +1,6 @@
 # Personal notes
 ROADMAP.md
+IMMEDIATE.md
 
 # Build output
 build/
@@ -77,3 +78,13 @@ desktop.ini
 *.orig
 *.rej
 *.zip
+
+# Android
+Android/.gradle/
+Android/build/
+Android/app/build/
+Android/app/.cxx/
+Android/local.properties
+Android/simp.properties
+Android/app/src/main/assets/
+Android/app/src/main/res/values/strings.xml

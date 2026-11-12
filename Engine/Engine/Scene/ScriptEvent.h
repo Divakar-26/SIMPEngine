@@ -16,6 +16,11 @@ namespace SIMPEngine
         PathEnd,
         Landed,
         Jumped,
+        Grabbed,
+        Dropped,
+        Clicked,
+        HoverEnter,
+        HoverExit,
         Count
     };
 }

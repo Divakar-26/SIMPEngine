@@ -1,0 +1,20 @@
+Project:
+  name: TestApp
+  version: 1.0.0
+  engine: 1.0.0
+  start_scene: assets://scenes/main.yaml
+  window:
+    title: SIMP Test App
+    width: 1280
+    height: 720
+    fullscreen: false
+    resizable: true
+    vsync: true
+    maximized: false
+    borderless: false
+    orientation: landscape
+  display:
+    width: 1080
+    height: 1920
+    aspect: keep_height
+    stretch: window

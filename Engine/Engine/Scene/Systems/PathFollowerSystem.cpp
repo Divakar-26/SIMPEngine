@@ -1,3 +1,4 @@
+#include "PhysicsSystem.h"
 #include "PathFollowerSystem.h"
 
 #include <Engine/Scene/Scene.h>
@@ -120,12 +121,7 @@ namespace SIMPEngine
             if (moved)
             {
                 transform.dirty = true;
-                if (PhysicsComponent *physics = registry.try_get<PhysicsComponent>(handle); physics && physics->body)
-                {
-                    physics->body->position = {transform.position.x, transform.position.y};
-                    physics->body->orientation = glm::radians(transform.rotation);
-                    physics->body->calculateDerivativeData();
-                }
+                PhysicsSystem::SyncBodyToTransform(registry, handle);
             }
         }
 

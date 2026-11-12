@@ -1,3 +1,4 @@
+#include <Engine/Core/Display.h>
 #include <Engine/Math/Camera2D.h>
 #include <Engine/Events/EventDispatcher.h>
 #include <Engine/Events/KeyEvent.h>
@@ -139,13 +140,13 @@ namespace SIMPEngine
             static_cast<float>(m_ViewportWidth) /
             static_cast<float>(m_ViewportHeight);
 
-        float size = 540.0f * m_ManualZoom;
+        const glm::vec2 half = Display::HalfExtents(Display::Get(), m_ManualZoom, aspect);
 
         return glm::ortho(
-            -size * aspect,
-            size * aspect,
-            -size,
-            size,
+            -half.x,
+            half.x,
+            -half.y,
+            half.y,
             -1000.0f, 1000.0f);
     }
 

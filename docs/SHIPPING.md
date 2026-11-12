@@ -28,9 +28,33 @@ Project:
     fullscreen: false
     resizable: true
     vsync: true
+    maximized: false
+    borderless: false
+    orientation: landscape   # Android: landscape, portrait or auto
+  display:
+    width: 1920              # the game resolution: what one world unit of zoom 1 covers
+    height: 1080
+    aspect: keep_height      # keep_height, keep_width, expand or keep
+    stretch: window          # window or fixed
+    render_scale: 1.0        # 0.25 to 1: draw smaller and scale up (phones, slow GPUs)
 ```
 
 Edit it from **Project > Project Settings...**. Changes are saved as you make them. **Use Current Scene** sets the start scene to the scene that is open.
+
+### Game resolution and window
+
+`window` is the window the player opens with. `display` is the size of the picture the game is made for, like Godot's base viewport. At camera zoom 1 the view is exactly `width x height` world units, so a smaller game resolution makes everything look bigger (use 480x270 or 640x360 for pixel art). The default 1920x1080 matches what earlier projects did.
+
+| `aspect` | When the window has another shape |
+|---|---|
+| `keep_height` | the view always shows the game height, wider windows show more at the sides |
+| `keep_width` | the view always shows the game width, taller windows show more above and below |
+| `expand` | the whole game area is always visible, the extra space shows more of the world |
+| `keep` | the game keeps its shape and the rest of the window is black bars |
+
+`stretch: window` draws at the window's pixel size (sharp text and UI). `stretch: fixed` draws at the game resolution and scales the result up, nearest-neighbour when the scale is a whole number, the usual way to get crisp pixel art at any window size.
+
+In the editor the **Game** panel has a **Window** menu to preview any window shape (the project's window, the game resolution, 16:9, 4:3, ultrawide, phone landscape and portrait, or a custom size); it renders exactly as the player would, including black bars and fixed-resolution scaling, and mouse input is mapped the same way. **Safe frame** outlines the game resolution inside the window. The yellow frame in the Viewport is the camera's view at the game resolution.
 
 Inside a project, `assets://` points to the project's `assets/` folder. Engine files (the default fonts, editor themes) live under `engine://`, so a project only contains its own files.
 

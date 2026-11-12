@@ -60,6 +60,8 @@ namespace EditorUI
             return {ICON_LC_CLAPPERBOARD, &Colors::NodeTint, "Scene"};
         if (ext == ".json")
             return {ICON_LC_BRACES, &Colors::TextDim, "JSON"};
+        if (ext == ".prefab")
+            return {ICON_LC_PACKAGE, &Colors::NodeTint, "Prefab"};
         if (ext == ".particle")
             return {ICON_LC_SPARKLES, &Colors::NodeTint, "Particle Effect"};
         if (ext == ".ttf" || ext == ".otf")
@@ -83,6 +85,8 @@ namespace EditorUI
             return {ICON_LC_GRID_3X3, &Colors::NodeTint, "Tilemap"};
         if (entity.HasComponent<LightComponent>())
             return {ICON_LC_LIGHTBULB, &Colors::NodeTint, "Light"};
+        if (entity.HasComponent<MusicComponent>())
+            return {ICON_LC_MUSIC, &Colors::NodeTint, "Music"};
         if (entity.HasComponent<AudioSourceComponent>())
             return {ICON_LC_VOLUME_2, &Colors::NodeTint, "Audio"};
         if (entity.HasComponent<ParticleEmitterComponent>())
@@ -99,6 +103,34 @@ namespace EditorUI
             return {ICON_LC_ATOM, &Colors::NodeTint, "Body"};
         if (entity.HasComponent<RenderComponent>())
             return {ICON_LC_SQUARE, &Colors::NodeTint, "Shape"};
+        if (entity.HasComponent<ShaderCanvasComponent>())
+            return {ICON_LC_WAND_SPARKLES, &Colors::NodeTint, "Shader Canvas"};
+        if (entity.HasComponent<CanvasComponent>())
+            return {ICON_LC_MONITOR, &Colors::NodeTint, "Canvas"};
+        if (entity.HasComponent<UIButtonComponent>())
+            return {ICON_LC_SQUARE_MOUSE_POINTER, &Colors::NodeTint, "UI Button"};
+        if (entity.HasComponent<UILabelComponent>())
+            return {ICON_LC_TYPE, &Colors::NodeTint, "UI Label"};
+        if (entity.HasComponent<UIImageComponent>())
+            return {ICON_LC_IMAGE, &Colors::NodeTint, "UI Image"};
+        if (entity.HasComponent<UILayoutComponent>())
+            return {ICON_LC_LAYOUT_LIST, &Colors::NodeTint, "UI Layout"};
+        if (entity.HasComponent<UIPanelComponent>())
+            return {ICON_LC_PANEL_TOP, &Colors::NodeTint, "UI Panel"};
+        if (entity.HasComponent<UIRectComponent>())
+            return {ICON_LC_RECTANGLE_HORIZONTAL, &Colors::NodeTint, "UI Node"};
+        if (entity.HasComponent<ButtonComponent>())
+            return {ICON_LC_MOUSE_POINTER_CLICK, &Colors::NodeTint, "Button"};
+        if (entity.HasComponent<TeleporterComponent>())
+            return {ICON_LC_DOOR_OPEN, &Colors::NodeTint, "Teleporter"};
+        if (entity.HasComponent<CameraZoneComponent>())
+            return {ICON_LC_SCAN_EYE, &Colors::NodeTint, "Camera Zone"};
+        if (entity.HasComponent<PickableComponent>())
+            return {ICON_LC_GRAB, &Colors::NodeTint, "Pickable"};
+        if (entity.HasComponent<CheckpointComponent>())
+            return {ICON_LC_FLAG, &Colors::NodeTint, "Checkpoint"};
+        if (entity.HasComponent<PickupComponent>())
+            return {ICON_LC_GEM, &Colors::NodeTint, "Pickup"};
         if (entity.HasComponent<SpawnerComponent>())
             return {ICON_LC_COPY_PLUS, &Colors::NodeTint, "Spawner"};
         if (entity.HasComponent<DamageComponent>())

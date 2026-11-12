@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glad/glad.h>
+#include <Engine/Rendering/GL.h>
 #include <string>
 
 namespace SIMPEngine

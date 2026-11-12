@@ -1,4 +1,5 @@
 #include <Engine/Core/FileSystem.h>
+#include <Engine/Physics/BodyFactory.h>
 #include "yaml-cpp/emittermanip.h"
 #include <Engine/Core/Log.h>
 #include <Engine/Core/VFS.h>
@@ -9,6 +10,7 @@
 #include <Engine/Scene/TilemapUtils.h>
 #include <Engine/Particles/ParticleSerializer.h>
 
+#include <cmath>
 #include <cstdint>
 #include <fstream>
 #include <algorithm>
@@ -16,6 +18,8 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <exception>
+#include <memory>
 
 namespace SIMPEngine {
 namespace {
@@ -137,6 +141,15 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
     out << YAML::Key << "knee" << YAML::Value << bloom.Knee;
     out << YAML::Key << "intensity" << YAML::Value << bloom.Intensity;
     out << YAML::Key << "radius" << YAML::Value << bloom.Radius;
+    out << YAML::EndMap;
+    const AccelEngine::World &physicsWorld = m_Scene->GetPhysicsWorld();
+    out << YAML::Key << "physics" << YAML::BeginMap;
+    out << YAML::Key << "gravity" << YAML::Value << YAML::Flow << YAML::BeginSeq
+        << physicsWorld.gravity.x << physicsWorld.gravity.y << YAML::EndSeq;
+    out << YAML::Key << "substeps" << YAML::Value << physicsWorld.settings.substeps;
+    out << YAML::Key << "velocity_iterations" << YAML::Value << physicsWorld.settings.velocityIterations;
+    out << YAML::Key << "position_iterations" << YAML::Value << physicsWorld.settings.positionIterations;
+    out << YAML::Key << "enable_sleep" << YAML::Value << physicsWorld.settings.enableSleep;
     out << YAML::EndMap;
     out << YAML::EndMap;
   }
@@ -376,6 +389,300 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::Key << "pitch" << YAML::Value << audio.pitch;
       out << YAML::Key << "loop" << YAML::Value << audio.loop;
       out << YAML::Key << "play_on_start" << YAML::Value << audio.playOnStart;
+      out << YAML::Key << "bus" << YAML::Value
+          << (audio.bus == 1 ? "music" : audio.bus == 2 ? "ui" : "sfx");
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<FollowComponent>()) {
+      const auto &follow = entity.GetComponent<FollowComponent>();
+      out << YAML::Key << "Follow" << YAML::BeginMap;
+      out << YAML::Key << "target" << YAML::Value << follow.target;
+      out << YAML::Key << "offset" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << follow.offset.x << follow.offset.y << YAML::EndSeq;
+      out << YAML::Key << "smoothing" << YAML::Value << follow.smoothing;
+      out << YAML::Key << "stop_distance" << YAML::Value << follow.stopDistance;
+      out << YAML::Key << "follow_x" << YAML::Value << follow.followX;
+      out << YAML::Key << "follow_y" << YAML::Value << follow.followY;
+      out << YAML::Key << "enabled" << YAML::Value << follow.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<ButtonComponent>()) {
+      const auto &button = entity.GetComponent<ButtonComponent>();
+      out << YAML::Key << "Button" << YAML::BeginMap;
+      out << YAML::Key << "enabled" << YAML::Value << button.enabled;
+      out << YAML::Key << "button" << YAML::Value
+          << (button.button == 1 ? "right" : button.button == 2 ? "middle" : "left");
+      out << YAML::Key << "hover_scale" << YAML::Value << button.hoverScale;
+      out << YAML::Key << "press_scale" << YAML::Value << button.pressScale;
+      out << YAML::Key << "hover_sound" << YAML::Value << button.hoverSound;
+      out << YAML::Key << "click_sound" << YAML::Value << button.clickSound;
+      out << YAML::Key << "volume" << YAML::Value << button.volume;
+      out << YAML::Key << "padding" << YAML::Value << button.padding;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<ShaderCanvasComponent>()) {
+      const auto &canvas = entity.GetComponent<ShaderCanvasComponent>();
+      static const char *types[] = {"float", "vec2", "vec3", "vec4", "color", "texture", "int", "bool"};
+      out << YAML::Key << "ShaderCanvas" << YAML::BeginMap;
+      out << YAML::Key << "shader" << YAML::Value << canvas.shader;
+      out << YAML::Key << "scope" << YAML::Value
+          << (canvas.scope == 1 ? "children" : canvas.scope == 2 ? "z_range" : "scene");
+      out << YAML::Key << "z_range" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << canvas.zMin << canvas.zMax << YAML::EndSeq;
+      out << YAML::Key << "order" << YAML::Value << canvas.order;
+      out << YAML::Key << "resolution_scale" << YAML::Value << canvas.resolutionScale;
+      out << YAML::Key << "progress" << YAML::Value << canvas.progress;
+      out << YAML::Key << "enabled" << YAML::Value << canvas.enabled;
+      out << YAML::Key << "limit_area" << YAML::Value << canvas.limitArea;
+      out << YAML::Key << "area_size" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << canvas.areaSize.x << canvas.areaSize.y << YAML::EndSeq;
+      if (!canvas.uniforms.empty()) {
+        out << YAML::Key << "uniforms" << YAML::Value << YAML::BeginSeq;
+        for (const auto &uniform : canvas.uniforms) {
+          out << YAML::BeginMap;
+          out << YAML::Key << "name" << YAML::Value << uniform.name;
+          out << YAML::Key << "type" << YAML::Value
+              << types[std::clamp(uniform.type, 0, 7)];
+          if (uniform.type == 5) {
+            out << YAML::Key << "texture" << YAML::Value << uniform.texturePath;
+          } else {
+            out << YAML::Key << "value" << YAML::Value << YAML::Flow << YAML::BeginSeq
+                << uniform.value[0] << uniform.value[1] << uniform.value[2]
+                << uniform.value[3] << YAML::EndSeq;
+          }
+          out << YAML::EndMap;
+        }
+        out << YAML::EndSeq;
+      }
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<PrefabInstanceComponent>()) {
+      out << YAML::Key << "PrefabInstance" << YAML::BeginMap;
+      out << YAML::Key << "path" << YAML::Value
+          << entity.GetComponent<PrefabInstanceComponent>().path;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<CanvasComponent>()) {
+      const auto &canvas = entity.GetComponent<CanvasComponent>();
+      out << YAML::Key << "Canvas" << YAML::BeginMap;
+      out << YAML::Key << "reference_size" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << canvas.referenceSize.x << canvas.referenceSize.y << YAML::EndSeq;
+      out << YAML::Key << "scale_mode" << YAML::Value << (canvas.scaleMode == 0 ? "constant" : "scale_with_screen");
+      out << YAML::Key << "match" << YAML::Value << canvas.match;
+      out << YAML::Key << "safe_area" << YAML::Value << canvas.safeArea;
+      out << YAML::Key << "sort_order" << YAML::Value << canvas.sortOrder;
+      out << YAML::Key << "visible" << YAML::Value << canvas.visible;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<UIRectComponent>()) {
+      const auto &rect = entity.GetComponent<UIRectComponent>();
+      out << YAML::Key << "UIRect" << YAML::BeginMap;
+      out << YAML::Key << "anchor_min" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << rect.anchorMin.x << rect.anchorMin.y << YAML::EndSeq;
+      out << YAML::Key << "anchor_max" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << rect.anchorMax.x << rect.anchorMax.y << YAML::EndSeq;
+      out << YAML::Key << "pivot" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << rect.pivot.x << rect.pivot.y << YAML::EndSeq;
+      out << YAML::Key << "position" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << rect.position.x << rect.position.y << YAML::EndSeq;
+      out << YAML::Key << "size" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << rect.size.x << rect.size.y << YAML::EndSeq;
+      out << YAML::Key << "margin" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << rect.margin.x << rect.margin.y << rect.margin.z << rect.margin.w << YAML::EndSeq;
+      out << YAML::Key << "visible" << YAML::Value << rect.visible;
+      out << YAML::Key << "blocks_input" << YAML::Value << rect.blocksInput;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<UIPanelComponent>()) {
+      const auto &panel = entity.GetComponent<UIPanelComponent>();
+      out << YAML::Key << "UIPanel" << YAML::BeginMap;
+      out << YAML::Key << "color" << YAML::Value;
+      EmitColor(out, panel.color);
+      out << YAML::Key << "corner_radius" << YAML::Value << panel.cornerRadius;
+      out << YAML::Key << "border_color" << YAML::Value;
+      EmitColor(out, panel.borderColor);
+      out << YAML::Key << "border_width" << YAML::Value << panel.borderWidth;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<UILabelComponent>()) {
+      const auto &label = entity.GetComponent<UILabelComponent>();
+      out << YAML::Key << "UILabel" << YAML::BeginMap;
+      out << YAML::Key << "text" << YAML::Value << label.text;
+      out << YAML::Key << "size" << YAML::Value << label.size;
+      out << YAML::Key << "color" << YAML::Value;
+      EmitColor(out, label.color);
+      out << YAML::Key << "align" << YAML::Value << label.align;
+      out << YAML::Key << "vertical_align" << YAML::Value << label.verticalAlign;
+      if (!label.fontPath.empty())
+        out << YAML::Key << "font" << YAML::Value << label.fontPath;
+      out << YAML::Key << "shadow" << YAML::Value << label.shadow;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<UIImageComponent>()) {
+      const auto &image = entity.GetComponent<UIImageComponent>();
+      out << YAML::Key << "UIImage" << YAML::BeginMap;
+      if (image.texture) {
+        out << YAML::Key << "texture" << YAML::Value << image.texture->GetVFSPath();
+        out << YAML::Key << "filter" << YAML::Value
+            << (image.texture->GetFilter() == TextureFilter::Nearest ? "nearest" : "linear");
+      }
+      out << YAML::Key << "tint" << YAML::Value;
+      EmitColor(out, image.tint);
+      out << YAML::Key << "preserve_aspect" << YAML::Value << image.preserveAspect;
+      if (image.useRegion)
+        out << YAML::Key << "region" << YAML::Value << YAML::Flow << YAML::BeginSeq
+            << image.region.x << image.region.y << image.region.w << image.region.h << YAML::EndSeq;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<UIButtonComponent>()) {
+      const auto &button = entity.GetComponent<UIButtonComponent>();
+      out << YAML::Key << "UIButton" << YAML::BeginMap;
+      out << YAML::Key << "enabled" << YAML::Value << button.enabled;
+      out << YAML::Key << "focusable" << YAML::Value << button.focusable;
+      out << YAML::Key << "hover_tint" << YAML::Value;
+      EmitColor(out, button.hoverTint);
+      out << YAML::Key << "press_tint" << YAML::Value;
+      EmitColor(out, button.pressTint);
+      out << YAML::Key << "disabled_tint" << YAML::Value;
+      EmitColor(out, button.disabledTint);
+      out << YAML::Key << "hover_scale" << YAML::Value << button.hoverScale;
+      out << YAML::Key << "press_scale" << YAML::Value << button.pressScale;
+      out << YAML::Key << "hover_sound" << YAML::Value << button.hoverSound;
+      out << YAML::Key << "click_sound" << YAML::Value << button.clickSound;
+      out << YAML::Key << "volume" << YAML::Value << button.volume;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<UILayoutComponent>()) {
+      const auto &layout = entity.GetComponent<UILayoutComponent>();
+      out << YAML::Key << "UILayout" << YAML::BeginMap;
+      out << YAML::Key << "direction" << YAML::Value << (layout.direction == 0 ? "row" : "column");
+      out << YAML::Key << "spacing" << YAML::Value << layout.spacing;
+      out << YAML::Key << "padding" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << layout.padding.x << layout.padding.y << layout.padding.z << layout.padding.w << YAML::EndSeq;
+      out << YAML::Key << "justify" << YAML::Value << layout.justify;
+      out << YAML::Key << "align" << YAML::Value << layout.align;
+      out << YAML::Key << "stretch" << YAML::Value << layout.stretch;
+      out << YAML::Key << "enabled" << YAML::Value << layout.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<TeleporterComponent>()) {
+      const auto &portal = entity.GetComponent<TeleporterComponent>();
+      out << YAML::Key << "Teleporter" << YAML::BeginMap;
+      out << YAML::Key << "target" << YAML::Value << portal.target;
+      out << YAML::Key << "offset" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << portal.offset.x << portal.offset.y << YAML::EndSeq;
+      out << YAML::Key << "sound" << YAML::Value << portal.sound;
+      out << YAML::Key << "keep_velocity" << YAML::Value << portal.keepVelocity;
+      out << YAML::Key << "enabled" << YAML::Value << portal.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<CameraZoneComponent>()) {
+      const auto &zone = entity.GetComponent<CameraZoneComponent>();
+      out << YAML::Key << "CameraZone" << YAML::BeginMap;
+      out << YAML::Key << "zoom" << YAML::Value << zone.zoom;
+      out << YAML::Key << "speed" << YAML::Value << zone.speed;
+      out << YAML::Key << "set_bounds" << YAML::Value << zone.setBounds;
+      out << YAML::Key << "bounds_min" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << zone.boundsMin.x << zone.boundsMin.y << YAML::EndSeq;
+      out << YAML::Key << "bounds_max" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << zone.boundsMax.x << zone.boundsMax.y << YAML::EndSeq;
+      out << YAML::Key << "restore_on_exit" << YAML::Value << zone.restoreOnExit;
+      out << YAML::Key << "enabled" << YAML::Value << zone.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<WorldBoundsComponent>()) {
+      const auto &bounds = entity.GetComponent<WorldBoundsComponent>();
+      out << YAML::Key << "WorldBounds" << YAML::BeginMap;
+      out << YAML::Key << "min" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << bounds.min.x << bounds.min.y << YAML::EndSeq;
+      out << YAML::Key << "max" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << bounds.max.x << bounds.max.y << YAML::EndSeq;
+      out << YAML::Key << "mode" << YAML::Value
+          << (bounds.mode == BoundsMode::Wrap     ? "wrap"
+              : bounds.mode == BoundsMode::Bounce ? "bounce"
+              : bounds.mode == BoundsMode::Destroy ? "destroy"
+                                                   : "clamp");
+      out << YAML::Key << "margin" << YAML::Value << bounds.margin;
+      out << YAML::Key << "enabled" << YAML::Value << bounds.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<PickableComponent>()) {
+      const auto &pickable = entity.GetComponent<PickableComponent>();
+      out << YAML::Key << "Pickable" << YAML::BeginMap;
+      out << YAML::Key << "enabled" << YAML::Value << pickable.enabled;
+      out << YAML::Key << "button" << YAML::Value
+          << (pickable.button == 1 ? "right" : pickable.button == 2 ? "middle" : "left");
+      out << YAML::Key << "smoothing" << YAML::Value << pickable.smoothing;
+      out << YAML::Key << "throw_strength" << YAML::Value << pickable.throwStrength;
+      out << YAML::Key << "lift_scale" << YAML::Value << pickable.liftScale;
+      out << YAML::Key << "bring_to_front" << YAML::Value << pickable.bringToFront;
+      out << YAML::Key << "keep_offset" << YAML::Value << pickable.keepOffset;
+      out << YAML::Key << "padding" << YAML::Value << pickable.padding;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<PickupComponent>()) {
+      const auto &pickup = entity.GetComponent<PickupComponent>();
+      out << YAML::Key << "Pickup" << YAML::BeginMap;
+      out << YAML::Key << "key" << YAML::Value << pickup.key;
+      out << YAML::Key << "amount" << YAML::Value << pickup.amount;
+      out << YAML::Key << "sound" << YAML::Value << pickup.sound;
+      out << YAML::Key << "volume" << YAML::Value << pickup.volume;
+      out << YAML::Key << "destroy_on_pickup" << YAML::Value << pickup.destroyOnPickup;
+      out << YAML::Key << "enabled" << YAML::Value << pickup.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<CheckpointComponent>()) {
+      const auto &checkpoint = entity.GetComponent<CheckpointComponent>();
+      out << YAML::Key << "Checkpoint" << YAML::BeginMap;
+      out << YAML::Key << "offset" << YAML::Value << YAML::Flow << YAML::BeginSeq
+          << checkpoint.offset.x << checkpoint.offset.y << YAML::EndSeq;
+      out << YAML::Key << "sound" << YAML::Value << checkpoint.sound;
+      out << YAML::Key << "enabled" << YAML::Value << checkpoint.enabled;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<RespawnComponent>()) {
+      const auto &respawn = entity.GetComponent<RespawnComponent>();
+      out << YAML::Key << "Respawn" << YAML::BeginMap;
+      out << YAML::Key << "delay" << YAML::Value << respawn.delay;
+      out << YAML::Key << "use_kill_y" << YAML::Value << respawn.useKillY;
+      out << YAML::Key << "kill_y" << YAML::Value << respawn.killY;
+      out << YAML::Key << "restore_health" << YAML::Value << respawn.restoreHealth;
+      out << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<MusicComponent>()) {
+      const auto &music = entity.GetComponent<MusicComponent>();
+      out << YAML::Key << "Music" << YAML::BeginMap;
+      out << YAML::Key << "tracks" << YAML::Value << YAML::BeginSeq;
+      for (const auto &track : music.tracks)
+        out << track;
+      out << YAML::EndSeq;
+      out << YAML::Key << "volume" << YAML::Value << music.volume;
+      out << YAML::Key << "fade_in" << YAML::Value << music.fadeIn;
+      out << YAML::Key << "fade_out" << YAML::Value << music.fadeOut;
+      out << YAML::Key << "shuffle" << YAML::Value << music.shuffle;
+      out << YAML::Key << "loop_playlist" << YAML::Value << music.loopPlaylist;
+      out << YAML::Key << "play_on_start" << YAML::Value << music.playOnStart;
+      out << YAML::Key << "on_trigger" << YAML::Value << music.onTrigger;
+      out << YAML::Key << "stop_on_exit" << YAML::Value << music.stopOnExit;
       out << YAML::EndMap;
     }
 
@@ -615,45 +922,59 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       if (!body) {
         CORE_WARN("Skipping physics serialization for '{}' due to missing body", tag.Tag);
       } else {
+        using AccelEngine::ShapeType;
         out << YAML::Key << "Physics" << YAML::BeginMap;
 
-        std::string shape = (body->shapeType == AccelEngine::ShapeType::CIRCLE)
-                                ? "CIRCLE"
-                                : "AABB";
-
+        const char *shape = body->shapeType == ShapeType::CIRCLE    ? "CIRCLE"
+                            : body->shapeType == ShapeType::AABB    ? "AABB"
+                            : body->shapeType == ShapeType::POLYGON ? "POLYGON"
+                            : body->shapeType == ShapeType::CAPSULE ? "CAPSULE"
+                                                                    : "COMPOUND";
         out << YAML::Key << "shape" << YAML::Value << shape;
-
-        out << YAML::Key << "position" << YAML::Value << YAML::Flow
-            << YAML::BeginSeq << body->position.x << body->position.y
-            << YAML::EndSeq;
-
-        out << YAML::Key << "rotation" << YAML::Value << body->rotation;
-
-        out << YAML::Key << "inverse_mass" << YAML::Value << body->inverseMass;
-
-        if (shape == "CIRCLE") {
-          out << YAML::Key << "radius" << YAML::Value << body->circle.radius;
-        } else {
-          out << YAML::Key << "half_size" << YAML::Value << YAML::Flow
-              << YAML::BeginSeq << body->aabb.halfSize.x << body->aabb.halfSize.y
-              << YAML::EndSeq;
-        }
-
+        out << YAML::Key << "angular_velocity" << YAML::Value << body->rotation;
         out << YAML::Key << "velocity" << YAML::Value << YAML::Flow
             << YAML::BeginSeq << body->velocity.x << body->velocity.y
             << YAML::EndSeq;
+        out << YAML::Key << "mass" << YAML::Value
+            << (body->inverseMass > 0.0f ? 1.0f / body->inverseMass : 0.0f);
+
+        if (body->shapeType == ShapeType::CIRCLE) {
+          out << YAML::Key << "radius" << YAML::Value << body->circle.radius;
+        } else if (body->shapeType == ShapeType::AABB) {
+          out << YAML::Key << "half_size" << YAML::Value << YAML::Flow
+              << YAML::BeginSeq << body->aabb.halfSize.x << body->aabb.halfSize.y
+              << YAML::EndSeq;
+        } else {
+          out << YAML::Key << "parts" << YAML::Value << YAML::BeginSeq;
+          for (const auto &part : body->parts) {
+            out << YAML::BeginMap;
+            out << YAML::Key << "radius" << YAML::Value << part.radius;
+            out << YAML::Key << "vertices" << YAML::Value << YAML::BeginSeq;
+            for (int i = 0; i < part.count; ++i)
+              out << YAML::Flow << YAML::BeginSeq << part.v[i].x << part.v[i].y
+                  << YAML::EndSeq;
+            out << YAML::EndSeq << YAML::EndMap;
+          }
+          out << YAML::EndSeq;
+        }
 
         out << YAML::Key << "restitution" << YAML::Value << body->restitution;
-
-        out << YAML::Key << "static_friction" << YAML::Value
-            << body->staticFriction;
-
-        out << YAML::Key << "dynamic_friction" << YAML::Value
-            << body->dynamicFriction;
-
+        out << YAML::Key << "static_friction" << YAML::Value << body->staticFriction;
+        out << YAML::Key << "dynamic_friction" << YAML::Value << body->dynamicFriction;
+        out << YAML::Key << "linear_damping" << YAML::Value << body->linearDamping;
+        out << YAML::Key << "angular_damping" << YAML::Value << body->angularDamping;
         out << YAML::Key << "lock_rotation" << YAML::Value << body->lockRotation;
-
         out << YAML::Key << "lock_position" << YAML::Value << body->lockPosition;
+        out << YAML::Key << "ignore_gravity" << YAML::Value << body->ignoreGravity;
+        out << YAML::Key << "can_sleep" << YAML::Value << body->canSleep;
+        out << YAML::Key << "category" << YAML::Value << static_cast<int>(body->categoryBits);
+        out << YAML::Key << "mask" << YAML::Value << static_cast<int>(body->maskBits);
+        out << YAML::Key << "group" << YAML::Value << static_cast<int>(body->groupIndex);
+        out << YAML::Key << "sensor" << YAML::Value << body->isSensor;
+        out << YAML::Key << "one_way" << YAML::Value << body->oneWay;
+        out << YAML::Key << "one_way_normal" << YAML::Value << YAML::Flow
+            << YAML::BeginSeq << body->oneWayNormal.x << body->oneWayNormal.y
+            << YAML::EndSeq;
 
         out << YAML::EndMap;
       }
@@ -708,7 +1029,10 @@ bool SceneSerializer::Deserialize(const std::string &filepath) {
 
   std::stringstream buffer;
   buffer << stream.rdbuf();
-  return DeserializeFromString(buffer.str());
+  if (!DeserializeFromString(buffer.str()))
+    return false;
+  m_Scene->SetSourcePath(filepath);
+  return true;
 }
 
 bool SceneSerializer::DeserializeFromString(const std::string &yaml,
@@ -794,6 +1118,28 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
           TryGet(b, "radius", bloom.Radius);
       }
       m_Scene->GetBloom() = bloom;
+
+      AccelEngine::World &physicsWorld = m_Scene->GetPhysicsWorld();
+      AccelEngine::PhysicsSettings physics;
+      AccelEngine::Vector2 gravity(0.0f, -980.0f);
+      if (auto p = settings["physics"]) {
+        float gx = gravity.x, gy = gravity.y;
+        if (p["gravity"] && ReadVec2(p["gravity"], gx, gy))
+          gravity = {gx, gy};
+        if (p["substeps"])
+          TryGet(p, "substeps", physics.substeps);
+        if (p["velocity_iterations"])
+          TryGet(p, "velocity_iterations", physics.velocityIterations);
+        if (p["position_iterations"])
+          TryGet(p, "position_iterations", physics.positionIterations);
+        if (p["enable_sleep"])
+          TryGet(p, "enable_sleep", physics.enableSleep);
+        physics.substeps = std::clamp(physics.substeps, 1, 64);
+        physics.velocityIterations = std::clamp(physics.velocityIterations, 1, 64);
+        physics.positionIterations = std::clamp(physics.positionIterations, 0, 64);
+      }
+      physicsWorld.settings = physics;
+      physicsWorld.gravity = gravity;
     }
   }
 
@@ -1021,6 +1367,257 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
         TryGet(a, "loop", audio.loop);
       if (a["play_on_start"])
         TryGet(a, "play_on_start", audio.playOnStart);
+      std::string bus;
+      if (a["bus"] && TryGet(a, "bus", bus))
+        audio.bus = bus == "music" ? 1 : bus == "ui" ? 2 : 0;
+    });
+
+    component("Follow", [&](const YAML::Node &f) {
+      auto &follow = entity.AddComponent<FollowComponent>();
+      if (f["target"]) TryGet(f, "target", follow.target);
+      ReadVec2(f["offset"], follow.offset.x, follow.offset.y);
+      if (f["smoothing"]) TryGet(f, "smoothing", follow.smoothing);
+      if (f["stop_distance"]) TryGet(f, "stop_distance", follow.stopDistance);
+      if (f["follow_x"]) TryGet(f, "follow_x", follow.followX);
+      if (f["follow_y"]) TryGet(f, "follow_y", follow.followY);
+      if (f["enabled"]) TryGet(f, "enabled", follow.enabled);
+    });
+
+    component("Button", [&](const YAML::Node &b) {
+      auto &button = entity.AddComponent<ButtonComponent>();
+      if (b["enabled"]) TryGet(b, "enabled", button.enabled);
+      std::string which;
+      if (b["button"] && TryGet(b, "button", which))
+        button.button = which == "right" ? 1 : which == "middle" ? 2 : 0;
+      if (b["hover_scale"]) TryGet(b, "hover_scale", button.hoverScale);
+      if (b["press_scale"]) TryGet(b, "press_scale", button.pressScale);
+      if (b["hover_sound"]) TryGet(b, "hover_sound", button.hoverSound);
+      if (b["click_sound"]) TryGet(b, "click_sound", button.clickSound);
+      if (b["volume"]) TryGet(b, "volume", button.volume);
+      if (b["padding"]) TryGet(b, "padding", button.padding);
+    });
+
+    component("ShaderCanvas", [&](const YAML::Node &c) {
+      auto &canvas = entity.AddComponent<ShaderCanvasComponent>();
+      if (c["shader"]) TryGet(c, "shader", canvas.shader);
+      std::string scope;
+      if (c["scope"] && TryGet(c, "scope", scope))
+        canvas.scope = scope == "children" ? 1 : scope == "z_range" ? 2 : 0;
+      ReadVec2(c["z_range"], canvas.zMin, canvas.zMax);
+      if (c["order"]) TryGet(c, "order", canvas.order);
+      if (c["resolution_scale"]) TryGet(c, "resolution_scale", canvas.resolutionScale);
+      if (c["progress"]) TryGet(c, "progress", canvas.progress);
+      if (c["enabled"]) TryGet(c, "enabled", canvas.enabled);
+      if (c["limit_area"]) TryGet(c, "limit_area", canvas.limitArea);
+      ReadVec2(c["area_size"], canvas.areaSize.x, canvas.areaSize.y);
+      if (auto list = c["uniforms"]; list && list.IsSequence()) {
+        for (const auto &item : list) {
+          if (!item.IsMap() || !item["name"])
+            continue;
+          ShaderUniformValue uniform;
+          uniform.name = item["name"].as<std::string>();
+          const std::string type = item["type"] ? item["type"].as<std::string>() : "float";
+          uniform.type = type == "vec2" ? 1 : type == "vec3" ? 2 : type == "vec4" ? 3
+                       : type == "color" ? 4 : type == "texture" ? 5
+                       : type == "int" ? 6 : type == "bool" ? 7 : 0;
+          if (uniform.type == 5) {
+            if (item["texture"]) {
+              uniform.texturePath = item["texture"].as<std::string>();
+              if (!uniform.texturePath.empty())
+                uniform.texture = TextureManager::Get().LoadTexture(uniform.texturePath, uniform.texturePath);
+            }
+          } else if (auto v = item["value"]; v && v.IsSequence()) {
+            for (size_t i = 0; i < 4 && i < v.size(); ++i)
+              uniform.value[i] = v[i].as<float>();
+          }
+          canvas.uniforms.push_back(std::move(uniform));
+        }
+      }
+    });
+
+    component("PrefabInstance", [&](const YAML::Node &p) {
+      auto &link = entity.AddComponent<PrefabInstanceComponent>();
+      if (p["path"]) TryGet(p, "path", link.path);
+    });
+
+    component("Canvas", [&](const YAML::Node &c) {
+      auto &canvas = entity.AddComponent<CanvasComponent>();
+      ReadVec2(c["reference_size"], canvas.referenceSize.x, canvas.referenceSize.y);
+      std::string mode;
+      if (c["scale_mode"] && TryGet(c, "scale_mode", mode))
+        canvas.scaleMode = mode == "constant" ? 0 : 1;
+      if (c["match"]) TryGet(c, "match", canvas.match);
+      if (c["safe_area"]) TryGet(c, "safe_area", canvas.safeArea);
+      if (c["sort_order"]) TryGet(c, "sort_order", canvas.sortOrder);
+      if (c["visible"]) TryGet(c, "visible", canvas.visible);
+      canvas.size = canvas.referenceSize;
+    });
+
+    component("UIRect", [&](const YAML::Node &r) {
+      auto &rect = entity.AddComponent<UIRectComponent>();
+      ReadVec2(r["anchor_min"], rect.anchorMin.x, rect.anchorMin.y);
+      ReadVec2(r["anchor_max"], rect.anchorMax.x, rect.anchorMax.y);
+      ReadVec2(r["pivot"], rect.pivot.x, rect.pivot.y);
+      ReadVec2(r["position"], rect.position.x, rect.position.y);
+      ReadVec2(r["size"], rect.size.x, rect.size.y);
+      if (auto m = r["margin"]; m && m.IsSequence() && m.size() >= 4)
+        rect.margin = {m[0].as<float>(), m[1].as<float>(), m[2].as<float>(), m[3].as<float>()};
+      if (r["visible"]) TryGet(r, "visible", rect.visible);
+      if (r["blocks_input"]) TryGet(r, "blocks_input", rect.blocksInput);
+    });
+
+    component("UIPanel", [&](const YAML::Node &p) {
+      auto &panel = entity.AddComponent<UIPanelComponent>();
+      ReadColor(p["color"], panel.color);
+      if (p["corner_radius"]) TryGet(p, "corner_radius", panel.cornerRadius);
+      ReadColor(p["border_color"], panel.borderColor);
+      if (p["border_width"]) TryGet(p, "border_width", panel.borderWidth);
+    });
+
+    component("UILabel", [&](const YAML::Node &l) {
+      auto &label = entity.AddComponent<UILabelComponent>();
+      if (l["text"]) TryGet(l, "text", label.text);
+      if (l["size"]) TryGet(l, "size", label.size);
+      ReadColor(l["color"], label.color);
+      if (l["align"]) TryGet(l, "align", label.align);
+      if (l["vertical_align"]) TryGet(l, "vertical_align", label.verticalAlign);
+      if (l["font"]) TryGet(l, "font", label.fontPath);
+      if (l["shadow"]) TryGet(l, "shadow", label.shadow);
+    });
+
+    component("UIImage", [&](const YAML::Node &i) {
+      auto &image = entity.AddComponent<UIImageComponent>();
+      if (i["texture"]) {
+        std::string path = i["texture"].as<std::string>();
+        if (!path.empty())
+          image.texture = TextureManager::Get().LoadTexture(path, path);
+        if (image.texture && i["filter"])
+          image.texture->SetFilter(i["filter"].as<std::string>() == "linear"
+                                       ? TextureFilter::Linear
+                                       : TextureFilter::Nearest);
+      }
+      ReadColor(i["tint"], image.tint);
+      if (i["preserve_aspect"]) TryGet(i, "preserve_aspect", image.preserveAspect);
+      if (auto r = i["region"]; r && r.IsSequence() && r.size() >= 4) {
+        image.useRegion = true;
+        image.region = {r[0].as<float>(), r[1].as<float>(), r[2].as<float>(), r[3].as<float>()};
+      }
+    });
+
+    component("UIButton", [&](const YAML::Node &b) {
+      auto &button = entity.AddComponent<UIButtonComponent>();
+      if (b["enabled"]) TryGet(b, "enabled", button.enabled);
+      if (b["focusable"]) TryGet(b, "focusable", button.focusable);
+      ReadColor(b["hover_tint"], button.hoverTint);
+      ReadColor(b["press_tint"], button.pressTint);
+      ReadColor(b["disabled_tint"], button.disabledTint);
+      if (b["hover_scale"]) TryGet(b, "hover_scale", button.hoverScale);
+      if (b["press_scale"]) TryGet(b, "press_scale", button.pressScale);
+      if (b["hover_sound"]) TryGet(b, "hover_sound", button.hoverSound);
+      if (b["click_sound"]) TryGet(b, "click_sound", button.clickSound);
+      if (b["volume"]) TryGet(b, "volume", button.volume);
+    });
+
+    component("UILayout", [&](const YAML::Node &l) {
+      auto &layout = entity.AddComponent<UILayoutComponent>();
+      std::string direction;
+      if (l["direction"] && TryGet(l, "direction", direction))
+        layout.direction = direction == "row" ? 0 : 1;
+      if (l["spacing"]) TryGet(l, "spacing", layout.spacing);
+      if (auto p = l["padding"]; p && p.IsSequence() && p.size() >= 4)
+        layout.padding = {p[0].as<float>(), p[1].as<float>(), p[2].as<float>(), p[3].as<float>()};
+      if (l["justify"]) TryGet(l, "justify", layout.justify);
+      if (l["align"]) TryGet(l, "align", layout.align);
+      if (l["stretch"]) TryGet(l, "stretch", layout.stretch);
+      if (l["enabled"]) TryGet(l, "enabled", layout.enabled);
+    });
+
+    component("Teleporter", [&](const YAML::Node &t) {
+      auto &portal = entity.AddComponent<TeleporterComponent>();
+      if (t["target"]) TryGet(t, "target", portal.target);
+      ReadVec2(t["offset"], portal.offset.x, portal.offset.y);
+      if (t["sound"]) TryGet(t, "sound", portal.sound);
+      if (t["keep_velocity"]) TryGet(t, "keep_velocity", portal.keepVelocity);
+      if (t["enabled"]) TryGet(t, "enabled", portal.enabled);
+    });
+
+    component("CameraZone", [&](const YAML::Node &z) {
+      auto &zone = entity.AddComponent<CameraZoneComponent>();
+      if (z["zoom"]) TryGet(z, "zoom", zone.zoom);
+      if (z["speed"]) TryGet(z, "speed", zone.speed);
+      if (z["set_bounds"]) TryGet(z, "set_bounds", zone.setBounds);
+      ReadVec2(z["bounds_min"], zone.boundsMin.x, zone.boundsMin.y);
+      ReadVec2(z["bounds_max"], zone.boundsMax.x, zone.boundsMax.y);
+      if (z["restore_on_exit"]) TryGet(z, "restore_on_exit", zone.restoreOnExit);
+      if (z["enabled"]) TryGet(z, "enabled", zone.enabled);
+    });
+
+    component("WorldBounds", [&](const YAML::Node &w) {
+      auto &bounds = entity.AddComponent<WorldBoundsComponent>();
+      ReadVec2(w["min"], bounds.min.x, bounds.min.y);
+      ReadVec2(w["max"], bounds.max.x, bounds.max.y);
+      std::string mode;
+      if (w["mode"] && TryGet(w, "mode", mode))
+        bounds.mode = mode == "wrap"      ? BoundsMode::Wrap
+                      : mode == "bounce"  ? BoundsMode::Bounce
+                      : mode == "destroy" ? BoundsMode::Destroy
+                                          : BoundsMode::Clamp;
+      if (w["margin"]) TryGet(w, "margin", bounds.margin);
+      if (w["enabled"]) TryGet(w, "enabled", bounds.enabled);
+    });
+
+    component("Pickable", [&](const YAML::Node &p) {
+      auto &pickable = entity.AddComponent<PickableComponent>();
+      if (p["enabled"]) TryGet(p, "enabled", pickable.enabled);
+      std::string button;
+      if (p["button"] && TryGet(p, "button", button))
+        pickable.button = button == "right" ? 1 : button == "middle" ? 2 : 0;
+      if (p["smoothing"]) TryGet(p, "smoothing", pickable.smoothing);
+      if (p["throw_strength"]) TryGet(p, "throw_strength", pickable.throwStrength);
+      if (p["lift_scale"]) TryGet(p, "lift_scale", pickable.liftScale);
+      if (p["bring_to_front"]) TryGet(p, "bring_to_front", pickable.bringToFront);
+      if (p["keep_offset"]) TryGet(p, "keep_offset", pickable.keepOffset);
+      if (p["padding"]) TryGet(p, "padding", pickable.padding);
+    });
+
+    component("Pickup", [&](const YAML::Node &p) {
+      auto &pickup = entity.AddComponent<PickupComponent>();
+      if (p["key"]) TryGet(p, "key", pickup.key);
+      if (p["amount"]) TryGet(p, "amount", pickup.amount);
+      if (p["sound"]) TryGet(p, "sound", pickup.sound);
+      if (p["volume"]) TryGet(p, "volume", pickup.volume);
+      if (p["destroy_on_pickup"]) TryGet(p, "destroy_on_pickup", pickup.destroyOnPickup);
+      if (p["enabled"]) TryGet(p, "enabled", pickup.enabled);
+    });
+
+    component("Checkpoint", [&](const YAML::Node &c) {
+      auto &checkpoint = entity.AddComponent<CheckpointComponent>();
+      ReadVec2(c["offset"], checkpoint.offset.x, checkpoint.offset.y);
+      if (c["sound"]) TryGet(c, "sound", checkpoint.sound);
+      if (c["enabled"]) TryGet(c, "enabled", checkpoint.enabled);
+    });
+
+    component("Respawn", [&](const YAML::Node &r) {
+      auto &respawn = entity.AddComponent<RespawnComponent>();
+      if (r["delay"]) TryGet(r, "delay", respawn.delay);
+      if (r["use_kill_y"]) TryGet(r, "use_kill_y", respawn.useKillY);
+      if (r["kill_y"]) TryGet(r, "kill_y", respawn.killY);
+      if (r["restore_health"]) TryGet(r, "restore_health", respawn.restoreHealth);
+    });
+
+    component("Music", [&](const YAML::Node &m) {
+      auto &music = entity.AddComponent<MusicComponent>();
+      if (auto tracks = m["tracks"]; tracks && tracks.IsSequence())
+        for (const auto &track : tracks)
+          music.tracks.push_back(track.as<std::string>());
+      if (m["volume"]) TryGet(m, "volume", music.volume);
+      if (m["fade_in"]) TryGet(m, "fade_in", music.fadeIn);
+      if (m["fade_out"]) TryGet(m, "fade_out", music.fadeOut);
+      if (m["shuffle"]) TryGet(m, "shuffle", music.shuffle);
+      if (m["loop_playlist"]) TryGet(m, "loop_playlist", music.loopPlaylist);
+      if (m["play_on_start"]) TryGet(m, "play_on_start", music.playOnStart);
+      if (m["on_trigger"]) TryGet(m, "on_trigger", music.onTrigger);
+      if (m["stop_on_exit"]) TryGet(m, "stop_on_exit", music.stopOnExit);
     });
 
     component("Script", [&](const YAML::Node &sn) {
@@ -1267,38 +1864,66 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
     });
 
     component("Physics", [&](const YAML::Node &p) {
+      using AccelEngine::ShapeType;
       std::string shape;
       if (!TryGet(p, "shape", shape))
         return;
 
-      float px = 0.0f, py = 0.0f;
-      if (!ReadVec2(p["position"], px, py))
-        return;
+      float mass = 1.0f;
+      if (p["mass"]) {
+        TryGet(p, "mass", mass);
+      } else {
+        float inverseMass = 1.0f;
+        if (!TryGet(p, "inverse_mass", inverseMass))
+          return;
+        mass = inverseMass > 0.0f ? 1.0f / inverseMass : 0.0f;
+      }
+      if (!std::isfinite(mass) || mass < 0.0f)
+        mass = 0.0f;
 
-      float invMass = 0.0f;
-      if (!TryGet(p, "inverse_mass", invMass))
-        return;
+      PhysicsBodies::Options options;
+      options.Mass = mass;
 
-      auto body = std::make_unique<AccelEngine::RigidBody>();
-      body->entityID = static_cast<uint32_t>(entity.GetHandle());
-      body->position = {px, py};
-      body->inverseMass = invMass;
-
+      std::unique_ptr<AccelEngine::RigidBody> body;
       if (shape == "CIRCLE") {
         float radius = 0.0f;
         if (!TryGet(p, "radius", radius))
           return;
-        body->shapeType = AccelEngine::ShapeType::CIRCLE;
-        body->circle.radius = radius;
-      } else {
+        body = PhysicsBodies::Circle(radius, options);
+      } else if (shape == "AABB") {
         float hx = 0.0f, hy = 0.0f;
         if (!ReadVec2(p["half_size"], hx, hy))
           return;
-        body->shapeType = AccelEngine::ShapeType::AABB;
-        body->aabb.halfSize = {hx, hy};
+        body = PhysicsBodies::Box({hx, hy}, options);
+      } else if (shape == "POLYGON" || shape == "CAPSULE" || shape == "COMPOUND") {
+        std::vector<AccelEngine::ConvexPart> parts;
+        if (auto list = p["parts"]; list && list.IsSequence()) {
+          for (const auto &partNode : list) {
+            std::vector<glm::vec2> points;
+            if (auto vertices = partNode["vertices"]; vertices && vertices.IsSequence()) {
+              for (const auto &vertex : vertices) {
+                float x = 0.0f, y = 0.0f;
+                if (ReadVec2(vertex, x, y))
+                  points.emplace_back(x, y);
+              }
+            }
+            float radius = 0.0f;
+            if (partNode["radius"])
+              TryGet(partNode, "radius", radius);
+            if (!points.empty())
+              parts.push_back(PhysicsBodies::MakePart(points, radius));
+          }
+        }
+        const ShapeType type = shape == "POLYGON" ? ShapeType::POLYGON : shape == "CAPSULE" ? ShapeType::CAPSULE : ShapeType::COMPOUND;
+        body = PhysicsBodies::FromParts(type, std::move(parts), options, false);
       }
+      if (!body)
+        return;
 
-      TryGet(p, "rotation", body->rotation);
+      if (p["angular_velocity"])
+        TryGet(p, "angular_velocity", body->rotation);
+      else if (p["rotation"])
+        TryGet(p, "rotation", body->rotation);
 
       float vx = 0.0f, vy = 0.0f;
       if (ReadVec2(p["velocity"], vx, vy))
@@ -1307,15 +1932,27 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
       TryGet(p, "restitution", body->restitution);
       TryGet(p, "static_friction", body->staticFriction);
       TryGet(p, "dynamic_friction", body->dynamicFriction);
+      TryGet(p, "linear_damping", body->linearDamping);
+      TryGet(p, "angular_damping", body->angularDamping);
       TryGet(p, "lock_rotation", body->lockRotation);
       TryGet(p, "lock_position", body->lockPosition);
+      TryGet(p, "ignore_gravity", body->ignoreGravity);
+      TryGet(p, "can_sleep", body->canSleep);
+      int category = body->categoryBits, mask = body->maskBits, group = body->groupIndex;
+      TryGet(p, "category", category);
+      TryGet(p, "mask", mask);
+      TryGet(p, "group", group);
+      body->categoryBits = static_cast<uint16_t>(category);
+      body->maskBits = static_cast<uint16_t>(mask);
+      body->groupIndex = static_cast<int16_t>(group);
+      TryGet(p, "sensor", body->isSensor);
+      TryGet(p, "one_way", body->oneWay);
+      float nx = body->oneWayNormal.x, ny = body->oneWayNormal.y;
+      if (ReadVec2(p["one_way_normal"], nx, ny))
+        body->oneWayNormal = {nx, ny};
 
-      body->calculateInertia();
-
-      auto &phys = entity.AddComponent<PhysicsComponent>();
-      phys.body = std::move(body);
-      m_Scene->GetPhysicsWorld().addBody(phys.body.get());
-      m_Scene->GetPhysicsSystem().bodies.push_back(phys.body.get());
+      PhysicsBodies::Refresh(*body);
+      m_Scene->AddBody(entity.GetHandle(), std::move(body));
     });
   }
 

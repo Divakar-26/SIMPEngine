@@ -1,0 +1,672 @@
+Scene: TestApp
+Version: 1
+Settings:
+  background: [0.05, 0.06, 0.12, 1]
+  lighting:
+    enabled: true
+    ambient: [0.55, 0.6, 0.78, 1]
+  bloom: {enabled: true, threshold: 0.85, knee: 0.3, intensity: 0.5, radius: 1.1}
+Entities:
+- ID: 1
+  Tag: Camera
+  Transform:
+    position: [0, 0]
+    rotation: 0
+    zIndex: 0
+    scale: [1, 1]
+  Camera:
+    primary: true
+    zoom: 0.5
+    follow: Player
+    follow_offset: [0, 60]
+    smoothing: 6
+- ID: 2
+  Tag: Sky
+  Transform:
+    position: [0, 0]
+    rotation: 0
+    zIndex: -10
+    scale: [1, 1]
+  Render:
+    color: [22, 28, 52, 255]
+    size: [6000, 3000]
+- ID: 3
+  Tag: Ground
+  Transform:
+    position: [0, -200]
+    rotation: 0
+    zIndex: 0
+    scale: [1, 1]
+  Render:
+    color: [84, 150, 104, 255]
+    size: [3200, 80]
+  Collision:
+    size: [3200, 80]
+    offset: [-1600.0, -40.0]
+- ID: 4
+  Tag: WallL
+  Transform:
+    position: [-1600, 200]
+    rotation: 0
+    zIndex: 0
+    scale: [1, 1]
+  Render:
+    color: [40, 60, 80, 255]
+    size: [40, 1000]
+  Collision:
+    size: [40, 1000]
+    offset: [-20.0, -500.0]
+- ID: 5
+  Tag: WallR
+  Transform:
+    position: [1600, 200]
+    rotation: 0
+    zIndex: 0
+    scale: [1, 1]
+  Render:
+    color: [40, 60, 80, 255]
+    size: [40, 1000]
+  Collision:
+    size: [40, 1000]
+    offset: [-20.0, -500.0]
+- ID: 6
+  Tag: Platform1
+  Transform:
+    position: [-300, -90]
+    rotation: 0
+    zIndex: 1
+    scale: [1, 1]
+  Render:
+    color: [110, 160, 200, 255]
+    size: [220, 22]
+  Collision:
+    size: [220, 22]
+    offset: [-110.0, -11.0]
+- ID: 7
+  Tag: Platform2
+  Transform:
+    position: [0, -20]
+    rotation: 0
+    zIndex: 1
+    scale: [1, 1]
+  Render:
+    color: [110, 160, 200, 255]
+    size: [200, 22]
+  Collision:
+    size: [200, 22]
+    offset: [-100.0, -11.0]
+- ID: 8
+  Tag: Platform3
+  Transform:
+    position: [320, -80]
+    rotation: 0
+    zIndex: 1
+    scale: [1, 1]
+  Render:
+    color: [110, 160, 200, 255]
+    size: [200, 22]
+  Collision:
+    size: [200, 22]
+    offset: [-100.0, -11.0]
+- ID: 9
+  Tag: Platform4
+  Transform:
+    position: [640, 40]
+    rotation: 0
+    zIndex: 1
+    scale: [1, 1]
+  Render:
+    color: [110, 160, 200, 255]
+    size: [240, 22]
+  Collision:
+    size: [240, 22]
+    offset: [-120.0, -11.0]
+- ID: 10
+  Tag: Platform5
+  Transform:
+    position: [-640, -10]
+    rotation: 0
+    zIndex: 1
+    scale: [1, 1]
+  Render:
+    color: [110, 160, 200, 255]
+    size: [200, 22]
+  Collision:
+    size: [200, 22]
+    offset: [-100.0, -11.0]
+- ID: 11
+  Tag: Platform6
+  Transform:
+    position: [980, -60]
+    rotation: 0
+    zIndex: 1
+    scale: [1, 1]
+  Render:
+    color: [110, 160, 200, 255]
+    size: [220, 22]
+  Collision:
+    size: [220, 22]
+    offset: [-110.0, -11.0]
+- ID: 12
+  Tag: Platform7
+  Transform:
+    position: [1250, 40]
+    rotation: 0
+    zIndex: 1
+    scale: [1, 1]
+  Render:
+    color: [110, 160, 200, 255]
+    size: [200, 22]
+  Collision:
+    size: [200, 22]
+    offset: [-100.0, -11.0]
+- ID: 13
+  Tag: Platform8
+  Transform:
+    position: [-980, -70]
+    rotation: 0
+    zIndex: 1
+    scale: [1, 1]
+  Render:
+    color: [110, 160, 200, 255]
+    size: [220, 22]
+  Collision:
+    size: [220, 22]
+    offset: [-110.0, -11.0]
+- ID: 14
+  Tag: Platform9
+  Transform:
+    position: [-1250, 20]
+    rotation: 0
+    zIndex: 1
+    scale: [1, 1]
+  Render:
+    color: [110, 160, 200, 255]
+    size: [200, 22]
+  Collision:
+    size: [200, 22]
+    offset: [-100.0, -11.0]
+- ID: 15
+  Tag: Coin1
+  Transform:
+    position: [-300, -45]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 16
+  Tag: Coin2
+  Transform:
+    position: [0, 25]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 17
+  Tag: Coin3
+  Transform:
+    position: [320, -35]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 18
+  Tag: Coin4
+  Transform:
+    position: [640, 85]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 19
+  Tag: Coin5
+  Transform:
+    position: [-640, 35]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 20
+  Tag: Coin6
+  Transform:
+    position: [980, -15]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 21
+  Tag: Coin7
+  Transform:
+    position: [1250, 85]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 22
+  Tag: Coin8
+  Transform:
+    position: [-980, -25]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 23
+  Tag: Coin9
+  Transform:
+    position: [-1250, 65]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 24
+  Tag: Coin10
+  Transform:
+    position: [-120, -130]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 25
+  Tag: Coin11
+  Transform:
+    position: [160, -130]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 26
+  Tag: Coin12
+  Transform:
+    position: [480, -130]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 27
+  Tag: Coin13
+  Transform:
+    position: [780, -130]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 28
+  Tag: Coin14
+  Transform:
+    position: [-480, -130]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 29
+  Tag: Coin15
+  Transform:
+    position: [1100, -130]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 30
+  Tag: Coin16
+  Transform:
+    position: [-1100, -130]
+    rotation: 0
+    zIndex: 2
+    scale: [1, 1]
+  Render:
+    color: [255, 214, 90, 255]
+    size: [18, 18]
+  Trigger:
+    size: [26, 26]
+    offset: [-13, -13]
+    filter: Player
+  Pickup: {key: coins, amount: 1, destroy_on_pickup: true}
+  Glow:
+    color: [255, 200, 80, 255]
+    intensity: 0.8
+    spread: 2
+- ID: 31
+  Tag: Water
+  Transform:
+    position: [1050, -150]
+    rotation: 0
+    zIndex: 0.5
+    scale: [1, 1]
+  Render:
+    color: [48, 110, 210, 255]
+    size: [420, 70]
+- ID: 32
+  Tag: WaterRipple
+  Transform:
+    position: [1050, -150]
+    rotation: 0
+    zIndex: 0
+    scale: [1, 1]
+  ShaderCanvas:
+    shader: assets://shaders/ripple.glsl
+    scope: z_range
+    z_range: [0.4, 0.6]
+    limit_area: true
+    area_size: [420, 70]
+- ID: 33
+  Tag: Lamp1
+  Transform:
+    position: [-700, 60]
+    rotation: 0
+    zIndex: 3
+    scale: [1, 1]
+  Light:
+    type: point
+    color: [255, 220, 170, 255]
+    intensity: 1.0
+    radius: 320
+    falloff: 1.6
+- ID: 34
+  Tag: Lamp2
+  Transform:
+    position: [0, 60]
+    rotation: 0
+    zIndex: 3
+    scale: [1, 1]
+  Light:
+    type: point
+    color: [255, 220, 170, 255]
+    intensity: 1.0
+    radius: 320
+    falloff: 1.6
+- ID: 35
+  Tag: Lamp3
+  Transform:
+    position: [700, 60]
+    rotation: 0
+    zIndex: 3
+    scale: [1, 1]
+  Light:
+    type: point
+    color: [255, 220, 170, 255]
+    intensity: 1.0
+    radius: 320
+    falloff: 1.6
+- ID: 36
+  Tag: Lamp4
+  Transform:
+    position: [1250, 60]
+    rotation: 0
+    zIndex: 3
+    scale: [1, 1]
+  Light:
+    type: point
+    color: [255, 220, 170, 255]
+    intensity: 1.0
+    radius: 320
+    falloff: 1.6
+- ID: 37
+  Tag: Player
+  Transform:
+    position: [0, -110]
+    rotation: 0
+    zIndex: 3
+    scale: [1, 1]
+  Render:
+    color: [90, 220, 190, 255]
+    size: [32, 48]
+  CharacterController:
+    mode: platformer
+    size: [32, 48]
+    move_speed: 300
+    jump_speed: 720
+    max_jumps: 2
+  Light:
+    type: point
+    color: [150, 240, 220, 255]
+    intensity: 0.7
+    radius: 260
+    falloff: 1.4
+  Glow:
+    color: [110, 240, 210, 255]
+    intensity: 0.2
+    spread: 2
+- ID: 38
+  Tag: Vignette
+  ShaderCanvas: {shader: 'assets://shaders/vignette.glsl', scope: scene, order: 1}
+- ID: 39
+  Tag: HUD
+  Canvas:
+    reference_size: [1280, 720]
+    scale_mode: scale_with_screen
+    match: 0.5
+    safe_area: 0.02
+- ID: 40
+  Tag: CoinBar
+  UIRect:
+    anchor_min: [0, 1]
+    anchor_max: [0, 1]
+    pivot: [0, 1]
+    position: [16, -16]
+    size: [220, 52]
+  UIPanel:
+    color: [14, 18, 34, 200]
+    corner_radius: 14
+    border_color: [255, 255, 255, 70]
+    border_width: 2
+  Hierarchy: {parent_id: 39}
+- ID: 41
+  Tag: CoinLabel
+  UIRect:
+    anchor_min: [0, 0]
+    anchor_max: [1, 1]
+  UILabel:
+    text: Coins {coins}
+    size: 28
+    color: [255, 222, 120, 255]
+    align: 1
+    vertical_align: 1
+  Hierarchy: {parent_id: 40}
+- ID: 42
+  Tag: Info
+  UIRect:
+    anchor_min: [0.5, 1]
+    anchor_max: [0.5, 1]
+    pivot: [0.5, 1]
+    position: [0, -18]
+    size: [520, 40]
+  UILabel:
+    text: ''
+    size: 22
+    color: [190, 205, 235, 255]
+    align: 1
+    vertical_align: 1
+    shadow: true
+  Script: {lua: 'assets://scripts/hud.lua'}
+  Hierarchy: {parent_id: 39}
+- ID: 43
+  Tag: RestartButton
+  UIRect:
+    anchor_min: [1, 1]
+    anchor_max: [1, 1]
+    pivot: [1, 1]
+    position: [-16, -16]
+    size: [170, 52]
+  UIPanel:
+    color: [70, 100, 180, 255]
+    corner_radius: 14
+  UIButton: {}
+  Script: {lua: 'assets://scripts/restart_button.lua'}
+  Hierarchy: {parent_id: 39}
+- ID: 44
+  Tag: RestartText
+  UIRect:
+    anchor_min: [0, 0]
+    anchor_max: [1, 1]
+  UILabel:
+    text: Restart
+    size: 24
+    color: [255, 255, 255, 255]
+    align: 1
+    vertical_align: 1
+  Hierarchy: {parent_id: 43}

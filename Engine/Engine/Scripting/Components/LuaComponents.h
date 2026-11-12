@@ -29,6 +29,24 @@ namespace SIMPEngine::LuaBindings
     const ComponentBinding &DamageBinding();
     const ComponentBinding &OscillatorBinding();
     const ComponentBinding &SpawnerBinding();
+    const ComponentBinding &FollowBinding();
+    const ComponentBinding &PickupBinding();
+    const ComponentBinding &CheckpointBinding();
+    const ComponentBinding &RespawnBinding();
+    const ComponentBinding &MusicBinding();
+    const ComponentBinding &PickableBinding();
+    const ComponentBinding &ButtonBinding();
+    const ComponentBinding &TeleporterBinding();
+    const ComponentBinding &CameraZoneBinding();
+    const ComponentBinding &WorldBoundsBinding();
+    const ComponentBinding &CanvasBinding();
+    const ComponentBinding &UIRectBinding();
+    const ComponentBinding &UIPanelBinding();
+    const ComponentBinding &UILabelBinding();
+    const ComponentBinding &UIImageBinding();
+    const ComponentBinding &UIButtonBinding();
+    const ComponentBinding &UILayoutBinding();
+    const ComponentBinding &ShaderCanvasBinding();
 
     const std::vector<const ComponentBinding *> &ComponentBindings();
 }

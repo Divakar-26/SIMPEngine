@@ -32,6 +32,9 @@ namespace SIMPEngine
 
         bool Call(int argCount, int resultCount);
 
+        const std::string &GetLastError() const { return m_LastError; }
+        void ClearLastError() { m_LastError.clear(); }
+
         bool PushScriptClass(const std::string &path);
         void ClearScriptCache();
 
@@ -48,6 +51,7 @@ namespace SIMPEngine
 
         lua_State *m_State = nullptr;
         uint64_t m_Generation = 0;
+        std::string m_LastError;
         std::unordered_map<std::string, ScriptClass> m_ScriptClasses;
     };
 }

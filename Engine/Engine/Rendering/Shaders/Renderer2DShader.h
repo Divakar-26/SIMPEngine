@@ -1,9 +1,10 @@
 #pragma once
 
+#include "GLSLHeader.h"
+
 namespace SIMPEngine::Shaders
 {
-    static constexpr const char *RENDERER2D_VERT = R"(
-#version 400 core
+    static constexpr const char *RENDERER2D_VERT = SIMP_GLSL_VERT R"(
 
 layout(location=0) in vec3 aPosition;
 layout(location=1) in vec2 aUV;
@@ -31,8 +32,7 @@ void main()
 }
 )";
 
-    static constexpr const char *RENDERER2D_FRAG = R"(
-#version 400 core
+    static constexpr const char *RENDERER2D_FRAG = SIMP_GLSL_FRAG R"(
 
 in vec2 vUV;
 in vec4 vColor;
@@ -43,6 +43,29 @@ flat in vec3 vMisc;
 uniform sampler2D uTextures[16];
 
 out vec4 FragColor;
+
+vec4 sampleSlot(int slot, vec2 uv)
+{
+    switch (slot)
+    {
+    case 0: return texture(uTextures[0], uv);
+    case 1: return texture(uTextures[1], uv);
+    case 2: return texture(uTextures[2], uv);
+    case 3: return texture(uTextures[3], uv);
+    case 4: return texture(uTextures[4], uv);
+    case 5: return texture(uTextures[5], uv);
+    case 6: return texture(uTextures[6], uv);
+    case 7: return texture(uTextures[7], uv);
+    case 8: return texture(uTextures[8], uv);
+    case 9: return texture(uTextures[9], uv);
+    case 10: return texture(uTextures[10], uv);
+    case 11: return texture(uTextures[11], uv);
+    case 12: return texture(uTextures[12], uv);
+    case 13: return texture(uTextures[13], uv);
+    case 14: return texture(uTextures[14], uv);
+    default: return texture(uTextures[15], uv);
+    }
+}
 
 float sdRoundBox(vec2 p, vec2 b, float r)
 {
@@ -65,7 +88,7 @@ void main()
 
     if (mode == 0)
     {
-        vec4 color = texture(uTextures[slot], vUV) * vColor;
+        vec4 color = sampleSlot(slot, vUV) * vColor;
         if (color.a <= 0.003)
             discard;
         FragColor = color;
@@ -91,7 +114,7 @@ void main()
     }
 
     float softness = max(vMisc.z, 0.0001);
-    vec4 tex = texture(uTextures[slot], vUV);
+    vec4 tex = sampleSlot(slot, vUV);
 
     if (mode == 1)
     {

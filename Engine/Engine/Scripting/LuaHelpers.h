@@ -9,6 +9,7 @@
 
 #include <SDL3/SDL_pixels.h>
 
+#include <string>
 #include <string_view>
 
 namespace SIMPEngine::LuaBindings
@@ -27,6 +28,10 @@ namespace SIMPEngine::LuaBindings
     Uint8 ToByteOpt(lua_State *L, int index, Uint8 fallback);
     int PushRgba(lua_State *L, const SDL_Color &color);
     void ReadRgba(lua_State *L, int first, SDL_Color &color);
+    bool ParseHexColor(const char *text, Uint8 out[4]);
+    bool ReadColorValue(lua_State *L, int index, SDL_Color &out);
+    bool LookupColorName(const char *name, SDL_Color &out);
+    const char *ColorNameList();
 
     template <typename T>
     Entity *CheckHandleEntity(lua_State *L, const char *meta)

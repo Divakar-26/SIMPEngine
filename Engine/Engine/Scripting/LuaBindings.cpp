@@ -8,12 +8,17 @@
 
 #include <Engine/Application/Application.h>
 #include <Engine/Audio/AudioEngine.h>
+#include <Engine/Audio/Music.h>
+#include <Engine/Core/GameVariables.h>
 #include <Engine/Core/Log.h>
+#include <Engine/Core/Display.h>
 #include <Engine/Input/Input.h>
+#include <Engine/Input/InputActions.h>
 #include <Engine/Input/SIMP_Keys.h>
 #include <Engine/Math/EntityUtility.h>
 #include <Engine/Particles/ParticleEmitter.h>
 #include <Engine/Scene/Entity.h>
+#include <Engine/Scene/Prefab.h>
 #include <Engine/Scene/Scene.h>
 #include <Engine/Scene/ScriptableEntity.h>
 #include <Engine/Scene/TilemapUtils.h>
@@ -210,6 +215,11 @@ namespace SIMPEngine::LuaBindings
 
         int InputGetAxis(lua_State *L)
         {
+            if (lua_type(L, 1) == LUA_TSTRING)
+            {
+                lua_pushnumber(L, InputActions::GetAxis(lua_tostring(L, 1)));
+                return 1;
+            }
             const int negative = static_cast<int>(luaL_checkinteger(L, 1));
             const int positive = static_cast<int>(luaL_checkinteger(L, 2));
             lua_Number value = 0.0;
@@ -589,6 +599,75 @@ namespace SIMPEngine::LuaBindings
             return 0;
         }
 
+        int SceneInstantiate(lua_State *L)
+        {
+            Scene *scene = RequireScene(L);
+            const char *path = luaL_checkstring(L, 1);
+            const bool hasPosition = !lua_isnoneornil(L, 2);
+            const glm::vec2 position(static_cast<float>(luaL_optnumber(L, 2, 0.0)), static_cast<float>(luaL_optnumber(L, 3, 0.0)));
+            Entity *parentEntity = lua_isnoneornil(L, 4) ? nullptr : CheckLiveEntity(L, 4);
+            entt::entity parent = parentEntity ? parentEntity->GetHandle() : entt::null;
+            entt::entity root = entt::null;
+            {
+                const std::string prefabPath(path);
+                root = Prefab::Instantiate(*scene, prefabPath, hasPosition ? std::optional<glm::vec2>(position) : std::nullopt, parent);
+            }
+            if (root == entt::null)
+            {
+                lua_pushnil(L);
+                return 1;
+            }
+            PushEntity(L, Entity(root, scene));
+            return 1;
+        }
+
+        float FadeOption(lua_State *L, int index, std::string &shader)
+        {
+            if (!lua_istable(L, index))
+                return 0.0f;
+            lua_getfield(L, index, "fade");
+            const float fade = lua_isnumber(L, -1) ? static_cast<float>(lua_tonumber(L, -1)) : 0.0f;
+            lua_pop(L, 1);
+            lua_getfield(L, index, "shader");
+            if (lua_type(L, -1) == LUA_TSTRING)
+                shader = lua_tostring(L, -1);
+            lua_pop(L, 1);
+            return fade;
+        }
+
+        int SceneLoad(lua_State *L)
+        {
+            Scene *scene = RequireScene(L);
+            const char *path = luaL_checkstring(L, 1);
+            std::string shader;
+            const float fade = FadeOption(L, 2, shader);
+            scene->RequestLoad(path, fade, shader);
+            return 0;
+        }
+
+        int SceneReload(lua_State *L)
+        {
+            Scene *scene = RequireScene(L);
+            std::string shader;
+            const float fade = FadeOption(L, 1, shader);
+            scene->RequestReload(fade, shader);
+            return 0;
+        }
+
+        int SceneGetPath(lua_State *L)
+        {
+            Scene *scene = RequireScene(L);
+            lua_pushstring(L, scene->GetSourcePath().c_str());
+            return 1;
+        }
+
+        int SceneIsTransitioning(lua_State *L)
+        {
+            Scene *scene = RequireScene(L);
+            lua_pushboolean(L, scene->IsTransitioning());
+            return 1;
+        }
+
         int SceneSetFixedStep(lua_State *L)
         {
             Scene *scene = RequireScene(L);
@@ -624,8 +703,180 @@ namespace SIMPEngine::LuaBindings
             const float volume = static_cast<float>(luaL_optnumber(L, 2, 1.0));
             const float pitch = static_cast<float>(luaL_optnumber(L, 3, 1.0));
             const bool loop = lua_toboolean(L, 4) != 0;
-            const VoiceId voice = AudioEngine::Play(std::string(path, length), volume, pitch, loop);
+            const char *busName = luaL_optstring(L, 5, "sfx");
+            AudioBus bus = AudioBus::Sfx;
+            bool knownBus = false;
+            {
+                knownBus = AudioEngine::BusFromName(busName, bus);
+            }
+            if (!knownBus)
+                return luaL_error(L, "unknown audio bus (use sfx, music or ui)");
+            const VoiceId voice = AudioEngine::Play(std::string(path, length), volume, pitch, loop, bus);
             lua_pushinteger(L, static_cast<lua_Integer>(voice));
+            return 1;
+        }
+
+        int AudioSetBusVolume(lua_State *L)
+        {
+            const char *busName = luaL_checkstring(L, 1);
+            const float volume = static_cast<float>(luaL_checknumber(L, 2));
+            AudioBus bus = AudioBus::Sfx;
+            bool knownBus = AudioEngine::BusFromName(busName, bus);
+            if (!knownBus)
+                return luaL_error(L, "unknown audio bus (use sfx, music or ui)");
+            AudioEngine::SetBusVolume(bus, volume);
+            return 0;
+        }
+
+        int AudioGetBusVolume(lua_State *L)
+        {
+            const char *busName = luaL_checkstring(L, 1);
+            AudioBus bus = AudioBus::Sfx;
+            bool knownBus = AudioEngine::BusFromName(busName, bus);
+            if (!knownBus)
+                return luaL_error(L, "unknown audio bus (use sfx, music or ui)");
+            lua_pushnumber(L, AudioEngine::GetBusVolume(bus));
+            return 1;
+        }
+
+        int AudioFadeTo(lua_State *L)
+        {
+            const VoiceId voice = static_cast<VoiceId>(luaL_checkinteger(L, 1));
+            const float fade = static_cast<float>(luaL_checknumber(L, 2));
+            const float seconds = static_cast<float>(luaL_optnumber(L, 3, 1.0));
+            AudioEngine::FadeTo(voice, fade, seconds, lua_toboolean(L, 4) != 0);
+            return 0;
+        }
+
+        int MusicPlay(lua_State *L)
+        {
+            size_t length = 0;
+            const char *path = luaL_checklstring(L, 1, &length);
+            const float volume = static_cast<float>(luaL_optnumber(L, 2, 1.0));
+            const float fadeIn = static_cast<float>(luaL_optnumber(L, 3, 1.0));
+            const float fadeOut = static_cast<float>(luaL_optnumber(L, 4, 1.0));
+            const bool loop = lua_isnoneornil(L, 5) || lua_toboolean(L, 5) != 0;
+            Music::Play(std::string(path, length), volume, fadeIn, fadeOut, loop);
+            return 0;
+        }
+
+        int MusicStop(lua_State *L)
+        {
+            Music::Stop(static_cast<float>(luaL_optnumber(L, 1, 0.5)));
+            return 0;
+        }
+
+        int MusicPause(lua_State *)
+        {
+            Music::Pause();
+            return 0;
+        }
+
+        int MusicResume(lua_State *)
+        {
+            Music::Resume();
+            return 0;
+        }
+
+        int MusicIsPlaying(lua_State *L)
+        {
+            lua_pushboolean(L, Music::IsPlaying() && !Music::IsPaused());
+            return 1;
+        }
+
+        int MusicIsPaused(lua_State *L)
+        {
+            lua_pushboolean(L, Music::IsPaused());
+            return 1;
+        }
+
+        int MusicGetCurrent(lua_State *L)
+        {
+            const std::string &current = Music::Current();
+            lua_pushlstring(L, current.data(), current.size());
+            return 1;
+        }
+
+        int MusicSetVolume(lua_State *L)
+        {
+            Music::SetVolume(static_cast<float>(luaL_checknumber(L, 1)));
+            return 0;
+        }
+
+        int GameGet(lua_State *L)
+        {
+            size_t length = 0;
+            const char *key = luaL_checklstring(L, 1, &length);
+            const double fallback = luaL_optnumber(L, 2, 0.0);
+            lua_pushnumber(L, GameVariables::Get(std::string(key, length), fallback));
+            return 1;
+        }
+
+        int GameSet(lua_State *L)
+        {
+            size_t length = 0;
+            const char *key = luaL_checklstring(L, 1, &length);
+            const double value = luaL_checknumber(L, 2);
+            GameVariables::Set(std::string(key, length), value);
+            return 0;
+        }
+
+        int GameAdd(lua_State *L)
+        {
+            size_t length = 0;
+            const char *key = luaL_checklstring(L, 1, &length);
+            const double amount = luaL_optnumber(L, 2, 1.0);
+            lua_pushnumber(L, GameVariables::Add(std::string(key, length), amount));
+            return 1;
+        }
+
+        int GameHas(lua_State *L)
+        {
+            size_t length = 0;
+            const char *key = luaL_checklstring(L, 1, &length);
+            lua_pushboolean(L, GameVariables::Has(std::string(key, length)));
+            return 1;
+        }
+
+        int GameRemove(lua_State *L)
+        {
+            size_t length = 0;
+            const char *key = luaL_checklstring(L, 1, &length);
+            GameVariables::Remove(std::string(key, length));
+            return 0;
+        }
+
+        int GameReset(lua_State *)
+        {
+            GameVariables::Clear();
+            return 0;
+        }
+
+        int GameSave(lua_State *L)
+        {
+            const std::string slot = luaL_optstring(L, 1, "save");
+            lua_pushboolean(L, SaveData::Save(slot));
+            return 1;
+        }
+
+        int GameLoad(lua_State *L)
+        {
+            const std::string slot = luaL_optstring(L, 1, "save");
+            lua_pushboolean(L, SaveData::Load(slot));
+            return 1;
+        }
+
+        int GameHasSave(lua_State *L)
+        {
+            const std::string slot = luaL_optstring(L, 1, "save");
+            lua_pushboolean(L, SaveData::Exists(slot));
+            return 1;
+        }
+
+        int GameDeleteSave(lua_State *L)
+        {
+            const std::string slot = luaL_optstring(L, 1, "save");
+            lua_pushboolean(L, SaveData::Delete(slot));
             return 1;
         }
 
@@ -681,6 +932,67 @@ namespace SIMPEngine::LuaBindings
             const lua_Number low = luaL_checknumber(L, 2);
             const lua_Number high = luaL_checknumber(L, 3);
             lua_pushnumber(L, value < low ? low : (value > high ? high : value));
+            return 1;
+        }
+
+        int MathClamp01(lua_State *L)
+        {
+            const lua_Number value = luaL_checknumber(L, 1);
+            lua_pushnumber(L, value < 0.0 ? 0.0 : (value > 1.0 ? 1.0 : value));
+            return 1;
+        }
+
+        lua_Number Progress(lua_Number t, lua_Number a, lua_Number b)
+        {
+            if (b == a)
+                return t >= a ? 1.0 : 0.0;
+            const lua_Number v = (t - a) / (b - a);
+            return v < 0.0 ? 0.0 : (v > 1.0 ? 1.0 : v);
+        }
+
+        int MathProgress(lua_State *L)
+        {
+            const lua_Number t = luaL_checknumber(L, 1);
+            const lua_Number a = luaL_checknumber(L, 2);
+            const lua_Number b = luaL_checknumber(L, 3);
+            lua_pushnumber(L, Progress(t, a, b));
+            return 1;
+        }
+
+        int MathRemap(lua_State *L)
+        {
+            const lua_Number value = luaL_checknumber(L, 1);
+            const lua_Number inLow = luaL_checknumber(L, 2);
+            const lua_Number inHigh = luaL_checknumber(L, 3);
+            const lua_Number outLow = luaL_checknumber(L, 4);
+            const lua_Number outHigh = luaL_checknumber(L, 5);
+            const bool clamp = lua_toboolean(L, 6) != 0;
+            lua_Number u = inHigh == inLow ? 0.0 : (value - inLow) / (inHigh - inLow);
+            if (clamp)
+                u = u < 0.0 ? 0.0 : (u > 1.0 ? 1.0 : u);
+            lua_pushnumber(L, outLow + (outHigh - outLow) * u);
+            return 1;
+        }
+
+        int MathSmoothstep(lua_State *L)
+        {
+            const lua_Number a = luaL_checknumber(L, 1);
+            const lua_Number b = luaL_checknumber(L, 2);
+            const lua_Number x = luaL_checknumber(L, 3);
+            const lua_Number u = Progress(x, a, b);
+            lua_pushnumber(L, u * u * (3.0 - 2.0 * u));
+            return 1;
+        }
+
+        int MathWindow(lua_State *L)
+        {
+            const lua_Number t = luaL_checknumber(L, 1);
+            const lua_Number a = luaL_checknumber(L, 2);
+            const lua_Number b = luaL_checknumber(L, 3);
+            const lua_Number fade = luaL_optnumber(L, 4, 0.4);
+            const lua_Number in = Progress(t, a, a + fade);
+            const lua_Number out = 1.0 - Progress(t, b - fade, b);
+            lua_pushnumber(L, in < out ? in : out);
             return 1;
         }
 
@@ -885,10 +1197,29 @@ namespace SIMPEngine::LuaBindings
             {"FindAll", SceneFindAll},
             {"SetAmbient", SceneSetAmbient},
             {"SetLighting", SceneSetLighting},
+            {"Instantiate", SceneInstantiate},
+            {"Load", SceneLoad},
+            {"Reload", SceneReload},
+            {"GetPath", SceneGetPath},
+            {"IsTransitioning", SceneIsTransitioning},
             {"SetFixedStep", SceneSetFixedStep},
             {"IsSolidAt", SceneIsSolidAt},
             {"OverlapsSolid", SceneOverlapsSolid},
             {nullptr, nullptr}};
+
+        int WindowSetRenderScale(lua_State *L)
+        {
+            DisplaySettings display = Display::Get();
+            display.RenderScale = static_cast<float>(luaL_checknumber(L, 1));
+            Display::Set(display);
+            return 0;
+        }
+
+        int WindowGetRenderScale(lua_State *L)
+        {
+            lua_pushnumber(L, Display::Get().RenderScale);
+            return 1;
+        }
 
         int WindowSetFullscreen(lua_State *L)
         {
@@ -919,8 +1250,34 @@ namespace SIMPEngine::LuaBindings
 
         const luaL_Reg WindowFunctions[] = {
             {"SetFullscreen", WindowSetFullscreen},
+            {"SetRenderScale", WindowSetRenderScale},
+            {"GetRenderScale", WindowGetRenderScale},
             {"IsFullscreen", WindowIsFullscreen},
             {"GetSize", WindowGetSize},
+            {nullptr, nullptr}};
+
+        const luaL_Reg MusicFunctions[] = {
+            {"Play", MusicPlay},
+            {"Stop", MusicStop},
+            {"Pause", MusicPause},
+            {"Resume", MusicResume},
+            {"IsPlaying", MusicIsPlaying},
+            {"IsPaused", MusicIsPaused},
+            {"GetCurrent", MusicGetCurrent},
+            {"SetVolume", MusicSetVolume},
+            {nullptr, nullptr}};
+
+        const luaL_Reg GameFunctions[] = {
+            {"Get", GameGet},
+            {"Set", GameSet},
+            {"Add", GameAdd},
+            {"Has", GameHas},
+            {"Remove", GameRemove},
+            {"Reset", GameReset},
+            {"Save", GameSave},
+            {"Load", GameLoad},
+            {"HasSave", GameHasSave},
+            {"DeleteSave", GameDeleteSave},
             {nullptr, nullptr}};
 
         const luaL_Reg AudioFunctions[] = {
@@ -929,6 +1286,9 @@ namespace SIMPEngine::LuaBindings
             {"StopAll", AudioStopAll},
             {"IsPlaying", AudioIsPlaying},
             {"SetVolume", AudioSetVolume},
+            {"SetBusVolume", AudioSetBusVolume},
+            {"GetBusVolume", AudioGetBusVolume},
+            {"FadeTo", AudioFadeTo},
             {"SetMasterVolume", AudioSetMasterVolume},
             {"GetMasterVolume", AudioGetMasterVolume},
             {nullptr, nullptr}};
@@ -936,6 +1296,11 @@ namespace SIMPEngine::LuaBindings
         const luaL_Reg MathFunctions[] = {
             {"Lerp", MathLerp},
             {"Clamp", MathClamp},
+            {"Clamp01", MathClamp01},
+            {"Progress", MathProgress},
+            {"Remap", MathRemap},
+            {"Smoothstep", MathSmoothstep},
+            {"Window", MathWindow},
             {"Sign", MathSign},
             {"MoveTowards", MathMoveTowards},
             {"Length", MathLength},
@@ -1053,6 +1418,12 @@ namespace SIMPEngine::LuaBindings
         luaL_newlib(L, WindowFunctions);
         lua_setglobal(L, "Window");
 
+        luaL_newlib(L, MusicFunctions);
+        lua_setglobal(L, "Music");
+
+        luaL_newlib(L, GameFunctions);
+        lua_setglobal(L, "Game");
+
         luaL_newlib(L, MathFunctions);
         lua_setglobal(L, "Math");
 
@@ -1064,7 +1435,12 @@ namespace SIMPEngine::LuaBindings
         RegisterTween(L);
         RegisterPath(L);
         RegisterDraw(L);
+        RegisterColor(L);
+        RegisterEffects(L);
+        RegisterPhysics(L);
+        RegisterInputActions(L);
         for (const ComponentBinding *binding : ComponentBindings())
             RegisterHandle(L, binding->Meta, binding->Methods);
+        RunPrelude(L);
     }
 }

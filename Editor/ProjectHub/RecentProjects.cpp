@@ -24,7 +24,8 @@ fs::path RecentProjects::PreferenceDirectory()
     char *pref = SDL_GetPrefPath("SIMPEngine", "Editor");
     if (!pref)
         return fs::current_path();
-    fs::path directory(pref);
+    const std::string utf8(pref);
+    fs::path directory(std::u8string(reinterpret_cast<const char8_t *>(utf8.data()), utf8.size()));
     SDL_free(pref);
     return directory;
 }

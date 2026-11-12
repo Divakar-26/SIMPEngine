@@ -48,7 +48,11 @@ namespace SIMPEngine
         ApplyModernTheme();
 
         ImGui_ImplSDL3_InitForOpenGL(m_Window, SDL_GL_GetCurrentContext());
+        #if defined(SIMP_GLES)
+        ImGui_ImplOpenGL3_Init("#version 300 es");
+#else
         ImGui_ImplOpenGL3_Init("#version 330 core");
+#endif
     }
 
     void ImGuiLayer::LoadFonts()

@@ -562,6 +562,8 @@ void HierarchyPanel::DrawEntityContextMenu(SIMPEngine::Entity entity)
         m_PendingDuplicate = entity.GetHandle();
     if (ImGui::MenuItem("Add Child Entity"))
         m_PendingNewChild = entity.GetHandle();
+    if (ImGui::MenuItem("Save as Prefab"))
+        EditorCommands::SaveAsPrefab(*m_Context, entity);
 
     if (!IsRoot(entity.GetHandle()) && ImGui::MenuItem("Move to Root"))
     {

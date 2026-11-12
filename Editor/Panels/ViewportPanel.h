@@ -75,6 +75,7 @@ private:
     void DrawGrid();
     void DrawCameraFrame();
     void DrawEmitterShapes();
+    void DrawShaderAreas();
     void DrawLightShapes();
     void DrawColliders();
     void DrawLogicShapes();

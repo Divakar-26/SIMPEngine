@@ -1,8 +1,7 @@
 #pragma once
 
-#include <glad/glad.h>
+#include <Engine/Rendering/GL.h>
 #include <SDL3/SDL.h>
-#include <SDL3_image/SDL_image.h>
 
 namespace SIMPEngine
 {

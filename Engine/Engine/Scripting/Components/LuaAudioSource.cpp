@@ -16,7 +16,7 @@ namespace SIMPEngine::LuaBindings
             AudioSystem::StopSource(entity->GetScene()->GetRegistry(), entity->GetHandle());
             source.started = true;
             if (!source.clip.empty())
-                source.voice = AudioEngine::Play(source.clip, source.volume, source.pitch, source.loop);
+                source.voice = AudioEngine::Play(source.clip, source.volume, source.pitch, source.loop, static_cast<AudioBus>(source.bus));
             return 0;
         }
 

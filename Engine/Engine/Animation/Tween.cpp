@@ -1,3 +1,4 @@
+#include <Engine/Scene/Systems/PhysicsSystem.h>
 #include "Tween.h"
 
 #include <Engine/Scene/Component.h>
@@ -67,6 +68,7 @@ namespace SIMPEngine
             {"trimEnd", TweenProperty::TrimEnd, 1},
             {"trimOffset", TweenProperty::TrimOffset, 1},
             {"dashOffset", TweenProperty::DashOffset, 1},
+            {"shaderProgress", TweenProperty::ShaderProgress, 1},
         };
 
         bool Overlaps(TweenProperty a, TweenProperty b)
@@ -218,7 +220,7 @@ namespace SIMPEngine
         return 1;
     }
 
-    bool TweenSystem::Read(entt::entity entity, TweenProperty property, float out[4]) const
+    bool TweenSystem::Read(entt::entity entity, TweenProperty property, float out[4], const std::string *uniform) const
     {
         const entt::registry &reg = m_Scene.GetRegistry();
         if (!reg.valid(entity))
@@ -395,6 +397,27 @@ namespace SIMPEngine
             if (!vector) return false;
             out[0] = vector->morph;
             return true;
+        case TweenProperty::ShaderProgress:
+        {
+            const auto *shader = reg.try_get<ShaderCanvasComponent>(entity);
+            if (!shader) return false;
+            out[0] = shader->progress;
+            return true;
+        }
+        case TweenProperty::ShaderUniform:
+        {
+            const auto *shader = reg.try_get<ShaderCanvasComponent>(entity);
+            if (!shader || !uniform) return false;
+            for (const ShaderUniformValue &value : shader->uniforms)
+            {
+                if (value.name != *uniform || value.type == 5)
+                    continue;
+                for (int i = 0; i < 4; ++i)
+                    out[i] = value.value[i];
+                return true;
+            }
+            return false;
+        }
         case TweenProperty::TrimStart:
             if (!vector) return false;
             out[0] = vector->trimStart;
@@ -417,7 +440,7 @@ namespace SIMPEngine
         return false;
     }
 
-    void TweenSystem::Write(entt::entity entity, TweenProperty property, const float v[4])
+    void TweenSystem::Write(entt::entity entity, TweenProperty property, const float v[4], const std::string *uniform)
     {
         entt::registry &reg = m_Scene.GetRegistry();
         if (!reg.valid(entity))
@@ -430,12 +453,8 @@ namespace SIMPEngine
 
         auto syncBody = [&]()
         {
-            if (auto *physics = reg.try_get<PhysicsComponent>(entity); physics && physics->body && t)
-            {
-                physics->body->position = {t->position.x, t->position.y};
-                physics->body->orientation = glm::radians(t->rotation);
-                physics->body->calculateDerivativeData();
-            }
+            if (t)
+                PhysicsSystem::SyncBodyToTransform(reg, entity);
         };
 
         switch (property)
@@ -562,6 +581,19 @@ namespace SIMPEngine
             break;
         case TweenProperty::Morph:
             if (vector) vector->morph = v[0];
+            break;
+        case TweenProperty::ShaderProgress:
+            if (auto *shader = reg.try_get<ShaderCanvasComponent>(entity))
+                shader->progress = v[0];
+            break;
+        case TweenProperty::ShaderUniform:
+            if (auto *shader = reg.try_get<ShaderCanvasComponent>(entity); shader && uniform)
+                if (ShaderUniformValue *value = ShaderCanvasSystem::FindUniform(*shader, *uniform); value && value->type != 5)
+                {
+                    const int count = value->type == 1 ? 2 : value->type == 2 ? 3 : value->type >= 3 && value->type <= 4 ? 4 : 1;
+                    for (int i = 0; i < count; ++i)
+                        value->value[i] = v[i];
+                }
             break;
         case TweenProperty::TrimStart:
             if (vector) vector->trimStart = v[0];
@@ -764,7 +796,7 @@ namespace SIMPEngine
             for (TweenTrack &track : node.Tracks)
             {
                 float current[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                const bool known = Read(node.Target, track.Property, current);
+                const bool known = Read(node.Target, track.Property, current, &track.Uniform);
                 if (!track.ExplicitFrom)
                     std::copy(current, current + 4, track.From);
                 else if (track.RelativeFrom)
@@ -807,16 +839,16 @@ namespace SIMPEngine
     {
         if (node.Target == entt::null)
             return;
-        std::vector<TweenProperty> mine;
+        std::vector<std::pair<TweenProperty, std::string>> mine;
         if (node.Kind == TweenKind::Motion)
         {
-            mine.push_back(TweenProperty::Position);
+            mine.emplace_back(TweenProperty::Position, std::string());
             if (node.Orient)
-                mine.push_back(TweenProperty::Rotation);
+                mine.emplace_back(TweenProperty::Rotation, std::string());
         }
         else
             for (const TweenTrack &track : node.Tracks)
-                mine.push_back(track.Property);
+                mine.emplace_back(track.Property, track.Uniform);
 
         for (auto &[id, other] : m_Nodes)
         {
@@ -824,8 +856,8 @@ namespace SIMPEngine
                 continue;
             if (other->Kind == TweenKind::Motion)
             {
-                const bool clash = std::any_of(mine.begin(), mine.end(), [](TweenProperty p)
-                                               { return Overlaps(p, TweenProperty::Position); });
+                const bool clash = std::any_of(mine.begin(), mine.end(), [](const std::pair<TweenProperty, std::string> &p)
+                                               { return Overlaps(p.first, TweenProperty::Position); });
                 if (clash && (other->Captured && !other->Finished))
                     MarkDead(*other);
                 continue;
@@ -836,8 +868,8 @@ namespace SIMPEngine
                 continue;
             auto &tracks = other->Tracks;
             tracks.erase(std::remove_if(tracks.begin(), tracks.end(), [&](const TweenTrack &track)
-                                        { return std::any_of(mine.begin(), mine.end(), [&](TweenProperty p)
-                                                             { return Overlaps(p, track.Property); }); }),
+                                        { return std::any_of(mine.begin(), mine.end(), [&](const std::pair<TweenProperty, std::string> &p)
+                                                             { return Overlaps(p.first, track.Property) && p.second == track.Uniform; }); }),
                          tracks.end());
             if (tracks.empty())
                 MarkDead(*other);
@@ -863,10 +895,10 @@ namespace SIMPEngine
                 if (track.Channels <= 0)
                     continue;
                 float value[4];
-                Read(node.Target, track.Property, value);
+                Read(node.Target, track.Property, value, &track.Uniform);
                 for (int c = 0; c < track.Channels; ++c)
                     value[c] = track.From[c] + (track.To[c] - track.From[c]) * eased;
-                Write(node.Target, track.Property, value);
+                Write(node.Target, track.Property, value, &track.Uniform);
             }
             break;
         case TweenKind::Value:
@@ -1031,7 +1063,7 @@ namespace SIMPEngine
         for (TweenTrack &track : node.Tracks)
         {
             float value[4];
-            if (!Read(node.Target, track.Property, value))
+            if (!Read(node.Target, track.Property, value, &track.Uniform))
                 continue;
             for (int ch = 0; ch < track.Channels; ++ch)
             {
@@ -1049,7 +1081,7 @@ namespace SIMPEngine
                 value[ch] = x;
                 track.Velocity[ch] = v;
             }
-            Write(node.Target, track.Property, value);
+            Write(node.Target, track.Property, value, &track.Uniform);
         }
         if (node.OnUpdate)
             node.OnUpdate(0.0f);
@@ -1058,14 +1090,14 @@ namespace SIMPEngine
             for (TweenTrack &track : node.Tracks)
             {
                 float value[4];
-                if (!Read(node.Target, track.Property, value))
+                if (!Read(node.Target, track.Property, value, &track.Uniform))
                     continue;
                 for (int ch = 0; ch < track.Channels; ++ch)
                 {
                     value[ch] = track.To[ch];
                     track.Velocity[ch] = 0.0f;
                 }
-                Write(node.Target, track.Property, value);
+                Write(node.Target, track.Property, value, &track.Uniform);
             }
             node.Finished = true;
             if (node.OnComplete)
@@ -1269,7 +1301,7 @@ namespace SIMPEngine
         return node && !node->Dead && node->Playing && !node->Finished;
     }
 
-    void TweenSystem::KillTarget(entt::entity target, int property)
+    void TweenSystem::KillTarget(entt::entity target, int property, const std::string &uniformName)
     {
         for (auto &[id, node] : m_Nodes)
         {
@@ -1282,7 +1314,7 @@ namespace SIMPEngine
             }
             auto &tracks = node->Tracks;
             tracks.erase(std::remove_if(tracks.begin(), tracks.end(), [&](const TweenTrack &track)
-                                        { return Overlaps(track.Property, static_cast<TweenProperty>(property)); }),
+                                        { return Overlaps(track.Property, static_cast<TweenProperty>(property)) && (track.Property != TweenProperty::ShaderUniform || uniformName.empty() || track.Uniform == uniformName); }),
                          tracks.end());
             if (tracks.empty())
                 MarkDead(*node);

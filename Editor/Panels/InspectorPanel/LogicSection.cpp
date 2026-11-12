@@ -160,11 +160,218 @@ void InspectorPanel::DrawScriptSection(SIMPEngine::Entity &m_SelectedEntity)
             ctx.OpenScriptRequest = script.LuaPath; });
 }
 
+namespace
+{
+    void SoundField(EditorContext &ctx, const char *label, std::string &sound)
+    {
+        using namespace EditorUI;
+        PropertyText(label, sound);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Drag a .wav or .ogg here from the FileSystem panel. Empty = silent");
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+            {
+                std::string path(static_cast<const char *>(payload->Data));
+                const std::string ext = LowerExtension(path);
+                if (ext == ".wav" || ext == ".ogg")
+                {
+                    EditorCommands::RecordEdit(ctx);
+                    sound = path;
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
+    }
+
+    void NeedsTrigger(SIMPEngine::Entity &entity, const char *message)
+    {
+        using namespace EditorUI;
+        if (entity.HasComponent<TriggerComponent>())
+            return;
+        PropertyLabel("");
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::Warning);
+        ImGui::TextWrapped("%s", message);
+        ImGui::PopStyleColor();
+    }
+}
+
 void InspectorPanel::DrawLogicSection(SIMPEngine::Entity &m_SelectedEntity)
 {
     using namespace EditorUI;
 
     EditorContext &ctx = *m_Context;
+
+    DrawComponentSection<ButtonComponent>(ctx, "Button", m_SelectedEntity, [&ctx, &m_SelectedEntity](ButtonComponent &button)
+                                          {
+        PropertyBool("Enabled", &button.enabled);
+        static const char *buttons[] = {"Left", "Right", "Middle"};
+        PropertySegmented("Mouse Button", &button.button, buttons, 3);
+        PropertyFloat("Hover Scale", &button.hoverScale, 0.005f, 0.1f, 4.0f, "%.2f");
+        PropertyFloat("Press Scale", &button.pressScale, 0.005f, 0.1f, 4.0f, "%.2f");
+        SoundField(ctx, "Hover Sound", button.hoverSound);
+        SoundField(ctx, "Click Sound", button.clickSound);
+        PropertyFloat("Volume", &button.volume, 0.01f, 0.0f, 4.0f, "%.2f");
+        PropertyFloat("Hit Padding", &button.padding, 0.5f, 0.0f, 1000.0f, "%.1f");
+        PropertyLabel("");
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+        ImGui::TextWrapped(m_SelectedEntity.HasComponent<SpriteComponent>() || m_SelectedEntity.HasComponent<RenderComponent>()
+                               ? "Scripts receive OnClick, OnHoverEnter and OnHoverExit. Buttons live in the world, so a button on a moving camera should be a child of the Camera entity"
+                               : "Add a Sprite or Shape so there is something to click (a Collision box also works)");
+        ImGui::PopStyleColor(); });
+
+    DrawComponentSection<TeleporterComponent>(ctx, "Teleporter", m_SelectedEntity, [&ctx, &m_SelectedEntity](TeleporterComponent &portal)
+                                              {
+        PropertyBool("Enabled", &portal.enabled);
+        PropertyText("Destination", portal.target);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Name of the entity to send things to. Make a second Teleporter there to go both ways");
+        PropertyVec2("Arrive Offset", &portal.offset.x, 0.5f, "%.1f");
+        PropertyBool("Keep Velocity", &portal.keepVelocity);
+        SoundField(ctx, "Sound", portal.sound);
+        NeedsTrigger(m_SelectedEntity, "Needs a Trigger Zone on this entity. Set its Only Entity to the player so props are not teleported");
+        if (!portal.target.empty() && !ctx.Scene->GetEntityByName(portal.target))
+        {
+            PropertyLabel("");
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::Warning);
+            ImGui::TextWrapped("No entity is named \"%s\"", portal.target.c_str());
+            ImGui::PopStyleColor();
+        }
+        PropertyLabel("");
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+        ImGui::TextWrapped("Whatever arrives is not sent back until it has stepped out of the zone");
+        ImGui::PopStyleColor(); });
+
+    DrawComponentSection<CameraZoneComponent>(ctx, "Camera Zone", m_SelectedEntity, [&m_SelectedEntity](CameraZoneComponent &zone)
+                                              {
+        PropertyBool("Enabled", &zone.enabled);
+        PropertyFloat("Zoom", &zone.zoom, 0.01f, 0.05f, 20.0f, "%.2f");
+        PropertyFloat("Transition", &zone.speed, 0.1f, 0.0f, 100.0f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("How fast the camera eases to the new zoom. 0 snaps");
+        PropertyBool("Limit Camera", &zone.setBounds);
+        if (zone.setBounds)
+        {
+            PropertyVec2("Bounds Min", &zone.boundsMin.x, 1.0f, "%.0f");
+            PropertyVec2("Bounds Max", &zone.boundsMax.x, 1.0f, "%.0f");
+        }
+        PropertyBool("Restore On Exit", &zone.restoreOnExit);
+        NeedsTrigger(m_SelectedEntity, "Needs a Trigger Zone on this entity. Set its Only Entity to the player");
+        PropertyLabel("");
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+        ImGui::TextWrapped("While the player is inside, the main camera zooms and is limited to the bounds");
+        ImGui::PopStyleColor(); });
+
+    DrawComponentSection<WorldBoundsComponent>(ctx, "World Bounds", m_SelectedEntity, [](WorldBoundsComponent &bounds)
+                                               {
+        PropertyBool("Enabled", &bounds.enabled);
+        static const char *modes[] = {"Clamp", "Wrap", "Bounce", "Destroy"};
+        int mode = static_cast<int>(bounds.mode);
+        if (PropertySegmented("Mode", &mode, modes, 4))
+            bounds.mode = static_cast<BoundsMode>(mode);
+        PropertyVec2("Min", &bounds.min.x, 1.0f, "%.0f");
+        PropertyVec2("Max", &bounds.max.x, 1.0f, "%.0f");
+        PropertyFloat("Margin", &bounds.margin, 0.5f, 0.0f, 100000.0f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Half the size of the entity, so its edge (not its center) meets the boundary");
+        PropertyLabel("");
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+        ImGui::TextWrapped("Clamp: stops at the edge. Wrap: reappears on the opposite side. Bounce: reflects Velocity, Rigid Body or Character Controller motion. Destroy: removes it once outside");
+        ImGui::PopStyleColor(); });
+
+    DrawComponentSection<PickableComponent>(ctx, "Pickable", m_SelectedEntity, [&ctx, &m_SelectedEntity](PickableComponent &pickable)
+                                            {
+        PropertyBool("Enabled", &pickable.enabled);
+        static const char *buttons[] = {"Left", "Right", "Middle"};
+        PropertySegmented("Mouse Button", &pickable.button, buttons, 3);
+        PropertyBool("Keep Grab Offset", &pickable.keepOffset);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("On: the entity stays where you grabbed it. Off: its center jumps to the cursor");
+        PropertyFloat("Smoothing", &pickable.smoothing, 0.1f, 0.0f, 100.0f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("0 sticks to the cursor. Higher values trail behind it");
+        PropertyFloat("Throw", &pickable.throwStrength, 0.01f, 0.0f, 10.0f, "%.2f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Release while moving to fling it. 0 just drops it. Works with Rigid Body, Character Controller and Velocity");
+        PropertyFloat("Lift Scale", &pickable.liftScale, 0.005f, 0.1f, 4.0f, "%.2f");
+        PropertyBool("Bring To Front", &pickable.bringToFront);
+        PropertyFloat("Grab Padding", &pickable.padding, 0.5f, 0.0f, 1000.0f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Extra pixels around the entity that still count as grabbing it");
+        PropertyLabel("");
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+        ImGui::TextWrapped(m_SelectedEntity.HasComponent<SpriteComponent>() || m_SelectedEntity.HasComponent<RenderComponent>()
+                               ? "Press and hold on it in the running game. Scripts get OnGrab and OnDrop"
+                               : "Add a Sprite or Shape so there is something to grab (a Collision box also works)");
+        ImGui::PopStyleColor();
+        (void)ctx; });
+
+    DrawComponentSection<FollowComponent>(ctx, "Follow", m_SelectedEntity, [&ctx](FollowComponent &follow)
+                                          {
+        PropertyBool("Enabled", &follow.enabled);
+        PropertyText("Target", follow.target);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Name of the entity to chase (companions, enemies, floating UI)");
+        PropertyVec2("Offset", &follow.offset.x, 0.5f, "%.1f");
+        PropertyFloat("Smoothing", &follow.smoothing, 0.1f, 0.0f, 100.0f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Higher catches up faster. 0 snaps to the target");
+        PropertyFloat("Stop Distance", &follow.stopDistance, 0.5f, 0.0f, 100000.0f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Stay this far away instead of sitting on top of the target");
+        PropertyBool2("Axes", "X", &follow.followX, "Y", &follow.followY);
+        if (!follow.target.empty() && !ctx.Scene->GetEntityByName(follow.target))
+        {
+            PropertyLabel("");
+            ImGui::PushStyleColor(ImGuiCol_Text, Colors::Warning);
+            ImGui::TextWrapped("No entity is named \"%s\"", follow.target.c_str());
+            ImGui::PopStyleColor();
+        } });
+
+    DrawComponentSection<PickupComponent>(ctx, "Pickup", m_SelectedEntity, [&ctx, &m_SelectedEntity](PickupComponent &pickup)
+                                          {
+        PropertyBool("Enabled", &pickup.enabled);
+        PropertyText("Variable", pickup.key);
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Game variable that grows when collected. Show it with {name} in a Text component, read it with Game.Get(name)");
+        PropertyFloat("Amount", &pickup.amount, 0.1f, -1000000.0f, 1000000.0f, "%.1f");
+        SoundField(ctx, "Sound", pickup.sound);
+        PropertyFloat("Volume", &pickup.volume, 0.01f, 0.0f, 4.0f, "%.2f");
+        PropertyBool("Destroy On Pickup", &pickup.destroyOnPickup);
+        NeedsTrigger(m_SelectedEntity, "Needs a Trigger Zone on this entity. Set its Only Entity to the player so enemies can't collect it"); });
+
+    DrawComponentSection<CheckpointComponent>(ctx, "Checkpoint", m_SelectedEntity, [&ctx, &m_SelectedEntity](CheckpointComponent &checkpoint)
+                                              {
+        PropertyBool("Enabled", &checkpoint.enabled);
+        PropertyVec2("Respawn Offset", &checkpoint.offset.x, 0.5f, "%.1f");
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+            ImGui::SetTooltip("Where an entity with a Respawn component reappears, relative to this checkpoint");
+        SoundField(ctx, "Sound", checkpoint.sound);
+        NeedsTrigger(m_SelectedEntity, "Needs a Trigger Zone on this entity"); });
+
+    DrawComponentSection<RespawnComponent>(ctx, "Respawn", m_SelectedEntity, [&ctx, &m_SelectedEntity](RespawnComponent &respawn)
+                                           {
+        PropertyFloat("Delay", &respawn.delay, 0.05f, 0.0f, 100.0f, "%.2f s");
+        PropertyBool("Restore Health", &respawn.restoreHealth);
+        PropertyBool("Fall Limit", &respawn.useKillY);
+        if (respawn.useKillY)
+        {
+            PropertyFloat("Fall Below Y", &respawn.killY, 1.0f, -1000000.0f, 1000000.0f, "%.0f");
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_ForTooltip))
+                ImGui::SetTooltip("World Y grows upward, so use a negative number under the lowest platform");
+        }
+        if (!ctx.IsEditing())
+        {
+            char state[64];
+            std::snprintf(state, sizeof(state), "spawn at %.0f, %.0f", respawn.point.x, respawn.point.y);
+            PropertyValue("State", state);
+        }
+        PropertyLabel("");
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+        ImGui::TextWrapped(m_SelectedEntity.HasComponent<HealthComponent>()
+                               ? "Comes back where it started, or at the last Checkpoint it touched. Don't turn on Destroy On Death in Health"
+                               : "Comes back after falling. Add Health to also respawn after dying");
+        ImGui::PopStyleColor(); });
 
     DrawComponentSection<TimerComponent>(ctx, "Timer", m_SelectedEntity, [](TimerComponent &timer)
                                          {
