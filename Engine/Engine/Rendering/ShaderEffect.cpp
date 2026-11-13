@@ -125,9 +125,26 @@ namespace SIMPEngine
 
     std::string ShaderEffect::BuildSource(const std::string &userSource)
     {
-        if (userSource.find("#version") != std::string::npos)
+        const size_t version = userSource.find("#version");
+        if (version == std::string::npos)
+            return std::string(VersionLine) + FragmentHeader + userSource;
+        size_t end = userSource.find('\n', version);
+        if (end == std::string::npos)
+            end = userSource.size();
+        const std::string line = userSource.substr(version, end - version);
+#ifdef SIMP_GLES
+        const bool native = line.find(" es") != std::string::npos;
+#else
+        const bool native = line.find(" es") == std::string::npos;
+#endif
+        if (native)
             return userSource;
-        return std::string(VersionLine) + FragmentHeader + userSource;
+        std::string replaced = userSource;
+        std::string header = VersionLine;
+        if (!header.empty() && header.back() == '\n')
+            header.pop_back();
+        replaced.replace(version, end - version, header);
+        return replaced;
     }
 
     std::vector<ShaderUniformDecl> ShaderEffect::ParseUniforms(const std::string &userSource)

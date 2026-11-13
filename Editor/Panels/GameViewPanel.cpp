@@ -127,6 +127,23 @@ namespace
         {"2400 x 1080  (phone landscape)", 2400, 1080},
         {"1080 x 2400  (phone portrait)", 1080, 2400},
         {"1080 x 1920  (portrait 16:9)", 1080, 1920},
+        {"1920 x 1200  (Galaxy Tab A9+ landscape)", 1920, 1200},
+        {"1200 x 1920  (Galaxy Tab A9+ portrait)", 1200, 1920},
+        {"2560 x 1600  (Galaxy Tab S9 landscape)", 2560, 1600},
+        {"2340 x 1080  (Galaxy S / A series landscape)", 2340, 1080},
+        {"1080 x 2340  (Galaxy S / A series portrait)", 1080, 2340},
+        {"3120 x 1440  (Galaxy S Ultra landscape)", 3120, 1440},
+        {"1440 x 3120  (Galaxy S Ultra portrait)", 1440, 3120},
+        {"2400 x 1080  (Pixel 8 landscape)", 2400, 1080},
+        {"2556 x 1179  (iPhone 15 landscape)", 2556, 1179},
+        {"1179 x 2556  (iPhone 15 portrait)", 1179, 2556},
+        {"2796 x 1290  (iPhone 15 Pro Max landscape)", 2796, 1290},
+        {"1290 x 2796  (iPhone 15 Pro Max portrait)", 1290, 2796},
+        {"1334 x 750  (iPhone SE landscape)", 1334, 750},
+        {"2360 x 1640  (iPad Air landscape)", 2360, 1640},
+        {"1640 x 2360  (iPad Air portrait)", 1640, 2360},
+        {"2732 x 2048  (iPad Pro 12.9 landscape)", 2732, 2048},
+        {"2048 x 2732  (iPad Pro 12.9 portrait)", 2048, 2732},
         {"2560 x 1080  (ultrawide)", 2560, 1080},
         {"Custom", -3, -3},
     };
@@ -142,7 +159,7 @@ void GameViewPanel::DrawToolbar()
     ImGui::TextUnformatted("Window");
     ImGui::PopStyleColor();
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(220.0f);
+    ImGui::SetNextItemWidth(300.0f);
     if (ImGui::BeginCombo("##gameSize", SizePresets[m_SizePreset].Name))
     {
         for (int i = 0; i < PresetCount; ++i)

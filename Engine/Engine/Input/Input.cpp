@@ -7,6 +7,7 @@
 namespace SIMPEngine
 {
     std::unordered_set<int> Input::s_KeysPressed;
+    std::unordered_set<int> Input::s_VirtualKeys;
     std::unordered_set<int> Input::s_KeysJustPressed;
 
     std::unordered_set<int> Input::s_MouseButtonsPressed;
@@ -29,7 +30,24 @@ namespace SIMPEngine
 
     bool Input::IsKeyPressed(int keycode)
     {
-        return s_Enabled && s_KeysPressed.find(keycode) != s_KeysPressed.end();
+        return s_Enabled && (s_KeysPressed.count(keycode) != 0 || s_VirtualKeys.count(keycode) != 0);
+    }
+
+    bool Input::IsPhysicalKeyPressed(int keycode)
+    {
+        return s_Enabled && s_KeysPressed.count(keycode) != 0;
+    }
+
+    void Input::SetVirtualKey(int keycode, bool down)
+    {
+        const bool physical = s_KeysPressed.count(keycode) != 0;
+        if (down)
+        {
+            if (s_VirtualKeys.insert(keycode).second && !physical)
+                s_KeysJustPressed.insert(keycode);
+        }
+        else if (s_VirtualKeys.erase(keycode) && !physical)
+            s_KeysJustReleased.insert(keycode);
     }
 
     bool Input::IsKeyJustPressed(int keycode)
@@ -85,6 +103,13 @@ namespace SIMPEngine
         return {s_MouseX - s_Viewport.x, s_MouseY - s_Viewport.y};
     }
 
+    glm::vec2 Input::WindowToViewport(const glm::vec2 &windowPosition)
+    {
+        if (!s_HasViewport)
+            return windowPosition;
+        return {windowPosition.x - s_Viewport.x, windowPosition.y - s_Viewport.y};
+    }
+
     glm::vec2 Input::GetViewportSize()
     {
         if (!s_HasViewport)
@@ -113,13 +138,13 @@ namespace SIMPEngine
 
     void Input::OnKeyPressed(int keycode)
     {
-        if (s_KeysPressed.insert(keycode).second)
+        if (s_KeysPressed.insert(keycode).second && !s_VirtualKeys.count(keycode))
             s_KeysJustPressed.insert(keycode);
     }
 
     void Input::OnKeyReleased(int keycode)
     {
-        if (s_KeysPressed.erase(keycode))
+        if (s_KeysPressed.erase(keycode) && !s_VirtualKeys.count(keycode))
             s_KeysJustReleased.insert(keycode);
     }
 
@@ -244,6 +269,7 @@ namespace SIMPEngine
         for (float &axis : s_PadAxes)
             axis = 0.0f;
         s_KeysPressed.clear();
+        s_VirtualKeys.clear();
         s_KeysJustPressed.clear();
         s_MouseButtonsPressed.clear();
         s_MouseButtonsJustPressed.clear();

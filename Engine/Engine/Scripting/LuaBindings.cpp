@@ -86,6 +86,7 @@ namespace SIMPEngine::LuaBindings
         {"SPACE", SIMPK_SPACE},
         {"RETURN", SIMPK_RETURN},
         {"ESCAPE", SIMPK_ESCAPE},
+        {"BACK", SIMPK_BACK},
         {"BACKSPACE", SIMPK_BACKSPACE},
         {"TAB", SIMPK_TAB},
         {"LEFT", SIMPK_LEFT},
@@ -1248,7 +1249,33 @@ namespace SIMPEngine::LuaBindings
             return 2;
         }
 
+        int WindowGetSafeArea(lua_State *L)
+        {
+            int width = 0;
+            int height = 0;
+            SDL_Rect safe{0, 0, 0, 0};
+            if (Application *app = Application::TryGet())
+            {
+                SDL_Window *window = app->GetWindow().GetNativeWindow();
+                SDL_GetWindowSize(window, &width, &height);
+                if (!SDL_GetWindowSafeArea(window, &safe))
+                    safe = {0, 0, width, height};
+            }
+            const glm::vec2 viewportSize = Input::GetViewportSize();
+            const glm::vec2 origin = Input::WindowToViewport({0.0f, 0.0f});
+            const float left = std::max(static_cast<float>(safe.x) + origin.x, 0.0f);
+            const float top = std::max(static_cast<float>(safe.y) + origin.y, 0.0f);
+            const float right = std::min(static_cast<float>(safe.x + safe.w) + origin.x, viewportSize.x);
+            const float bottom = std::min(static_cast<float>(safe.y + safe.h) + origin.y, viewportSize.y);
+            lua_pushnumber(L, left);
+            lua_pushnumber(L, top);
+            lua_pushnumber(L, std::max(right - left, 0.0f));
+            lua_pushnumber(L, std::max(bottom - top, 0.0f));
+            return 4;
+        }
+
         const luaL_Reg WindowFunctions[] = {
+            {"GetSafeArea", WindowGetSafeArea},
             {"SetFullscreen", WindowSetFullscreen},
             {"SetRenderScale", WindowSetRenderScale},
             {"GetRenderScale", WindowGetRenderScale},
@@ -1267,7 +1294,15 @@ namespace SIMPEngine::LuaBindings
             {"SetVolume", MusicSetVolume},
             {nullptr, nullptr}};
 
+        int GameQuit(lua_State *)
+        {
+            if (Application *app = Application::TryGet())
+                app->Queue([app] { app->RequestQuit(); });
+            return 0;
+        }
+
         const luaL_Reg GameFunctions[] = {
+            {"Quit", GameQuit},
             {"Get", GameGet},
             {"Set", GameSet},
             {"Add", GameAdd},

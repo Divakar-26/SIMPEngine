@@ -226,7 +226,7 @@ namespace SIMPEngine
             switch (binding.Device)
             {
             case BindingDevice::Key:
-                if (Input::IsKeyPressed(binding.Code))
+                if (Input::IsPhysicalKeyPressed(binding.Code))
                     digital += binding.Scale;
                 break;
             case BindingDevice::Mouse:

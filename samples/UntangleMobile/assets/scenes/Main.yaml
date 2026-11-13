@@ -1,0 +1,24 @@
+Scene: Untangle
+Version: 1
+Settings:
+  background: [0.969, 0.953, 0.918, 1]
+Entities:
+  - ID: 1
+    Tag: Camera
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      zIndex: 0
+      scale: [1, 1]
+    Camera:
+      primary: true
+      zoom: 1
+  - ID: 2
+    Tag: Game
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      zIndex: 0
+      scale: [1, 1]
+    Script:
+      lua: assets://scripts/main.lua

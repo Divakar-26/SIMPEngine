@@ -236,6 +236,110 @@ void SettingsPanel::DrawScripts(bool &, bool &dirty)
     EndSection();
 }
 
+void SettingsPanel::DrawAndroid(bool &apply, bool &dirty)
+{
+    using namespace EditorUI;
+    EditorSettings &s = Settings();
+    (void)apply;
+
+    if (auto folder = TakePickedFolder("androidSdk"))
+    {
+        s.AndroidSdkPath = *folder;
+        dirty = true;
+        m_AndroidRescan = true;
+    }
+
+    if (BeginSection("androidEnable", "Android"))
+    {
+        if (PropertyBool("Android tools", &s.AndroidTools))
+        {
+            dirty = true;
+            m_AndroidRescan = true;
+        }
+        Hint("Optional. Detects the Android SDK on this computer and adds a Run on Device button to the toolbar when adb is available. Turn it off to hide everything Android.");
+    }
+    EndSection();
+
+    if (BeginSection("androidTools", "Detected tools"))
+    {
+        const AndroidTools::Toolchain empty;
+        const AndroidTools::Toolchain &tools = m_Android ? m_Android->Tools() : empty;
+        auto row = [&](const char *label, const std::string &value)
+        {
+            const bool found = !value.empty();
+            const ImVec4 color = found ? Colors::Success : Colors::TextDim;
+            PropertyValue(label, found ? value.c_str() : "Not found", &color);
+        };
+        row("SDK", tools.Sdk.string());
+        row("adb", tools.Adb.string());
+        row("Emulator", tools.Emulator.string());
+        row("NDK", tools.Ndk.empty() ? std::string() : tools.NdkVersion + "  " + tools.Ndk.string());
+        row("Java (JDK)", tools.JavaHome.string());
+        row("CMake", tools.Cmake.string());
+        row("Android project", tools.AndroidProject.string());
+
+        PropertyLabel("");
+        std::string summary;
+        if (!s.AndroidTools)
+            summary = "Android tools are turned off.";
+        else if (!tools.CanDeploy())
+            summary = "Run on Device needs adb (SDK Platform-Tools).";
+        else if (!tools.CanBuild())
+        {
+            summary = "Run on Device can install; building needs";
+            if (tools.Sdk.empty())
+                summary += " the SDK,";
+            if (tools.JavaHome.empty())
+                summary += " a JDK,";
+            if (tools.AndroidProject.empty())
+                summary += " the engine's Android folder,";
+            summary.back() = '.';
+        }
+        else
+            summary = "Ready: build, install and run on devices from the toolbar.";
+        ImGui::PushStyleColor(ImGuiCol_Text, tools.CanBuild() && s.AndroidTools ? Colors::Success : Colors::Warning);
+        ImGui::TextWrapped("%s", summary.c_str());
+        ImGui::PopStyleColor();
+    }
+    EndSection();
+
+    if (BeginSection("androidLocation", "SDK location"))
+    {
+        if (PropertyText("SDK folder", s.AndroidSdkPath))
+            dirty = true;
+        PropertyLabel("");
+        if (Button("Browse...", ButtonKind::Secondary))
+            PickFolder("androidSdk", s.AndroidSdkPath);
+        ImGui::SameLine();
+        if (Button("Rescan", ButtonKind::Primary))
+            m_AndroidRescan = true;
+        ImGui::SameLine();
+        if (Button("Clear", ButtonKind::Secondary))
+        {
+            s.AndroidSdkPath.clear();
+            dirty = true;
+            m_AndroidRescan = true;
+        }
+        Hint("Leave empty to search the usual places: ANDROID_HOME, ANDROID_SDK_ROOT, Android Studio's default folders on Windows, Linux and macOS, the Android folder's local.properties and adb on PATH.");
+    }
+    EndSection();
+
+    if (BeginSection("androidGet", "Get the tools"))
+    {
+        Hint("To run on a device you only need Platform-Tools (adb). To build APKs from the editor also install an Android SDK with the NDK, CMake and a JDK; Android Studio installs all of them.");
+        PropertyLabel("");
+        if (Button("Android Studio", ButtonKind::Secondary))
+            SDL_OpenURL("https://developer.android.com/studio");
+        ImGui::SameLine();
+        if (Button("Command-line tools", ButtonKind::Secondary))
+            SDL_OpenURL("https://developer.android.com/studio#command-line-tools-only");
+        ImGui::SameLine();
+        if (Button("Platform-Tools", ButtonKind::Secondary))
+            SDL_OpenURL("https://developer.android.com/tools/releases/platform-tools");
+    }
+    EndSection();
+}
+
 void SettingsPanel::DrawMaintenance(bool &apply, bool &dirty)
 {
     using namespace EditorUI;
@@ -279,6 +383,7 @@ void SettingsPanel::DrawMaintenance(bool &apply, bool &dirty)
                 const std::string scriptTheme = s.ScriptTheme;
                 s = DefaultSettings();
                 s.ScriptTheme = scriptTheme;
+                m_AndroidRescan = true;
                 apply = true;
                 dirty = true;
                 m_ConfirmReset = false;
@@ -323,14 +428,14 @@ void SettingsPanel::OnImGuiRender()
     bool apply = false;
     bool dirty = false;
 
-    static const char *categories[] = {"General", "Appearance", "Viewport", "Editing", "Play", "Script Editor", "Maintenance"};
+    static const char *categories[] = {"General", "Appearance", "Viewport", "Editing", "Play", "Script Editor", "Android", "Maintenance"};
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 12.0f));
     ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Frame);
     ImGui::BeginChild("##settingsNav", ImVec2(190.0f, 0.0f), ImGuiChildFlags_AlwaysUseWindowPadding);
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
-    for (int i = 0; i < 7; ++i)
+    for (int i = 0; i < 8; ++i)
         if (ImGui::Selectable(categories[i], m_Category == i, 0, ImVec2(0, 28.0f)))
             m_Category = i;
     ImGui::EndChild();
@@ -358,6 +463,9 @@ void SettingsPanel::OnImGuiRender()
         break;
     case 5:
         DrawScripts(apply, dirty);
+        break;
+    case 6:
+        DrawAndroid(apply, dirty);
         break;
     default:
         DrawMaintenance(apply, dirty);

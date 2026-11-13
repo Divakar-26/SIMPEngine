@@ -145,6 +145,7 @@ namespace EditorUI
                 {"TabSize", 'i', &s.TabSize, 2, 8},
                 {"ShowCameraFrame", 'b', &s.ShowCameraFrame, 0, 1},
                 {"ShowToasts", 'b', &s.ShowToasts, 0, 1},
+                {"AndroidTools", 'b', &s.AndroidTools, 0, 1},
             };
         }
 
@@ -153,6 +154,11 @@ namespace EditorUI
             if (std::strncmp(line, "ScriptTheme=", 12) == 0)
             {
                 s_Settings.ScriptTheme = line + 12;
+                return;
+            }
+            if (std::strncmp(line, "AndroidSdkPath=", 15) == 0)
+            {
+                s_Settings.AndroidSdkPath = line + 15;
                 return;
             }
             const char *equals = std::strchr(line, '=');
@@ -202,6 +208,7 @@ namespace EditorUI
                 else
                     buf->appendf("%s=%d\n", field.Key, *static_cast<int *>(field.Value));
             }
+            buf->appendf("AndroidSdkPath=%s\n", s_Settings.AndroidSdkPath.c_str());
             buf->appendf("ScriptTheme=%s\n\n", s_Settings.ScriptTheme.c_str());
         }
     }

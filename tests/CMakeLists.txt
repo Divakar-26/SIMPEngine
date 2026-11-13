@@ -15,7 +15,9 @@ add_executable(SIMPTests
     ShaderTests.cpp
     ScriptEditorTests.cpp
     MarkdownTests.cpp
+    AndroidToolsTests.cpp
     ../Editor/Docs/Markdown.cpp
+    ../Editor/Android/AndroidTools.cpp
     ../Editor/ScriptEditor/LuaLexer.cpp
     ../Editor/ScriptEditor/LuaContext.cpp
     ../Editor/ScriptEditor/LuaNavigation.cpp

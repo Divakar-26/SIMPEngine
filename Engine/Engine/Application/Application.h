@@ -52,6 +52,8 @@ namespace SIMPEngine
         void SetFullscreen(bool fullscreen);
         bool IsFullscreen();
         void SetFullscreenOverride(std::function<void(bool)> set, std::function<bool()> get);
+        void RequestQuit();
+        void SetQuitOverride(std::function<void()> quit) { m_Quit = std::move(quit); }
 
         ImGuiLayer *GetImGuiLayer() { return m_ImGuiLayer; }
 
@@ -71,6 +73,7 @@ namespace SIMPEngine
 
         std::function<void(bool)> m_SetFullscreen;
         std::function<bool()> m_IsFullscreen;
+        std::function<void()> m_Quit;
         std::string m_LastFault;
         int m_FaultRepeats = 0;
 

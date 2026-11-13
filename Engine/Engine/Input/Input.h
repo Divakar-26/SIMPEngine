@@ -9,6 +9,8 @@ namespace SIMPEngine{
         public:
 
             static bool IsKeyPressed(int keyCode);
+            static bool IsPhysicalKeyPressed(int keyCode);
+            static void SetVirtualKey(int keyCode, bool down);
             static bool IsKeyJustPressed(int keyCode);
             static bool IsMouseButtonPressed(int button);
             static bool IsMouseButtonJustPressed(int button);
@@ -21,6 +23,7 @@ namespace SIMPEngine{
             static void SetViewport(float x, float y, float width, float height);
             static void ClearViewport();
             static glm::vec2 GetMouseViewportPosition();
+            static glm::vec2 WindowToViewport(const glm::vec2 &windowPosition);
             static glm::vec2 GetViewportSize();
             static bool IsMouseInViewport();
 
@@ -55,6 +58,7 @@ namespace SIMPEngine{
         private:
 
             static std::unordered_set<int> s_KeysPressed;
+            static std::unordered_set<int> s_VirtualKeys;
             static std::unordered_set<int> s_KeysJustPressed;
             static std::unordered_set<int> s_MouseButtonsPressed;
             static std::unordered_set<int> s_MouseButtonsJustPressed;

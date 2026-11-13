@@ -34,6 +34,10 @@ TEST_CASE("Shader sources get the engine header and declared uniforms are found"
 
     const std::string full = "#version 400 core\nvoid main() {}\n";
     CHECK(ShaderEffect::BuildSource(full) == full);
+    const std::string es = "#version 300 es\nprecision mediump float;\nvoid main() {}\n";
+    const std::string portable = ShaderEffect::BuildSource(es);
+    CHECK(portable.rfind("#version 400 core", 0) == 0);
+    CHECK(portable.find("void main() {}") != std::string::npos);
 
     const auto declared = ShaderEffect::ParseUniforms(source);
     CHECK(declared.size() == 5);

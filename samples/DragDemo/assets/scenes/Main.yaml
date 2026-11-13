@@ -1,0 +1,34 @@
+Scene: Drag Demo
+Version: 1
+Settings:
+  background: [0.11, 0.12, 0.16, 1]
+Entities:
+  - ID: 1
+    Tag: Camera
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      zIndex: 0
+      scale: [1, 1]
+    Camera:
+      primary: true
+      zoom: 1
+  - ID: 2
+    Tag: Draggable Box
+    Transform:
+      position: [0, 0]
+      rotation: 0
+      zIndex: 1
+      scale: [1, 1]
+    Render:
+      color: [92, 212, 214, 255]
+      size: [260, 260]
+    Pickable:
+      enabled: true
+      button: left
+      smoothing: 0
+      throw_strength: 1
+      lift_scale: 1.1
+      bring_to_front: true
+      keep_offset: true
+      padding: 0

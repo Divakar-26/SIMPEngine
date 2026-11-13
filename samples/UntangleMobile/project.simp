@@ -1,0 +1,21 @@
+Project:
+  name: Untangle
+  version: 1.0.0
+  engine: 1.0.0
+  start_scene: assets://scenes/Main.yaml
+  window:
+    title: ""
+    width: 800
+    height: 1280
+    fullscreen: false
+    resizable: true
+    vsync: true
+    maximized: false
+    borderless: false
+    orientation: portrait
+  display:
+    width: 1080
+    height: 1920
+    aspect: keep_width
+    stretch: window
+    render_scale: 1

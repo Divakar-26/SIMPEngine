@@ -87,6 +87,8 @@ namespace EditorUI
         bool ShowColliders = false;
         bool PlayFullscreen = false;
         std::string ScriptTheme = "Mossveil Night";
+        bool AndroidTools = true;
+        std::string AndroidSdkPath;
         float ScriptFontSize = 15.0f;
 
         int WindowWidth = 1180;

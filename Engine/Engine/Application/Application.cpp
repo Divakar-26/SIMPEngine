@@ -57,7 +57,9 @@ namespace SIMPEngine
         if (touch)
         {
             SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS, "0");
-#if !defined(__ANDROID__)
+#if defined(__ANDROID__)
+            SDL_SetHint(SDL_HINT_ANDROID_TRAP_BACK_BUTTON, "1");
+#else
             SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS, "1");
 #endif
         }
@@ -185,6 +187,12 @@ namespace SIMPEngine
 
             const uint64_t stamp0 = SDL_GetPerformanceCounter();
             Input::BeginFrame();
+            TouchControls::BeginFrame();
+            if (TouchControls::TakePointerPark())
+            {
+                MouseMovedEvent parked(-100000.0f, -100000.0f);
+                OnEvent(parked);
+            }
             if (m_Capture.IsActive())
                 m_Capture.ApplyInput(*this);
 
@@ -198,7 +206,22 @@ namespace SIMPEngine
                         m_ImGuiLayer->OnSDLEvent(sdlEvent);
                     SDLEventToEngine(sdlEvent);
                 }
+                {
+                    SDL_Window *window = m_Window.GetNativeWindow();
+                    int windowW = 0, windowH = 0;
+                    SDL_GetWindowSize(window, &windowW, &windowH);
+                    SDL_Rect safe{0, 0, 0, 0};
+                    if (!SDL_GetWindowSafeArea(window, &safe))
+                        safe = {0, 0, windowW, windowH};
+                    TouchControls::SetScale(SDL_GetWindowDisplayScale(window));
+                    TouchControls::SetSafeArea(static_cast<float>(windowW), static_cast<float>(windowH), static_cast<float>(safe.x), static_cast<float>(safe.y), static_cast<float>(safe.w), static_cast<float>(safe.h));
+                }
                 TouchControls::Update();
+                if (const float wheel = TouchControls::TakePinchWheel(); wheel != 0.0f)
+                {
+                    MouseScrolledEvent scrolled(0.0f, wheel);
+                    OnEvent(scrolled);
+                }
                 InputActions::Update();
             }
 
@@ -306,6 +329,14 @@ namespace SIMPEngine
         return m_IsFullscreen ? m_IsFullscreen() : m_Window.IsFullscreen();
     }
 
+    void Application::RequestQuit()
+    {
+        if (m_Quit)
+            m_Quit();
+        else
+            Close();
+    }
+
     void Application::SetFullscreenOverride(std::function<void(bool)> set, std::function<bool()> get)
     {
         m_SetFullscreen = std::move(set);
@@ -328,6 +359,9 @@ namespace SIMPEngine
             break;
         }
         case SDL_EVENT_WINDOW_FOCUS_LOST:
+        case SDL_EVENT_WILL_ENTER_BACKGROUND:
+        case SDL_EVENT_DID_ENTER_BACKGROUND:
+            TouchControls::Reset();
             Input::ResetAllKeys();
             break;
         case SDL_EVENT_FINGER_DOWN:
@@ -396,12 +430,22 @@ namespace SIMPEngine
             bool repeat = (sdlEvent.key.repeat != 0);
             KeyPressedEvent e(static_cast<int>(sdlEvent.key.key), repeat);
             OnEvent(e);
+            if (sdlEvent.key.key == SDLK_AC_BACK)
+            {
+                KeyPressedEvent escape(static_cast<int>(SDLK_ESCAPE), repeat);
+                OnEvent(escape);
+            }
             break;
         }
         case SDL_EVENT_KEY_UP:
         {
             KeyReleasedEvent e(static_cast<int>(sdlEvent.key.key));
             OnEvent(e);
+            if (sdlEvent.key.key == SDLK_AC_BACK)
+            {
+                KeyReleasedEvent escape(static_cast<int>(SDLK_ESCAPE));
+                OnEvent(escape);
+            }
             break;
         }
         case SDL_EVENT_TEXT_INPUT:

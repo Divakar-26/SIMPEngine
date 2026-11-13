@@ -162,7 +162,8 @@ TEST_CASE("Touch controls turn fingers into stick, buttons and a pointer")
     bool down = false, up = false;
 
     const float unit = std::min(w, h);
-    const glm::vec2 stick(unit * 0.24f, h - unit * 0.26f);
+    TouchControls::SetScale(1.0f);
+    const glm::vec2 stick(158.2f, 921.8f);
     SDL_Event press = Finger(SDL_EVENT_FINGER_DOWN, 1, stick.x / w, stick.y / h);
     CHECK(TouchControls::HandleEvent(press, w, h, point, down, up));
     CHECK(!down);
@@ -175,7 +176,7 @@ TEST_CASE("Touch controls turn fingers into stick, buttons and a pointer")
     CHECK_NEAR(InputActions::GetAxis("MoveX"), 1.0f, 1e-3);
     CHECK(InputActions::IsDown("MoveX"));
 
-    const glm::vec2 jump(w - unit * 0.2f, h - unit * 0.24f);
+    const glm::vec2 jump(1819.6f, 912.0f);
     SDL_Event jumpPress = Finger(SDL_EVENT_FINGER_DOWN, 2, jump.x / w, jump.y / h);
     TouchControls::HandleEvent(jumpPress, w, h, point, down, up);
     CHECK(TouchControls::IsJumpDown());
@@ -201,5 +202,118 @@ TEST_CASE("Touch controls turn fingers into stick, buttons and a pointer")
     TouchControls::SetEnabled(false);
     InputActions::Update();
     CHECK(!InputActions::IsDown("MoveX"));
+    Input::ResetAllKeys();
+}
+
+TEST_CASE("Second finger does not steal the pointer and pinch is measured")
+{
+    using namespace SIMPEngine;
+    TouchControls::SetEnabled(true);
+    TouchControls::SetScale(1.0f);
+    TouchControls::SetFloatingStick(false);
+    glm::vec2 point{0.0f};
+    bool down = false, up = false;
+
+    TouchControls::BeginFrame();
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_DOWN, 1, 0.4f, 0.3f), 1000.0f, 1000.0f, point, down, up);
+    CHECK(down);
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_DOWN, 2, 0.6f, 0.3f), 1000.0f, 1000.0f, point, down, up);
+    CHECK(!down);
+    TouchControls::Update();
+    CHECK(TouchControls::GetTouches().size() == 2);
+
+    TouchControls::BeginFrame();
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_MOTION, 2, 0.7f, 0.3f), 1000.0f, 1000.0f, point, down, up);
+    CHECK(!down);
+    CHECK(!up);
+    TouchControls::Update();
+    float scale = 1.0f;
+    glm::vec2 center{0.0f}, pan{0.0f};
+    CHECK(TouchControls::GetPinch(scale, center, pan));
+    CHECK_NEAR(scale, 1.5f, 0.001f);
+
+    TouchControls::BeginFrame();
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_UP, 2, 0.7f, 0.3f), 1000.0f, 1000.0f, point, down, up);
+    CHECK(!up);
+    CHECK(TouchControls::GetTouches().size() == 2);
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_UP, 1, 0.4f, 0.3f), 1000.0f, 1000.0f, point, down, up);
+    CHECK(up);
+    TouchControls::SetEnabled(false);
+}
+
+TEST_CASE("Floating stick starts where the thumb lands")
+{
+    using namespace SIMPEngine;
+    TouchControls::SetEnabled(true);
+    TouchControls::SetFloatingStick(true);
+    glm::vec2 point{0.0f};
+    bool down = false, up = false;
+    TouchControls::BeginFrame();
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_DOWN, 5, 0.2f, 0.5f), 1000.0f, 1000.0f, point, down, up);
+    CHECK(!down);
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_MOTION, 5, 0.3f, 0.5f), 1000.0f, 1000.0f, point, down, up);
+    CHECK(TouchControls::GetStick().x > 0.5f);
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_UP, 5, 0.3f, 0.5f), 1000.0f, 1000.0f, point, down, up);
+    CHECK(TouchControls::GetStick().x == 0.0f);
+    TouchControls::SetFloatingStick(false);
+    TouchControls::SetEnabled(false);
+}
+
+TEST_CASE("Virtual keys from touch reach raw key checks but not actions")
+{
+    InputActions::InstallBuiltinDefaults();
+    Input::ResetAllKeys();
+    Input::SetEnabled(true);
+    Input::BeginFrame();
+    Input::SetVirtualKey(SDLK_SPACE, true);
+    CHECK(Input::IsKeyPressed(SDLK_SPACE));
+    CHECK(Input::IsKeyJustPressed(SDLK_SPACE));
+    CHECK(!Input::IsPhysicalKeyPressed(SDLK_SPACE));
+    InputActions::Update();
+    CHECK(!InputActions::IsDown("Jump"));
+    Input::BeginFrame();
+    Input::SetVirtualKey(SDLK_SPACE, false);
+    CHECK(!Input::IsKeyPressed(SDLK_SPACE));
+    CHECK(Input::IsKeyJustReleased(SDLK_SPACE));
+    Input::ResetAllKeys();
+}
+
+TEST_CASE("Touch buttons press keys, hidden controls free the screen, the pointer parks after release")
+{
+    InputActions::InstallBuiltinDefaults();
+    Input::ResetAllKeys();
+    Input::SetEnabled(true);
+    TouchControls::SetEnabled(true);
+    TouchControls::SetScale(1.0f);
+    TouchControls::SetSafeArea(1920.0f, 1080.0f, 0.0f, 0.0f, 1920.0f, 1080.0f);
+    TouchControls::TakePointerPark();
+    const float w = 1920.0f, h = 1080.0f;
+    glm::vec2 point{0.0f};
+    bool down = false, up = false;
+
+    Input::BeginFrame();
+    TouchControls::BeginFrame();
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_DOWN, 1, 1819.6f / w, 912.0f / h), w, h, point, down, up);
+    TouchControls::Update();
+    CHECK(Input::IsKeyPressed(SDLK_SPACE));
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_UP, 1, 1819.6f / w, 912.0f / h), w, h, point, down, up);
+    TouchControls::Update();
+    CHECK(!Input::IsKeyPressed(SDLK_SPACE));
+    CHECK(!TouchControls::TakePointerPark());
+
+    TouchControls::SetVisible(false);
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_DOWN, 2, 158.2f / w, 921.8f / h), w, h, point, down, up);
+    CHECK(down);
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_UP, 2, 158.2f / w, 921.8f / h), w, h, point, down, up);
+    CHECK(up);
+    CHECK(TouchControls::TakePointerPark());
+    TouchControls::SetVisible(true);
+
+    TouchControls::SetSafeArea(w, h, 300.0f, 0.0f, w - 600.0f, h);
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_DOWN, 3, 158.2f / w, 921.8f / h), w, h, point, down, up);
+    CHECK(down);
+    TouchControls::HandleEvent(Finger(SDL_EVENT_FINGER_UP, 3, 158.2f / w, 921.8f / h), w, h, point, down, up);
+    TouchControls::SetSafeArea(w, h, 0.0f, 0.0f, w, h);
+    TouchControls::SetEnabled(false);
     Input::ResetAllKeys();
 }

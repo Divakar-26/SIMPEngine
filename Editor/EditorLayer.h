@@ -25,6 +25,7 @@
 #include "EditorContext.h"
 #include "EditorHistory.h"
 #include "EditorRecovery.h"
+#include "Android/AndroidTools.h"
 
 #include <optional>
 
@@ -89,6 +90,9 @@ private:
     void TogglePause();
     bool SaveBeforeLaunch();
     void RunStandalone();
+    void RunOnDevices();
+    void DrawAndroidControls(float h);
+    void UpdateAndroid();
 
     EditorContext m_EditorContext;
     EditorHistory m_History;
@@ -106,6 +110,8 @@ private:
     DocsPanel m_DocsPanel;
     ProjectSettingsPanel m_ProjectSettingsPanel;
     BuildPanel m_BuildPanel;
+    AndroidSession m_Android;
+    AndroidSession::State m_AndroidLastState = AndroidSession::State::Idle;
     std::function<void()> m_OnCloseProject;
     SIMPEngine::RenderingLayer *m_RenderingLayer;
 

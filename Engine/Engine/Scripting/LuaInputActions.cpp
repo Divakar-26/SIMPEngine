@@ -6,10 +6,12 @@
 #include <Engine/Input/Input.h>
 #include <Engine/Input/InputActions.h>
 #include <Engine/Input/TouchControls.h>
+#include <Engine/Scene/Scene.h>
 
 #include <SDL3/SDL.h>
 
 #include <string>
+#include <vector>
 
 namespace SIMPEngine::LuaBindings
 {
@@ -177,6 +179,64 @@ namespace SIMPEngine::LuaBindings
             return 0;
         }
 
+        int InputSetFloatingStick(lua_State *L)
+        {
+            luaL_checkany(L, 1);
+            TouchControls::SetFloatingStick(lua_toboolean(L, 1) != 0);
+            return 0;
+        }
+
+        void PushViewportAndWorld(lua_State *L, const glm::vec2 &window)
+        {
+            const glm::vec2 viewport = Input::WindowToViewport(window);
+            lua_pushnumber(L, viewport.x);
+            lua_setfield(L, -2, "x");
+            lua_pushnumber(L, viewport.y);
+            lua_setfield(L, -2, "y");
+            if (Scene *scene = LuaBindings::GetActiveScene())
+            {
+                const glm::vec2 world = scene->ScreenToWorld(viewport);
+                lua_pushnumber(L, world.x);
+                lua_setfield(L, -2, "worldX");
+                lua_pushnumber(L, world.y);
+                lua_setfield(L, -2, "worldY");
+            }
+        }
+
+        int InputGetTouches(lua_State *L)
+        {
+            const std::vector<TouchPoint> touches = TouchControls::GetTouches();
+            lua_createtable(L, static_cast<int>(touches.size()), 0);
+            int index = 1;
+            for (const TouchPoint &touch : touches)
+            {
+                lua_createtable(L, 0, 7);
+                lua_pushinteger(L, static_cast<lua_Integer>(touch.Id));
+                lua_setfield(L, -2, "id");
+                PushViewportAndWorld(L, touch.Position);
+                lua_pushboolean(L, touch.Pressed);
+                lua_setfield(L, -2, "pressed");
+                lua_pushboolean(L, touch.Released);
+                lua_setfield(L, -2, "released");
+                lua_rawseti(L, -2, index++);
+            }
+            return 1;
+        }
+
+        int InputGetPinch(lua_State *L)
+        {
+            float scale = 1.0f;
+            glm::vec2 center{0.0f}, pan{0.0f};
+            const bool active = TouchControls::GetPinch(scale, center, pan);
+            lua_pushnumber(L, active ? scale : 1.0f);
+            const glm::vec2 viewport = Input::WindowToViewport(center);
+            lua_pushnumber(L, viewport.x);
+            lua_pushnumber(L, viewport.y);
+            lua_pushnumber(L, active ? pan.x : 0.0f);
+            lua_pushnumber(L, active ? pan.y : 0.0f);
+            return 5;
+        }
+
         int InputIsTouchDevice(lua_State *L)
         {
             lua_pushboolean(L, TouchControls::IsEnabled());
@@ -186,6 +246,9 @@ namespace SIMPEngine::LuaBindings
         const luaL_Reg InputActionFunctions[] = {
             {"SetTouchControls", InputSetTouchControls},
             {"IsTouchDevice", InputIsTouchDevice},
+            {"SetFloatingStick", InputSetFloatingStick},
+            {"GetTouches", InputGetTouches},
+            {"GetPinch", InputGetPinch},
             {"IsActionDown", InputIsActionDown},
             {"IsActionJustPressed", InputIsActionJustPressed},
             {"IsActionJustReleased", InputIsActionJustReleased},

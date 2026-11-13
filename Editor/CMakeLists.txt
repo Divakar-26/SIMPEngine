@@ -44,6 +44,7 @@ add_library(Editor STATIC
     ScriptEditor/CurvePreview.cpp
     ScriptEditor/CodeEditor.cpp
     Export/GameBuilder.cpp
+    Android/AndroidTools.cpp
     UI/FileDialogs.cpp
     Panels/ProjectSettingsPanel.cpp
     Panels/BuildPanel.cpp

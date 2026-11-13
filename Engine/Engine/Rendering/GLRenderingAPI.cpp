@@ -284,7 +284,7 @@ namespace SIMPEngine
         }
 
         glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(m_QuadCount * 4 * sizeof(Vertex2D)), m_Vertices.data());
+        glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(m_QuadCount * 4 * sizeof(Vertex2D)), m_Vertices.data(), GL_STREAM_DRAW);
 
         glBindVertexArray(m_VAO);
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(m_QuadCount * 6), GL_UNSIGNED_INT, nullptr);

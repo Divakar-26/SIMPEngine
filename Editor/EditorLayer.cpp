@@ -181,6 +181,133 @@ void EditorLayer::RunStandalone()
         Flash("Started " + SIMPEngine::Project::Settings().Name);
 }
 
+void EditorLayer::UpdateAndroid()
+{
+    if (m_SettingsPanel.ConsumeAndroidRescan())
+        m_Android.Rescan(EditorUI::Settings().AndroidSdkPath, EditorUI::Settings().AndroidTools);
+    if (!m_Android.Available())
+        return;
+    m_Android.Update();
+    for (const std::string &line : m_Android.TakeLog())
+        CORE_INFO("[Android] {}", line);
+    const AndroidSession::State state = m_Android.GetState();
+    if (state != m_AndroidLastState)
+    {
+        m_AndroidLastState = state;
+        if (state == AndroidSession::State::Succeeded)
+            Flash(m_Android.Status());
+        else if (state == AndroidSession::State::Failed)
+            Flash(m_Android.Status(), true);
+    }
+}
+
+void EditorLayer::RunOnDevices()
+{
+    if (!SIMPEngine::Project::IsOpen() || !SaveBeforeLaunch())
+        return;
+    const std::vector<std::string> serials = m_Android.SelectedSerials(m_Android.Devices());
+    if (serials.empty())
+    {
+        Flash("No Android device is connected", true);
+        return;
+    }
+    if (m_Android.Deploy(SIMPEngine::Project::Directory(), SIMPEngine::Project::Settings().Name, serials))
+        Flash("Building for Android");
+}
+
+void EditorLayer::DrawAndroidControls(float h)
+{
+    using namespace EditorUI;
+    const bool running = m_Android.GetState() == AndroidSession::State::Running;
+    const std::vector<AndroidTools::Device> devices = m_Android.Devices();
+    const std::vector<std::string> selected = m_Android.SelectedSerials(devices);
+
+    std::string label = "No device";
+    if (selected.size() == 1)
+    {
+        for (const AndroidTools::Device &device : devices)
+            if (device.Serial == selected[0])
+                label = device.Label();
+    }
+    else if (selected.size() > 1)
+        label = std::to_string(selected.size()) + " devices";
+
+    ImGui::SameLine(0, 12);
+    const bool canRun = running || (SIMPEngine::Project::IsOpen() && m_Android.CanBuild() && !selected.empty());
+    ImGui::BeginDisabled(!canRun);
+    const char *tooltip = running ? "Cancel Android deploy" : (m_Android.CanBuild() ? "Run on Android device" : "Android folder not found");
+    if (IconButton("##android", running ? ICON_LC_SQUARE : ICON_LC_SMARTPHONE, tooltip, running, h))
+    {
+        if (running)
+            m_Android.Cancel();
+        else
+            RunOnDevices();
+    }
+    ImGui::EndDisabled();
+    ImGui::SameLine(0, 4);
+    if (ImGui::Button((label + "##androidDevices").c_str()))
+    {
+        m_Android.RefreshNow();
+        ImGui::OpenPopup("##androidPopup");
+    }
+    if (running)
+    {
+        ImGui::SameLine(0, 8);
+        ImGui::TextDisabled("%s", m_Android.Status().c_str());
+    }
+
+    if (ImGui::BeginPopup("##androidPopup"))
+    {
+        ImGui::TextDisabled("Android devices");
+        ImGui::Separator();
+        if (devices.empty())
+            ImGui::TextDisabled("No devices. Connect one with USB debugging on.");
+        for (const AndroidTools::Device &device : devices)
+        {
+            std::string text = device.Label();
+            if (!device.Abi.empty())
+                text += "  " + device.Abi;
+            if (!device.Ready())
+            {
+                ImGui::BeginDisabled();
+                ImGui::TextUnformatted((text + "  (" + device.State + ")").c_str());
+                ImGui::EndDisabled();
+                continue;
+            }
+            bool on = std::find(selected.begin(), selected.end(), device.Serial) != selected.end();
+            if (ImGui::Checkbox((text + "##" + device.Serial).c_str(), &on))
+            {
+                std::vector<std::string> next = selected;
+                next.erase(std::remove(next.begin(), next.end(), device.Serial), next.end());
+                if (on || next.empty())
+                    next.push_back(device.Serial);
+                for (const AndroidTools::Device &other : devices)
+                    m_Android.SetSelected(other.Serial, false);
+                for (const std::string &serial : next)
+                    m_Android.SetSelected(serial, true);
+            }
+        }
+        const std::vector<std::string> avds = m_Android.Avds();
+        if (m_Android.EmulatorAvailable() && !avds.empty())
+        {
+            ImGui::Separator();
+            ImGui::TextDisabled("Start emulator");
+            for (const std::string &avd : avds)
+            {
+                if (ImGui::MenuItem(avd.c_str()))
+                {
+                    m_Android.StartEmulator(avd);
+                    Flash("Starting emulator " + avd);
+                }
+            }
+        }
+        ImGui::Separator();
+        if (ImGui::MenuItem("Refresh"))
+            m_Android.RefreshNow();
+        ImGui::EndPopup();
+    }
+}
+
 void EditorLayer::TrackWindow(float dt)
 {
     EditorUI::EditorSettings &s = EditorUI::Settings();
@@ -248,6 +375,8 @@ void EditorLayer::OnAttach()
                           { m_History.BeginEdit(); });
 
     m_ViewportPanel.OnAttach();
+    m_Android.Initialize(EditorUI::Settings().AndroidSdkPath, EditorUI::Settings().AndroidTools);
+    m_SettingsPanel.SetAndroid(&m_Android);
 
     m_RenderingLayer->OnAttach();
     m_RenderingLayer->SetRenderToBackbuffer(false);
@@ -259,6 +388,11 @@ void EditorLayer::OnAttach()
 
     SIMPEngine::CrashHandler::SetEmergencyCallback([this]
                                                    { WriteRecovery(); });
+    SIMPEngine::Application::Get().SetQuitOverride([this]
+                                                   {
+                                                       if (m_EditorContext.State != SceneState::Edit)
+                                                           Stop();
+                                                   });
     SIMPEngine::Application::Get().SetFullscreenOverride(
         [this](bool fullscreen)
         {
@@ -277,8 +411,10 @@ void EditorLayer::OnAttach()
 
 void EditorLayer::OnDetach()
 {
+    m_Android.Shutdown();
     SIMPEngine::CrashHandler::SetEmergencyCallback(nullptr);
     SIMPEngine::Application::Get().SetFullscreenOverride(nullptr, nullptr);
+    SIMPEngine::Application::Get().SetQuitOverride(nullptr);
     SetGameFullscreen(false);
     if (!m_EditorContext.Dirty && !m_RecoveryUndecided)
         EditorRecovery::Discard(m_EditorContext.ScenePath);
@@ -297,6 +433,7 @@ void EditorLayer::OnUpdate(class SIMPEngine::TimeStep ts)
         m_RenderingLayer->Step(1.0f / 60.0f);
     m_EditorContext.StepRequested = false;
     HandleRuntimeFaults();
+    UpdateAndroid();
 
     TrackWindow(ts.GetSeconds());
 
@@ -546,7 +683,12 @@ void EditorLayer::HandleShortcuts()
         else
             Stop();
     }
-    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_F5, ImGuiInputFlags_RouteGlobal))
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_F5, ImGuiInputFlags_RouteGlobal))
+    {
+        if (m_Android.Available() && m_Android.GetState() != AndroidSession::State::Running)
+            RunOnDevices();
+    }
+    else if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_F5, ImGuiInputFlags_RouteGlobal))
         RunStandalone();
     if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiKey_B, ImGuiInputFlags_RouteGlobal) && SIMPEngine::Project::IsOpen())
         m_BuildPanel.Open();
@@ -691,6 +833,8 @@ void EditorLayer::DrawTransport()
             Play();
         SetGameFullscreen(true);
     }
+    if (m_Android.Available())
+        DrawAndroidControls(h);
 }
 
 void EditorLayer::DrawMenuBar()
@@ -853,6 +997,17 @@ void EditorLayer::DrawMenuBar()
                 ImGui::Separator();
                 if (ImGui::MenuItem("Run Standalone", "Ctrl+F5"))
                     RunStandalone();
+                if (m_Android.Available())
+                {
+                    const bool busy = m_Android.GetState() == AndroidSession::State::Running;
+                    if (ImGui::MenuItem(busy ? "Cancel Android Deploy" : "Run on Android Device", "Ctrl+Shift+F5"))
+                    {
+                        if (busy)
+                            m_Android.Cancel();
+                        else
+                            RunOnDevices();
+                    }
+                }
             }
             ImGui::EndMenu();
         }

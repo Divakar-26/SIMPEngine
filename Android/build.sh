@@ -1,8 +1,9 @@
 #!/bin/bash
 # Usage: Android/build.sh <project folder> [debug|release] [extra gradle args]
 set -e
+if [ -z "$1" ] || [ ! -d "$1" ]; then echo "Usage: Android/build.sh <project folder> [debug|release] [gradle args]"; exit 1; fi
+PROJECT="$(cd "$1" && pwd)"
 cd "$(dirname "$0")"
-PROJECT="$1"
 VARIANT="${2:-debug}"
 shift 2 || true
 python3 tools/pack_project.py "$PROJECT"

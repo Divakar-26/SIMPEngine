@@ -1,0 +1,21 @@
+Project:
+  name: Drag Demo
+  version: 0.1.0
+  engine: 1.0.0
+  start_scene: assets://scenes/Main.yaml
+  window:
+    title: ""
+    width: 1280
+    height: 800
+    fullscreen: false
+    resizable: true
+    vsync: true
+    maximized: false
+    borderless: false
+    orientation: landscape
+  display:
+    width: 1920
+    height: 1200
+    aspect: keep_height
+    stretch: window
+    render_scale: 1
