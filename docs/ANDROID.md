@@ -41,7 +41,8 @@ adb shell am start -n org.simp.player/.PlayerActivity
 
 - OpenGL ES 3.0: float render targets need `EXT_color_buffer_float`; without it lighting, bloom and glow fall back to 8 bit buffers (a warning is logged). Shader Canvas shaders get `#version 300 es` plus `precision highp float;` in front, so write them without their own `#version` line (the shipped examples already do).
 - No SDL_image, no editor, no Lua `system` tricks that need a shell; video capture is desktop only.
-- `AccelEngine` is built without `-march=native` when cross compiling.
+- `AccelEngine` is built without `-march=native` (only the desktop `dev` preset turns it on).
+- The packed app carries only the Inter fonts from `assets/fonts`, the same set as a desktop Build Game.
 - Audio is WAV and OGG as on desktop.
 
 ## Testing without a phone

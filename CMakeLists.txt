@@ -23,23 +23,39 @@ else()
 endif()
 option(SIMP_GLES "Render through OpenGL ES 3 instead of desktop OpenGL 4 (always on for Android)" ${SIMP_GLES_DEFAULT})
 
-add_subdirectory(vendor/SDL EXCLUDE_FROM_ALL)
-
-if(WIN32)
-    set(SDLIMAGE_VENDORED OFF CACHE BOOL "" FORCE)
-endif()
-
-set(SDLIMAGE_AVIF OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build vendored libraries as shared libraries" FORCE)
+set(SPDLOG_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(YAML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(SDL_TESTS OFF CACHE BOOL "" FORCE)
+set(SDL_EXAMPLES OFF CACHE BOOL "" FORCE)
 if(NOT ANDROID)
-    add_subdirectory(vendor/SDL_image EXCLUDE_FROM_ALL)
+    set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+    set(SDL_STATIC ON CACHE BOOL "" FORCE)
+    set(SDL_GPU OFF CACHE BOOL "" FORCE)
+    set(SDL_RENDER OFF CACHE BOOL "" FORCE)
+    set(SDL_CAMERA OFF CACHE BOOL "" FORCE)
 endif()
 
+if(MINGW)
+    add_link_options(-static)
+endif()
+
+add_subdirectory(vendor/SDL EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/spdlog EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/glm EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/yaml-cpp EXCLUDE_FROM_ALL)
 add_subdirectory(vendor/AccelEngine)
 target_include_directories(AccelEngine PRIVATE ${CMAKE_SOURCE_DIR}/vendor/SDL/include)
 add_subdirectory(vendor/json)
+
+option(SIMP_NATIVE_CPU "Build the physics library for this machine's CPU only (faster here, may crash on other CPUs; keep OFF for anything you ship)" OFF)
+if(NOT SIMP_NATIVE_CPU)
+    if(MSVC)
+        set_property(TARGET AccelEngine PROPERTY COMPILE_OPTIONS "")
+    else()
+        set_property(TARGET AccelEngine PROPERTY COMPILE_OPTIONS -O3)
+    endif()
+endif()
 
 option(SIMP_ASAN "Build project code with AddressSanitizer (vendored libraries are not instrumented)" OFF)
 if(SIMP_ASAN)
@@ -55,7 +71,6 @@ add_library(imgui STATIC
     vendor/imgui/imgui_demo.cpp
     vendor/imgui/misc/cpp/imgui_stdlib.cpp
     vendor/imgui/backends/imgui_impl_sdl3.cpp
-    vendor/imgui/backends/imgui_impl_sdlrenderer3.cpp
     vendor/imgui/backends/imgui_impl_opengl3.cpp
 
     vendor/ImGuizmo/ImGuizmo.cpp

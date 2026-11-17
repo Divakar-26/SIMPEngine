@@ -243,6 +243,13 @@ void GameBuilder::Run()
         }
         m_Progress = 0.95f;
 
+        const fs::path inputMap = project / "input.yaml";
+        if (fs::is_regular_file(inputMap, ec))
+        {
+            fs::copy_file(inputMap, out / "input.yaml", fs::copy_options::overwrite_existing);
+            Log("Input map: input.yaml");
+        }
+
         std::string error;
         if (!SIMPEngine::Project::Save(out, settings, &error))
         {

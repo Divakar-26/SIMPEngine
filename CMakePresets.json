@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
     "minor": 25,
@@ -9,18 +9,19 @@
     {
       "name": "dev",
       "displayName": "Development",
-      "description": "Recommended local development build with debug symbols and compile commands",
+      "description": "Debug build with compile commands; physics tuned for this CPU",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/dev",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "SIMP_NATIVE_CPU": "ON"
       }
     },
     {
       "name": "release",
       "displayName": "Release",
-      "description": "Optimized release build",
+      "description": "Optimized, portable build: use it for packages and shipped games",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": {
@@ -32,11 +33,9 @@
       "name": "gles",
       "displayName": "OpenGL ES 3 (desktop test)",
       "description": "Debug build that renders through OpenGL ES 3, the path Android uses; runs on desktop drivers that expose ES contexts",
-      "generator": "Ninja",
+      "inherits": "dev",
       "binaryDir": "${sourceDir}/build/gles",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "SIMP_GLES": "ON"
       }
     },
@@ -44,37 +43,73 @@
       "name": "asan",
       "displayName": "AddressSanitizer Debug (Clang)",
       "description": "Debug build of the project code with AddressSanitizer (Clang); vendored libraries stay uninstrumented",
-      "generator": "Ninja",
+      "inherits": "dev",
       "binaryDir": "${sourceDir}/build/asan",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "SIMP_ASAN": "ON"
+      }
+    },
+    {
+      "name": "windows",
+      "displayName": "Windows (Visual Studio)",
+      "description": "Visual Studio 2022 solution; works from a plain terminal, no Ninja or developer prompt needed",
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/windows",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
       }
     }
   ],
   "buildPresets": [
+    { "name": "dev", "configurePreset": "dev" },
+    { "name": "release", "configurePreset": "release" },
+    { "name": "gles", "configurePreset": "gles" },
+    { "name": "asan", "configurePreset": "asan" },
+    { "name": "windows", "configurePreset": "windows", "configuration": "Release" }
+  ],
+  "testPresets": [
+    { "name": "dev", "configurePreset": "dev", "output": { "outputOnFailure": true } },
+    { "name": "release", "configurePreset": "release", "output": { "outputOnFailure": true } },
+    { "name": "windows", "configurePreset": "windows", "configuration": "Release", "output": { "outputOnFailure": true } }
+  ],
+  "packagePresets": [
+    { "name": "release", "configurePreset": "release", "packageDirectory": "${sourceDir}/build/package" },
+    { "name": "windows", "configurePreset": "windows", "configurations": ["Release"], "packageDirectory": "${sourceDir}/build/package" }
+  ],
+  "workflowPresets": [
     {
       "name": "dev",
-      "configurePreset": "dev",
-      "jobs": 4
+      "displayName": "Configure, build and test (Debug)",
+      "steps": [
+        { "type": "configure", "name": "dev" },
+        { "type": "build", "name": "dev" },
+        { "type": "test", "name": "dev" }
+      ]
     },
     {
-      "name": "release",
-      "configurePreset": "release",
-      "jobs": 4
+      "name": "package",
+      "displayName": "Configure, build, test and package (Release)",
+      "steps": [
+        { "type": "configure", "name": "release" },
+        { "type": "build", "name": "release" },
+        { "type": "test", "name": "release" },
+        { "type": "package", "name": "release" }
+      ]
     },
     {
-      "name": "gles",
-      "configurePreset": "gles",
-      "jobs": 4
-    },
-    {
-      "name": "asan",
-      "configurePreset": "asan",
-      "jobs": 4
+      "name": "windows",
+      "displayName": "Configure, build, test and package (Windows, Visual Studio)",
+      "steps": [
+        { "type": "configure", "name": "windows" },
+        { "type": "build", "name": "windows" },
+        { "type": "test", "name": "windows" },
+        { "type": "package", "name": "windows" }
+      ]
     }
   ]
 }

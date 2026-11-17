@@ -37,7 +37,7 @@ What gets installed (`<prefix>` is `/usr/local` or `~/.local`):
 
 | Path | Contents |
 |---|---|
-| `<prefix>/lib/simpengine/` | `libEngine.a` and the libraries it needs (SDL3, SDL3_image, yaml-cpp, spdlog, ImGui, glad, AccelEngine) |
+| `<prefix>/lib/simpengine/` | `libEngine.a` and the libraries it needs (SDL3, yaml-cpp, spdlog, ImGui, glad, AccelEngine, Lua), all static |
 | `<prefix>/include/simpengine/` | Engine headers (`Engine/...`) and the third-party headers they use |
 | `<prefix>/lib/cmake/SIMPEngine/` | `SIMPEngineConfig.cmake` for `find_package` |
 | `<prefix>/share/simpengine/assets/fonts/` | Default fonts the engine loads at runtime |

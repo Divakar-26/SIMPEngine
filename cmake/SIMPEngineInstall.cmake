@@ -15,11 +15,10 @@ function(simp_real_target out target)
 endfunction()
 
 simp_real_target(SIMP_SDL SDL3::SDL3)
-simp_real_target(SIMP_SDL_IMAGE SDL3_image::SDL3_image)
 simp_real_target(SIMP_YAML yaml-cpp)
 simp_real_target(SIMP_SPDLOG spdlog)
 
-set(SIMP_LINK_TARGETS Engine imgui glad AccelEngine lua ${SIMP_YAML} ${SIMP_SPDLOG} ${SIMP_SDL_IMAGE} ${SIMP_SDL})
+set(SIMP_LINK_TARGETS Engine imgui glad AccelEngine lua ${SIMP_YAML} ${SIMP_SPDLOG} ${SIMP_SDL})
 
 install(TARGETS ${SIMP_LINK_TARGETS}
     ARCHIVE DESTINATION "${SIMP_INSTALL_LIB}"
@@ -39,7 +38,6 @@ install(DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/yaml-cpp/include/" DESTINATION "${
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/AccelEngine/include/" DESTINATION "${SIMP_INSTALL_INCLUDE}")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/spdlog/include/" DESTINATION "${SIMP_INSTALL_INCLUDE}")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/SDL/include/SDL3" DESTINATION "${SIMP_INSTALL_INCLUDE}")
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/SDL_image/include/SDL3_image" DESTINATION "${SIMP_INSTALL_INCLUDE}")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/json/include/" DESTINATION "${SIMP_INSTALL_INCLUDE}")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/vendor/nanosvg/src/" DESTINATION "${SIMP_INSTALL_INCLUDE}"
     FILES_MATCHING PATTERN "*.h")

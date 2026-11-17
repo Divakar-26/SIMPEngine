@@ -50,7 +50,13 @@ def main():
             listed.append((Path(prefix) / relative).as_posix())
 
     copy(project, project)
-    copy(ROOT / "assets" / "fonts", ROOT, "engine/fonts")
+    fonts = ROOT / "assets" / "fonts"
+    for font in ("Inter-Regular.ttf", "Inter-SemiBold.ttf", "LICENSE-inter.txt"):
+        if (fonts / font).is_file():
+            destination = files / "engine" / "fonts" / font
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(fonts / font, destination)
+            listed.append(f"engine/fonts/{font}")
 
     (target / "simp_files.txt").write_text("\n".join(sorted(listed)) + "\n")
 

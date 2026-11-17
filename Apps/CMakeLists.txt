@@ -24,7 +24,7 @@ foreach(app IN LISTS SIMP_APPS)
         INSTALL_RPATH "\$ORIGIN/lib")
     if(WIN32)
         add_custom_command(TARGET ${app} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_RUNTIME_DLLS:${app}> $<TARGET_FILE_DIR:${app}>
+            COMMAND "$<IF:$<BOOL:$<TARGET_RUNTIME_DLLS:${app}>>,${CMAKE_COMMAND};-E;copy_if_different;$<TARGET_RUNTIME_DLLS:${app}>;$<TARGET_FILE_DIR:${app}>,${CMAKE_COMMAND};-E;true>"
             COMMAND_EXPAND_LISTS)
     elseif(UNIX AND NOT APPLE)
         add_custom_command(TARGET ${app} POST_BUILD
@@ -40,10 +40,15 @@ add_custom_target(SIMPEngineResources ALL
 
 install(TARGETS ${SIMP_APPS} RUNTIME DESTINATION . COMPONENT Editor)
 if(UNIX AND NOT APPLE)
-    install(DIRECTORY "${SIMP_APP_DIR}/lib/" DESTINATION lib COMPONENT Editor)
+    install(CODE "file(GLOB SIMP_SHARED_LIBS \"${SIMP_APP_DIR}/lib/*\")
+                  if(SIMP_SHARED_LIBS)
+                      file(INSTALL \${SIMP_SHARED_LIBS} DESTINATION \"\${CMAKE_INSTALL_PREFIX}/lib\")
+                  endif()" COMPONENT Editor)
 elseif(WIN32)
-    install(CODE "file(GLOB SIMP_DLLS \"${SIMP_APP_DIR}/*.dll\")
-                  file(INSTALL \${SIMP_DLLS} DESTINATION \"\${CMAKE_INSTALL_PREFIX}\")" COMPONENT Editor)
+    install(CODE "file(GLOB SIMP_DLLS \"${SIMP_APP_DIR}/*.dll\" \"${SIMP_APP_DIR}/Release/*.dll\")
+                  if(SIMP_DLLS)
+                      file(INSTALL \${SIMP_DLLS} DESTINATION \"\${CMAKE_INSTALL_PREFIX}\")
+                  endif()" COMPONENT Editor)
 endif()
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/assets/fonts/" DESTINATION engine/fonts COMPONENT Editor
     FILES_MATCHING PATTERN "Inter-*.ttf" PATTERN "JetBrainsMonoNerdFont-*.ttf" PATTERN "lucide.ttf" PATTERN "LICENSE-*.txt")
@@ -59,6 +64,7 @@ set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
 set(CPACK_COMPONENTS_ALL Editor)
 set(CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE)
 set(CPACK_PACKAGE_FILE_NAME "SIMPEngine-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}")
+set(CPACK_STRIP_FILES ON)
 set(CPACK_INCLUDE_TOPLEVEL_DIRECTORY ON)
 set(CPACK_COMPONENT_INCLUDE_TOPLEVEL_DIRECTORY ON)
 if(WIN32)

@@ -170,10 +170,6 @@ set_source_files_properties(Engine/Animation/MotionPresets.cpp Engine/Animation/
     COMPILE_OPTIONS "$<$<NOT:$<CONFIG:Debug>>:$<IF:$<CXX_COMPILER_ID:MSVC>,/O1,-Os>>"
     SKIP_PRECOMPILE_HEADERS ON)
 
-if(NOT ANDROID)
-    target_link_libraries(Engine PUBLIC SDL3_image::SDL3_image)
-endif()
-
 target_link_libraries(Engine
     PUBLIC SDL3::SDL3
     PUBLIC spdlog

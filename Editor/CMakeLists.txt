@@ -65,6 +65,5 @@ target_link_libraries(Editor
     PUBLIC Engine
     PUBLIC imgui
     PUBLIC SDL3::SDL3
-    PUBLIC SDL3_image::SDL3_image
     PUBLIC spdlog::spdlog
 )

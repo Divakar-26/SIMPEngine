@@ -61,57 +61,59 @@ A 2D game engine and editor written from scratch in C++20 on SDL3 and OpenGL. It
 
 ## Building
 
-Requirements: CMake 3.25+ (for the presets), Ninja, a C++20 compiler (tested with GCC 12 and Clang), and OpenGL 4.6 drivers. Linux is the tested platform.
+Every third-party library is a git submodule in `vendor/`, built from source and linked statically, so the result has no shared libraries to install or copy around. Run everything as a normal user (no `sudo`).
 
-All third-party libraries are git submodules in `vendor/` and are built from source. SDL3 on Linux additionally needs the system development packages for audio, windowing and input. On Debian/Ubuntu, install everything with:
+### Linux
+
+Install the compiler, CMake 3.25+, Ninja and the system headers SDL3 needs for windowing, input and audio. On Debian/Ubuntu:
 
 ```sh
 sudo apt install build-essential git cmake ninja-build pkg-config \
-  libasound2-dev libpulse-dev libjack-dev libsndio-dev \
+  libasound2-dev libpulse-dev \
   libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
   libwayland-dev libxkbcommon-dev libdecor-0-dev libdrm-dev libgbm-dev \
   libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev
 ```
 
-Debian 12 ships CMake 3.25. On older distributions install a newer CMake (for example `pip install cmake`).
-
-Build as a normal user (no `sudo`) in a folder on a Linux filesystem such as ext4. The build creates symlinks, so it fails on NTFS, exFAT and FAT drives (`failed to create symbolic link ... Operation not permitted`).
-
-Clone recursively:
+Then clone, build, test and start the editor:
 
 ```sh
 git clone --recursive https://github.com/Divakar-26/SIMPEngine.git
 cd SIMPEngine
-```
-
-(Already cloned? Run `git submodule update --init --recursive`.)
-
-```sh
-cmake --preset dev && cmake --build --preset dev        # Debug, build/dev
-cmake --preset release && cmake --build --preset release
-cmake --preset asan && cmake --build --preset asan      # Clang + AddressSanitizer
-```
-
-Run the tests (headless, no window needed):
-
-```sh
-ctest --test-dir build/dev --output-on-failure       # or ./build/dev/bin/SIMPTests [filter]
-```
-
-Start the editor:
-
-```sh
+cmake --workflow --preset dev
 ./build/dev/bin/SIMPEditor
 ```
 
-It opens the project hub. Create a project from the Platformer template, press F5 to play it, then **Project > Build Game** (Ctrl+B) to make a standalone copy. [docs/SHIPPING.md](docs/SHIPPING.md) covers projects, builds and packaging.
+(Already cloned without `--recursive`? Run `git submodule update --init --recursive`.)
 
-### Packaging the engine
+### Windows
+
+Install [Visual Studio 2022](https://visualstudio.microsoft.com/) with the **Desktop development with C++** workload (it includes CMake and the Windows SDK) and [Git](https://git-scm.com/). In any terminal:
 
 ```sh
-cmake --preset release && cmake --build --preset release
-cpack --config build/release/CPackConfig.cmake      # SIMPEngine-1.0.0-Linux.tar.gz
+git clone --recursive https://github.com/Divakar-26/SIMPEngine.git
+cd SIMPEngine
+cmake --workflow --preset windows
+build\windows\bin\Release\SIMPEditor.exe
 ```
+
+MinGW-w64 (MSYS2) works too: `cmake -S . -B build/mingw -G "MinGW Makefiles" -DCMAKE_BUILD_TYPE=Release` and `cmake --build build/mingw`.
+
+### Other presets
+
+| Command | What it does |
+|---|---|
+| `cmake --workflow --preset dev` | Debug build in `build/dev`, then the tests |
+| `cmake --workflow --preset package` | Release build in `build/release`, tests, then `build/package/SIMPEngine-1.0.0-Linux.tar.gz` |
+| `cmake --workflow --preset windows` | The same for Windows, producing a `.zip` |
+| `cmake --preset asan && cmake --build --preset asan` | Clang + AddressSanitizer |
+| `./build/dev/bin/SIMPTests [filter]` | Run the headless tests directly |
+
+The `dev` preset builds the physics library for your own CPU (`SIMP_NATIVE_CPU`). The `release` and `windows` presets build portable binaries, so use those for anything you hand to other people.
+
+### Making a game
+
+Start the editor. It opens the project hub. Create a project from the Platformer template, press F5 to play it, then use **Project > Build Game** (Ctrl+B). That writes a folder containing the game executable, `assets/`, `input.yaml`, `project.simp` and the engine fonts, which you can zip and send. Players need only a graphics driver with OpenGL 4.0+. [docs/SHIPPING.md](docs/SHIPPING.md) covers projects, builds and packaging.
 
 ### Install as a library
 

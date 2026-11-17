@@ -1,37 +1,44 @@
 [submodule "vendor/SDL"]
 	path = vendor/SDL
 	url = https://github.com/libsdl-org/SDL.git
-[submodule "vendor/SDL_image"]
-	path = vendor/SDL_image
-	url = https://github.com/libsdl-org/SDL_image.git
+	shallow = true
 [submodule "vendor/imgui"]
 	path = vendor/imgui
 	url = https://github.com/ocornut/imgui.git
 	branch = docking
+	shallow = true
 [submodule "vendor/ImGuizmo"]
 	path = vendor/ImGuizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
+	shallow = true
 [submodule "vendor/entt"]
 	path = vendor/entt
 	url = https://github.com/skypjack/entt.git
+	shallow = true
 [submodule "vendor/glm"]
 	path = vendor/glm
 	url = https://github.com/g-truc/glm.git
+	shallow = true
 [submodule "vendor/json"]
 	path = vendor/json
 	url = https://github.com/nlohmann/json.git
+	shallow = true
 [submodule "vendor/nanosvg"]
 	path = vendor/nanosvg
 	url = https://github.com/memononen/nanosvg.git
+	shallow = true
 [submodule "vendor/spdlog"]
 	path = vendor/spdlog
 	url = https://github.com/gabime/spdlog.git
+	shallow = true
 [submodule "vendor/stb"]
 	path = vendor/stb
 	url = https://github.com/nothings/stb.git
+	shallow = true
 [submodule "vendor/yaml-cpp"]
 	path = vendor/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
+	shallow = true
 [submodule "vendor/AccelEngine"]
 	path = vendor/AccelEngine
 	url = https://github.com/Divakar-26/AccelEngine.git
@@ -39,3 +46,4 @@
 [submodule "vendor/lua"]
 	path = vendor/lua
 	url = https://github.com/lua/lua
+	shallow = true

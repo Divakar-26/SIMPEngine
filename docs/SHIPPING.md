@@ -75,12 +75,12 @@ The build is for the platform the editor runs on. The result:
 ```
 MyGame            the game (a renamed SIMPPlayer; MyGame.exe on Windows)
 project.simp      window and start scene
+input.yaml        the project's input actions (when the project has one)
 assets/           everything in the project's assets folder (hidden files skipped)
 engine/fonts/     Inter, the default font for Text components
-lib/              shared libraries next to the game (Linux; DLLs sit next to the .exe on Windows)
 ```
 
-The game finds `project.simp` next to its executable. It loads the libraries in `lib/` through an `$ORIGIN/lib` runpath, so the folder runs from anywhere. Zip it and ship it.
+The game finds `project.simp` next to its executable. SDL3 and every other library are linked into the executable, so there is nothing else to copy: zip the folder and ship it. Players need only a graphics driver with OpenGL 4.0 or newer (on Linux also X11 or Wayland, and ALSA, PulseAudio or PipeWire for sound, which every desktop has). Build from the `release` preset: the `dev` preset tunes the physics library for your own CPU, and a game built from it can crash on older processors.
 
 Scripts in a shipped game must be Lua (`Script: {lua: ...}` in the scene). C++ `ScriptableEntity` classes are compiled into a specific executable and are not part of the generic player.
 
@@ -88,13 +88,12 @@ Scripts in a shipped game must be Lua (`Script: {lua: ...}` in the scene). C++ `
 
 `SIMPPlayer [project folder or project.simp]` runs any project. Without an argument it looks next to itself, which is how built games start. If the project can't be loaded it shows a message box with the reason.
 
-A Lua-only project needs no engine build: unpack the engine tarball (it contains `SIMPPlayer`), then run `SIMPPlayer <project folder>` or set `SIMP_PLAYER=/path/to/SIMPPlayer` for a project's `run.sh`. For a standalone game folder use the editor's **Build Game**, which copies the player, `lib/`, assets and `engine/fonts` next to `project.simp`.
+A Lua-only project needs no engine build: unpack the engine tarball (it contains `SIMPPlayer`), then run `SIMPPlayer <project folder>` or set `SIMP_PLAYER=/path/to/SIMPPlayer` for a project's `run.sh`. For a standalone game folder use the editor's **Build Game**, which copies the player, assets, `input.yaml` and `engine/fonts` next to `project.simp`.
 
 ## Packaging the engine
 
 ```sh
-cmake --preset release && cmake --build --preset release
-cpack --config build/release/CPackConfig.cmake
+cmake --workflow --preset package      # Windows: cmake --workflow --preset windows
 ```
 
-This makes `SIMPEngine-1.0.0-Linux.tar.gz` (a `.zip` on Windows) with `SIMPEditor`, `SIMPPlayer`, `lib/` and `engine/` (fonts, editor themes and these docs). Unpack it anywhere and run `SIMPEditor`. `cmake --install build/release --component Editor --prefix <dir>` installs the same files without archiving them.
+This configures, builds and tests a release build, then writes `build/package/SIMPEngine-1.0.0-Linux.tar.gz` (a `.zip` on Windows) with stripped `SIMPEditor`, `SIMPPlayer`, `SIMPRecord`, `SIMPPreview` and `engine/` (fonts, editor themes and these docs). Unpack it anywhere and run `SIMPEditor`. `cmake --install build/release --component Editor --prefix <dir>` installs the same files without archiving them.
