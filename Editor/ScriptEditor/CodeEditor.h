@@ -1,5 +1,7 @@
 #pragma once
 
+#include <functional>
+
 #include "CodeTheme.h"
 #include "LuaCompletion.h"
 #include "LuaContext.h"
@@ -43,6 +45,9 @@ namespace ScriptEditor
         std::string GetText() const;
 
         void Render(const char *id, const CodeTheme &theme, ImFont *font, float fontSize, LuaCompletion &completion);
+
+        using HoverPreviewFn = std::function<bool(const std::vector<std::string> &lines, Coord at, ImDrawList *dl, ImVec2 wordPos, float lineHeight, ImVec2 vpMin, ImVec2 vpMax)>;
+        void SetHoverPreview(HoverPreviewFn fn) { m_HoverPreview = std::move(fn); }
 
         uint64_t Version() const { return m_Version; }
         Coord GetCursor() const { return m_Cursor; }
@@ -183,6 +188,7 @@ namespace ScriptEditor
         bool m_WindowHovered = false;
 
         Coord m_HoverCoord{-1, -1};
+        HoverPreviewFn m_HoverPreview;
         double m_HoverSince = 0.0;
         ImVec2 m_LastMouse{0, 0};
 

@@ -418,7 +418,12 @@ void SettingsPanel::OnImGuiRender()
     ImGui::SetNextWindowSize(ImVec2(820, 560), ImGuiCond_Appearing);
     ImGui::SetNextWindowSizeConstraints(ImVec2(640, 420), ImVec2(FLT_MAX, FLT_MAX));
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
-    if (!ImGui::Begin("Editor Settings", &m_Open, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings))
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, Colors::Header);
+    ImGui::PushStyleColor(ImGuiCol_TitleBg, Colors::Header);
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, Colors::Header);
+    const bool visible = ImGui::Begin("Editor Settings", &m_Open, ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);
+    ImGui::PopStyleColor(3);
+    if (!visible)
     {
         ImGui::End();
         return;
@@ -431,18 +436,20 @@ void SettingsPanel::OnImGuiRender()
     static const char *categories[] = {"General", "Appearance", "Viewport", "Editing", "Play", "Script Editor", "Android", "Maintenance"};
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 12.0f));
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Frame);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Window);
     ImGui::BeginChild("##settingsNav", ImVec2(190.0f, 0.0f), ImGuiChildFlags_AlwaysUseWindowPadding);
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
     for (int i = 0; i < 8; ++i)
-        if (ImGui::Selectable(categories[i], m_Category == i, 0, ImVec2(0, 28.0f)))
+        if (NavItem(categories[i], m_Category == i, 28.0f))
             m_Category = i;
     ImGui::EndChild();
 
-    ImGui::SameLine();
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.0f, 8.0f));
+    ImGui::SameLine(0.0f, 6.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(14.0f, 10.0f));
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Window);
     ImGui::BeginChild("##settingsBody", ImVec2(0.0f, 0.0f), ImGuiChildFlags_AlwaysUseWindowPadding);
+    ImGui::PopStyleColor();
     ImGui::PopStyleVar();
     switch (m_Category)
     {

@@ -60,6 +60,10 @@ private:
     void DrawMenuBar();
     void DrawTransport();
     void DrawStatusBar();
+    void DrawPanelStrips();
+    void DrawPanelCorners();
+    void DrawLayoutToggles(float height);
+    void ToggleArea(bool &collapsed, const char *focus = nullptr);
     void DrawDockspace();
     void DrawSaveAsModal();
     void DrawConfirmModal();
@@ -111,6 +115,8 @@ private:
     ProjectSettingsPanel m_ProjectSettingsPanel;
     BuildPanel m_BuildPanel;
     AndroidSession m_Android;
+    std::string m_FocusAfterExpand;
+    int m_FocusAfterExpandFrames = 0;
     AndroidSession::State m_AndroidLastState = AndroidSession::State::Idle;
     std::function<void()> m_OnCloseProject;
     SIMPEngine::RenderingLayer *m_RenderingLayer;

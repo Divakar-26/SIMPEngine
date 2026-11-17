@@ -175,6 +175,7 @@ namespace SIMPEngine
 
         void KillTarget(entt::entity target, int property = -1, const std::string &uniformName = std::string());
         bool IsTweening(entt::entity target) const;
+        bool HasActive() const;
         void Clear();
         void Update(float dt);
         size_t Count() const { return m_Nodes.size(); }

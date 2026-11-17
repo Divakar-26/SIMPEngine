@@ -1,6 +1,6 @@
 # How-To Guide
 
-Short recipes for common tasks. The full API is in [API_GUIDE.md](API_GUIDE.md); the sample game in `Game/Mossveil/` uses almost everything here.
+Short recipes for common tasks. The full API is in [API_GUIDE.md](API_GUIDE.md).
 
 - [Start a new game](#start-a-new-game)
 - [Create entities in code](#create-entities-in-code)
@@ -27,10 +27,10 @@ Short recipes for common tasks. The full API is in [API_GUIDE.md](API_GUIDE.md);
 
 Two ways to work:
 
-- **Inside this repository** (with the editor): edit `Game/main.cpp` or add your own executable next to it. Shown below.
-- **As an installed library** (no editor): see [USING_THE_LIBRARY.md](USING_THE_LIBRARY.md).
+- **A project in the editor** (Lua, no C++): start `SIMPEditor`, create a project from the Empty or Platformer template, press F5 to play and **Project > Build Game** to ship it. See [SHIPPING.md](SHIPPING.md).
+- **Your own C++ executable**: in this repository (shown below) or against the installed library ([USING_THE_LIBRARY.md](USING_THE_LIBRARY.md)).
 
-`Game/main.cpp` owns startup. A minimal game with the editor:
+A minimal C++ game with the editor:
 
 ```cpp
 #include <Engine/SIMPEngine.h>
@@ -74,9 +74,7 @@ int main()
 }
 ```
 
-Put game sources under `Game/<YourGame>/` and add every `.cpp` to `Game/CMakeLists.txt`.
-
-To make a second executable in this repository, copy the pattern of `Game/CMakeLists.txt`: `add_executable(MyGame main.cpp ...)`, link `Engine` (and `Editor imgui` for editor builds), and add `add_subdirectory(MyGame)` to the root `CMakeLists.txt`. Don't redeclare `option(NO_EDITOR ...)` in the new folder; it already exists and the first definition wins.
+To build it in this repository, put it in its own folder with a `CMakeLists.txt` that has `add_executable(MyGame main.cpp ...)` and links `Engine` (plus `Editor imgui` for editor builds; define `NO_EDITOR` for a build without them), then add `add_subdirectory(MyGame)` to the root `CMakeLists.txt`.
 
 ---
 
@@ -138,7 +136,7 @@ entity.AddComponent<ScriptComponent>().Bind<Bobber>();
 
 ## Move a character with your own collision
 
-The engine gives you `CollisionComponent` boxes as data. A simple platformer collects them once and resolves movement per axis (this is what `Game/Mossveil/Scripts.h` does):
+The engine gives you `CollisionComponent` boxes as data. A simple platformer collects them once and resolves movement per axis:
 
 ```cpp
 struct Box { glm::vec2 Min, Max; bool Overlaps(const Box &o) const; };
@@ -185,7 +183,7 @@ anim.animation = std::make_unique<SIMPEngine::Animation>(texture, 32, 32, 8, 0.1
 
 **In the editor**: add *Animated Sprite*, press *Create Animation…*, pick the sheet. The Animation Maker detects frame size and count automatically; adjust and press *Build Animation*.
 
-If your frames are separate PNG files, pack them into a grid first. `Game/Mossveil/tools/prepare_assets.py` shows how: trim every frame to a shared bounding box, scale, and paste into columns of ten.
+If your frames are separate PNG files, pack them into a grid first: trim every frame to a shared bounding box, scale, and paste into columns of ten.
 
 ---
 
@@ -329,7 +327,7 @@ void OnRender() override
 }
 ```
 
-With scene lighting on, put a bright point light behind the HUD text (Mossveil moves a "HUD Light" entity to the corner every frame).
+With scene lighting on, put a bright point light behind the HUD text (move a "HUD Light" entity to the corner every frame).
 
 ---
 
@@ -375,13 +373,13 @@ private:
 };
 ```
 
-Push it before the `RenderingLayer`. Scripts set `State().PendingLevel = 2;`. Store the current level in an entity name (Mossveil uses `Director <level> <seed>`) and read it in a script's `OnCreate`, so editor Play/Stop snapshots stay consistent.
+Push it before the `RenderingLayer`. Scripts set `State().PendingLevel = 2;`. Store the current level in an entity name (for example `Director <level> <seed>`) and read it in a script's `OnCreate`, so editor Play/Stop snapshots stay consistent.
 
 ---
 
 ## Generate a level procedurally
 
-Use a seeded generator and build the level with the same helpers as hand-made levels (`Game/Mossveil/Levels.cpp`, `BuildShiftingDeep`):
+Use a seeded generator and build the level with the same helpers as hand-made levels:
 
 1. Seed `std::mt19937` from a number you can show the player and reuse.
 2. Walk from left to right, choosing a segment type with weights: gap, floating platforms, hazard, wide gap, cave.

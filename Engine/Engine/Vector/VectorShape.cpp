@@ -123,7 +123,7 @@ namespace SIMPEngine::VectorShapes
         BlendMorph(cache.Pairs, std::clamp(shape.morph, -1.0f, 2.0f), out);
     }
 
-    const VectorMesh &LocalMesh(const VectorShapeComponent &shape, float tolerance, float aa)
+    const VectorMesh &LocalMesh(const VectorShapeComponent &shape, float tolerance, float aa, float strokeScale)
     {
         VectorShapeCache &cache = CacheOf(shape);
         uint64_t key = shape.path.Hash();
@@ -134,7 +134,7 @@ namespace SIMPEngine::VectorShapes
         MixValue(key, shape.fillColor);
         MixValue(key, shape.stroke);
         MixValue(key, shape.strokeColor);
-        MixValue(key, shape.strokeWidth);
+        MixValue(key, shape.strokeWidth * strokeScale);
         MixValue(key, shape.cap);
         MixValue(key, shape.join);
         MixValue(key, shape.miterLimit);
@@ -176,7 +176,7 @@ namespace SIMPEngine::VectorShapes
         {
             VectorPaint paint;
             paint.Color = ToVec(shape.strokeColor);
-            StrokeStyle style{shape.strokeWidth, shape.cap, shape.join, shape.miterLimit};
+            StrokeStyle style{shape.strokeWidth * strokeScale, shape.cap, shape.join, shape.miterLimit};
             StrokeContours(outline, shape.trimStart, shape.trimEnd, shape.trimOffset, shape.dashLength, shape.dashGap, shape.dashOffset, style, paint, aa, cache.Mesh);
         }
 
@@ -190,6 +190,35 @@ namespace SIMPEngine::VectorShapes
         return cache.Mesh;
     }
 
+    namespace
+    {
+        void DrawShadow(const VectorShapeComponent &shape, const glm::vec2 &position, float rotationDegrees, const glm::vec2 &scale, float zIndex, float s, float wpp)
+        {
+            std::vector<FlatContour> outline;
+            Outline(shape, LocalTolerance(scale), outline);
+            thread_local VectorMesh mesh;
+            thread_local std::vector<glm::vec2> world;
+            const int layers = shape.shadowBlur > 0.5f ? 6 : 1;
+            const float alpha = static_cast<float>(shape.shadowColor.a) / 255.0f;
+            const float layerAlpha = 1.0f - std::pow(1.0f - alpha, 1.0f / static_cast<float>(layers));
+            for (int i = 0; i < layers; ++i)
+            {
+                const float grow = layers > 1 ? shape.shadowBlur * (1.0f - static_cast<float>(i) / static_cast<float>(layers)) / s : 0.0f;
+                glm::vec4 color(shape.shadowColor.r / 255.0f, shape.shadowColor.g / 255.0f, shape.shadowColor.b / 255.0f, layerAlpha);
+                mesh.Clear();
+                VectorPaint paint;
+                paint.Color = color;
+                TessellateFill(outline, paint, wpp / s, mesh);
+                if (grow > 0.0f)
+                {
+                    StrokeStyle style{grow * 2.0f, StrokeCap::Round, StrokeJoin::Round, 4.0f};
+                    StrokeContours(outline, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, style, paint, wpp / s, mesh);
+                }
+                SubmitTransformed(mesh, position + shape.shadowOffset, rotationDegrees, scale, zIndex - 0.0005f, world);
+            }
+        }
+    }
+
     void Draw(const VectorShapeComponent &shape, const glm::vec2 &position, float rotationDegrees, const glm::vec2 &scale, float zIndex)
     {
         VectorShapeCache &cache = CacheOf(shape);
@@ -197,11 +226,13 @@ namespace SIMPEngine::VectorShapes
         if (cache.MeshKey != 0)
         {
             const glm::vec2 extent = glm::max(glm::abs(cache.BoundsMin), glm::abs(cache.BoundsMax)) * s;
-            if (!Renderer::IsVisible(position, glm::vec2(glm::length(extent) + shape.strokeWidth * s)))
+            if (!Renderer::IsVisible(position, glm::vec2(glm::length(extent) + shape.strokeWidth * s + (shape.shadowColor.a > 0 ? (glm::length(shape.shadowOffset) + shape.shadowBlur) : 0.0f))))
                 return;
         }
         const float wpp = Renderer::GetWorldPerPixel();
-        const VectorMesh &mesh = LocalMesh(shape, LocalTolerance(scale), Quantize(wpp / s));
+        if (shape.shadowColor.a > 0)
+            DrawShadow(shape, position, rotationDegrees, scale, zIndex, s, wpp);
+        const VectorMesh &mesh = LocalMesh(shape, LocalTolerance(scale), Quantize(wpp / s), shape.fixedStroke ? 1.0f / s : 1.0f);
         SubmitTransformed(mesh, position, rotationDegrees, scale, zIndex, cache.World);
     }
 

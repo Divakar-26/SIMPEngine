@@ -21,7 +21,7 @@ GLOBAL_TABLES = {
     "LogFunctions": "log", "InputFunctions": "Input", "TimeFunctions": "Time", "SceneFunctions": "Scene",
     "WindowFunctions": "Window", "MusicFunctions": "Music", "GameFunctions": "Game", "AudioFunctions": "Audio",
     "MathFunctions": "Math", "DrawFunctions": "Draw", "TweenFunctions": "Tween", "CurveFunctions": "Curves",
-    "PathFunctions": "Path", "PhysicsFunctions": "Physics", "InputActionFunctions": "Input", "ColorFunctions": "Color", "EffectFunctions": "Effect",
+    "PathFunctions": "Path", "PhysicsFunctions": "Physics", "InputActionFunctions": "Input", "ColorFunctions": "Color", "EffectFunctions": "Effect", "MotionFunctions": "Motion",
 }
 
 STD = {
@@ -409,6 +409,7 @@ OVERRIDES = {
     "Color.New": "r, g, b, a?", "Color.Hex": "hex, alpha?", "Color.Mix": "from, to, t", "Color.WithAlpha": "color, alpha",
     "Color.Unpack": "color, alpha?", "Color.Define": "name, color", "Color.Names": "", "Color.Get": "color",
     "Effect.Play": "target, name, options?", "Effect.Names": "category?", "Effect.Categories": "", "Effect.Info": "name",
+    "Motion.Play": "name, options?", "Scene.Spawn": "nameOrSpec, x?, y?, parent?", "Sprite:SetTexture": "path, keepSize?", "Sprite:GetTexture": "", "Motion.Names": "category?", "Motion.Categories": "", "Motion.Info": "name",
 }
 
 LUA_DEFINED = {
@@ -426,7 +427,7 @@ LUA_DEFINED = {
     "Plot.Points": "xr?", "Plot.Value": "x", "Plot.At": "x", "Plot.Draw": "xr?, zoom?",
     "Area.Polygon": "xr?", "Area.Draw": "xr?, alpha?",
     "Video.Step": "t, dt", "Effect.Chain": "target, list, options?", "Effect.Stagger": "targets, name, each?, options?",
-    "Backdrop.Fill": "x, y, zoom?, color?", "Backdrop.Grid": "x, y, zoom?, options?", "Path.TextGlyphs": "text, size, align?, fontPath?",
+    "Backdrop.Fill": "x, y, zoom?, color?", "Pointer.New": "entity, options?", "Pointer.Update": "dt", "Pointer.Capture": "target", "Pointer.Release": "", "Pointer.IsCaptured": "target", "Pointer.Inside": "cx, cy, w, h", "Backdrop.Grid": "x, y, zoom?, options?", "Path.TextGlyphs": "text, size, align?, fontPath?",
     "Glyphs.New": "text, size, align?, fontPath?", "Glyphs.Count": "", "Glyphs.Bounds": "", "Glyphs.Size": "", "Glyphs.Draw": "x, y, progress?, options?",
     "Riemann.Sum": "n", "Riemann.Rects": "n, options?", "Riemann.Draw": "n, options?",
 }

@@ -1,4 +1,5 @@
 #include <Engine/Scene/Systems/RenderSystem.h>
+#include <Engine/Scene/Systems/ClipUtil.h>
 #include <Engine/Scene/Component.h>
 #include <Engine/Math/EntityUtility.h>
 #include <Engine/Core/GameVariables.h>
@@ -16,6 +17,7 @@ namespace SIMPEngine
     {
         if (registry.any_of<SpriteComponent, AnimatedSpriteComponent>(entity) || !registry.all_of<TransformComponent, RenderComponent>(entity))
             return;
+        ApplyEntityClip(registry, entity);
 
         auto &transform = registry.get<TransformComponent>(entity);
         auto &render = registry.get<RenderComponent>(entity);
@@ -31,6 +33,7 @@ namespace SIMPEngine
         bool hasAnim = registry.any_of<AnimatedSpriteComponent>(entity);
         if ((!hasSprite && !hasAnim) || !registry.all_of<TransformComponent>(entity))
             return;
+        ApplyEntityClip(registry, entity);
 
         auto &transform = registry.get<TransformComponent>(entity);
         WorldTransform2D w = DecomposeWorld(transform);
@@ -92,6 +95,7 @@ namespace SIMPEngine
     {
         if (!registry.all_of<TransformComponent, TextComponent>(entity))
             return;
+        ApplyEntityClip(registry, entity);
 
         auto &transform = registry.get<TransformComponent>(entity);
         auto &text = registry.get<TextComponent>(entity);
@@ -117,7 +121,7 @@ namespace SIMPEngine
 
     void RenderSystem::DrawEntity(entt::registry &registry, entt::entity entity)
     {
-        if (!registry.valid(entity) || !registry.all_of<TransformComponent>(entity))
+        if (!registry.valid(entity) || !registry.all_of<TransformComponent>(entity) || registry.all_of<HiddenTag>(entity))
             return;
 
         if (registry.all_of<TilemapComponent>(entity))
@@ -139,19 +143,19 @@ namespace SIMPEngine
 
     void RenderSystem::RenderQuads(entt::registry &registry)
     {
-        for (auto entity : registry.view<TransformComponent, RenderComponent>(entt::exclude<ShaderGroupMemberTag>))
+        for (auto entity : registry.view<TransformComponent, RenderComponent>(entt::exclude<ShaderGroupMemberTag, HiddenTag>))
             DrawQuad(registry, entity);
     }
 
     void RenderSystem::RenderSprites(entt::registry &registry)
     {
-        for (auto entity : registry.view<TransformComponent>(entt::exclude<ShaderGroupMemberTag>))
+        for (auto entity : registry.view<TransformComponent>(entt::exclude<ShaderGroupMemberTag, HiddenTag>))
             DrawSprite(registry, entity);
     }
 
     void RenderSystem::RenderText(entt::registry &registry)
     {
-        for (auto entity : registry.view<TransformComponent, TextComponent>(entt::exclude<ShaderGroupMemberTag>))
+        for (auto entity : registry.view<TransformComponent, TextComponent>(entt::exclude<ShaderGroupMemberTag, HiddenTag>))
             DrawText(registry, entity);
     }
 }

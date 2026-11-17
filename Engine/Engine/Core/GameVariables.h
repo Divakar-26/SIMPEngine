@@ -18,6 +18,11 @@ namespace SIMPEngine
         static const std::map<std::string, double> &All();
         static void Replace(std::map<std::string, double> values);
 
+        static std::string GetText(const std::string &key, const std::string &fallback = {});
+        static void SetText(const std::string &key, const std::string &value);
+        static bool HasText(const std::string &key);
+        static void RemoveText(const std::string &key);
+
         static std::string Format(const std::string &text);
     };
 

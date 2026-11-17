@@ -63,6 +63,8 @@ namespace
         e.AddComponent<ScriptComponent>().BindLua("assets://scripts/player.lua");
 
         e.AddComponent<LifetimeComponent>().remaining = 7.5f;
+        scene.GetRegistry().emplace<HiddenComponent>(e.GetHandle());
+        e.AddComponent<ClipComponent>().size = {120.0f, 80.0f};
 
         auto &tilemap = e.AddComponent<TilemapComponent>();
         tilemap.tileSize = 24.0f;
@@ -119,6 +121,10 @@ namespace
         vector.trimEnd = 0.8f;
         vector.dashLength = 8.0f;
         vector.dashGap = 4.0f;
+        vector.fixedStroke = true;
+        vector.shadowColor = SDL_Color{10, 20, 30, 140};
+        vector.shadowOffset = glm::vec2(3.0f, -5.0f);
+        vector.shadowBlur = 11.0f;
         vector.gradient = true;
 
         auto &controller = e.AddComponent<CharacterControllerComponent>();
@@ -302,7 +308,7 @@ TEST_CASE("serializer: save, load, save gives identical YAML")
     FillScene(original);
     const std::string first = SceneSerializer(&original).SerializeToString();
 
-    for (const char *key : {"Transform", "Collision", "Sprite", "Text", "Render", "Velocity", "Camera", "Script", "Lifetime",
+    for (const char *key : {"Transform", "Collision", "Sprite", "Text", "Render", "Velocity", "Camera", "Script", "Lifetime", "Hidden", "Clip",
                             "Tilemap", "ParticleEmitter", "Light", "Parallax", "AudioSource", "Glow", "Trigger", "Timer",
                             "PathFollower", "Health", "VectorShape", "CharacterController", "Damage", "Oscillator", "Spawner", "Follow", "Button", "Teleporter", "CameraZone", "WorldBounds", "Pickable", "Pickup", "Checkpoint", "Respawn", "Music", "bus", "Hierarchy", "Physics", "lighting", "bloom", "Version"})
     {

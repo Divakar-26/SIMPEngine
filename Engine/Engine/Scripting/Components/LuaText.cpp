@@ -1,5 +1,7 @@
 #include "LuaComponents.h"
 
+#include <Engine/Core/GameVariables.h>
+#include <Engine/Rendering/Font.h>
 #include <Engine/Scripting/LuaHelpers.h>
 
 namespace SIMPEngine::LuaBindings
@@ -49,6 +51,36 @@ namespace SIMPEngine::LuaBindings
             return 0;
         }
 
+        int TextSetFont(lua_State *L)
+        {
+            TextComponent *text = CheckComponent<TextComponent>(L, TextMeta);
+            size_t length = 0;
+            const char *path = luaL_optlstring(L, 2, "", &length);
+            text->FontPath.assign(path, length);
+            return 0;
+        }
+
+        int TextGetFont(lua_State *L)
+        {
+            const TextComponent *text = CheckComponent<TextComponent>(L, TextMeta);
+            lua_pushlstring(L, text->FontPath.data(), text->FontPath.size());
+            return 1;
+        }
+
+        int TextMeasure(lua_State *L)
+        {
+            const TextComponent *text = CheckComponent<TextComponent>(L, TextMeta);
+            glm::vec2 extent{0.0f};
+            {
+                auto font = text->FontPath.empty() ? Font::GetDefault() : Font::Load(text->FontPath);
+                if (font)
+                    extent = font->MeasureText(GameVariables::Format(text->Text), text->Size);
+            }
+            lua_pushnumber(L, extent.x);
+            lua_pushnumber(L, extent.y);
+            return 2;
+        }
+
         int TextGetAlign(lua_State *L)
         {
             lua_pushinteger(L, CheckComponent<TextComponent>(L, TextMeta)->Align);
@@ -70,6 +102,9 @@ namespace SIMPEngine::LuaBindings
             {"SetFontSize", TextSetFontSize},
             {"GetColor", TextGetColor},
             {"SetColor", TextSetColor},
+            {"SetFont", TextSetFont},
+            {"GetFont", TextGetFont},
+            {"Measure", TextMeasure},
             {"GetAlign", TextGetAlign},
             {"SetAlign", TextSetAlign},
             {nullptr, nullptr}};

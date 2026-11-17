@@ -201,6 +201,7 @@ namespace SIMPEngine
     private:
         void RenderContent(bool screenSpaceUI);
         void ApplyParallax();
+        void ApplyHidden();
 
         std::string m_Name;
         glm::vec4 m_BackgroundColor{0.329f, 0.329f, 0.329f, 1.0f};

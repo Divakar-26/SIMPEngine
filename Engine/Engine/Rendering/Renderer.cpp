@@ -80,6 +80,30 @@ namespace SIMPEngine
         s_RenderingAPI->Flush();
     }
 
+    void Renderer::SetClipWorld(float centerX, float centerY, float width, float height)
+    {
+        const glm::vec2 size = s_RenderingAPI->GetViewportSize();
+        const glm::mat4 viewProjection = s_RenderingAPI->GetProjectionMatrix() * s_RenderingAPI->GetViewMatrix();
+        auto toPixels = [&](float x, float y)
+        {
+            const glm::vec4 clip = viewProjection * glm::vec4(x, y, 0.0f, 1.0f);
+            const float w = std::abs(clip.w) > 1e-6f ? clip.w : 1.0f;
+            return glm::vec2((clip.x / w * 0.5f + 0.5f) * size.x, (clip.y / w * 0.5f + 0.5f) * size.y);
+        };
+        const glm::vec2 a = toPixels(centerX - width * 0.5f, centerY - height * 0.5f);
+        const glm::vec2 b = toPixels(centerX + width * 0.5f, centerY + height * 0.5f);
+        const int x0 = static_cast<int>(std::floor(std::min(a.x, b.x)));
+        const int y0 = static_cast<int>(std::floor(std::min(a.y, b.y)));
+        const int x1 = static_cast<int>(std::ceil(std::max(a.x, b.x)));
+        const int y1 = static_cast<int>(std::ceil(std::max(a.y, b.y)));
+        s_RenderingAPI->SetScissor(true, x0, y0, x1 - x0, y1 - y0);
+    }
+
+    void Renderer::ClearClip()
+    {
+        s_RenderingAPI->SetScissor(false, 0, 0, 0, 0);
+    }
+
     void Renderer::BeginRenderTarget(Framebuffer &target)
     {
         s_RenderingAPI->BindRenderTarget(&target);

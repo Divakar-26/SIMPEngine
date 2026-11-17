@@ -232,6 +232,40 @@ namespace SIMPEngine::LuaBindings
             return 1;
         }
 
+        int EntitySetClip(lua_State *L)
+        {
+            Entity *entity = CheckLiveEntity(L, 1);
+            auto &registry = entity->GetScene()->GetRegistry();
+            if (lua_isnoneornil(L, 2))
+            {
+                registry.remove<ClipComponent>(entity->GetHandle());
+                return 0;
+            }
+            const float w = static_cast<float>(luaL_checknumber(L, 2));
+            const float h = static_cast<float>(luaL_optnumber(L, 3, w));
+            registry.emplace_or_replace<ClipComponent>(entity->GetHandle(), ClipComponent{{w, h}});
+            return 0;
+        }
+
+        int EntitySetVisible(lua_State *L)
+        {
+            Entity *entity = CheckLiveEntity(L, 1);
+            luaL_checkany(L, 2);
+            const bool visible = lua_toboolean(L, 2) != 0;
+            if (visible)
+                entity->GetScene()->GetRegistry().remove<HiddenComponent>(entity->GetHandle());
+            else if (!entity->GetScene()->GetRegistry().all_of<HiddenComponent>(entity->GetHandle()))
+                entity->GetScene()->GetRegistry().emplace<HiddenComponent>(entity->GetHandle());
+            return 0;
+        }
+
+        int EntityIsVisible(lua_State *L)
+        {
+            Entity *entity = CheckLiveEntity(L, 1);
+            lua_pushboolean(L, !entity->GetScene()->GetRegistry().all_of<HiddenComponent>(entity->GetHandle()));
+            return 1;
+        }
+
         int EntityIsValid(lua_State *L)
         {
             lua_pushboolean(L, static_cast<bool>(*CheckEntity(L, 1)));
@@ -582,13 +616,12 @@ namespace SIMPEngine::LuaBindings
         int SceneSetAmbient(lua_State *L)
         {
             Scene *scene = RequireScene(L);
-            const Uint8 r = ToByte(L, 1);
-            const Uint8 g = ToByte(L, 2);
-            const Uint8 b = ToByte(L, 3);
+            SDL_Color color{0, 0, 0, 255};
+            ReadRgba(L, 1, color);
             SceneLighting &lighting = scene->GetLighting();
-            lighting.Ambient.r = static_cast<float>(r) / 255.0f;
-            lighting.Ambient.g = static_cast<float>(g) / 255.0f;
-            lighting.Ambient.b = static_cast<float>(b) / 255.0f;
+            lighting.Ambient.r = static_cast<float>(color.r) / 255.0f;
+            lighting.Ambient.g = static_cast<float>(color.g) / 255.0f;
+            lighting.Ambient.b = static_cast<float>(color.b) / 255.0f;
             return 0;
         }
 
@@ -809,7 +842,38 @@ namespace SIMPEngine::LuaBindings
             size_t length = 0;
             const char *key = luaL_checklstring(L, 1, &length);
             const double fallback = luaL_optnumber(L, 2, 0.0);
-            lua_pushnumber(L, GameVariables::Get(std::string(key, length), fallback));
+            const double value = GameVariables::Get(std::string(key, length), fallback);
+            if (value == std::floor(value) && std::abs(value) < 9.0e15)
+                lua_pushinteger(L, static_cast<lua_Integer>(value));
+            else
+                lua_pushnumber(L, value);
+            return 1;
+        }
+
+        int GameGetText(lua_State *L)
+        {
+            size_t length = 0, fallbackLength = 0;
+            const char *key = luaL_checklstring(L, 1, &length);
+            const char *fallback = luaL_optlstring(L, 2, "", &fallbackLength);
+            const std::string value = GameVariables::GetText(std::string(key, length), std::string(fallback, fallbackLength));
+            lua_pushlstring(L, value.data(), value.size());
+            return 1;
+        }
+
+        int GameSetText(lua_State *L)
+        {
+            size_t length = 0, valueLength = 0;
+            const char *key = luaL_checklstring(L, 1, &length);
+            const char *value = luaL_checklstring(L, 2, &valueLength);
+            GameVariables::SetText(std::string(key, length), std::string(value, valueLength));
+            return 0;
+        }
+
+        int GameHasText(lua_State *L)
+        {
+            size_t length = 0;
+            const char *key = luaL_checklstring(L, 1, &length);
+            lua_pushboolean(L, GameVariables::HasText(std::string(key, length)));
             return 1;
         }
 
@@ -827,7 +891,11 @@ namespace SIMPEngine::LuaBindings
             size_t length = 0;
             const char *key = luaL_checklstring(L, 1, &length);
             const double amount = luaL_optnumber(L, 2, 1.0);
-            lua_pushnumber(L, GameVariables::Add(std::string(key, length), amount));
+            const double total = GameVariables::Add(std::string(key, length), amount);
+            if (total == std::floor(total) && std::abs(total) < 9.0e15)
+                lua_pushinteger(L, static_cast<lua_Integer>(total));
+            else
+                lua_pushnumber(L, total);
             return 1;
         }
 
@@ -1083,6 +1151,27 @@ namespace SIMPEngine::LuaBindings
             return 1;
         }
 
+        int UnknownComponent(lua_State *L, const char *name)
+        {
+            char hint[96] = {};
+            char list[640] = {};
+            {
+                std::vector<const char *> names;
+                for (const ComponentBinding *binding : ComponentBindings())
+                    names.push_back(binding->Name);
+                SuggestName(name, names.data(), names.size(), hint, sizeof(hint));
+                size_t used = 0;
+                for (const char *n : names)
+                {
+                    const int written = std::snprintf(list + used, sizeof(list) - used, used ? ", %s" : "%s", n);
+                    if (written < 0 || used + static_cast<size_t>(written) >= sizeof(list))
+                        break;
+                    used += static_cast<size_t>(written);
+                }
+            }
+            return luaL_error(L, "unknown component '%s'%s; components: %s", name, hint, list);
+        }
+
         const ComponentBinding *FindBinding(const char *name)
         {
             for (const ComponentBinding *binding : ComponentBindings())
@@ -1099,7 +1188,7 @@ namespace SIMPEngine::LuaBindings
             const char *name = luaL_checkstring(L, 2);
             const ComponentBinding *binding = FindBinding(name);
             if (!binding)
-                return luaL_error(L, "unknown component '%s'", name);
+                return UnknownComponent(L, name);
             if (!binding->Has(*entity))
             {
                 lua_pushnil(L);
@@ -1116,7 +1205,7 @@ namespace SIMPEngine::LuaBindings
             const char *name = luaL_checkstring(L, 2);
             const ComponentBinding *binding = FindBinding(name);
             if (!binding)
-                return luaL_error(L, "unknown component '%s'", name);
+                return UnknownComponent(L, name);
             lua_pushboolean(L, binding->Has(*entity));
             return 1;
         }
@@ -1127,7 +1216,7 @@ namespace SIMPEngine::LuaBindings
             const char *name = luaL_checkstring(L, 2);
             const ComponentBinding *binding = FindBinding(name);
             if (!binding)
-                return luaL_error(L, "unknown component '%s'", name);
+                return UnknownComponent(L, name);
             if (!binding->Has(*entity))
             {
                 if (!binding->Add)
@@ -1145,7 +1234,7 @@ namespace SIMPEngine::LuaBindings
             const char *name = luaL_checkstring(L, 2);
             const ComponentBinding *binding = FindBinding(name);
             if (!binding)
-                return luaL_error(L, "unknown component '%s'", name);
+                return UnknownComponent(L, name);
             if (binding->Has(*entity))
                 binding->Remove(*entity);
             return 0;
@@ -1274,7 +1363,26 @@ namespace SIMPEngine::LuaBindings
             return 4;
         }
 
+        int WindowGetViewSize(lua_State *L)
+        {
+            float width = 0.0f, height = 0.0f;
+            if (Scene *scene = GetActiveScene())
+            {
+                const glm::vec2 viewport = Input::GetViewportSize();
+                if (viewport.x > 0.0f && viewport.y > 0.0f)
+                {
+                    const glm::vec2 half = Display::HalfExtents(Display::Get(), scene->GetActiveCamera().GetZoom(), viewport.x / viewport.y);
+                    width = half.x * 2.0f;
+                    height = half.y * 2.0f;
+                }
+            }
+            lua_pushnumber(L, width);
+            lua_pushnumber(L, height);
+            return 2;
+        }
+
         const luaL_Reg WindowFunctions[] = {
+            {"GetViewSize", WindowGetViewSize},
             {"GetSafeArea", WindowGetSafeArea},
             {"SetFullscreen", WindowSetFullscreen},
             {"SetRenderScale", WindowSetRenderScale},
@@ -1304,6 +1412,9 @@ namespace SIMPEngine::LuaBindings
         const luaL_Reg GameFunctions[] = {
             {"Quit", GameQuit},
             {"Get", GameGet},
+            {"GetText", GameGetText},
+            {"SetText", GameSetText},
+            {"HasText", GameHasText},
             {"Set", GameSet},
             {"Add", GameAdd},
             {"Has", GameHas},
@@ -1346,6 +1457,9 @@ namespace SIMPEngine::LuaBindings
 
         const luaL_Reg EntityMethods[] = {
             {"IsValid", EntityIsValid},
+            {"SetVisible", EntitySetVisible},
+            {"SetClip", EntitySetClip},
+            {"IsVisible", EntityIsVisible},
             {"GetName", EntityGetName},
             {"SetName", EntitySetName},
             {"GetPosition", EntityGetPosition},
@@ -1472,6 +1586,7 @@ namespace SIMPEngine::LuaBindings
         RegisterDraw(L);
         RegisterColor(L);
         RegisterEffects(L);
+        RegisterMotion(L);
         RegisterPhysics(L);
         RegisterInputActions(L);
         for (const ComponentBinding *binding : ComponentBindings())

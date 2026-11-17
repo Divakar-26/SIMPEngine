@@ -18,8 +18,10 @@ public:
 private:
     void RefreshScenes();
     void DrawInputActions();
+    void DrawGeneralPage();
 
     bool m_Open = false;
+    int m_Category = 0;
     bool m_Dirty = false;
     std::string m_CurrentScene;
     std::vector<std::string> m_Scenes;

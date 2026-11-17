@@ -555,10 +555,7 @@ int AndroidSession::Run(const std::vector<std::string> &args, std::string *captu
         if (captured)
             *captured += line + "\n";
         if (log)
-        {
             Log(line);
-            SetStatus(line);
-        }
     };
     while (out)
     {
@@ -707,7 +704,7 @@ void AndroidSession::DeployJob(fs::path projectDirectory, std::string projectNam
     const std::string abiArg = abiList.empty() ? std::string() : "-Pabis=" + abiList;
     std::string output;
     Log("Building " + projectName + " for " + (abiList.empty() ? "all ABIs" : abiList));
-    SetStatus("Building");
+    SetStatus("Building APK");
     int code = 0;
 #ifdef _WIN32
     {

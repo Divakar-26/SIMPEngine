@@ -210,11 +210,11 @@ void ConsolePanel::OnImGuiRender()
 
                 ImGui::PushID(static_cast<int>(i));
                 ImGui::InvisibleButton("##row", ImVec2(std::max(width, x - pos.x + textW + 8.0f), rowH));
-                if (ImGui::BeginPopupContextItem("##rowctx"))
+                if (EditorUI::BeginContextMenu("##rowctx"))
                 {
                     if (ImGui::MenuItem("Copy Message"))
                         ImGui::SetClipboardText(message.c_str());
-                    ImGui::EndPopup();
+                    EditorUI::EndPopup();
                 }
                 ImGui::PopID();
             }

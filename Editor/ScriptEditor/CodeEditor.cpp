@@ -1606,6 +1606,12 @@ namespace ScriptEditor
                         const float x = std::clamp(wordX, vpMin.x + 4.0f, std::max(vpMin.x + 4.0f, vpMax.x - previewSize.x - 4.0f));
                         DrawCurvePreview(dl, font, fontSize, theme, ImVec2(x, y), word.Text);
                     }
+                    else if (m_HoverPreview)
+                    {
+                        const float wordX = origin.x + static_cast<float>(VisualColumn(at.Line, word.Start)) * m_CharWidth;
+                        const float wordY = origin.y + static_cast<float>(at.Line) * m_LineHeight;
+                        m_HoverPreview(m_Lines, at, dl, ImVec2(wordX, wordY), m_LineHeight, vpMin, vpMax);
+                    }
                 }
             }
         }

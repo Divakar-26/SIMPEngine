@@ -34,6 +34,7 @@ add_library(Editor STATIC
     Panels/ScriptEditorPanel.cpp
     Panels/TweenLabPanel.cpp
     Panels/EffectsPanel.cpp
+    Panels/MotionPreview.cpp
     UI/Theme.cpp
     UI/Widgets.cpp
     ScriptEditor/LuaLexer.cpp

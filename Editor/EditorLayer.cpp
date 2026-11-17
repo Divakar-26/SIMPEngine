@@ -231,6 +231,8 @@ void EditorLayer::DrawAndroidControls(float h)
     }
     else if (selected.size() > 1)
         label = std::to_string(selected.size()) + " devices";
+    if (label.size() > 20)
+        label = label.substr(0, 18) + "..";
 
     ImGui::SameLine(0, 12);
     const bool canRun = running || (SIMPEngine::Project::IsOpen() && m_Android.CanBuild() && !selected.empty());
@@ -250,13 +252,8 @@ void EditorLayer::DrawAndroidControls(float h)
         m_Android.RefreshNow();
         ImGui::OpenPopup("##androidPopup");
     }
-    if (running)
-    {
-        ImGui::SameLine(0, 8);
-        ImGui::TextDisabled("%s", m_Android.Status().c_str());
-    }
 
-    if (ImGui::BeginPopup("##androidPopup"))
+    if (EditorUI::BeginPopup("##androidPopup"))
     {
         ImGui::TextDisabled("Android devices");
         ImGui::Separator();
@@ -304,7 +301,7 @@ void EditorLayer::DrawAndroidControls(float h)
         ImGui::Separator();
         if (ImGui::MenuItem("Refresh"))
             m_Android.RefreshNow();
-        ImGui::EndPopup();
+        EditorUI::EndPopup();
     }
 }
 
@@ -683,6 +680,12 @@ void EditorLayer::HandleShortcuts()
         else
             Stop();
     }
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Alt | ImGuiKey_1, ImGuiInputFlags_RouteGlobal))
+        ToggleArea(EditorUI::Settings().CollapseLeft);
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Alt | ImGuiKey_2, ImGuiInputFlags_RouteGlobal))
+        ToggleArea(EditorUI::Settings().CollapseBottom);
+    if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Alt | ImGuiKey_3, ImGuiInputFlags_RouteGlobal))
+        ToggleArea(EditorUI::Settings().CollapseRight);
     if (ImGui::Shortcut(ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiKey_F5, ImGuiInputFlags_RouteGlobal))
     {
         if (m_Android.Available() && m_Android.GetState() != AndroidSession::State::Running)
@@ -759,14 +762,21 @@ void EditorLayer::OnRender()
 
     DrawMenuBar();
     DrawStatusBar();
+    DrawPanelStrips();
     DrawDockspace();
 
+    const EditorUI::EditorSettings &layout = EditorUI::Settings();
     m_ViewportPanel.OnImGuiRender();
     m_GameViewPanel.OnImGuiRender();
-    m_HieararchyPanel.OnImGuiRender();
-    m_InspectorPanel.OnImGuiRender();
-    m_ContentBrowser->OnImGuiRender();
-    m_ConsolePanel.OnImGuiRender();
+    if (!layout.CollapseLeft)
+        m_HieararchyPanel.OnImGuiRender();
+    if (!layout.CollapseRight)
+        m_InspectorPanel.OnImGuiRender();
+    if (!layout.CollapseBottom)
+    {
+        m_ContentBrowser->OnImGuiRender();
+        m_ConsolePanel.OnImGuiRender();
+    }
     m_ScriptEditorPanel.OnImGuiRender();
     m_TweenLabPanel.OnImGuiRender();
     m_EffectsPanel.OnImGuiRender();
@@ -778,10 +788,19 @@ void EditorLayer::OnRender()
     m_ProjectSettingsPanel.SetCurrentScene(m_EditorContext.ScenePath);
     m_ProjectSettingsPanel.OnImGuiRender();
     m_BuildPanel.OnImGuiRender();
-    m_TilePalettePanel.OnImGuiRender();
+    if (!layout.CollapseBottom)
+        m_TilePalettePanel.OnImGuiRender();
 
-    if (m_ShowProfiler)
+    if (m_ShowProfiler && !layout.CollapseBottom)
         EngineProfiler::Profiler::Get().DrawImGui("Profiler###Profiler", &m_ShowProfiler);
+
+    DrawPanelCorners();
+
+    if (m_FocusAfterExpandFrames > 0 && --m_FocusAfterExpandFrames == 0 && !m_FocusAfterExpand.empty())
+    {
+        ImGui::SetWindowFocus(m_FocusAfterExpand.c_str());
+        m_FocusAfterExpand.clear();
+    }
 
     DrawSaveAsModal();
     DrawConfirmModal();
@@ -803,6 +822,8 @@ void EditorLayer::DrawTransport()
 
     float h = ImGui::GetFrameHeight();
     float groupW = h * 4.0f + 12.0f;
+    if (m_Android.Available())
+        groupW += 12.0f + h + 4.0f + ImGui::CalcTextSize("Pixel 8 (emulator)").x + ImGui::GetStyle().FramePadding.x * 2.0f;
     float x = std::floor((ImGui::GetWindowWidth() - groupW) * 0.5f);
     ImGui::SetCursorPosX(std::max(ImGui::GetCursorPosX(), x));
 
@@ -853,8 +874,9 @@ void EditorLayer::DrawMenuBar()
 
     if (ImGui::BeginMainMenuBar())
     {
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6, 6));
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 5));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10, 10));
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10, 7));
+        ImGui::PushStyleColor(ImGuiCol_Border, Colors::BorderStrong);
 
         if (ImGui::BeginMenu("Scene"))
         {
@@ -956,6 +978,13 @@ void EditorLayer::DrawMenuBar()
                 ImGui::MarkIniSettingsDirty();
             }
             ImGui::Separator();
+            if (ImGui::MenuItem("Scene Panel", "Ctrl+Alt+1", !Settings().CollapseLeft))
+                ToggleArea(Settings().CollapseLeft, HierarchyPanel::WindowId);
+            if (ImGui::MenuItem("Bottom Panel", "Ctrl+Alt+2", !Settings().CollapseBottom))
+                ToggleArea(Settings().CollapseBottom, ContentBrowserPanel::WindowId);
+            if (ImGui::MenuItem("Inspector", "Ctrl+Alt+3", !Settings().CollapseRight))
+                ToggleArea(Settings().CollapseRight, InspectorPanel::WindowId);
+            ImGui::Separator();
             if (ImGui::MenuItem("Frame Scene"))
                 m_ViewportPanel.FrameScene();
             if (ImGui::MenuItem("Reset Layout"))
@@ -1025,24 +1054,182 @@ void EditorLayer::DrawMenuBar()
             ImGui::EndMenu();
         }
 
+        ImGui::PopStyleColor();
         ImGui::PopStyleVar(2);
 
         DrawTransport();
 
         std::string title = DisplayName(ctx.ScenePath);
         if (ctx.Dirty)
-            title += "  (unsaved)";
-        float w = ImGui::CalcTextSize(title.c_str()).x;
-        ImGui::SameLine(ImGui::GetWindowWidth() - w - 14.0f);
-        ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextDim);
-        ImGui::TextUnformatted(title.c_str());
-        ImGui::PopStyleColor();
+            title += "  \xe2\x80\xa2";
+        const float toggleSize = ImGui::GetFrameHeight();
+        const float togglesW = toggleSize * 3.0f + 8.0f;
+        const float w = ImGui::CalcTextSize(title.c_str()).x;
+        const float titleX = ImGui::GetWindowWidth() - togglesW - w - 26.0f;
+        if (titleX > ImGui::GetCursorPosX() + 12.0f)
+        {
+            ImGui::SameLine(titleX);
+            ImGui::PushStyleColor(ImGuiCol_Text, ctx.Dirty ? Colors::Text : Colors::TextDim);
+            ImGui::TextUnformatted(title.c_str());
+            ImGui::PopStyleColor();
+            if (ctx.Dirty && ImGui::IsItemHovered())
+                ImGui::SetTooltip("Unsaved changes");
+        }
+        ImGui::SameLine(ImGui::GetWindowWidth() - togglesW - 8.0f);
+        DrawLayoutToggles(toggleSize);
 
         ImGui::EndMainMenuBar();
     }
 
     ImGui::PopStyleColor();
     ImGui::PopStyleVar(2);
+}
+
+void EditorLayer::ToggleArea(bool &collapsed, const char *focus)
+{
+    collapsed = !collapsed;
+    ImGui::MarkIniSettingsDirty();
+    if (!collapsed && focus)
+    {
+        m_FocusAfterExpand = focus;
+        m_FocusAfterExpandFrames = 2;
+    }
+}
+
+void EditorLayer::DrawLayoutToggles(float height)
+{
+    using namespace EditorUI;
+    EditorSettings &s = Settings();
+    if (IconButton("##toggleLeft", ICON_LC_PANEL_LEFT, s.CollapseLeft ? "Show Scene panel (Ctrl+Alt+1)" : "Hide Scene panel (Ctrl+Alt+1)", false, height))
+        ToggleArea(s.CollapseLeft, HierarchyPanel::WindowId);
+    ImGui::SameLine(0, 4);
+    if (IconButton("##toggleBottom", ICON_LC_PANEL_BOTTOM, s.CollapseBottom ? "Show bottom panel (Ctrl+Alt+2)" : "Hide bottom panel (Ctrl+Alt+2)", false, height))
+        ToggleArea(s.CollapseBottom, ContentBrowserPanel::WindowId);
+    ImGui::SameLine(0, 4);
+    if (IconButton("##toggleRight", ICON_LC_PANEL_RIGHT, s.CollapseRight ? "Show Inspector (Ctrl+Alt+3)" : "Hide Inspector (Ctrl+Alt+3)", false, height))
+        ToggleArea(s.CollapseRight, InspectorPanel::WindowId);
+}
+
+namespace
+{
+    struct StripTab
+    {
+        const char *Icon;
+        const char *Label;
+        const char *Window;
+    };
+
+    void DrawRotatedText(ImDrawList *dl, ImVec2 topLeft, const char *text, ImU32 color)
+    {
+        const float lineHeight = ImGui::GetFontSize();
+        const int start = dl->VtxBuffer.Size;
+        dl->PushClipRect(ImVec2(-100000.0f, -100000.0f), ImVec2(100000.0f, 100000.0f), false);
+        dl->AddText(topLeft, color, text);
+        dl->PopClipRect();
+        for (int i = start; i < dl->VtxBuffer.Size; i++)
+        {
+            ImDrawVert &v = dl->VtxBuffer[i];
+            const float dx = v.pos.x - topLeft.x;
+            const float dy = v.pos.y - topLeft.y;
+            v.pos = ImVec2(topLeft.x + lineHeight - dy, topLeft.y + dx);
+        }
+    }
+
+    bool PaperTab(const StripTab &tab, bool vertical, float thickness)
+    {
+        using namespace EditorUI;
+        ImGuiWindow *window = ImGui::GetCurrentWindow();
+        const float font = ImGui::GetFontSize();
+        const float textW = ImGui::CalcTextSize(tab.Label).x;
+        const float pad = 8.0f;
+        const float length = font + 6.0f + textW + pad * 2.0f;
+        const ImVec2 size = vertical ? ImVec2(thickness, length) : ImVec2(length, thickness);
+        const ImVec2 pos = window->DC.CursorPos;
+        const ImRect bb(pos, ImVec2(pos.x + size.x, pos.y + size.y));
+        const ImGuiID id = window->GetID(tab.Label);
+        ImGui::ItemSize(bb);
+        if (!ImGui::ItemAdd(bb, id))
+            return false;
+        bool hovered = false, held = false;
+        const bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
+
+        ImDrawList *dl = window->DrawList;
+        dl->AddRectFilled(bb.Min, bb.Max, U32(hovered ? Colors::HeaderHover : Colors::Header), Metrics::FrameRounding);
+        dl->AddRect(bb.Min, bb.Max, U32(hovered ? Colors::BorderStrong : Colors::Border), Metrics::FrameRounding);
+        const ImU32 fg = U32(hovered ? Colors::Text : Colors::TextDim);
+        if (vertical)
+        {
+            const float x = std::floor(bb.Min.x + (thickness - font) * 0.5f);
+            dl->AddText(ImVec2(x, bb.Min.y + pad), U32(hovered ? Colors::Accent : Colors::TextDim), tab.Icon);
+            DrawRotatedText(dl, ImVec2(x, bb.Min.y + pad + font + 6.0f), tab.Label, fg);
+        }
+        else
+        {
+            const float y = std::floor(bb.Min.y + (thickness - font) * 0.5f);
+            dl->AddText(ImVec2(bb.Min.x + pad, y), U32(hovered ? Colors::Accent : Colors::TextDim), tab.Icon);
+            dl->AddText(ImVec2(bb.Min.x + pad + font + 6.0f, y), fg, tab.Label);
+        }
+        if (hovered)
+            ImGui::SetTooltip("Open %s", tab.Label);
+        return pressed;
+    }
+}
+
+void EditorLayer::DrawPanelStrips()
+{
+    using namespace EditorUI;
+    EditorSettings &s = Settings();
+    if (!s.CollapseLeft && !s.CollapseRight && !s.CollapseBottom)
+        return;
+
+    ImGuiViewport *viewport = ImGui::GetMainViewport();
+    const ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoDocking;
+    const float thickness = std::floor(ImGui::GetFontSize() + 12.0f);
+    const float barSize = thickness + 8.0f;
+
+    auto strip = [&](const char *name, ImGuiDir dir, const std::vector<StripTab> &tabs, bool &collapsed)
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 6));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, Colors::Canvas);
+        const bool open = ImGui::BeginViewportSideBar(name, viewport, dir, barSize, flags);
+        ImGui::PopStyleColor();
+        if (open)
+        {
+            const bool vertical = dir == ImGuiDir_Left || dir == ImGuiDir_Right;
+            if (!vertical)
+                ImGui::SetCursorPos(ImVec2(8.0f, 4.0f));
+            for (const StripTab &tab : tabs)
+            {
+                if (PaperTab(tab, vertical, thickness))
+                {
+                    collapsed = false;
+                    ImGui::MarkIniSettingsDirty();
+                    m_FocusAfterExpand = tab.Window;
+                    m_FocusAfterExpandFrames = 2;
+                }
+                if (!vertical)
+                    ImGui::SameLine();
+            }
+        }
+        ImGui::End();
+        ImGui::PopStyleVar(3);
+    };
+
+    if (s.CollapseBottom)
+    {
+        std::vector<StripTab> tabs = {{ICON_LC_FOLDER, "FileSystem", ContentBrowserPanel::WindowId}, {ICON_LC_GRID_3X3, "Tiles", TilePalettePanel::WindowId}};
+        if (m_ConsolePanel.IsVisible())
+            tabs.push_back({ICON_LC_TERMINAL, "Console", ConsolePanel::WindowId});
+        if (m_ShowProfiler)
+            tabs.push_back({ICON_LC_ACTIVITY, "Profiler", "###Profiler"});
+        strip("##StripBottom", ImGuiDir_Down, tabs, s.CollapseBottom);
+    }
+    if (s.CollapseLeft)
+        strip("##StripLeft", ImGuiDir_Left, {{ICON_LC_LIST_TREE, "Scene", HierarchyPanel::WindowId}}, s.CollapseLeft);
+    if (s.CollapseRight)
+        strip("##StripRight", ImGuiDir_Right, {{ICON_LC_SLIDERS_HORIZONTAL, "Inspector", InspectorPanel::WindowId}}, s.CollapseRight);
 }
 
 void EditorLayer::DrawStatusBar()
@@ -1084,6 +1271,14 @@ void EditorLayer::DrawStatusBar()
 
         if (ctx.SelectedEntity && ctx.Scene->GetRegistry().valid(ctx.SelectedEntity.GetHandle()) && ctx.SelectedEntity.HasComponent<TagComponent>())
             segment(ctx.SelectedEntity.GetComponent<TagComponent>().Tag.c_str(), Colors::Text);
+
+        if (m_Android.Available() && m_Android.GetState() == AndroidSession::State::Running)
+        {
+            static const char *spinner[] = {"|", "/", "-", "\\"};
+            const int frame = static_cast<int>(ImGui::GetTime() * 8.0) % 4;
+            std::string text = std::string("Android ") + spinner[frame] + "  " + m_Android.Status();
+            segment(text.c_str(), Colors::Accent);
+        }
 
         if (m_StatusFlash > 0.0f && !m_StatusMessage.empty())
             segment(m_StatusMessage.c_str(), WithAlpha(m_StatusError ? Colors::Error : Colors::Text, std::min(1.0f, m_StatusFlash)));
@@ -1330,7 +1525,88 @@ void EditorLayer::DrawDockspace()
         m_FocusDefaultTabs = 2;
     }
 
-    ImGui::DockSpaceOverViewport(dockspaceId, viewport, ImGuiDockNodeFlags_None);
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, EditorUI::Colors::Canvas);
+    const ImGuiWindowFlags hostFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+                                       ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
+                                       ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse;
+    ImGui::Begin("##EditorDockHost", nullptr, hostFlags);
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar(3);
+    ImGui::PushStyleColor(ImGuiCol_Border, EditorUI::Colors::Canvas);
+    ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_None);
+    ImGui::PopStyleColor();
+    ImGui::End();
+}
+
+void EditorLayer::DrawPanelCorners()
+{
+    ImGuiContext &g = *ImGui::GetCurrentContext();
+    const float radius = 6.0f;
+    const ImU32 color = EditorUI::U32(EditorUI::Colors::Canvas);
+    for (ImGuiWindow *window : g.Windows)
+    {
+        if (!window->DockIsActive || !window->Active || window->Hidden || !window->DockNode || window->DockNode->HostWindow == nullptr)
+            continue;
+        if (window->Viewport != ImGui::GetMainViewport())
+            continue;
+        const ImGuiDockNode *node = window->DockNode;
+        if (node->TabBar && node->TabBar->SelectedTabId != window->TabId)
+            continue;
+        const float top = window->Pos.y + window->TitleBarHeight;
+        const ImVec2 min(window->Pos.x, top);
+        const ImVec2 max(window->Pos.x + window->Size.x, window->Pos.y + window->Size.y);
+        if (max.y - min.y < radius * 2.0f || max.x - min.x < radius * 2.0f)
+            continue;
+        bool firstTabSelected = true;
+        if (node->TabBar && !node->TabBar->Tabs.empty())
+            firstTabSelected = node->TabBar->Tabs[0].ID == node->TabBar->SelectedTabId;
+
+        ImGuiWindow *target = window;
+        for (;;)
+        {
+            ImGuiWindow *last = nullptr;
+            for (ImGuiWindow *child : target->DC.ChildWindows)
+                if (child->Active && !child->Hidden && !(child->Flags & (ImGuiWindowFlags_Popup | ImGuiWindowFlags_Tooltip)))
+                    last = child;
+            if (!last)
+                break;
+            target = last;
+        }
+        ImDrawList *dl = target->DrawList;
+        dl->PushClipRect(window->Pos, max, false);
+        auto corner = [&](ImVec2 point, ImVec2 center, float startAngle)
+        {
+            dl->PathLineTo(point);
+            dl->PathArcTo(center, radius, startAngle, startAngle + IM_PI * 0.5f, 8);
+            dl->PathFillConvex(color);
+        };
+        if (!firstTabSelected)
+            corner(min, ImVec2(min.x + radius, min.y + radius), IM_PI);
+        corner(ImVec2(max.x, min.y), ImVec2(max.x - radius, min.y + radius), IM_PI * 1.5f);
+        corner(max, ImVec2(max.x - radius, max.y - radius), 0.0f);
+        corner(ImVec2(min.x, max.y), ImVec2(min.x + radius, max.y - radius), IM_PI * 0.5f);
+        dl->PopClipRect();
+
+        const ImGuiTabBar *bar = node->TabBar;
+        if (firstTabSelected && bar && !bar->Tabs.empty())
+        {
+            const float tabLeft = bar->BarRect.Min.x + bar->Tabs[0].Offset;
+            const float rounding = g.Style.TabRounding;
+            if (tabLeft > min.x + 0.5f)
+            {
+                ImDrawList *host = node->HostWindow->DrawList;
+                host->PushClipRect(ImVec2(min.x, bar->BarRect.Min.y), ImVec2(tabLeft + rounding, top + 1.0f), false);
+                host->AddRectFilled(ImVec2(min.x, bar->BarRect.Min.y), ImVec2(tabLeft + rounding * 2.0f, top + 1.0f), EditorUI::U32(EditorUI::Colors::Window), rounding, ImDrawFlags_RoundCornersTopLeft);
+                host->PopClipRect();
+            }
+        }
+    }
 }
 
 void EditorLayer::BuildDefaultLayout(unsigned int dockspaceId)

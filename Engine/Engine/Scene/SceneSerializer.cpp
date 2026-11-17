@@ -359,6 +359,16 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::Key << "trim" << YAML::Value << YAML::Flow << YAML::BeginSeq << v.trimStart << v.trimEnd << v.trimOffset << YAML::EndSeq;
       if (v.dashLength > 0.0f)
         out << YAML::Key << "dash" << YAML::Value << YAML::Flow << YAML::BeginSeq << v.dashLength << v.dashGap << v.dashOffset << YAML::EndSeq;
+      if (v.fixedStroke)
+        out << YAML::Key << "fixed_stroke" << YAML::Value << true;
+      if (v.shadowColor.a > 0) {
+        out << YAML::Key << "shadow" << YAML::BeginMap;
+        out << YAML::Key << "color" << YAML::Value;
+        EmitColor(out, v.shadowColor);
+        out << YAML::Key << "offset" << YAML::Value << YAML::Flow << YAML::BeginSeq << v.shadowOffset.x << v.shadowOffset.y << YAML::EndSeq;
+        out << YAML::Key << "blur" << YAML::Value << v.shadowBlur;
+        out << YAML::EndMap;
+      }
       if (v.gradient) {
         out << YAML::Key << "gradient" << YAML::BeginMap;
         out << YAML::Key << "from" << YAML::Value << YAML::Flow << YAML::BeginSeq << v.gradientFrom.x << v.gradientFrom.y << YAML::EndSeq;
@@ -908,6 +918,15 @@ std::string SceneSerializer::Emit(const std::vector<entt::entity> &entities,
       out << YAML::EndMap;
     }
 
+    if (entity.HasComponent<ClipComponent>()) {
+      const auto &clip = entity.GetComponent<ClipComponent>();
+      out << YAML::Key << "Clip" << YAML::BeginMap << YAML::Key << "size" << YAML::Value << YAML::Flow
+          << YAML::BeginSeq << clip.size.x << clip.size.y << YAML::EndSeq << YAML::EndMap;
+    }
+
+    if (entity.HasComponent<HiddenComponent>())
+      out << YAML::Key << "Hidden" << YAML::Value << true;
+
     if (entity.HasComponent<LifetimeComponent>()) {
       auto &lf = entity.GetComponent<LifetimeComponent>();
       out << YAML::Key << "Lifetime" << YAML::BeginMap;
@@ -1045,7 +1064,12 @@ bool SceneSerializer::DeserializeFromString(const std::string &yaml,
     return false;
   }
   if (!data.IsMap() || !data["Scene"]) {
-    CORE_ERROR("Not a scene file (no 'Scene' key)");
+    CORE_ERROR("Not a scene file: it needs a top level 'Scene: <name>' line, then 'Version: 1' and 'Entities:' (a list; each entity has Tag, Transform and components such as Camera or Script). See docs/API.md");
+    return false;
+  }
+  if (!data["Scene"].IsScalar()) {
+    CORE_ERROR("'Scene' must be the scene name (text), like 'Scene: My Game', not a {}; put settings under 'Settings:' and entities under 'Entities:'",
+               data["Scene"].IsMap() ? "map" : "list");
     return false;
   }
   if (auto entities = data["Entities"]; entities && !entities.IsSequence() && !entities.IsNull()) {
@@ -1340,6 +1364,15 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
         v.dashGap = n["dash"][1].as<float>();
         if (n["dash"].size() >= 3)
           v.dashOffset = n["dash"][2].as<float>();
+      }
+      if (n["fixed_stroke"])
+        v.fixedStroke = n["fixed_stroke"].as<bool>();
+      if (const YAML::Node sh = n["shadow"]) {
+        if (sh["color"])
+          ReadColor(sh["color"], v.shadowColor);
+        ReadVec2(sh["offset"], v.shadowOffset.x, v.shadowOffset.y);
+        if (sh["blur"])
+          v.shadowBlur = sh["blur"].as<float>();
       }
       if (const YAML::Node g = n["gradient"]) {
         v.gradient = true;
@@ -1752,6 +1785,16 @@ bool SceneSerializer::Load(const YAML::Node &data, bool applySettings,
       if (n["hide_prototype"]) TryGet(n, "hide_prototype", spawner.hidePrototype);
       if (n["spawn_on_start"]) TryGet(n, "spawn_on_start", spawner.spawnOnStart);
       if (n["playing"]) TryGet(n, "playing", spawner.playing);
+    });
+
+    component("Clip", [&](const YAML::Node &c) {
+      auto &clip = entity.AddComponent<ClipComponent>();
+      ReadVec2(c["size"], clip.size.x, clip.size.y);
+    });
+
+    component("Hidden", [&](const YAML::Node &h) {
+      if (h.IsScalar() && h.as<bool>(true))
+        entity.GetScene()->GetRegistry().emplace_or_replace<HiddenComponent>(entity.GetHandle());
     });
 
     component("Lifetime", [&](const YAML::Node &l) {

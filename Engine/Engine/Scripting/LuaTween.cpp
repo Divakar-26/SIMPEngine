@@ -34,7 +34,7 @@ namespace SIMPEngine::LuaBindings
 
         struct Error
         {
-            char Text[192] = "";
+            char Text[512] = "";
             bool Set() const { return Text[0] != '\0'; }
         };
 
@@ -113,7 +113,14 @@ namespace SIMPEngine::LuaBindings
                 }
                 if (!known)
                 {
-                    std::snprintf(error.Text, sizeof(error.Text), "unknown tween property '%s'", name);
+                    char hint[96] = {};
+                    const char *names[static_cast<int>(TweenProperty::Count)];
+                    size_t count = 0;
+                    for (int p = 0; p < static_cast<int>(TweenProperty::Count); ++p)
+                        if (static_cast<TweenProperty>(p) != TweenProperty::ShaderUniform)
+                            names[count++] = TweenSystem::PropertyName(static_cast<TweenProperty>(p));
+                    SuggestName(name, names, count, hint, sizeof(hint));
+                    std::snprintf(error.Text, sizeof(error.Text), "unknown tween property '%s'%s (see Tween.Properties(); shader uniforms start with u, like uAmount)", name, hint);
                     lua_pop(L, 2);
                     return false;
                 }

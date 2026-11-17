@@ -20,7 +20,7 @@ namespace EditorUI
         std::function<void()> s_EditHook;
         int s_EditSuppression = 0;
 
-        constexpr float LabelRatio = 0.40f;
+        constexpr float LabelRatio = 0.45f;
         constexpr float LabelMin = 70.0f;
         constexpr float LabelMax = 140.0f;
 
@@ -122,8 +122,9 @@ namespace EditorUI
 
         float LabelWidth()
         {
-            float avail = ImGui::GetContentRegionAvail().x;
-            return std::clamp(std::floor(avail * LabelRatio), LabelMin, LabelMax);
+            const float avail = ImGui::GetContentRegionAvail().x;
+            const float scale = ImGui::GetFontSize() / Metrics::FontSize;
+            return std::min(std::clamp(std::floor(avail * LabelRatio), LabelMin * scale, LabelMax * scale), std::floor(avail * 0.5f));
         }
 
         bool Edited(bool changed)
@@ -347,16 +348,58 @@ namespace EditorUI
         ImGui::TextUnformatted(text);
     }
 
-    bool IconMenuItem(const char *icon, const ImVec4 &iconColor, const char *label)
+    int FuzzyScore(const char *text, const char *query)
+    {
+        if (!query || !*query)
+            return 0;
+        auto lower = [](char c)
+        { return static_cast<char>(std::tolower(static_cast<unsigned char>(c))); };
+        const size_t length = std::strlen(text);
+        size_t at = 0;
+        int score = 0;
+        int first = -1;
+        size_t last = 0;
+        bool matchedAny = false;
+        for (const char *q = query; *q; ++q)
+        {
+            if (*q == ' ')
+                continue;
+            while (at < length && lower(text[at]) != lower(*q))
+                ++at;
+            if (at >= length)
+                return -1;
+            if (at == 0 || text[at - 1] == ' ' || text[at - 1] == '_')
+                score += 20;
+            if (matchedAny && at == last + 1)
+                score += 15;
+            else if (matchedAny)
+                score -= static_cast<int>(std::min<size_t>(at - last - 1, 10));
+            if (first < 0)
+                first = static_cast<int>(at);
+            last = at;
+            matchedAny = true;
+            ++at;
+        }
+        score += 100 - first * 3 - static_cast<int>(std::min<size_t>(length, 40));
+        size_t q = 0;
+        while (query[q] && q < length && lower(query[q]) == lower(text[q]))
+            ++q;
+        if (!query[q])
+            score += q == length ? 400 : 200;
+        return std::max(score, 0);
+    }
+
+    bool IconMenuItem(const char *icon, const ImVec4 &iconColor, const char *label, bool selected, const char *hint)
     {
         ImGuiStyle &style = ImGui::GetStyle();
         float fs = ImGui::GetFontSize();
         float gutter = std::floor(fs * 1.6f);
         float textW = ImGui::CalcTextSize(label).x;
-        float width = gutter + textW + style.ItemSpacing.x * 2.0f;
+        float hintW = hint ? ImGui::CalcTextSize(hint).x + style.ItemSpacing.x * 3.0f : 0.0f;
+        float width = gutter + textW + hintW + style.ItemSpacing.x * 2.0f;
 
         ImGui::PushID(label);
-        bool pressed = ImGui::Selectable("##item", false, ImGuiSelectableFlags_SpanAvailWidth, ImVec2(width, 0.0f));
+        bool pressed = ImGui::Selectable("##item", selected, ImGuiSelectableFlags_SpanAvailWidth, ImVec2(width, 0.0f));
         ImGui::PopID();
 
         ImVec2 min = ImGui::GetItemRectMin();
@@ -366,6 +409,11 @@ namespace EditorUI
 
         DrawIcon(dl, icon, ImVec2(min.x + gutter * 0.5f, midY), U32(iconColor), fs);
         dl->AddText(ImVec2(min.x + gutter, std::floor(midY - fs * 0.5f)), ImGui::GetColorU32(ImGuiCol_Text), label);
+        if (hint)
+        {
+            const float hw = ImGui::CalcTextSize(hint).x;
+            dl->AddText(ImVec2(max.x - hw - style.ItemSpacing.x, std::floor(midY - fs * 0.5f)), U32(Colors::TextFaint), hint);
+        }
         return pressed;
     }
 
@@ -395,15 +443,20 @@ namespace EditorUI
 
             ImRect arrowBb(ImVec2(pos.x - 2.0f, pos.y), ImVec2(pos.x + arrowW, pos.y + rowH));
             bool onArrow = !options.Leaf && arrowBb.Contains(g.IO.MousePos);
+            const float eyeW = options.Eye >= 0 ? 26.0f : 0.0f;
+            const ImRect eyeBb(ImVec2(right - eyeW - 4.0f, pos.y), ImVec2(right - 2.0f, pos.y + rowH));
+            const bool onEye = options.Eye >= 0 && eyeBb.Contains(g.IO.MousePos);
 
             if (pressed)
             {
-                if (onArrow)
+                if (onEye)
+                    result.EyeToggled = true;
+                else if (onArrow)
                     result.Toggled = true;
                 else
                     result.Clicked = true;
             }
-            if (hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !onArrow)
+            if (hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) && !onArrow && !onEye)
                 result.DoubleClicked = true;
             if (result.Toggled && !options.ForceOpen)
             {
@@ -412,38 +465,54 @@ namespace EditorUI
             }
 
             ImDrawList *dl = window->DrawList;
+            const ImVec2 rowMin = bb.Min + ImVec2(3.0f, 1.0f);
+            const ImVec2 rowMax = bb.Max - ImVec2(3.0f, 1.0f);
             if (options.Selected)
-                dl->AddRectFilled(bb.Min, bb.Max, U32(Colors::Selection));
+            {
+                dl->AddRectFilled(rowMin, rowMax, U32(Colors::Accent, 0.2f), 5.0f);
+                dl->AddRectFilled(ImVec2(rowMin.x, rowMin.y + 3.0f), ImVec2(rowMin.x + 3.0f, rowMax.y - 3.0f), U32(Colors::Accent), 2.0f);
+            }
             else if (hovered)
-                dl->AddRectFilled(bb.Min, bb.Max, U32(Colors::Hover));
+                dl->AddRectFilled(rowMin, rowMax, U32(Colors::Hover), 5.0f);
             if (options.Highlight && !options.Selected)
-                dl->AddRect(bb.Min + ImVec2(1, 1), bb.Max - ImVec2(1, 1), U32(Colors::Accent, 0.6f));
+                dl->AddRect(rowMin, rowMax, U32(Colors::Accent, 0.6f), 5.0f);
 
             float cy = pos.y + rowH * 0.5f;
             float fontSize = ImGui::GetFontSize();
             if (!options.Leaf)
                 DrawIcon(dl, open ? ICON_LC_CHEVRON_DOWN : ICON_LC_CHEVRON_RIGHT, ImVec2(pos.x + arrowW * 0.5f, cy), U32(Colors::TextFaint), fontSize * 0.8f);
 
-            float x = pos.x + arrowW + 1.0f;
+            float x = pos.x + arrowW + 5.0f;
             if (icon)
             {
                 DrawIcon(dl, icon, ImVec2(x + fontSize * 0.5f, cy), U32(iconColor), fontSize * 0.95f);
                 x += fontSize + 6.0f;
             }
 
-            float trailingW = 0.0f;
+            float trailingW = eyeW;
+            if (options.Eye >= 0)
+            {
+                const bool hidden = options.Eye == 1;
+                const bool eyeHot = hovered && onEye;
+                if (eyeHot)
+                    dl->AddRectFilled(ImVec2(eyeBb.Min.x + 1.0f, eyeBb.Min.y + 2.0f), ImVec2(eyeBb.Max.x - 1.0f, eyeBb.Max.y - 2.0f), U32(Colors::Hover), 4.0f);
+                const ImVec4 &eyeColor = hidden ? Colors::Warning : (eyeHot || hovered || options.Selected ? Colors::TextDim : Colors::TextFaint);
+                DrawIcon(dl, hidden ? ICON_LC_EYE_OFF : ICON_LC_EYE, eyeBb.GetCenter(), U32(eyeColor, (hidden || hovered || options.Selected) ? 1.0f : 0.55f), fontSize * 0.95f);
+                if (eyeHot)
+                    Tooltip(hidden ? "Show" : "Hide");
+            }
             if (options.Trailing)
             {
                 ImVec2 tw = ImGui::CalcTextSize(options.Trailing);
-                trailingW = tw.x + 10.0f;
-                dl->AddText(ImVec2(right - tw.x - 8.0f, std::floor(cy - tw.y * 0.5f)), U32(Colors::TextFaint), options.Trailing);
+                dl->AddText(ImVec2(right - trailingW - tw.x - 8.0f, std::floor(cy - tw.y * 0.5f)), U32(Colors::TextFaint), options.Trailing);
+                trailingW += tw.x + 10.0f;
             }
 
             result.LabelMin = ImVec2(x - 4.0f, pos.y + 1.0f);
             result.LabelMax = ImVec2(right - 4.0f - trailingW, pos.y + rowH - 1.0f);
 
             if (!options.HideLabel)
-                DrawTextClipped(dl, ImGui::GetFont(), fontSize, ImVec2(x, std::floor(cy - fontSize * 0.5f)), right - 6.0f - trailingW, U32(Colors::Text), label);
+                DrawTextClipped(dl, ImGui::GetFont(), fontSize, ImVec2(x, std::floor(cy - fontSize * 0.5f)), right - 6.0f - trailingW, U32(options.Eye == 1 ? Colors::TextFaint : Colors::Text), label);
         }
 
         result.Open = open;
@@ -462,7 +531,7 @@ namespace EditorUI
             --s_TreeDepth;
     }
 
-    bool BeginSection(const char *id, const char *title, bool *removeRequested, bool defaultOpen)
+    bool BeginSection(const char *id, const char *title, bool *removeRequested, bool defaultOpen, const char *icon, const ImVec4 *iconColor)
     {
         ImGui::PushID(id);
         ImGuiWindow *window = ImGui::GetCurrentWindow();
@@ -496,7 +565,13 @@ namespace EditorUI
         float fontSize = ImGui::GetFontSize();
         float cy = p.y + h * 0.5f;
         DrawIcon(dl, open ? ICON_LC_CHEVRON_DOWN : ICON_LC_CHEVRON_RIGHT, ImVec2(left + 12.0f, cy), U32(Colors::TextDim), fontSize * 0.8f);
-        DrawTextClipped(dl, GetFont(FontRole::Medium), fontSize, ImVec2(left + 22.0f, std::floor(cy - fontSize * 0.5f)),
+        float textX = left + 22.0f;
+        if (icon)
+        {
+            DrawIcon(dl, icon, ImVec2(textX + fontSize * 0.5f, cy), U32(iconColor ? *iconColor : Colors::TextDim), fontSize * 0.92f);
+            textX += fontSize * 1.35f;
+        }
+        DrawTextClipped(dl, GetFont(FontRole::Medium), fontSize, ImVec2(textX, std::floor(cy - fontSize * 0.5f)),
                         right - menuW - 6.0f, U32(Colors::Text), title);
 
         if (removeRequested)
@@ -505,11 +580,11 @@ namespace EditorUI
             if (IconButton("##menu", ICON_LC_ELLIPSIS, nullptr, false, h - 2.0f))
                 ImGui::OpenPopup("##sectionmenu");
 
-            if (ImGui::BeginPopup("##sectionmenu"))
+            if (BeginPopup("##sectionmenu"))
             {
                 if (ImGui::MenuItem("Remove Component"))
                     *removeRequested = true;
-                ImGui::EndPopup();
+                EndPopup();
             }
         }
 
@@ -984,6 +1059,77 @@ namespace EditorUI
         return clicked;
     }
 
+    bool NavItem(const char *label, bool selected, float height)
+    {
+        const float h = height > 0.0f ? height : ImGui::GetFrameHeight() + 2.0f;
+        ImGuiWindow *window = ImGui::GetCurrentWindow();
+        const ImVec2 pos = window->DC.CursorPos;
+        const float width = ImGui::GetContentRegionAvail().x;
+        const ImRect bb(pos, ImVec2(pos.x + width, pos.y + h));
+        const ImGuiID id = window->GetID(label);
+        ImGui::ItemSize(bb);
+        if (!ImGui::ItemAdd(bb, id))
+            return false;
+        bool hovered = false, held = false;
+        const bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
+        ImDrawList *dl = window->DrawList;
+        const ImVec2 min = bb.Min + ImVec2(3.0f, 1.0f);
+        const ImVec2 max = bb.Max - ImVec2(3.0f, 1.0f);
+        if (selected)
+        {
+            dl->AddRectFilled(min, max, U32(Colors::Accent, 0.2f), 5.0f);
+            dl->AddRectFilled(ImVec2(min.x, min.y + 3.0f), ImVec2(min.x + 3.0f, max.y - 3.0f), U32(Colors::Accent), 2.0f);
+        }
+        else if (hovered)
+            dl->AddRectFilled(min, max, U32(Colors::Hover), 5.0f);
+        const float fs = ImGui::GetFontSize();
+        dl->AddText(ImVec2(min.x + 14.0f, std::floor((min.y + max.y - fs) * 0.5f)), U32(selected ? Colors::Text : Colors::TextDim), label);
+        return pressed;
+    }
+
+    void PushPopupStyle()
+    {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(10.0f, 7.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(10.0f, 10.0f));
+        ImGui::PushStyleColor(ImGuiCol_Border, Colors::BorderStrong);
+    }
+
+    void PopPopupStyle()
+    {
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar(2);
+    }
+
+    namespace
+    {
+        bool FinishPopup(bool open)
+        {
+            ImGui::PopStyleColor();
+            ImGui::PopStyleVar();
+            if (!open)
+                ImGui::PopStyleVar();
+            return open;
+        }
+    }
+
+    bool BeginPopup(const char *id, ImGuiWindowFlags flags)
+    {
+        PushPopupStyle();
+        return FinishPopup(ImGui::BeginPopup(id, flags));
+    }
+
+    bool BeginContextMenu(const char *id, ImGuiPopupFlags flags)
+    {
+        PushPopupStyle();
+        return FinishPopup(ImGui::BeginPopupContextItem(id, flags));
+    }
+
+    void EndPopup()
+    {
+        ImGui::EndPopup();
+        ImGui::PopStyleVar();
+    }
+
     bool BeginModal(const char *title, bool *open, const ImVec2 &size)
     {
         if (open && *open && !ImGui::IsPopupOpen(title))
@@ -993,16 +1139,17 @@ namespace EditorUI
             ImGui::SetNextWindowSize(size, ImGuiCond_Appearing);
         ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 6.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12, 10));
         ImGui::PushStyleColor(ImGuiCol_TitleBg, Colors::Header);
         ImGui::PushStyleColor(ImGuiCol_TitleBgActive, Colors::Header);
         ImGui::PushStyleColor(ImGuiCol_Border, Colors::BorderStrong);
+        ImGui::PushStyleColor(ImGuiCol_PopupBg, Colors::Header);
 
         ImGuiWindowFlags flags = size.x > 0.0f ? ImGuiWindowFlags_None : ImGuiWindowFlags_AlwaysAutoResize;
         bool visible = ImGui::BeginPopupModal(title, open, flags | ImGuiWindowFlags_NoSavedSettings);
 
-        ImGui::PopStyleColor(3);
+        ImGui::PopStyleColor(4);
         ImGui::PopStyleVar(2);
         return visible;
     }

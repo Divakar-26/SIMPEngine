@@ -312,10 +312,10 @@ void ContentBrowserPanel::DrawItems()
             }
             if (item.IsDirectory)
                 HandleDropInto(item.VPath);
-            if (ImGui::BeginPopupContextItem())
+            if (EditorUI::BeginContextMenu())
             {
                 DrawItemContextMenu(item);
-                ImGui::EndPopup();
+                EditorUI::EndPopup();
             }
             if (open && item.IsDirectory)
             {
@@ -368,10 +368,10 @@ void ContentBrowserPanel::DrawItems()
             }
             if (item.IsDirectory)
                 HandleDropInto(item.VPath);
-            if (ImGui::BeginPopupContextItem())
+            if (EditorUI::BeginContextMenu())
             {
                 DrawItemContextMenu(item);
-                ImGui::EndPopup();
+                EditorUI::EndPopup();
             }
             if (r.DoubleClicked && item.IsDirectory)
             {
@@ -391,13 +391,13 @@ void ContentBrowserPanel::DrawItems()
         if (ImGui::IsItemClicked())
             m_Selected.clear();
         HandleDropInto(m_CurrentDir);
-        if (ImGui::BeginPopupContextItem("##bgctx"))
+        if (EditorUI::BeginContextMenu("##bgctx"))
         {
             if (ImGui::MenuItem("New Folder"))
                 CreateFolder();
             if (ImGui::MenuItem("Copy Folder Path"))
                 ImGui::SetClipboardText(m_CurrentDir.c_str());
-            ImGui::EndPopup();
+            EditorUI::EndPopup();
         }
     }
 }

@@ -217,7 +217,7 @@ void HierarchyPanel::OnImGuiRender()
             }
             ImGui::EndDragDropTarget();
         }
-        if (ImGui::BeginPopupContextItem("##emptyctx"))
+        if (EditorUI::BeginContextMenu("##emptyctx"))
         {
             if (ImGui::MenuItem("New Entity"))
                 m_PendingCreate = true;
@@ -225,7 +225,7 @@ void HierarchyPanel::OnImGuiRender()
                 m_ForceOpen = 0;
             if (ImGui::MenuItem("Expand All"))
                 m_ForceOpen = 1;
-            ImGui::EndPopup();
+            EditorUI::EndPopup();
         }
     }
 
@@ -352,7 +352,7 @@ void HierarchyPanel::DrawFilterMenu()
 {
     using namespace EditorUI;
 
-    if (!ImGui::BeginPopup("##hierarchyfilter"))
+    if (!EditorUI::BeginPopup("##hierarchyfilter"))
         return;
 
     SectionLabel("Show");
@@ -361,7 +361,7 @@ void HierarchyPanel::DrawFilterMenu()
             m_TypeFilter = static_cast<TypeFilter>(i);
     ImGui::Separator();
     ImGui::MenuItem("Sort A to Z", nullptr, &m_SortByName);
-    ImGui::EndPopup();
+    EditorUI::EndPopup();
 }
 
 void HierarchyPanel::DrawFlatList(const std::vector<entt::entity> &entities)
@@ -411,21 +411,36 @@ void HierarchyPanel::DrawFlatList(const std::vector<entt::entity> &entities)
             opt.Selected = m_Context->IsSelected(handle);
             opt.HideLabel = m_Renaming == handle;
             opt.Trailing = path.empty() ? nullptr : path.c_str();
+            opt.Eye = registry.all_of<HiddenComponent>(handle) ? 1 : 0;
             char id[32];
             std::snprintf(id, sizeof(id), "##s%u", static_cast<unsigned>(handle));
             auto row = TreeRow(id, v.Icon, v.Color(), tag.empty() ? "(unnamed)" : tag.c_str(), opt);
+            if (row.EyeToggled)
+                ToggleVisible(entity);
             HandleRowInput(entity, row.Clicked, row.DoubleClicked);
-            if (ImGui::BeginPopupContextItem())
+            if (EditorUI::BeginContextMenu())
             {
                 if (!m_Context->IsSelected(handle))
                     m_Context->Select(entity);
                 DrawEntityContextMenu(entity);
-                ImGui::EndPopup();
+                EditorUI::EndPopup();
             }
             if (m_Renaming == handle)
                 DrawRenameField(entity, row.LabelMin, row.LabelMax);
         }
     }
+}
+
+void HierarchyPanel::ToggleVisible(SIMPEngine::Entity entity)
+{
+    EditorCommands::RecordEdit(*m_Context);
+    entt::registry &registry = m_Context->Scene->GetRegistry();
+    const entt::entity handle = entity.GetHandle();
+    if (registry.all_of<HiddenComponent>(handle))
+        registry.remove<HiddenComponent>(handle);
+    else
+        registry.emplace<HiddenComponent>(handle);
+    m_Context->Dirty = true;
 }
 
 void HierarchyPanel::DrawRenameField(SIMPEngine::Entity entity, const ImVec2 &min, const ImVec2 &max)
@@ -496,6 +511,7 @@ void HierarchyPanel::DrawEntityNode(SIMPEngine::Entity entity)
         opt.Trailing = count;
     else if (entity.HasComponent<ScriptComponent>())
         opt.Trailing = ICON_LC_SCROLL_TEXT;
+    opt.Eye = registry.all_of<HiddenComponent>(handle) ? 1 : 0;
 
     char id[32];
     std::snprintf(id, sizeof(id), "##e%u", static_cast<unsigned>(handle));
@@ -515,6 +531,8 @@ void HierarchyPanel::DrawEntityNode(SIMPEngine::Entity entity)
         m_ScrollTarget = entt::null;
     }
 
+    if (row.EyeToggled)
+        ToggleVisible(entity);
     HandleRowInput(entity, row.Clicked, row.DoubleClicked);
 
     if (m_Renaming != handle && ImGui::BeginDragDropSource())
@@ -535,12 +553,12 @@ void HierarchyPanel::DrawEntityNode(SIMPEngine::Entity entity)
         ImGui::EndDragDropTarget();
     }
 
-    if (ImGui::BeginPopupContextItem())
+    if (EditorUI::BeginContextMenu())
     {
         if (!m_Context->IsSelected(handle))
             m_Context->Select(entity);
         DrawEntityContextMenu(entity);
-        ImGui::EndPopup();
+        EditorUI::EndPopup();
     }
 
     if (m_Renaming == handle)

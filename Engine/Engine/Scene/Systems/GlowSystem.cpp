@@ -10,7 +10,7 @@ namespace SIMPEngine
 {
     void GlowSystem::Render(entt::registry &registry)
     {
-        auto view = registry.view<GlowComponent, TransformComponent>();
+        auto view = registry.view<GlowComponent, TransformComponent>(entt::exclude<HiddenTag>);
         float spread = 0.0f;
         m_Visible.clear();
         for (auto entity : view)

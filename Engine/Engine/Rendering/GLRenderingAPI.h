@@ -41,6 +41,7 @@ namespace SIMPEngine
         void Flush() override;
 
         void BindRenderTarget(Framebuffer *target) override;
+        void SetScissor(bool enabled, int x, int y, int width, int height) override;
         Framebuffer *GetRenderTarget() const override { return m_Target; }
 
         void ResizeViewport(int width, int height) override;
@@ -83,6 +84,8 @@ namespace SIMPEngine
         glm::mat4 m_ViewMatrix = glm::mat4(1.0f);
 
         Framebuffer *m_Target = nullptr;
+        bool m_ScissorOn = false;
+        int m_ScissorRect[4] = {0, 0, 0, 0};
         int m_BackbufferWidth = 1920;
         int m_BackbufferHeight = 1080;
 

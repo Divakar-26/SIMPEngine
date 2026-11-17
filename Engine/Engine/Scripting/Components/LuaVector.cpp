@@ -35,6 +35,58 @@ namespace SIMPEngine::LuaBindings
             return path;
         }
 
+        int VectorContains(lua_State *L)
+        {
+            Entity *entity = CheckHandleEntity<VectorShapeComponent>(L, VectorMeta);
+            const float wx = Num(L, 2), wy = Num(L, 3);
+            bool inside = false;
+            {
+                auto &registry = entity->GetScene()->GetRegistry();
+                const auto &shape = registry.get<VectorShapeComponent>(entity->GetHandle());
+                if (const TransformComponent *pending = registry.try_get<TransformComponent>(entity->GetHandle()); pending && pending->dirty)
+                    entity->GetScene()->UpdateTransforms();
+                const TransformComponent *transform = registry.try_get<TransformComponent>(entity->GetHandle());
+                glm::vec2 local{wx, wy};
+                if (transform)
+                {
+                    const glm::vec4 p = glm::inverse(transform->worldTransform) * glm::vec4(wx, wy, 0.0f, 1.0f);
+                    local = {p.x, p.y};
+                }
+                std::vector<FlatContour> contours;
+                VectorShapes::Outline(shape, 0.5f, contours);
+                for (const FlatContour &contour : contours)
+                {
+                    const size_t n = contour.Points.size();
+                    if (n < 3)
+                        continue;
+                    bool in = false;
+                    for (size_t i = 0, j = n - 1; i < n; j = i++)
+                    {
+                        const glm::vec2 a = contour.Points[i], b = contour.Points[j];
+                        if (((a.y > local.y) != (b.y > local.y)) && (local.x < (b.x - a.x) * (local.y - a.y) / (b.y - a.y) + a.x))
+                            in = !in;
+                    }
+                    if (in)
+                        inside = !inside;
+                }
+                if (!inside && shape.stroke && !shape.fill)
+                {
+                    const float reach = shape.strokeWidth * 0.5f;
+                    for (const FlatContour &contour : contours)
+                        for (size_t i = 0; i + 1 < contour.Points.size() && !inside; ++i)
+                        {
+                            const glm::vec2 a = contour.Points[i], b = contour.Points[i + 1];
+                            const glm::vec2 ab = b - a;
+                            const float len2 = glm::dot(ab, ab);
+                            const float t = len2 > 0.0f ? std::clamp(glm::dot(local - a, ab) / len2, 0.0f, 1.0f) : 0.0f;
+                            inside = glm::length(local - (a + ab * t)) <= reach;
+                        }
+                }
+            }
+            lua_pushboolean(L, inside);
+            return 1;
+        }
+
         int VectorSetPath(lua_State *L)
         {
             VectorShapeComponent *v = Check(L);
@@ -203,6 +255,27 @@ namespace SIMPEngine::LuaBindings
             }
             lua_pushboolean(L, ok);
             return 1;
+        }
+
+        int VectorSetShadow(lua_State *L)
+        {
+            VectorShapeComponent *v = Check(L);
+            ReadRgba(L, 2, v->shadowColor);
+            v->shadowOffset = glm::vec2(static_cast<float>(luaL_optnumber(L, 3, 0.0)), static_cast<float>(luaL_optnumber(L, 4, -6.0)));
+            v->shadowBlur = std::max(0.0f, static_cast<float>(luaL_optnumber(L, 5, 8.0)));
+            return 0;
+        }
+
+        int VectorClearShadow(lua_State *L)
+        {
+            Check(L)->shadowColor.a = 0;
+            return 0;
+        }
+
+        int VectorSetFixedStroke(lua_State *L)
+        {
+            Check(L)->fixedStroke = lua_toboolean(L, 2) != 0;
+            return 0;
         }
 
         int VectorSetFill(lua_State *L)
@@ -406,6 +479,7 @@ namespace SIMPEngine::LuaBindings
             {"SetHeart", VectorSetHeart},
             {"SetSvg", VectorSetSvg},
             {"SetFill", VectorSetFill},
+            {"Contains", VectorContains},
             {"GetFill", VectorGetFill},
             {"SetFillEnabled", VectorSetFillEnabled},
             {"IsFillEnabled", VectorIsFillEnabled},
@@ -419,6 +493,9 @@ namespace SIMPEngine::LuaBindings
             {"SetJoin", VectorSetJoin},
             {"SetTrim", VectorSetTrim},
             {"GetTrim", VectorGetTrim},
+            {"SetShadow", VectorSetShadow},
+            {"ClearShadow", VectorClearShadow},
+            {"SetFixedStroke", VectorSetFixedStroke},
             {"SetDash", VectorSetDash},
             {"GetDash", VectorGetDash},
             {"SetGradient", VectorSetGradient},

@@ -203,6 +203,18 @@ namespace SIMPEngine::LuaBindings
         int MakeRect(lua_State *L)
         {
             const float w = Num(L, 1), h = Num(L, 2);
+            if (lua_type(L, 3) == LUA_TTABLE)
+            {
+                float c[4];
+                for (int i = 0; i < 4; ++i)
+                {
+                    lua_rawgeti(L, 3, i + 1);
+                    c[i] = lua_isnumber(L, -1) ? static_cast<float>(lua_tonumber(L, -1)) : 0.0f;
+                    lua_pop(L, 1);
+                }
+                PushPath(L, VectorPath::Rect(w, h, c[0], c[1], c[2], c[3]));
+                return 1;
+            }
             const float r = static_cast<float>(luaL_optnumber(L, 3, 0.0));
             PushPath(L, VectorPath::Rect(w, h, r));
             return 1;

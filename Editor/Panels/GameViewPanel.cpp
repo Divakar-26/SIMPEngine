@@ -153,7 +153,7 @@ namespace
 void GameViewPanel::DrawToolbar()
 {
     using namespace EditorUI;
-    ImGui::SetCursorPos(ImVec2(8.0f, 6.0f));
+    ImGui::SetCursorScreenPos(ImVec2(ImGui::GetWindowPos().x + 8.0f, ImGui::GetCursorScreenPos().y + 6.0f));
     ImGui::AlignTextToFramePadding();
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextDim);
     ImGui::TextUnformatted("Window");
@@ -193,7 +193,7 @@ void GameViewPanel::DrawCanvas(bool fullscreen)
     if (!fullscreen)
         DrawToolbar();
 
-    ImVec2 pos = fullscreen ? ImGui::GetCursorScreenPos() : ImVec2(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y + 36.0f);
+    ImVec2 pos = fullscreen ? ImGui::GetCursorScreenPos() : ImVec2(ImGui::GetWindowPos().x, ImGui::GetCursorScreenPos().y + 6.0f);
     pos = ImVec2(std::round(pos.x), std::round(pos.y));
     ImGui::SetCursorScreenPos(pos);
     ImVec2 area = ImVec2(ImGui::GetWindowPos().x + ImGui::GetWindowWidth() - pos.x, ImGui::GetWindowPos().y + ImGui::GetWindowHeight() - pos.y);

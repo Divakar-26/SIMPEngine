@@ -21,53 +21,9 @@ A 2D game engine and editor written from scratch in C++20 on SDL3 and OpenGL. It
 | ![Project hub](docs/images/editor-hub.png) | ![A Lua game running inside the editor](docs/images/editor-playing.png) |
 | *The project hub: recent projects, new projects from templates, guides* | *Play mode: the game runs in the Game tab while the inspector shows its live state* |
 
-![Mossveil open in the editor, 680 entities, particle inspector](docs/images/editor-mossveil.png)
-
-*Mossveil in the editor: the scene tree groups 680 entities (parallax layers, lights, particle effects, colliders) and the inspector edits a particle emitter while the game plays.*
-
 ![The built-in Lua script editor](docs/images/editor-script.png)
 
 *The built-in script editor: Lua highlighting, API-aware autocomplete, live syntax checking and VS Code themes.*
-
-## Mossveil
-
-**Mossveil** is a small three-level exploration game built only on the engine's public API: moss-edged terrain, parallax silhouettes, fog, fireflies, light shafts and a dash. Its last level is procedurally generated.
-
-![Mossveil — The Mossway](docs/images/mossveil-mossway.png)
-
-| | |
-|---|---|
-| ![Thornroot Depths](docs/images/mossveil-thornroot.png) | ![The Shifting Deep (procedural)](docs/images/mossveil-shifting-deep.png) |
-| *II · Thornroot Depths* | *III · The Shifting Deep — generated from a seed* |
-
-## Demos
-
-Each demo is a single Lua script running on the engine, drawn with vector shapes and animated with tweens.
-
-### Sudoku
-
-![Sudoku](docs/images/demo-sudoku.gif)
-
-Puzzles are generated on the spot with a unique solution (Easy, Medium, Hard). Your row, column, box and matching digits are highlighted, and the selection ring glides between cells. Digits pop in, mistakes shake in rose, finished rows, columns and boxes ripple sage, and a solved board sweeps and rains petals. Hints fill a cell for you. [`assets/scripts/sudoku/main.lua`](assets/scripts/sudoku/main.lua)
-
-### Untangle
-
-![Untangle](docs/images/demo-untangle.gif)
-
-Drag the dots until no lines cross. Each edge eases to rose while it crosses another, and the crossing count updates as you drag. Every level is a planar graph, so a solution always exists. **Show me** animates the dots into one, and each level is one size bigger. [`assets/scripts/untangle/main.lua`](assets/scripts/untangle/main.lua)
-
-### Arrow Out
-
-![Arrow Out](docs/images/demo-arrowout.gif)
-
-A board of line arrows packed into a heart. Tap an arrow and it slides out along its own path if nothing is in the way. Blocked arrows bump and flash, and each mistake costs a heart. The board is generated from a seed and always solvable. [`assets/scripts/arrowout/main.lua`](assets/scripts/arrowout/main.lua)
-
-| Run | |
-|---|---|
-| `./build/dev/Game/Sudoku` | `./build/dev/Game/Untangle` |
-| `./build/dev/Game/ArrowOut` | `./build/dev/Game/Logo` (the animated logo above) |
-
-The samples open in the editor; press **F5** to play.
 
 ## Features
 
@@ -99,16 +55,29 @@ The samples open in the editor; press **F5** to play.
 - Particle effect browser with live previews, tile palette, animation maker with automatic sprite-sheet slicing
 - Content browser, asset picker, console, profiler, three themes
 
-| | |
-|---|---|
-| ![Particle effect browser](docs/images/particle-picker.png) | ![Untangle solved](docs/images/untangle-solved.png) |
-| *Particle effect browser with live previews* | *Untangle, solved* |
+![Particle effect browser](docs/images/particle-picker.png)
+
+*Particle effect browser with live previews*
 
 ## Building
 
 Requirements: CMake 3.25+ (for the presets), Ninja, a C++20 compiler (tested with GCC 12 and Clang), and OpenGL 4.6 drivers. Linux is the tested platform.
 
-All third-party libraries are git submodules in `vendor/`, so clone recursively:
+All third-party libraries are git submodules in `vendor/` and are built from source. SDL3 on Linux additionally needs the system development packages for audio, windowing and input. On Debian/Ubuntu, install everything with:
+
+```sh
+sudo apt install build-essential git cmake ninja-build pkg-config \
+  libasound2-dev libpulse-dev libjack-dev libsndio-dev \
+  libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev libxtst-dev \
+  libwayland-dev libxkbcommon-dev libdecor-0-dev libdrm-dev libgbm-dev \
+  libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev libibus-1.0-dev libudev-dev
+```
+
+Debian 12 ships CMake 3.25. On older distributions install a newer CMake (for example `pip install cmake`).
+
+Build as a normal user (no `sudo`) in a folder on a Linux filesystem such as ext4. The build creates symlinks, so it fails on NTFS, exFAT and FAT drives (`failed to create symbolic link ... Operation not permitted`).
+
+Clone recursively:
 
 ```sh
 git clone --recursive https://github.com/Divakar-26/SIMPEngine.git
@@ -137,26 +106,12 @@ Start the editor:
 
 It opens the project hub. Create a project from the Platformer template, press F5 to play it, then **Project > Build Game** (Ctrl+B) to make a standalone copy. [docs/SHIPPING.md](docs/SHIPPING.md) covers projects, builds and packaging.
 
-The sample games are separate executables:
-
-```sh
-./build/dev/Game/GameApp      # Mossveil, with the editor
-./build/dev/Game/ArrowOut     # line puzzle
-./build/dev/Game/Snake        # Glowworm
-./build/dev/Game/Playground   # curves and morphing
-./build/dev/Game/Sudoku       # Sudoku demo
-./build/dev/Game/Untangle     # Untangle demo
-./build/dev/Game/Logo         # the animated logo at the top of this page
-```
-
 ### Packaging the engine
 
 ```sh
 cmake --preset release && cmake --build --preset release
 cpack --config build/release/CPackConfig.cmake      # SIMPEngine-1.0.0-Linux.tar.gz
 ```
-
-Configure with `-DNO_EDITOR=ON` to build the game without the editor.
 
 ### Install as a library
 
@@ -174,20 +129,6 @@ target_link_libraries(MyGame PRIVATE SIMPEngine::Engine)
 ```
 
 The full walkthrough, including the project layout and VS Code autocomplete, is in [docs/USING_THE_LIBRARY.md](docs/USING_THE_LIBRARY.md). The editor is not part of the installed library.
-
-## Playing Mossveil
-
-Press **Play** (F5) in the editor, or build with `NO_EDITOR`.
-
-| Key | Action |
-|---|---|
-| A / D or ← / → | Walk |
-| Space / W / ↑ | Jump (hold for higher) |
-| Shift / K / X | Dash (unlocked in level II) |
-| S / ↓ | Drop through a platform |
-| R | Restart the level |
-| N | New seed for The Shifting Deep |
-| 1 / 2 / 3 | Jump to a level |
 
 ## Documentation
 
@@ -208,14 +149,13 @@ Press **Play** (F5) in the editor, or build with `NO_EDITOR`.
 | `Engine/Engine/` | Engine library (`#include <Engine/...>`) |
 | `Editor/` | Editor library: layer, panels, commands, undo, UI kit |
 | `Apps/` | `SIMPEditor` (project hub + editor) and `SIMPPlayer` (runtime for shipped games) |
-| `Game/` | Sample executables: Mossveil (`GameApp`), Arrow Out, Glowworm (`Snake`), Playground, Sudoku, Untangle, the animated logo (`Logo`) |
 | `assets/` | Runtime data, addressed as `assets://...` |
 | `docs/` | Guides and screenshots |
 | `vendor/` | Third-party code (SDL3, SDL_image, ImGui, ImGuizmo, EnTT, GLM, glad, spdlog, yaml-cpp, nlohmann/json, nanosvg, stb, AccelEngine) |
 
 ## Credits
 
-Mossveil's art comes from freely licensed pixel-art packs (a mossy cavern tileset, a blue wizard character and animated plants); see `assets/mossveil/SOURCE.txt`. The Knight Run sample uses the CC0 Brackeys platformer pack (`assets/platformer/LICENSE.txt`). UI fonts: Inter (OFL) and JetBrains Mono; icons: Lucide (ISC).
+UI fonts: Inter (OFL) and JetBrains Mono; icons: Lucide (ISC).
 
 ## License
 

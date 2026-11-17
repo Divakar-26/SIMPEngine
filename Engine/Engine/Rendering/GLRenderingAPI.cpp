@@ -392,9 +392,31 @@ namespace SIMPEngine
         Flush();
     }
 
+    void GLRenderingAPI::SetScissor(bool enabled, int x, int y, int width, int height)
+    {
+        const int rect[4] = {x, y, width, height};
+        if (enabled == m_ScissorOn && (!enabled || std::equal(rect, rect + 4, m_ScissorRect)))
+            return;
+        Flush();
+        std::copy(rect, rect + 4, m_ScissorRect);
+        if (enabled)
+        {
+            glEnable(GL_SCISSOR_TEST);
+            glScissor(x, y, std::max(width, 0), std::max(height, 0));
+        }
+        else if (m_ScissorOn)
+            glDisable(GL_SCISSOR_TEST);
+        m_ScissorOn = enabled;
+    }
+
     void GLRenderingAPI::BindRenderTarget(Framebuffer *target)
     {
         Flush();
+        if (m_ScissorOn)
+        {
+            glDisable(GL_SCISSOR_TEST);
+            m_ScissorOn = false;
+        }
         m_Target = target;
 
         if (target)

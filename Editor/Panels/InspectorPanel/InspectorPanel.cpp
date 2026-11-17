@@ -288,6 +288,13 @@ void InspectorPanel::DrawCoreComponents(SIMPEngine::Entity &entity)
             col.offsetY = offset[1];
         } });
 
+    DrawComponentSection<ClipComponent>(ctx, "Clip Area", entity, [](ClipComponent &clip)
+                                        {
+        PropertyVec2("Size", &clip.size.x, 1.0f, "%.0f");
+        ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+        ImGui::TextWrapped("Children of this entity are only drawn inside this box, centred on it.");
+        ImGui::PopStyleColor(); });
+
     DrawComponentSection<LifetimeComponent>(ctx, "Lifetime", entity, [](LifetimeComponent &lf)
                                             { PropertyFloat("Remaining", &lf.remaining, 0.1f, 0.0f, 10000.0f, "%.1f s"); });
 
@@ -314,15 +321,24 @@ void InspectorPanel::DrawAddComponentButton(SIMPEngine::Entity &entity)
         ImGui::OpenPopup("##addcomponent");
     }
 
-    ImVec2 min = ImGui::GetItemRectMin();
-    ImGui::SetNextWindowPos(ImVec2(min.x, ImGui::GetItemRectMax().y + 2.0f), ImGuiCond_Appearing);
+    const ImVec2 min = ImGui::GetItemRectMin();
+    const ImVec2 max = ImGui::GetItemRectMax();
+    const float maxHeight = ImGui::GetFontSize() * 26.0f;
+    const ImGuiViewport *viewport = ImGui::GetMainViewport();
+    const float below = viewport->WorkPos.y + viewport->WorkSize.y - max.y;
+    const bool above = below < maxHeight && min.y - viewport->WorkPos.y > below;
+    ImGui::SetNextWindowPos(ImVec2(min.x, above ? min.y - 2.0f : max.y + 2.0f), ImGuiCond_Appearing, ImVec2(0.0f, above ? 1.0f : 0.0f));
     ImGui::SetNextWindowSize(ImVec2(ImGui::GetItemRectSize().x, 0.0f), ImGuiCond_Appearing);
-    if (ImGui::BeginPopup("##addcomponent"))
+    ImGui::SetNextWindowSizeConstraints(ImVec2(0.0f, 0.0f), ImVec2(FLT_MAX, std::min(maxHeight, std::max(above ? min.y - viewport->WorkPos.y : below, 120.0f) - 8.0f)));
+    if (BeginPopup("##addcomponent"))
     {
         if (ImGui::IsWindowAppearing())
             ImGui::SetKeyboardFocusHere();
-        SearchBox("##filter", m_ComponentFilter, sizeof(m_ComponentFilter), "Search");
-        DrawAddComponentItems(*m_Context, entity, m_ComponentFilter);
-        ImGui::EndPopup();
+        if (SearchBox("##filter", m_ComponentFilter, sizeof(m_ComponentFilter), "Search components"))
+            m_ComponentHighlight = 0;
+        ImGui::Dummy(ImVec2(0.0f, 2.0f));
+        if (DrawAddComponentItems(*m_Context, entity, m_ComponentFilter, &m_ComponentHighlight))
+            ImGui::CloseCurrentPopup();
+        EndPopup();
     }
 }

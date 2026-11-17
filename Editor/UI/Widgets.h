@@ -45,7 +45,8 @@ namespace EditorUI
     void VerticalSeparator(float height = 0.0f);
     void IconText(const char *icon, const ImVec4 &iconColor, const char *text);
     void TextEllipsis(const char *text, const ImVec4 *color = nullptr, bool middle = true);
-    bool IconMenuItem(const char *icon, const ImVec4 &iconColor, const char *label);
+    bool IconMenuItem(const char *icon, const ImVec4 &iconColor, const char *label, bool selected = false, const char *hint = nullptr);
+    int FuzzyScore(const char *text, const char *query);
 
     struct TreeRowOptions
     {
@@ -56,6 +57,7 @@ namespace EditorUI
         bool Highlight = false;
         bool HideLabel = false;
         const char *Trailing = nullptr;
+        int Eye = -1;
     };
 
     struct TreeRowResult
@@ -65,6 +67,7 @@ namespace EditorUI
         bool DoubleClicked = false;
         bool Hovered = false;
         bool Toggled = false;
+        bool EyeToggled = false;
         ImVec2 LabelMin;
         ImVec2 LabelMax;
     };
@@ -72,7 +75,7 @@ namespace EditorUI
     TreeRowResult TreeRow(const char *id, const char *icon, const ImVec4 &iconColor, const char *label, const TreeRowOptions &options = {});
     void TreeRowPop();
 
-    bool BeginSection(const char *id, const char *title, bool *removeRequested = nullptr, bool defaultOpen = true);
+    bool BeginSection(const char *id, const char *title, bool *removeRequested = nullptr, bool defaultOpen = true, const char *icon = nullptr, const ImVec4 *iconColor = nullptr);
     void EndSection();
 
     void PropertyLabel(const char *label);
@@ -106,6 +109,12 @@ namespace EditorUI
     void DrawCheckerboard(ImDrawList *drawList, const ImVec2 &min, const ImVec2 &max, float cell = 8.0f);
     void DrawImageFit(ImDrawList *drawList, ImTextureID texture, const ImVec2 &textureSize, const ImVec2 &min, const ImVec2 &max, float rounding = 0.0f);
 
+    bool NavItem(const char *label, bool selected, float height = 0.0f);
+    bool BeginPopup(const char *id, ImGuiWindowFlags flags = 0);
+    bool BeginContextMenu(const char *id = nullptr, ImGuiPopupFlags flags = ImGuiPopupFlags_MouseButtonRight);
+    void EndPopup();
+    void PushPopupStyle();
+    void PopPopupStyle();
     bool BeginModal(const char *title, bool *open, const ImVec2 &size = ImVec2(0, 0));
     void EndModal();
 

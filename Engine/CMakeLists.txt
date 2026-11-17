@@ -65,6 +65,7 @@ add_library(Engine STATIC
     Engine/Scene/Systems/HealthSystem.cpp
     Engine/Animation/Curves.cpp
     Engine/Animation/EffectPresets.cpp
+    Engine/Animation/MotionPresets.cpp
     Engine/Motion/MotionHost.cpp
     Engine/Animation/Tween.cpp
     Engine/Vector/VectorPath.cpp
@@ -105,6 +106,7 @@ add_library(Engine STATIC
     Engine/Scripting/LuaDraw.cpp
     Engine/Scripting/LuaColor.cpp
     Engine/Scripting/LuaEffects.cpp
+    Engine/Scripting/LuaMotion.cpp
     Engine/Scripting/LuaPrelude.cpp
     Engine/Scripting/Components/LuaVector.cpp
     Engine/Scripting/Components/LuaComponents.cpp
@@ -164,6 +166,9 @@ if(NOT SIMP_PROFILER)
     target_compile_definitions(Engine PUBLIC $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:ENGINE_PROFILER_DISABLED>)
 endif()
 target_precompile_headers(Engine PRIVATE Engine/PCH.h)
+set_source_files_properties(Engine/Animation/MotionPresets.cpp Engine/Animation/EffectPresets.cpp PROPERTIES
+    COMPILE_OPTIONS "$<$<NOT:$<CONFIG:Debug>>:$<IF:$<CXX_COMPILER_ID:MSVC>,/O1,-Os>>"
+    SKIP_PRECOMPILE_HEADERS ON)
 
 if(NOT ANDROID)
     target_link_libraries(Engine PUBLIC SDL3_image::SDL3_image)

@@ -30,7 +30,7 @@ namespace SIMPEngine
     {
         VectorShapeCache &CacheOf(const VectorShapeComponent &shape);
         void Outline(const VectorShapeComponent &shape, float tolerance, std::vector<FlatContour> &out);
-        const VectorMesh &LocalMesh(const VectorShapeComponent &shape, float tolerance, float aa);
+        const VectorMesh &LocalMesh(const VectorShapeComponent &shape, float tolerance, float aa, float strokeScale = 1.0f);
         void Draw(const VectorShapeComponent &shape, const glm::vec2 &position, float rotationDegrees, const glm::vec2 &scale, float zIndex);
         void DrawPath(const VectorPath &path, const glm::vec2 &position, float rotationDegrees, const glm::vec2 &scale, float zIndex,
                       bool fill, const glm::vec4 &fillColor, bool stroke, const glm::vec4 &strokeColor, const StrokeStyle &style,

@@ -145,6 +145,20 @@ namespace SIMPEngine::LuaBindings
             return 0;
         }
 
+        int DrawClip(lua_State *L)
+        {
+            Require(L);
+            Renderer::SetClipWorld(Num(L, 1), Num(L, 2), Num(L, 3), Num(L, 4));
+            return 0;
+        }
+
+        int DrawClearClip(lua_State *L)
+        {
+            Require(L);
+            Renderer::ClearClip();
+            return 0;
+        }
+
         int DrawRect(lua_State *L)
         {
             Require(L);
@@ -308,8 +322,33 @@ namespace SIMPEngine::LuaBindings
             SDL_Color color{255, 255, 255, 255};
             const char *align = "left";
             bool middle = middleByDefault;
+            std::string fontPath;
+            float rotation = 0.0f;
+            bool outline = false;
+            float outlineWidth = 2.0f;
+            SDL_Color outlineColor{0, 0, 0, 255};
             if (lua_type(L, 4) == LUA_TTABLE)
             {
+                lua_getfield(L, 4, "font");
+                if (lua_isstring(L, -1))
+                    fontPath = lua_tostring(L, -1);
+                lua_pop(L, 1);
+                lua_getfield(L, 4, "rotation");
+                if (lua_isnumber(L, -1))
+                    rotation = static_cast<float>(lua_tonumber(L, -1));
+                lua_pop(L, 1);
+                lua_getfield(L, 4, "outlineWidth");
+                if (lua_isnumber(L, -1))
+                    outlineWidth = static_cast<float>(lua_tonumber(L, -1));
+                lua_pop(L, 1);
+                lua_getfield(L, 4, "outline");
+                if (!lua_isnil(L, -1))
+                {
+                    if (!ReadColorValue(L, -1, outlineColor))
+                        return luaL_error(L, "Draw.Text: bad outline color (names: %s)", ColorNameList());
+                    outline = true;
+                }
+                lua_pop(L, 1);
                 lua_getfield(L, 4, "size");
                 if (lua_isnumber(L, -1))
                     size = static_cast<float>(lua_tonumber(L, -1));
@@ -341,7 +380,18 @@ namespace SIMPEngine::LuaBindings
                 a = TextAlign::Center;
             else if (std::strcmp(align, "right") == 0)
                 a = TextAlign::Right;
-            Renderer::DrawText(std::string(text, length), x, y + (middle ? size * 0.52f : 0.0f), size, color, a, 0.0f, s_Z);
+            {
+                std::shared_ptr<Font> font = fontPath.empty() ? nullptr : Font::Load(fontPath);
+                const std::string content(text, length);
+                const float baseY = y + (middle ? size * 0.52f : 0.0f);
+                if (outline)
+                    for (int i = 0; i < 8; ++i)
+                    {
+                        const float angle = static_cast<float>(i) * 0.7853982f;
+                        Renderer::DrawText(content, x + std::cos(angle) * outlineWidth, baseY + std::sin(angle) * outlineWidth, size, outlineColor, a, rotation, s_Z - 0.001f, font.get());
+                    }
+                Renderer::DrawText(content, x, baseY, size, color, a, rotation, s_Z, font.get());
+            }
             return 0;
         }
 
@@ -437,6 +487,8 @@ namespace SIMPEngine::LuaBindings
             {"Circle", DrawCircle},
             {"Ring", DrawRing},
             {"Rect", DrawRect},
+            {"Clip", DrawClip},
+            {"ClearClip", DrawClearClip},
             {"RoundRect", DrawRoundRect},
             {"Polyline", DrawPolyline},
             {"Polygon", DrawPolygon},

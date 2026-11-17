@@ -1,5 +1,7 @@
 #pragma once
 
+#include "MotionPreview.h"
+
 #include <EditorPanel.h>
 
 #include <Engine/Animation/Curves.h>
@@ -64,6 +66,11 @@ private:
 
     void CodeBlock(const char *title, const char *id, std::string &code, float height);
 
+    void DrawMotion();
+    bool DrawMotionCard(int index, bool selected, float dt);
+    void DrawMotionDetail(float dt);
+    void ReleaseIdlePreviews();
+
     bool m_Visible = false;
     std::unique_ptr<SIMPEngine::Scene> m_Scene;
     std::vector<Preview> m_Previews;
@@ -87,6 +94,15 @@ private:
     int m_SelectedCurve = 0;
     char m_CurveSearch[64] = {};
     float m_CurveSeconds = 0.6f;
+
+    std::vector<std::unique_ptr<MotionPreview>> m_MotionCards;
+    MotionPreview m_MotionDetail;
+    std::vector<double> m_MotionSeen;
+    double m_MotionDetailSeen = 0.0;
+    int m_MotionSelected = 0;
+    int m_MotionCategory = 0;
+    char m_MotionSearch[64] = {};
+    std::string m_MotionCode;
 
     std::string m_Toast;
     float m_ToastTime = 0.0f;

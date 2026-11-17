@@ -216,6 +216,149 @@ setmetatable(Effect, {
     end
 })
 
+local motionCache = {}
+setmetatable(Motion, {
+    __index = function(_, key)
+        local name = tostring(key)
+        local fn = motionCache[name]
+        if fn == nil then
+            local info = Motion.Info(name)
+            if info == nil then
+                error("Motion: unknown preset '" .. name .. "'" .. Suggest.Hint(name, Motion.Names()) .. " (see Motion.Names())", 2)
+            end
+            local play, input = Motion.Play, info.input
+            fn = function(a, b, c)
+                local opts, extra = {}, nil
+                local ta = type(a)
+                if ta == "number" then
+                    opts.x, opts.y, extra = a, b, c
+                elseif ta == "string" then
+                    opts.text, extra = a, b
+                elseif ta == "function" then
+                    opts.fn, extra = a, b
+                elseif ta == "table" and a[1] ~= nil then
+                    if input == "values" and type(a[1]) == "number" then opts.values = a else opts.points = a end
+                    extra = b
+                else
+                    extra = a
+                end
+                if type(extra) == "table" then
+                    for k, v in pairs(extra) do
+                        if opts[k] == nil then opts[k] = v end
+                    end
+                end
+                return play(name, opts)
+            end
+            motionCache[name] = fn
+        end
+        return fn
+    end
+})
+
+local rawSpawn = Scene.Spawn
+local spawnKeys = {"name", "x", "y", "z", "rotation", "scale", "parent", "shape", "size", "radius", "w", "h", "corner", "sides", "points",
+    "color", "fill", "stroke", "strokeWidth", "sprite", "text", "fontSize", "align", "glow", "glowColor", "body", "mass", "bounce",
+    "friction", "sensor", "script", "light", "lightRadius"}
+local spawnKnown = {}
+for _, k in ipairs(spawnKeys) do spawnKnown[k] = true end
+
+local function spawnShape(v, s)
+    local kind, size = s.shape, s.size or 32
+    if type(kind) == "userdata" then
+        v:SetPath(kind)
+    elseif kind == "circle" then
+        v:SetCircle(s.radius or size)
+    elseif kind == "rect" or kind == "box" or kind == "square" then
+        v:SetRect(s.w or size * 2, s.h or s.w or size * 2, s.corner or 0)
+    elseif kind == "star" then
+        v:SetStar(s.sides or 5, size, size * 0.5)
+    elseif kind == "heart" then
+        v:SetHeart(size * 2)
+    elseif kind == "triangle" or kind == "hexagon" or kind == "polygon" then
+        v:SetPolygon(s.sides or (kind == "triangle" and 3 or 6), size)
+    elseif kind == "line" or kind == "points" then
+        v:SetPath(Path.Points(s.points or {}, kind == "points"))
+    else
+        error("Scene.Spawn: unknown shape '" .. tostring(kind) .. "'" .. Suggest.Hint(tostring(kind), {"circle", "rect", "square", "star", "heart", "triangle", "hexagon", "polygon", "line", "points"}) .. " (or pass a Path)", 3)
+    end
+    if kind == "line" then
+        v:SetFillEnabled(false)
+        v:SetStroke(s.stroke or s.color or "white")
+        v:SetStrokeWidth(s.strokeWidth or 4)
+        return
+    end
+    if s.fill == false then v:SetFillEnabled(false) else v:SetFill(s.fill or s.color or "#5cd4d6") end
+    if s.stroke then
+        v:SetStroke(s.stroke)
+        v:SetStrokeWidth(s.strokeWidth or 3)
+    end
+end
+
+local function spawnBody(e, s)
+    local b = e:Add("Body")
+    local mass = s.body == "static" and 0 or (s.mass or 1)
+    local kind, size = s.shape, s.size or 32
+    if kind == "circle" then
+        b:CreateCircle(s.radius or size, mass)
+    elseif kind == "triangle" or kind == "hexagon" or kind == "polygon" or kind == "star" then
+        b:CreatePolygon(s.sides or (kind == "triangle" and 3 or 6), size, mass)
+    elseif kind == "points" and s.points then
+        b:CreatePoints(s.points, 0, mass)
+    else
+        b:CreateBox(s.w or size * 2, s.h or s.w or size * 2, mass)
+    end
+    if s.bounce then b:SetBounce(s.bounce) end
+    if s.friction then b:SetFriction(s.friction) end
+    if s.sensor then b:SetSensor(true) end
+    return b
+end
+
+function Scene.Spawn(name, x, y, parent)
+    if type(name) ~= "table" then
+        return rawSpawn(name, x, y, parent)
+    end
+    local s = name
+    for k in pairs(s) do
+        if not spawnKnown[k] then
+            error("Scene.Spawn: unknown key '" .. tostring(k) .. "'" .. Suggest.Hint(tostring(k), spawnKeys) .. " (keys: " .. table.concat(spawnKeys, ", ") .. ")", 2)
+        end
+    end
+    local e = rawSpawn(s.name or "Entity", s.x or 0, s.y or 0, s.parent)
+    if s.z then e:SetZIndex(s.z) end
+    if s.rotation then e:SetRotation(s.rotation) end
+    if s.scale then
+        if type(s.scale) == "table" then e:SetScale(s.scale[1], s.scale[2]) else e:SetScale(s.scale) end
+    end
+    if s.shape then spawnShape(e:Add("Vector"), s) end
+    if s.sprite then
+        local sp = e:Add("Sprite")
+        sp:SetTexture(s.sprite, s.w ~= nil)
+        if s.w then sp:SetSize(s.w, s.h or s.w) end
+        if s.color and not s.shape then sp:SetTint(s.color) end
+    end
+    if s.text then
+        local t = e:Add("Text")
+        t:SetText(tostring(s.text))
+        if s.fontSize then t:SetFontSize(s.fontSize) end
+        if s.align then t:SetAlign(s.align) end
+        if s.color and not s.shape then t:SetColor(s.color) end
+    end
+    if s.glow then
+        local g = e:Add("Glow")
+        if type(s.glow) == "number" then g:SetIntensity(s.glow) end
+        g:SetColor(s.glowColor or s.color or "white")
+    end
+    if s.light then
+        local l = e:Add("Light")
+        if type(s.light) == "number" then l:SetIntensity(s.light) end
+        if s.lightRadius then l:SetRadius(s.lightRadius) end
+        l:SetColor(s.color or "white")
+    end
+    if s.body then spawnBody(e, s) end
+    if s.script then e:SetScript(s.script) end
+    return e
+end
+
 Backdrop = {}
 
 function Backdrop.Fill(cx, cy, zoom, color)
@@ -245,6 +388,73 @@ function Backdrop.Grid(cx, cy, zoom, o)
         Draw.Line(cx - halfWidth, y, cx + halfWidth, y, width, isMajor and majorColor or minorColor)
         y = y + step
     end
+end
+
+Pointer = {}
+Pointer.__index = Pointer
+
+function Pointer.New(entity, options)
+    options = options or {}
+    return setmetatable({
+        entity = entity,
+        tapDistance = options.tapDistance or 14,
+        tapTime = options.tapTime or 0.35,
+        button = options.button or 1,
+        x = 0, y = 0, dx = 0, dy = 0, vx = 0, vy = 0,
+        startX = 0, startY = 0, travel = 0, heldTime = 0,
+        down = false, pressed = false, released = false, moved = false,
+        dragging = false, tap = false, captured = nil,
+    }, Pointer)
+end
+
+function Pointer:Update(dt)
+    local down = Input.IsMouseDown(self.button)
+    local x, y = self.entity:GetMouseWorld()
+    self.pressed = down and not self.down
+    self.released = self.down and not down
+    self.tap = false
+    self.dx, self.dy = 0, 0
+    if self.pressed then
+        self.startX, self.startY = x, y
+        self.travel, self.heldTime = 0, 0
+        self.vx, self.vy = 0, 0
+        self.dragging = false
+        self.captured = nil
+    elseif down then
+        self.dx, self.dy = x - self.x, y - self.y
+        self.travel = math.max(self.travel, math.sqrt((x - self.startX) ^ 2 + (y - self.startY) ^ 2))
+        self.heldTime = self.heldTime + (dt or 0)
+        if dt and dt > 0 then
+            local k = math.min(1, dt * 20)
+            self.vx = self.vx + (self.dx / dt - self.vx) * k
+            self.vy = self.vy + (self.dy / dt - self.vy) * k
+        end
+        if not self.dragging and self.travel > self.tapDistance then self.dragging = true end
+    end
+    if self.released then
+        self.tap = not self.dragging and self.heldTime <= self.tapTime
+        self.dragging = false
+    end
+    self.moved = self.dx ~= 0 or self.dy ~= 0
+    self.down = down
+    self.x, self.y = x, y
+    return self
+end
+
+function Pointer:Capture(target)
+    self.captured = target
+end
+
+function Pointer:Release()
+    self.captured = nil
+end
+
+function Pointer:IsCaptured(target)
+    return self.captured == target
+end
+
+function Pointer:Inside(cx, cy, w, h)
+    return math.abs(self.x - cx) <= w * 0.5 and math.abs(self.y - cy) <= h * 0.5
 end
 
 local easeCache = {}

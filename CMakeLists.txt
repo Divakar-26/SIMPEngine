@@ -99,7 +99,6 @@ if(ANDROID)
     add_subdirectory(Android/native)
 else()
     add_subdirectory(Editor)
-    add_subdirectory(Game)
     add_subdirectory(Apps)
 
     option(SIMP_BUILD_TESTS "Build the SIMPTests executable" ON)

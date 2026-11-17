@@ -25,6 +25,7 @@ namespace SIMPEngine
         bool Maximized = false;
         bool Borderless = false;
         bool VSync = true;
+        bool Hidden = false;
     };
 
     class Application

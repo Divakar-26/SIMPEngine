@@ -1,5 +1,8 @@
 #include "LuaContext.h"
 
+#include <Engine/Animation/EffectPresets.h>
+#include <Engine/Animation/MotionPresets.h>
+
 #include <Engine/Animation/Curves.h>
 
 #include <algorithm>
@@ -567,6 +570,50 @@ namespace ScriptEditor
         }
     }
 
+    const Signature *PresetSignature(const std::string &callee)
+    {
+        static std::unordered_map<std::string, Signature> cache;
+        if (auto it = cache.find(callee); it != cache.end())
+            return &it->second;
+        Signature sig;
+        sig.Callee = callee;
+        if (callee.rfind("Motion.", 0) == 0)
+        {
+            const SIMPEngine::MotionPreset *preset = SIMPEngine::MotionPresets::Find(callee.substr(7));
+            if (!preset)
+                return nullptr;
+            switch (preset->Input)
+            {
+            case SIMPEngine::MotionInput::Points:
+                sig.Params = {"points", "options?"};
+                break;
+            case SIMPEngine::MotionInput::Values:
+                sig.Params = {"values", "options?"};
+                break;
+            case SIMPEngine::MotionInput::Text:
+                sig.Params = {"text", "options?"};
+                break;
+            default:
+                sig.Params = {"x", "y", "options?"};
+                break;
+            }
+            sig.Summary = preset->Description;
+        }
+        else if (callee.rfind("Effect.", 0) == 0 && callee.size() > 7)
+        {
+            std::string name = callee.substr(7);
+            name[0] = static_cast<char>(std::tolower(static_cast<unsigned char>(name[0])));
+            const SIMPEngine::EffectPreset *preset = SIMPEngine::EffectPresets::Find(name);
+            if (!preset)
+                return nullptr;
+            sig.Params = {"target", "options?"};
+            sig.Summary = preset->Description;
+        }
+        else
+            return nullptr;
+        return &cache.emplace(callee, std::move(sig)).first->second;
+    }
+
     const Signature *FindSignature(const std::string &callee, const std::string &receiverType)
     {
         static const std::vector<Signature> signatures = BuildSignatures();
@@ -584,6 +631,8 @@ namespace ScriptEditor
 
         if (callee[0] != ':')
         {
+            if (const Signature *preset = PresetSignature(callee))
+                return preset;
             auto it = index.Exact.find(callee);
             if (it == index.Exact.end())
                 return nullptr;

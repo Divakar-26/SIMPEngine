@@ -77,6 +77,7 @@ namespace SIMPEngine
         virtual void Submit(const Primitive &primitive) = 0;
         virtual void SubmitMesh(const glm::vec2 *positions, const glm::vec4 *colors, const uint32_t *indices, size_t indexCount, float z, BlendMode blend) = 0;
         virtual void Flush() = 0;
+        virtual void SetScissor(bool enabled, int x, int y, int width, int height) = 0;
 
         virtual void BindRenderTarget(Framebuffer *target) = 0;
         virtual Framebuffer *GetRenderTarget() const = 0;

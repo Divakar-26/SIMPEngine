@@ -99,7 +99,7 @@ namespace
         using namespace EditorUI;
         ImGuiWindow *window = ImGui::GetCurrentWindow();
         const ImVec2 pos = window->DC.CursorPos;
-        const float h = 30.0f;
+        const float h = 34.0f;
         const ImRect bb(pos, ImVec2(pos.x + width, pos.y + h));
         const ImGuiID id = window->GetID(label);
         ImGui::ItemSize(bb);
@@ -108,12 +108,17 @@ namespace
         bool hovered = false, held = false;
         const bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
         ImDrawList *dl = window->DrawList;
-        if (selected || hovered)
-            dl->AddRectFilled(bb.Min, bb.Max, U32(selected ? Colors::Selection : Colors::Hover), Metrics::FrameRounding);
+        if (selected)
+        {
+            dl->AddRectFilled(bb.Min, bb.Max, U32(Colors::Accent, 0.2f), 7.0f);
+            dl->AddRectFilled(ImVec2(bb.Min.x, bb.Min.y + 6.0f), ImVec2(bb.Min.x + 3.0f, bb.Max.y - 6.0f), U32(Colors::Accent), 2.0f);
+        }
+        else if (hovered)
+            dl->AddRectFilled(bb.Min, bb.Max, U32(Colors::Hover), 7.0f);
         const float fs = ImGui::GetFontSize();
         const float cy = bb.GetCenter().y;
-        dl->AddText(ImVec2(bb.Min.x + 10.0f, std::floor(cy - fs * 0.5f)), U32(selected ? Colors::Text : Colors::TextDim), icon);
-        dl->AddText(ImVec2(bb.Min.x + 34.0f, std::floor(cy - fs * 0.5f)), U32(selected ? Colors::Text : Colors::TextDim), label);
+        dl->AddText(ImVec2(bb.Min.x + 16.0f, std::floor(cy - fs * 0.5f)), U32(selected ? Colors::Accent : Colors::TextDim), icon);
+        dl->AddText(ImVec2(bb.Min.x + 42.0f, std::floor(cy - fs * 0.5f)), U32(selected ? Colors::Text : Colors::TextDim), label);
         return pressed;
     }
 }
@@ -250,22 +255,28 @@ void ProjectHubLayer::DrawSidebar(float width, float height)
     ImGui::PopStyleVar();
 
     ImDrawList *dl = ImGui::GetWindowDrawList();
+    const float k = ImGui::GetFontSize() / Metrics::FontSize;
     const ImVec2 logo = ImGui::GetCursorScreenPos();
-    dl->AddRectFilled(ImVec2(logo.x + 4, logo.y), ImVec2(logo.x + 38, logo.y + 34), U32(Colors::Accent), 8.0f);
+    const float box = std::floor(34.0f * k);
+    dl->AddRectFilled(ImVec2(logo.x + 4, logo.y), ImVec2(logo.x + 4 + box, logo.y + box), U32(Colors::Accent), 8.0f * k);
     ImGui::PushFont(GetFont(FontRole::Strong), 20.0f);
     const ImVec2 letter = ImGui::CalcTextSize("S");
-    dl->AddText(ImVec2(std::floor(logo.x + 21 - letter.x * 0.5f), std::floor(logo.y + 17 - letter.y * 0.5f)), U32(Colors::TextOnAccent), "S");
+    dl->AddText(ImVec2(std::floor(logo.x + 4 + (box - letter.x) * 0.5f), std::floor(logo.y + (box - letter.y) * 0.5f)), U32(Colors::TextOnAccent), "S");
     ImGui::PopFont();
 
-    ImGui::SetCursorScreenPos(ImVec2(logo.x + 48, logo.y - 1));
+    const float textX = logo.x + 4 + box + 10.0f * k;
     ImGui::PushFont(GetFont(FontRole::Strong), 17.0f);
+    const float titleH = ImGui::GetFontSize();
+    ImGui::SetCursorScreenPos(ImVec2(textX, std::floor(logo.y + box * 0.5f - titleH * 0.95f)));
     ImGui::TextUnformatted(SIMPEngine::EngineName);
     ImGui::PopFont();
-    ImGui::SetCursorScreenPos(ImVec2(logo.x + 48, logo.y + 20));
+    ImGui::SetCursorScreenPos(ImVec2(textX, std::floor(logo.y + box * 0.5f + 1.0f)));
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
+    ImGui::PushFont(nullptr, 12.0f);
     ImGui::Text("Version %s", SIMPEngine::EngineVersion);
+    ImGui::PopFont();
     ImGui::PopStyleColor();
-    ImGui::SetCursorScreenPos(ImVec2(logo.x, logo.y + 58));
+    ImGui::SetCursorScreenPos(ImVec2(logo.x, logo.y + box + 22.0f * k));
 
     const float itemW = ImGui::GetContentRegionAvail().x;
     if (NavItem(ICON_LC_FOLDER_OPEN, "Projects", m_Page == Page::Projects, itemW))
@@ -273,7 +284,7 @@ void ProjectHubLayer::DrawSidebar(float width, float height)
     if (NavItem(ICON_LC_BOOK_OPEN, "Learn", m_Page == Page::Learn, itemW))
         m_Page = Page::Learn;
 
-    const float footer = ImGui::GetWindowHeight() - 54.0f;
+    const float footer = ImGui::GetWindowHeight() - ImGui::GetTextLineHeightWithSpacing() * 2.0f - 22.0f;
     if (ImGui::GetCursorPosY() < footer)
         ImGui::SetCursorPosY(footer);
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
@@ -319,8 +330,9 @@ void ProjectHubLayer::DrawProjects()
         return;
     }
 
-    ImGui::PushStyleColor(ImGuiCol_ChildBg, Colors::Window);
-    ImGui::BeginChild("##projectlist", ImVec2(0, 0), ImGuiChildFlags_Borders);
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0));
+    ImGui::BeginChild("##projectlist", ImVec2(0, 0), ImGuiChildFlags_None);
+    ImGui::Dummy(ImVec2(0.0f, 2.0f));
     int shown = 0;
     int removeIndex = -1;
     for (int i = 0; i < static_cast<int>(entries.size()); ++i)
@@ -332,7 +344,7 @@ void ProjectHubLayer::DrawProjects()
         const bool missing = !fs::is_regular_file(fs::path(project.Path) / SIMPEngine::Project::FileName, ec);
         ImGui::PushID(i);
         DrawProjectRow(i, project, missing);
-        if (ImGui::BeginPopupContextItem("##projectmenu"))
+        if (EditorUI::BeginContextMenu("##projectmenu"))
         {
             if (ImGui::MenuItem("Open", nullptr, false, !missing))
                 Open(project.Path);
@@ -341,7 +353,7 @@ void ProjectHubLayer::DrawProjects()
             ImGui::Separator();
             if (ImGui::MenuItem("Remove from List"))
                 removeIndex = i;
-            ImGui::EndPopup();
+            EditorUI::EndPopup();
         }
         ImGui::PopID();
         ++shown;
@@ -367,13 +379,15 @@ void ProjectHubLayer::DrawProjectRow(int index, const RecentProject &project, bo
     using namespace EditorUI;
 
     ImGuiWindow *window = ImGui::GetCurrentWindow();
-    const float rowH = 62.0f;
+    const float k = ImGui::GetFontSize() / Metrics::FontSize;
+    const float rowH = std::floor(64.0f * k);
+    const float gap = 8.0f;
     const ImVec2 pos = window->DC.CursorPos;
-    const float left = window->InnerRect.Min.x;
-    const float right = window->InnerRect.Max.x;
+    const float left = window->InnerRect.Min.x + 4.0f;
+    const float right = window->InnerRect.Max.x - 4.0f;
     const ImRect bb(ImVec2(left, pos.y), ImVec2(right, pos.y + rowH));
     const ImGuiID id = window->GetID("##row");
-    ImGui::ItemSize(ImVec2(right - left, rowH), 0.0f);
+    ImGui::ItemSize(ImVec2(right - left, rowH + gap), 0.0f);
     if (!ImGui::ItemAdd(bb, id))
         return;
 
@@ -392,15 +406,19 @@ void ProjectHubLayer::DrawProjectRow(int index, const RecentProject &project, bo
 
     ImDrawList *dl = window->DrawList;
     const bool selected = m_Selected == index;
+    dl->AddRectFilled(bb.Min, bb.Max, U32(Colors::Header, selected ? 1.0f : (hovered ? 0.9f : 0.55f)), 9.0f);
     if (selected)
-        dl->AddRectFilled(bb.Min, bb.Max, U32(Colors::Selection));
+    {
+        dl->AddRectFilled(bb.Min, bb.Max, U32(Colors::Accent, 0.14f), 9.0f);
+        dl->AddRect(bb.Min, bb.Max, U32(Colors::Accent, 0.55f), 9.0f, 0, 1.5f);
+        dl->AddRectFilled(ImVec2(bb.Min.x + 1.0f, bb.Min.y + 10.0f), ImVec2(bb.Min.x + 4.0f, bb.Max.y - 10.0f), U32(Colors::Accent), 2.0f);
+    }
     else if (hovered)
-        dl->AddRectFilled(bb.Min, bb.Max, U32(Colors::Hover));
-    dl->AddLine(ImVec2(bb.Min.x, bb.Max.y - 0.5f), ImVec2(bb.Max.x, bb.Max.y - 0.5f), U32(Colors::Border));
+        dl->AddRect(bb.Min, bb.Max, U32(Colors::BorderStrong), 9.0f);
 
     const float cy = bb.GetCenter().y;
-    const ImVec2 tileMin(left + 16.0f, cy - 20.0f);
-    const ImVec2 tileMax(left + 56.0f, cy + 20.0f);
+    const ImVec2 tileMin(left + 16.0f, cy - 20.0f * k);
+    const ImVec2 tileMax(left + 16.0f + 40.0f * k, cy + 20.0f * k);
     const ImVec4 &tint = TileColor(project.Name);
     dl->AddRectFilled(tileMin, tileMax, U32(tint, missing ? 0.12f : 0.22f), 8.0f);
     const std::string initials = Initials(project.Name);
@@ -409,7 +427,7 @@ void ProjectHubLayer::DrawProjectRow(int index, const RecentProject &project, bo
     dl->AddText(ImVec2(std::floor((tileMin.x + tileMax.x - ts.x) * 0.5f), std::floor((tileMin.y + tileMax.y - ts.y) * 0.5f)), U32(tint, missing ? 0.5f : 1.0f), initials.c_str());
     ImGui::PopFont();
 
-    const float textX = tileMax.x + 14.0f;
+    const float textX = tileMax.x + 14.0f * k;
     const std::string when = missing ? "Missing" : TimeAgo(project.LastOpened);
     const std::string version = project.EngineVersion.empty() ? "" : "v" + project.EngineVersion;
     const float whenW = ImGui::CalcTextSize(when.c_str()).x;
@@ -418,25 +436,28 @@ void ProjectHubLayer::DrawProjectRow(int index, const RecentProject &project, bo
 
     ImGui::PushClipRect(ImVec2(textX, bb.Min.y), ImVec2(textRight, bb.Max.y), true);
     ImGui::PushFont(GetFont(FontRole::Medium), 15.0f);
-    dl->AddText(ImVec2(textX, cy - 19.0f), U32(missing ? Colors::TextDim : Colors::Text), project.Name.c_str());
+    ImGui::PushFont(GetFont(FontRole::Medium), 15.0f);
+    const float nameH = ImGui::GetFontSize();
+    ImGui::PopFont();
+    dl->AddText(ImVec2(textX, std::floor(cy - nameH - 1.0f)), U32(missing ? Colors::TextDim : Colors::Text), project.Name.c_str());
     ImGui::PopFont();
     ImGui::PopClipRect();
 
     ImGui::PushStyleColor(ImGuiCol_Text, Colors::TextFaint);
-    ImGui::RenderTextEllipsis(dl, ImVec2(textX, cy + 2.0f), ImVec2(textRight, cy + 2.0f + ImGui::GetFontSize()), textRight, project.Path.c_str(), nullptr, nullptr);
+    ImGui::RenderTextEllipsis(dl, ImVec2(textX, cy + 2.0f * k), ImVec2(textRight, cy + 2.0f * k + ImGui::GetFontSize()), textRight, project.Path.c_str(), nullptr, nullptr);
     ImGui::PopStyleColor();
     if (hovered && ImGui::CalcTextSize(project.Path.c_str()).x > textRight - textX)
         ImGui::SetTooltip("%s", project.Path.c_str());
 
-    dl->AddText(ImVec2(right - 24.0f - whenW, cy - 18.0f), U32(missing ? Colors::Error : Colors::TextDim), when.c_str());
+    dl->AddText(ImVec2(right - 24.0f - whenW, std::floor(cy - ImGui::GetFontSize() - 3.0f * k)), U32(missing ? Colors::Error : Colors::TextDim), when.c_str());
     if (!version.empty())
     {
-        const ImVec2 chipMax(right - 24.0f, cy + 18.0f);
-        const ImVec2 chipMin(chipMax.x - versionW, cy + 1.0f);
+        const ImVec2 chipMax(right - 24.0f, std::floor(cy + 3.0f * k + ImGui::GetFontSize() + 4.0f));
+        const ImVec2 chipMin(chipMax.x - versionW, std::floor(cy + 3.0f * k - 2.0f));
         dl->AddRect(chipMin, chipMax, U32(Colors::Border), Metrics::FrameRounding);
         dl->AddText(ImVec2(chipMin.x + 7.0f, std::floor((chipMin.y + chipMax.y - ImGui::GetFontSize()) * 0.5f)), U32(Colors::TextFaint), version.c_str());
     }
-    ImGui::SetCursorScreenPos(ImVec2(pos.x, bb.Max.y));
+    ImGui::SetCursorScreenPos(ImVec2(pos.x, bb.Max.y + gap));
 }
 
 void ProjectHubLayer::DrawLearn()

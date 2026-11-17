@@ -88,6 +88,8 @@ Scripts in a shipped game must be Lua (`Script: {lua: ...}` in the scene). C++ `
 
 `SIMPPlayer [project folder or project.simp]` runs any project. Without an argument it looks next to itself, which is how built games start. If the project can't be loaded it shows a message box with the reason.
 
+A Lua-only project needs no engine build: unpack the engine tarball (it contains `SIMPPlayer`), then run `SIMPPlayer <project folder>` or set `SIMP_PLAYER=/path/to/SIMPPlayer` for a project's `run.sh`. For a standalone game folder use the editor's **Build Game**, which copies the player, `lib/`, assets and `engine/fonts` next to `project.simp`.
+
 ## Packaging the engine
 
 ```sh

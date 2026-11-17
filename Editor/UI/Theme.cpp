@@ -146,6 +146,9 @@ namespace EditorUI
                 {"ShowCameraFrame", 'b', &s.ShowCameraFrame, 0, 1},
                 {"ShowToasts", 'b', &s.ShowToasts, 0, 1},
                 {"AndroidTools", 'b', &s.AndroidTools, 0, 1},
+                {"CollapseLeft", 'b', &s.CollapseLeft, 0, 1},
+                {"CollapseRight", 'b', &s.CollapseRight, 0, 1},
+                {"CollapseBottom", 'b', &s.CollapseBottom, 0, 1},
             };
         }
 
@@ -337,6 +340,13 @@ namespace EditorUI
         Colors::NodeTint = Hex(p.NodeTint);
         Colors::FolderTint = Hex(p.FolderTint);
         Colors::CameraFrame = Hex(p.CameraFrame);
+        Colors::TintVisual = Hex(p.Light ? 0x2f6fd6 : 0x74a7f2);
+        Colors::TintCamera = Hex(p.Light ? 0x8a4fc9 : 0xc39ae6);
+        Colors::TintLight = Hex(p.Light ? 0xa87400 : 0xe3c063);
+        Colors::TintPhysics = Hex(p.Light ? 0xc0601e : 0xe8975f);
+        Colors::TintAudio = Hex(p.Light ? 0xb83f78 : 0xe286b4);
+        Colors::TintUI = Hex(p.Light ? 0x13877a : 0x5fcbbd);
+        Colors::TintLogic = Hex(p.Light ? 0x3f8a2b : 0x8cc874);
 
         ImGuiStyle &s = ImGui::GetStyle();
         float scale = s.FontScaleMain;
@@ -350,12 +360,12 @@ namespace EditorUI
         s.FontSizeBase = Metrics::FontSize;
         s._NextFrameFontSizeBase = Metrics::FontSize;
 
-        s.WindowRounding = 0.0f;
-        s.ChildRounding = 0.0f;
-        s.PopupRounding = 4.0f;
+        s.WindowRounding = 6.0f;
+        s.ChildRounding = 6.0f;
+        s.PopupRounding = 6.0f;
         s.FrameRounding = Metrics::FrameRounding;
         s.GrabRounding = 2.0f;
-        s.TabRounding = 3.0f;
+        s.TabRounding = 5.0f;
         s.ScrollbarRounding = 3.0f;
 
         s.WindowBorderSize = 1.0f;
@@ -363,8 +373,8 @@ namespace EditorUI
         s.PopupBorderSize = 1.0f;
         s.FrameBorderSize = 0.0f;
         s.TabBorderSize = 0.0f;
-        s.TabBarBorderSize = 1.0f;
-        s.TabBarOverlineSize = 1.0f;
+        s.TabBarBorderSize = 0.0f;
+        s.TabBarOverlineSize = 0.0f;
         s.SeparatorTextBorderSize = 1.0f;
 
         s.WindowPadding = ImVec2(8, 8);
@@ -375,11 +385,11 @@ namespace EditorUI
         s.IndentSpacing = 14.0f;
         s.ScrollbarSize = 10.0f;
         s.GrabMinSize = 8.0f;
-        s.WindowTitleAlign = ImVec2(0.0f, 0.5f);
+        s.WindowTitleAlign = ImVec2(0.5f, 0.5f);
         s.WindowMenuButtonPosition = ImGuiDir_None;
         s.SelectableTextAlign = ImVec2(0.0f, 0.5f);
 
-        s.DockingSeparatorSize = 2.0f;
+        s.DockingSeparatorSize = 5.0f;
         s.TreeLinesFlags = ImGuiTreeNodeFlags_DrawLinesToNodes;
         s.TreeLinesSize = 1.0f;
 
@@ -395,7 +405,7 @@ namespace EditorUI
 
         c[ImGuiCol_WindowBg] = Colors::Window;
         c[ImGuiCol_ChildBg] = ImVec4(0, 0, 0, 0);
-        c[ImGuiCol_PopupBg] = Colors::Window;
+        c[ImGuiCol_PopupBg] = p.Light ? ImVec4(1.0f, 1.0f, 1.0f, 1.0f) : ImLerp(Colors::Canvas, ImVec4(0.0f, 0.0f, 0.0f, 1.0f), 0.3f);
         c[ImGuiCol_Border] = Colors::Border;
         c[ImGuiCol_BorderShadow] = ImVec4(0, 0, 0, 0);
 
@@ -443,7 +453,7 @@ namespace EditorUI
         c[ImGuiCol_TabDimmedSelected] = Colors::Window;
         c[ImGuiCol_TabDimmedSelectedOverline] = ImVec4(0, 0, 0, 0);
 
-        c[ImGuiCol_DockingPreview] = WithAlpha(Colors::Accent, 0.30f);
+        c[ImGuiCol_DockingPreview] = WithAlpha(Colors::Accent, 0.75f);
         c[ImGuiCol_DockingEmptyBg] = Colors::Canvas;
 
         c[ImGuiCol_PlotLines] = Colors::Accent;

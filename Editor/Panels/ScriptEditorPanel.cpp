@@ -1,6 +1,8 @@
 #include "ScriptEditorPanel.h"
 #include <Engine/Core/FileSystem.h>
 #include "AssetPickerPanel.h"
+#include "MotionPreview.h"
+#include <Engine/Animation/MotionPresets.h>
 #include "EditorContext.h"
 #include "UI/Visuals.h"
 #include "UI/Widgets.h"
@@ -552,6 +554,8 @@ void ScriptEditorPanel::DrawTabs()
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
     ImGui::BeginChild("##ScriptBody", ImVec2(0, std::max(40.0f, ImGui::GetContentRegionAvail().y - statusHeight)), ImGuiChildFlags_None, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, spacing);
+    active->Editor.SetHoverPreview([this](const std::vector<std::string> &lines, ScriptEditor::Coord at, ImDrawList *dl, ImVec2 wordPos, float lineHeight, ImVec2 vpMin, ImVec2 vpMax)
+                                   { return DrawHoverPreview(lines, at, dl, wordPos, lineHeight, vpMin, vpMax); });
     active->Editor.Render(active->VPath.c_str(), m_Themes.Current(), GetFont(FontRole::Mono), fontSize, m_Completion);
     {
         ScriptEditor::NavigationRequest navigation;
@@ -669,6 +673,9 @@ void ScriptEditorPanel::OnImGuiRender()
 {
     using namespace EditorUI;
 
+    if (m_HoverPreview && ImGui::GetTime() - m_HoverPreviewSeen > 3.0)
+        m_HoverPreview.reset();
+
     if (m_Context && !m_Context->OpenScriptRequest.empty())
     {
         std::string path = std::move(m_Context->OpenScriptRequest);
@@ -724,4 +731,134 @@ void ScriptEditorPanel::OnImGuiRender()
     DrawNewScriptPopup();
     DrawClosePopup();
     ImGui::End();
+}
+
+namespace
+{
+    bool IsIdent(char c)
+    {
+        return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+    }
+
+    std::string ExtractCall(const std::vector<std::string> &lines, int lineIndex, size_t start)
+    {
+        int depth = 0;
+        bool started = false;
+        std::string out;
+        char quote = 0;
+        for (int l = lineIndex; l < static_cast<int>(lines.size()) && l < lineIndex + 120; ++l)
+        {
+            const std::string &line = lines[static_cast<size_t>(l)];
+            for (size_t i = l == lineIndex ? start : 0; i < line.size(); ++i)
+            {
+                const char c = line[i];
+                out += c;
+                if (quote)
+                {
+                    if (c == '\\' && i + 1 < line.size())
+                        out += line[++i];
+                    else if (c == quote)
+                        quote = 0;
+                    continue;
+                }
+                if (c == '-' && i + 1 < line.size() && line[i + 1] == '-')
+                {
+                    out.pop_back();
+                    break;
+                }
+                if (c == '"' || c == '\'')
+                    quote = c;
+                else if (c == '(' || c == '{' || c == '[')
+                {
+                    ++depth;
+                    started = true;
+                }
+                else if (c == ')' || c == '}' || c == ']')
+                {
+                    if (--depth == 0 && started)
+                        return out;
+                }
+                else if (!started && !IsIdent(c) && c != '.' && c != ':' && c != ' ' && c != '\t')
+                    return {};
+            }
+            out += '\n';
+        }
+        return {};
+    }
+}
+
+bool ScriptEditorPanel::DrawHoverPreview(const std::vector<std::string> &lines, ScriptEditor::Coord at, ImDrawList *dl, ImVec2 wordPos, float lineHeight, ImVec2 vpMin, ImVec2 vpMax)
+{
+    using namespace EditorUI;
+    if (at.Line < 0 || at.Line >= static_cast<int>(lines.size()))
+        return false;
+    const std::string &line = lines[static_cast<size_t>(at.Line)];
+    if (at.Column < 0 || at.Column >= static_cast<int>(line.size()) || !IsIdent(line[static_cast<size_t>(at.Column)]))
+        return false;
+
+    size_t begin = static_cast<size_t>(at.Column);
+    while (begin > 0 && (IsIdent(line[begin - 1]) || line[begin - 1] == '.'))
+        --begin;
+    size_t end = static_cast<size_t>(at.Column);
+    while (end < line.size() && (IsIdent(line[end]) || (line[end] == '.' && end + 1 < line.size() && IsIdent(line[end + 1]))))
+        ++end;
+    const std::string qualified = line.substr(begin, end - begin);
+    const size_t dot = qualified.find('.');
+    if (dot == std::string::npos)
+        return false;
+    const std::string root = qualified.substr(0, dot);
+    const std::string member = qualified.substr(dot + 1);
+    if (member.empty() || member.find('.') != std::string::npos)
+        return false;
+    if (root != "Motion" && root != "Effect" && root != "Tween")
+        return false;
+    if (root == "Motion" && !SIMPEngine::MotionPresets::Find(member) && member != "Play")
+        return false;
+
+    const std::string call = ExtractCall(lines, at.Line, begin);
+    std::string effectName;
+    if (root == "Effect" && member != "Play")
+    {
+        effectName = member;
+        effectName[0] = static_cast<char>(std::tolower(static_cast<unsigned char>(effectName[0])));
+    }
+    const std::string motionName = root == "Motion" && member != "Play" ? member : std::string();
+
+    if (!m_HoverPreview)
+        m_HoverPreview = std::make_unique<MotionPreview>();
+    if (!call.empty())
+        m_HoverPreview->ShowLua(call, motionName, effectName);
+    else if (!motionName.empty())
+        m_HoverPreview->ShowMotion(motionName);
+    else if (!effectName.empty())
+        m_HoverPreview->ShowEffect(effectName);
+    else
+        return false;
+    m_HoverPreviewSeen = ImGui::GetTime();
+    m_HoverPreview->Update(std::min(ImGui::GetIO().DeltaTime, 0.05f));
+
+    const ImVec2 size(300.0f, 190.0f);
+    const float captionH = ImGui::GetStyle().FontSizeBase * ImGui::GetStyle().FontScaleMain * 0.85f + 12.0f;
+    float y = wordPos.y - size.y - captionH - 6.0f;
+    if (y < vpMin.y + 4.0f)
+        y = wordPos.y + lineHeight + 4.0f;
+    const float x = std::clamp(wordPos.x, vpMin.x + 4.0f, std::max(vpMin.x + 4.0f, vpMax.x - size.x - 4.0f));
+    const ImVec2 min(x, y);
+    const ImVec2 max(x + size.x, y + size.y + captionH);
+    dl->AddRectFilled(ImVec2(min.x - 1, min.y - 1), ImVec2(max.x + 1, max.y + 1), U32(Colors::BorderStrong), 7.0f);
+    dl->AddRectFilled(min, max, U32(Colors::Header), 6.0f);
+    const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
+    float view = 300.0f;
+    if (const SIMPEngine::MotionPreset *preset = motionName.empty() ? nullptr : SIMPEngine::MotionPresets::Find(motionName))
+        view = MotionViewHeight(preset->Category);
+    const ImTextureID texture = m_HoverPreview->Render(static_cast<int>(size.x * scale), static_cast<int>(size.y * scale), view);
+    dl->AddImageRounded(texture, ImVec2(min.x + 4, min.y + 4), ImVec2(max.x - 4, min.y + size.y - 4), ImVec2(0, 1), ImVec2(1, 0), IM_COL32_WHITE, 5.0f);
+    const std::string &error = m_HoverPreview->Error();
+    const bool usedFallback = !error.empty() && (!motionName.empty() || !effectName.empty());
+    std::string caption = error.empty() ? qualified + "  preview" : usedFallback ? qualified + "  (default options)" : error;
+    if (caption.size() > 60)
+        caption = caption.substr(0, 57) + "...";
+    const float uiSize = ImGui::GetStyle().FontSizeBase * ImGui::GetStyle().FontScaleMain * 0.85f;
+    dl->AddText(GetFont(FontRole::Regular), uiSize, ImVec2(min.x + 8.0f, min.y + size.y + (captionH - uiSize) * 0.5f), U32(error.empty() || usedFallback ? Colors::TextDim : Colors::Error), caption.c_str());
+    return true;
 }

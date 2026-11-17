@@ -151,6 +151,7 @@ void InspectorPanel::DrawVectorSection(SIMPEngine::Entity &m_SelectedEntity)
         {
             PropertyColor("Stroke Color", v.strokeColor);
             PropertyFloat("Width", &v.strokeWidth, 0.1f, 0.0f, 500.0f, "%.1f");
+            PropertyBool("Fixed Width", &v.fixedStroke);
             static const char *caps[] = {"Butt", "Round", "Square"};
             int cap = static_cast<int>(v.cap);
             if (PropertySegmented("Cap", &cap, caps, 3))
@@ -174,6 +175,17 @@ void InspectorPanel::DrawVectorSection(SIMPEngine::Entity &m_SelectedEntity)
                 PropertyFloat("Gap", &v.dashGap, 0.2f, 0.0f, 1000.0f, "%.1f");
                 PropertyFloat("Dash Offset", &v.dashOffset, 0.5f, 0.0f, 0.0f, "%.1f");
             }
+        }
+
+        SectionLabel("Shadow");
+        bool shadowOn = v.shadowColor.a > 0;
+        if (PropertyBool("Shadow", &shadowOn))
+            v.shadowColor.a = shadowOn ? 110 : 0;
+        if (v.shadowColor.a > 0)
+        {
+            PropertyColor("Shadow Color", v.shadowColor);
+            PropertyVec2("Shadow Offset", &v.shadowOffset.x, 0.5f, "%.1f");
+            PropertyFloat("Shadow Blur", &v.shadowBlur, 0.2f, 0.0f, 200.0f, "%.1f");
         }
 
         SectionLabel("Morph");

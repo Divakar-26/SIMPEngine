@@ -32,6 +32,7 @@ namespace SIMPEngine::LuaBindings
     bool ReadColorValue(lua_State *L, int index, SDL_Color &out);
     bool LookupColorName(const char *name, SDL_Color &out);
     const char *ColorNameList();
+    void SuggestName(const char *name, const char *const *names, size_t count, char *out, size_t size);
 
     template <typename T>
     Entity *CheckHandleEntity(lua_State *L, const char *meta)

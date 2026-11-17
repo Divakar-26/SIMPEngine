@@ -451,7 +451,7 @@ namespace SIMPEngine
     void UISystem::DrawNode(entt::registry &registry, entt::entity entity, const glm::vec4 &inheritedTint, float &z)
     {
         auto *node = registry.try_get<UIRectComponent>(entity);
-        if (!node || !node->visible)
+        if (!node || !node->visible || registry.all_of<HiddenTag>(entity))
             return;
 
         glm::vec4 tint = inheritedTint;

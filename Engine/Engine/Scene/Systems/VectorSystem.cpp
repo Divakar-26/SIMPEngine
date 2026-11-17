@@ -1,4 +1,5 @@
 #include "VectorSystem.h"
+#include "ClipUtil.h"
 
 #include <Engine/Core/Profiler/EngineProfiler.h>
 #include <Engine/Math/EntityUtility.h>
@@ -10,7 +11,7 @@ namespace SIMPEngine
     void VectorSystem::Render(entt::registry &registry)
     {
         PROFILE_SCOPE("VectorSystem::Render");
-        for (auto entity : registry.view<TransformComponent, VectorShapeComponent>(entt::exclude<ShaderGroupMemberTag>))
+        for (auto entity : registry.view<TransformComponent, VectorShapeComponent>(entt::exclude<ShaderGroupMemberTag, HiddenTag>))
             DrawVector(registry, entity);
     }
 
@@ -20,6 +21,7 @@ namespace SIMPEngine
         const auto *transform = registry.try_get<TransformComponent>(entity);
         if (!shape || !transform)
             return;
+        ApplyEntityClip(registry, entity);
         const WorldTransform2D world = DecomposeWorld(*transform);
         VectorShapes::Draw(*shape, world.Position, world.Rotation, world.Scale, transform->zIndex);
     }

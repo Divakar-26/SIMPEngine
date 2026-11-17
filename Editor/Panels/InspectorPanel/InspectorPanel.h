@@ -34,7 +34,8 @@ static void DrawComponentSection(
         return;
 
     bool remove = false;
-    if (EditorUI::BeginSection(title, title, removable ? &remove : nullptr))
+    const EditorUI::Visual visual = EditorUI::ComponentVisual(title);
+    if (EditorUI::BeginSection(title, title, removable ? &remove : nullptr, true, visual.Icon, visual.Tint))
         uiFunc(entity.GetComponent<T>());
     EditorUI::EndSection();
 
@@ -91,6 +92,7 @@ private:
     EditorContext *m_Context;
 
     char m_ComponentFilter[64] = "";
+    int m_ComponentHighlight = 0;
 
     AssetPickerPanel *m_AssetPicker = nullptr;
     AnimationMakerPanel* m_AnimationMaker = nullptr;

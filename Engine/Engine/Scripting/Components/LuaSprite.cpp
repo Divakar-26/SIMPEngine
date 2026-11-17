@@ -1,6 +1,10 @@
 #include "LuaComponents.h"
 
+#include <Engine/Rendering/Texture.h>
+#include <Engine/Rendering/TextureManager.h>
 #include <Engine/Scripting/LuaHelpers.h>
+
+#include <string>
 
 namespace SIMPEngine::LuaBindings
 {
@@ -18,6 +22,37 @@ namespace SIMPEngine::LuaBindings
             SpriteComponent *sprite = CheckComponent<SpriteComponent>(L, SpriteMeta);
             ReadRgba(L, 2, sprite->tint);
             return 0;
+        }
+
+        int SpriteSetTexture(lua_State *L)
+        {
+            SpriteComponent *sprite = CheckComponent<SpriteComponent>(L, SpriteMeta);
+            size_t length = 0;
+            const char *raw = luaL_checklstring(L, 2, &length);
+            const bool keepSize = lua_toboolean(L, 3) != 0;
+            {
+                const std::string path(raw, length);
+                sprite->texture = TextureManager::Get().LoadTexture(path, path);
+                if (sprite->texture && !keepSize && sprite->texture->GetWidth() > 0)
+                {
+                    sprite->width = static_cast<float>(sprite->texture->GetWidth());
+                    sprite->height = static_cast<float>(sprite->texture->GetHeight());
+                }
+            }
+            return 0;
+        }
+
+        int SpriteGetTexture(lua_State *L)
+        {
+            SpriteComponent *sprite = CheckComponent<SpriteComponent>(L, SpriteMeta);
+            if (!sprite->texture)
+            {
+                lua_pushnil(L);
+                return 1;
+            }
+            const std::string path = sprite->texture->GetPath();
+            lua_pushlstring(L, path.data(), path.size());
+            return 1;
         }
 
         int SpriteGetFlip(lua_State *L)
@@ -83,6 +118,8 @@ namespace SIMPEngine::LuaBindings
         }
 
         const luaL_Reg SpriteMethods[] = {
+            {"SetTexture", SpriteSetTexture},
+            {"GetTexture", SpriteGetTexture},
             {"GetTint", SpriteGetTint},
             {"SetTint", SpriteSetTint},
             {"GetFlip", SpriteGetFlip},

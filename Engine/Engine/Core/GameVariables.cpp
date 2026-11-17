@@ -8,6 +8,8 @@
 
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
+#include <filesystem>
 #include <cctype>
 #include <optional>
 #include <utility>
@@ -18,6 +20,7 @@ namespace SIMPEngine
     namespace
     {
         std::map<std::string, double> s_Values;
+        std::map<std::string, std::string> s_Texts;
 
         std::string FormatNumber(double value)
         {
@@ -43,6 +46,12 @@ namespace SIMPEngine
                     c = '_';
             if (game.empty())
                 game = "Game";
+            if (const char *override = std::getenv("SIMP_SAVE_DIR"); override && *override)
+            {
+                std::error_code ec;
+                std::filesystem::create_directories(override, ec);
+                return FileSystem::Join(override, safe + ".sav");
+            }
             char *pref = SDL_GetPrefPath("SIMPEngine", game.c_str());
             if (!pref)
                 return {};
@@ -84,6 +93,29 @@ namespace SIMPEngine
     void GameVariables::Clear()
     {
         s_Values.clear();
+        s_Texts.clear();
+    }
+
+    std::string GameVariables::GetText(const std::string &key, const std::string &fallback)
+    {
+        auto it = s_Texts.find(key);
+        return it == s_Texts.end() ? fallback : it->second;
+    }
+
+    void GameVariables::SetText(const std::string &key, const std::string &value)
+    {
+        if (!key.empty())
+            s_Texts[key] = value;
+    }
+
+    bool GameVariables::HasText(const std::string &key)
+    {
+        return s_Texts.find(key) != s_Texts.end();
+    }
+
+    void GameVariables::RemoveText(const std::string &key)
+    {
+        s_Texts.erase(key);
     }
 
     const std::map<std::string, double> &GameVariables::All()
@@ -117,6 +149,12 @@ namespace SIMPEngine
                         i = close;
                         continue;
                     }
+                    if (auto it = s_Texts.find(key); it != s_Texts.end())
+                    {
+                        out += it->second;
+                        i = close;
+                        continue;
+                    }
                 }
             }
             out.push_back(text[i]);
@@ -134,7 +172,15 @@ namespace SIMPEngine
         out << YAML::BeginMap << YAML::Key << "Variables" << YAML::Value << YAML::BeginMap;
         for (const auto &[key, value] : s_Values)
             out << YAML::Key << key << YAML::Value << value;
-        out << YAML::EndMap << YAML::EndMap;
+        out << YAML::EndMap;
+        if (!s_Texts.empty())
+        {
+            out << YAML::Key << "Text" << YAML::Value << YAML::BeginMap;
+            for (const auto &[key, value] : s_Texts)
+                out << YAML::Key << key << YAML::Value << YAML::DoubleQuoted << value;
+            out << YAML::EndMap;
+        }
+        out << YAML::EndMap;
 
         if (!FileSystem::WriteText(path, out.c_str()))
         {
@@ -160,7 +206,12 @@ namespace SIMPEngine
             std::map<std::string, double> loaded;
             for (const auto &entry : variables)
                 loaded[entry.first.as<std::string>()] = entry.second.as<double>();
+            std::map<std::string, std::string> loadedText;
+            if (const YAML::Node texts = root["Text"]; texts && texts.IsMap())
+                for (const auto &entry : texts)
+                    loadedText[entry.first.as<std::string>()] = entry.second.as<std::string>();
             s_Values = std::move(loaded);
+            s_Texts = std::move(loadedText);
             return true;
         }
         catch (const std::exception &e)

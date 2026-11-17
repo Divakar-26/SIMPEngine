@@ -8,9 +8,9 @@ This page describes how SIMPEngine is put together. For the API itself see [API_
 |---|---|---|
 | Engine | `Engine/Engine/` | Static library. Application loop, layers, scene/ECS, systems, renderer, audio, assets, VFS, input |
 | Editor | `Editor/` | Static library. `EditorLayer`, panels, commands, undo history, editor camera, `EditorUI` design kit |
-| Game | `Game/` | `GameApp` executable. Builds the scene and pushes layers (Mossveil lives in `Game/Mossveil/`) |
+| Apps | `Apps/` | `SIMPEditor` (project hub + editor), `SIMPPlayer` (runtime for shipped games), `SIMPRecord`/`SIMPPreview` (Lua video tools) |
 
-The editor is optional: building with `-DNO_EDITOR=ON` links only the engine and renders the scene straight to the window.
+The editor is optional: `SIMPPlayer` links only the engine and renders the scene straight to the window.
 
 ## Frame loop
 

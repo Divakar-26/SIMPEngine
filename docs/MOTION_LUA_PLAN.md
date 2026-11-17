@@ -1,6 +1,6 @@
 # SIMP Motion: a manim-like Lua library on SIMPEngine
 
-Status: plan, not built yet. The renderer work it depends on (MSAA framebuffers, pixel readback, PNG writing, glyphs on demand, text as vector outlines) is done. Two working videos exist: `assets/scripts/Demo.lua` (area under a curve, Lua) and `Game/NeuralNetVideo` (C++). `Game/IntegrationVideo` is a C++ port of `Demo.lua`, made to compare the two languages.
+Status: plan, not built yet. The renderer work it depends on (MSAA framebuffers, pixel readback, PNG writing, glyphs on demand, text as vector outlines) is done. `assets/scripts/Demo.lua` (area under a curve) is a working video. The C++ comparison programs mentioned below (`NeuralNetVideo`, `IntegrationVideo`) have been removed from the repository; their numbers are kept for reference.
 
 This plan replaces the JSON document and MCP design in [MOTION_MCP.md](MOTION_MCP.md). Its rendering pipeline (section 7), math typesetting (8) and narration (9) sections still apply.
 

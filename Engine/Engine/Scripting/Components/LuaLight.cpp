@@ -20,10 +20,9 @@ namespace SIMPEngine::LuaBindings
         int LightSetColor(lua_State *L)
         {
             LightComponent *light = CheckComponent<LightComponent>(L, LightMeta);
-            const Uint8 r = ToByte(L, 2);
-            const Uint8 g = ToByte(L, 3);
-            const Uint8 b = ToByte(L, 4);
-            light->color = SDL_Color{r, g, b, light->color.a};
+            SDL_Color color = light->color;
+            ReadRgba(L, 2, color);
+            light->color = SDL_Color{color.r, color.g, color.b, light->color.a};
             return 0;
         }
 

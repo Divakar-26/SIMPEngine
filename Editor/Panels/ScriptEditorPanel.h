@@ -14,6 +14,7 @@
 struct EditorContext;
 struct lua_State;
 class AssetPickerPanel;
+class MotionPreview;
 
 class ScriptEditorPanel : public EditorPanel
 {
@@ -70,8 +71,11 @@ private:
     void ApplyTheme(const std::string &name);
     std::string CreateScript(const std::string &name);
     Document *Active();
+    bool DrawHoverPreview(const std::vector<std::string> &lines, ScriptEditor::Coord at, ImDrawList *dl, ImVec2 wordPos, float lineHeight, ImVec2 vpMin, ImVec2 vpMax);
 
     EditorContext *m_Context = nullptr;
+    std::unique_ptr<MotionPreview> m_HoverPreview;
+    double m_HoverPreviewSeen = 0.0;
     AssetPickerPanel *m_AssetPicker = nullptr;
 
     bool m_Visible = false;

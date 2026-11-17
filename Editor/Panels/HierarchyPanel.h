@@ -44,6 +44,7 @@ private:
     void DrawFlatList(const std::vector<entt::entity> &entities);
     void DrawEntityNode(SIMPEngine::Entity entity);
     void DrawEntityContextMenu(SIMPEngine::Entity entity);
+    void ToggleVisible(SIMPEngine::Entity entity);
     void DrawRenameField(SIMPEngine::Entity entity, const ImVec2 &min, const ImVec2 &max);
     void HandleRowInput(SIMPEngine::Entity entity, bool clicked, bool doubleClicked);
     void BeginRename(entt::entity handle);

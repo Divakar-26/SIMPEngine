@@ -1,4 +1,7 @@
 #include "LuaCompletion.h"
+
+#include <Engine/Animation/EffectPresets.h>
+#include <Engine/Animation/MotionPresets.h>
 #include "LuaContext.h"
 #include "LuaLexer.h"
 
@@ -171,6 +174,17 @@ namespace ScriptEditor
                             }
                             lua_pop(L, 1);
                         }
+                        if (name == "Motion")
+                            for (const SIMPEngine::MotionPreset &preset : SIMPEngine::MotionPresets::All())
+                                fields.push_back(CompletionItem{preset.Name, "Motion preset", CompletionKind::Function, true});
+                        if (name == "Effect")
+                            for (const SIMPEngine::EffectPreset &preset : SIMPEngine::EffectPresets::All())
+                            {
+                                std::string label = preset.Name;
+                                if (!label.empty())
+                                    label[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(label[0])));
+                                fields.push_back(CompletionItem{label, "Effect preset", CompletionKind::Function, true});
+                            }
                         m_Tables[name] = std::move(fields);
                     }
                     m_Globals.push_back(item);

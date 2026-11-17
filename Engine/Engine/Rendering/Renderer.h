@@ -96,6 +96,8 @@ namespace SIMPEngine
         static void ResetStats();
 
         static void Flush();
+        static void SetClipWorld(float centerX, float centerY, float width, float height);
+        static void ClearClip();
         static void BeginFrame() { s_RenderingAPI->BeginFrame(); }
         static void EndFrame() { s_RenderingAPI->EndFrame(); }
         static int m_WindowWidth, m_WindowHeight;

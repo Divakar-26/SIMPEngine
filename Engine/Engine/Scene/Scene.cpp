@@ -491,6 +491,42 @@ namespace SIMPEngine
         return camera.ScreenToWorld(pixel);
     }
 
+    void Scene::ApplyHidden()
+    {
+        m_Registry.clear<ClipTag>();
+        for (entt::entity owner : m_Registry.view<ClipComponent>())
+        {
+            std::vector<entt::entity> pending;
+            if (const auto *hierarchy = m_Registry.try_get<HierarchyComponent>(owner))
+                pending.assign(hierarchy->children.begin(), hierarchy->children.end());
+            while (!pending.empty())
+            {
+                const entt::entity entity = pending.back();
+                pending.pop_back();
+                if (!m_Registry.valid(entity))
+                    continue;
+                m_Registry.emplace_or_replace<ClipTag>(entity, ClipTag{owner});
+                if (const auto *hierarchy = m_Registry.try_get<HierarchyComponent>(entity))
+                    pending.insert(pending.end(), hierarchy->children.begin(), hierarchy->children.end());
+            }
+        }
+        m_Registry.clear<HiddenTag>();
+        std::vector<entt::entity> stack;
+        for (entt::entity entity : m_Registry.view<HiddenComponent>())
+            stack.push_back(entity);
+        while (!stack.empty())
+        {
+            const entt::entity entity = stack.back();
+            stack.pop_back();
+            if (!m_Registry.valid(entity) || m_Registry.all_of<HiddenTag>(entity))
+                continue;
+            m_Registry.emplace<HiddenTag>(entity);
+            if (const auto *hierarchy = m_Registry.try_get<HierarchyComponent>(entity))
+                for (entt::entity child : hierarchy->children)
+                    stack.push_back(child);
+        }
+    }
+
     void Scene::OnRender()
     {
         UpdateTransforms();
@@ -510,6 +546,7 @@ namespace SIMPEngine
 
     void Scene::RenderContent(bool screenSpaceUI)
     {
+        ApplyHidden();
         shaderCanvasSystem.Prepare(*this, m_LightingVisible);
         tilemapSystem.Render(m_Registry);
 
@@ -519,6 +556,7 @@ namespace SIMPEngine
         bool lit = m_Lighting.Enabled && m_LightingVisible;
         particleSystem.Render(m_Registry, lit ? 0 : -1);
         renderSystem.RenderText(m_Registry);
+        Renderer::ClearClip();
 
         auto view = m_Registry.view<ScriptComponent>();
         for (auto entityHandle : view)
@@ -528,6 +566,7 @@ namespace SIMPEngine
                 sc.Instance->OnRender();
         }
 
+        Renderer::ClearClip();
         shaderCanvasSystem.RenderGroups(*this);
 
         if (lit)

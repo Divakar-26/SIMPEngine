@@ -1,5 +1,7 @@
 # Lua scripting
 
+> Short version: [API.md](API.md) lists every function on one page.
+
 Lua scripts run through the same `ScriptComponent` as C++ scripts, so Play/Stop snapshots, duplicate and removal behave the same way. The script path is saved in the scene (`Script: {lua: assets://scripts/x.lua}`).
 
 ## Binding a script
@@ -345,22 +347,7 @@ Audio Source also has a Bus (Sfx, Music or UI) so an options menu can set each v
 
 All of these are saved with the scene, appear in the Add Component menu under Logic, and have inspector sections. Trigger zones and the selected entity's path are drawn in the viewport (zones always when the collider overlay is on).
 
-## Samples
-
-### Demo: Coin Dash
-
-A playable demo built entirely from Lua. Build and run the `ScriptDemo` target (next to `GameApp`; in the editor press Play). The C++ side (`Game/ScriptDemo/main.cpp`) only creates a following camera and one entity that runs `assets/scripts/demo/main.lua`; everything else is spawned by the scripts.
-
-- Move with WASD or the arrow keys, dash with Space, collect coins, avoid the red patrolling squares, press R after dying.
-- `main.lua`: game manager. Builds the arena, spawns the player, two path-following enemies and the HUD text (a child of the camera), spawns coins from a Timer (`OnTimer`), keeps score and heals every 5 coins. Other scripts reach it with `Scene.Find("Demo"):GetScript()`.
-- `player.lua`: `Input.GetAxis`, dash cooldown, Health with invulnerability blink, `OnDamaged` camera shake, `OnDeath`.
-- `enemy.lua`: Trigger Zone filtered to "Player", `OnTriggerEnter/Stay`, damage through the Health handle.
-- `coin.lua`: pulsing scale, `OnTriggerEnter`, `Destroy()`.
-- `util.lua`: shared helpers loaded with `require("demo.util")`.
-
-The demo scripts were run against a mock of this API (method names taken from `LuaBindings.cpp`) but not inside the engine.
-
-### Other samples
+## Example scripts
 
 `assets/scripts/`: `patrol_enemy.lua` (health, trigger damage, hit flash), `pickup.lua` (bobbing trigger that heals), `spawner.lua` (timer + `Scene.Spawn` + `SetScript`), `moving_platform.lua` (path follower), `fixed_step_demo.lua`.
 

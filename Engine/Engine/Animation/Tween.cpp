@@ -1321,6 +1321,14 @@ namespace SIMPEngine
         }
     }
 
+    bool TweenSystem::HasActive() const
+    {
+        for (const auto &[id, node] : m_Nodes)
+            if (!node->Finished && !node->Dead)
+                return true;
+        return false;
+    }
+
     bool TweenSystem::IsTweening(entt::entity target) const
     {
         for (const auto &[id, node] : m_Nodes)

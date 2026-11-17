@@ -354,6 +354,11 @@ struct VectorShapeComponent
     float dashGap = 0.0f;
     float dashOffset = 0.0f;
 
+    bool fixedStroke = false;
+    SDL_Color shadowColor{0, 0, 0, 0};
+    glm::vec2 shadowOffset{0.0f, -6.0f};
+    float shadowBlur = 8.0f;
+
     bool gradient = false;
     glm::vec2 gradientFrom{0.0f, 50.0f};
     glm::vec2 gradientTo{0.0f, -50.0f};
@@ -569,6 +574,24 @@ struct ShaderUniformValue
 
 struct ShaderGroupMemberTag
 {
+};
+
+struct HiddenComponent
+{
+};
+
+struct HiddenTag
+{
+};
+
+struct ClipComponent
+{
+    glm::vec2 size{300.0f, 300.0f};
+};
+
+struct ClipTag
+{
+    entt::entity owner = entt::null;
 };
 
 struct ShaderCanvasComponent

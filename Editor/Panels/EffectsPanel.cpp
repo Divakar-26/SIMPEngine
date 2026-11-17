@@ -5,6 +5,7 @@
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
 
+#include <Engine/Animation/MotionPresets.h>
 #include <Engine/Animation/Tween.h>
 #include <Engine/Scene/Component.h>
 #include <Engine/Scene/Scene.h>
@@ -511,6 +512,7 @@ void EffectsPanel::DrawEasing()
 
 void EffectsPanel::OnImGuiRender()
 {
+    ReleaseIdlePreviews();
     if (!m_Visible)
         return;
 
@@ -532,6 +534,11 @@ void EffectsPanel::OnImGuiRender()
             DrawEffects();
             ImGui::EndTabItem();
         }
+        if (ImGui::BeginTabItem("Motion"))
+        {
+            DrawMotion();
+            ImGui::EndTabItem();
+        }
         if (ImGui::BeginTabItem("Easing"))
         {
             DrawEasing();
@@ -540,4 +547,178 @@ void EffectsPanel::OnImGuiRender()
         ImGui::EndTabBar();
     }
     ImGui::End();
+}
+
+namespace
+{
+    constexpr float MotionCardWidth = 176.0f;
+    constexpr float MotionCardHeight = 150.0f;
+    constexpr float MotionPreviewHeight = 116.0f;
+
+    float MotionView(const std::string &category)
+    {
+        return MotionViewHeight(category);
+    }
+
+    std::string MotionCodeFor(const SIMPEngine::MotionPreset &preset)
+    {
+        std::string code = SIMPEngine::MotionPresets::Example(preset) + "\n\n-- options: x, y, size, color,\n-- accent, duration, delay, width,\n-- z, hold, parent";
+        switch (preset.Input)
+        {
+        case SIMPEngine::MotionInput::Points:
+            code += ", points";
+            break;
+        case SIMPEngine::MotionInput::Values:
+            code += ", values, fn, range";
+            break;
+        case SIMPEngine::MotionInput::Text:
+            code += ", text";
+            break;
+        default:
+            break;
+        }
+        return code + "\n";
+    }
+}
+
+bool EffectsPanel::DrawMotionCard(int index, bool selected, float dt)
+{
+    const auto &all = SIMPEngine::MotionPresets::All();
+    const SIMPEngine::MotionPreset &preset = all[static_cast<size_t>(index)];
+    if (m_MotionCards.size() != all.size())
+    {
+        m_MotionCards.resize(all.size());
+        m_MotionSeen.resize(all.size(), 0.0);
+    }
+
+    ImDrawList *dl = ImGui::GetWindowDrawList();
+    const ImVec2 pos = ImGui::GetCursorScreenPos();
+    const ImVec2 end(pos.x + MotionCardWidth, pos.y + MotionCardHeight);
+    ImGui::PushID(index);
+    const bool clicked = ImGui::InvisibleButton("motionCard", ImVec2(MotionCardWidth, MotionCardHeight));
+    const bool hovered = ImGui::IsItemHovered();
+    const bool doubleClicked = hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+    const bool visible = ImGui::IsItemVisible();
+    ImGui::PopID();
+
+    dl->AddRectFilled(pos, end, Col(hovered ? EditorUI::Colors::FrameHover : EditorUI::Colors::Frame), 7.0f);
+    const ImVec2 areaMin(pos.x + 3.0f, pos.y + 3.0f), areaMax(end.x - 3.0f, pos.y + MotionPreviewHeight);
+    if (visible)
+    {
+        auto &card = m_MotionCards[static_cast<size_t>(index)];
+        m_MotionSeen[static_cast<size_t>(index)] = ImGui::GetTime();
+        if (!card)
+            card = std::make_unique<MotionPreview>();
+        card->ShowMotion(preset.Name);
+        card->Update(dt);
+        const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
+        const ImVec2 size(areaMax.x - areaMin.x, areaMax.y - areaMin.y);
+        const ImTextureID texture = card->Render(static_cast<int>(size.x * scale), static_cast<int>(size.y * scale), MotionView(preset.Category));
+        dl->AddImageRounded(texture, areaMin, areaMax, ImVec2(0, 1), ImVec2(1, 0), IM_COL32_WHITE, 5.0f);
+    }
+
+    const ImVec2 textPos(pos.x + 9.0f, pos.y + MotionPreviewHeight + 8.0f);
+    dl->PushClipRect(ImVec2(pos.x + 4.0f, textPos.y), ImVec2(end.x - 4.0f, end.y), true);
+    dl->AddText(textPos, Col(EditorUI::Colors::Text), preset.Name.c_str());
+    dl->PopClipRect();
+    if (selected)
+        dl->AddRect(pos, end, Col(EditorUI::Colors::Accent), 7.0f, 0, 2.0f);
+    if (hovered)
+        ImGui::SetTooltip("%s\n%s\nDouble-click to copy", preset.Description.c_str(), SIMPEngine::MotionPresets::Example(preset).c_str());
+    if (doubleClicked)
+        Copy(SIMPEngine::MotionPresets::Example(preset), "call");
+    return clicked;
+}
+
+void EffectsPanel::DrawMotionDetail(float dt)
+{
+    const auto &all = SIMPEngine::MotionPresets::All();
+    m_MotionSelected = std::clamp(m_MotionSelected, 0, static_cast<int>(all.size()) - 1);
+    const SIMPEngine::MotionPreset &preset = all[static_cast<size_t>(m_MotionSelected)];
+    m_MotionDetail.ShowMotion(preset.Name);
+    m_MotionDetailSeen = ImGui::GetTime();
+    m_MotionDetail.Update(dt);
+
+    const float width = ImGui::GetContentRegionAvail().x;
+    const float height = std::floor(width * 0.68f);
+    const ImVec2 pos = ImGui::GetCursorScreenPos();
+    const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
+    const ImTextureID texture = m_MotionDetail.Render(static_cast<int>(width * scale), static_cast<int>(height * scale), MotionView(preset.Category) * 0.9f);
+    ImGui::GetWindowDrawList()->AddImageRounded(texture, pos, ImVec2(pos.x + width, pos.y + height), ImVec2(0, 1), ImVec2(1, 0), IM_COL32_WHITE, 8.0f);
+    ImGui::Dummy(ImVec2(width, height));
+    const ImVec2 barMin = ImGui::GetCursorScreenPos();
+    ImGui::GetWindowDrawList()->AddRectFilled(barMin, ImVec2(barMin.x + width * std::clamp(m_MotionDetail.Progress(), 0.0f, 1.0f), barMin.y + 2.0f), Col(EditorUI::Colors::Accent));
+    ImGui::Dummy(ImVec2(width, 4.0f));
+
+    ImGui::Spacing();
+    ImGui::TextUnformatted(preset.Name.c_str());
+    ImGui::SameLine();
+    ImGui::TextColored(EditorUI::Colors::Accent, "%s", preset.Category.c_str());
+    ImGui::PushStyleColor(ImGuiCol_Text, EditorUI::Colors::TextDim);
+    ImGui::TextWrapped("%s", preset.Description.c_str());
+    ImGui::PopStyleColor();
+    ImGui::Spacing();
+    if (EditorUI::Button("Replay"))
+        m_MotionDetail.Restart();
+    ImGui::Spacing();
+    m_MotionCode = MotionCodeFor(preset);
+    CodeBlock("Lua", "motionCode", m_MotionCode, 110.0f);
+}
+
+void EffectsPanel::DrawMotion()
+{
+    const float dt = std::min(ImGui::GetIO().DeltaTime, 0.05f);
+    EditorUI::SearchBox("##motionSearch", m_MotionSearch, sizeof(m_MotionSearch), "Search motion presets", 220.0f);
+    ImGui::SameLine();
+    std::vector<std::string> categories = SIMPEngine::MotionPresets::Categories();
+    categories.insert(categories.begin(), "All");
+    m_MotionCategory = std::clamp(m_MotionCategory, 0, static_cast<int>(categories.size()) - 1);
+    ImGui::SetNextItemWidth(160.0f);
+    if (ImGui::BeginCombo("##motionCategory", categories[static_cast<size_t>(m_MotionCategory)].c_str(), ImGuiComboFlags_HeightLargest))
+    {
+        for (int i = 0; i < static_cast<int>(categories.size()); ++i)
+            if (ImGui::Selectable(categories[static_cast<size_t>(i)].c_str(), i == m_MotionCategory))
+                m_MotionCategory = i;
+        ImGui::EndCombo();
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("%zu presets", SIMPEngine::MotionPresets::All().size());
+    ImGui::Spacing();
+
+    const float gridWidth = std::max(MotionCardWidth, ImGui::GetContentRegionAvail().x - DetailWidth - ImGui::GetStyle().ItemSpacing.x);
+    ImGui::BeginChild("##motionGrid", ImVec2(gridWidth, 0.0f), ImGuiChildFlags_None);
+    const auto &all = SIMPEngine::MotionPresets::All();
+    const int columns = std::max(1, static_cast<int>((ImGui::GetContentRegionAvail().x + CardGap) / (MotionCardWidth + CardGap)));
+    int shown = 0;
+    for (size_t i = 0; i < all.size(); ++i)
+    {
+        const SIMPEngine::MotionPreset &preset = all[i];
+        if (m_MotionCategory > 0 && preset.Category != categories[static_cast<size_t>(m_MotionCategory)])
+            continue;
+        if (m_MotionSearch[0] && !EditorUI::ContainsInsensitive(preset.Name.c_str(), m_MotionSearch) && !EditorUI::ContainsInsensitive(preset.Description.c_str(), m_MotionSearch))
+            continue;
+        if (shown % columns != 0)
+            ImGui::SameLine(0.0f, CardGap);
+        if (DrawMotionCard(static_cast<int>(i), static_cast<int>(i) == m_MotionSelected, dt))
+            m_MotionSelected = static_cast<int>(i);
+        ++shown;
+    }
+    if (shown == 0)
+        EditorUI::EmptyState("No presets match", "Try another search or category.");
+    ImGui::EndChild();
+    ImGui::SameLine();
+    ImGui::BeginChild("##motionDetail", ImVec2(0.0f, 0.0f), ImGuiChildFlags_None);
+    DrawMotionDetail(dt);
+    ImGui::EndChild();
+}
+
+void EffectsPanel::ReleaseIdlePreviews()
+{
+    const double now = ImGui::GetTime();
+    constexpr double Idle = 3.0;
+    for (size_t i = 0; i < m_MotionCards.size() && i < m_MotionSeen.size(); ++i)
+        if (m_MotionCards[i] && now - m_MotionSeen[i] > Idle)
+            m_MotionCards[i].reset();
+    if (now - m_MotionDetailSeen > Idle)
+        m_MotionDetail.Release();
 }

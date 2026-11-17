@@ -108,7 +108,7 @@ namespace SIMPEngine
         Renderer::SetBlendMode(BlendMode::Additive);
 
         float time = static_cast<float>(SDL_GetTicks()) / 1000.0f;
-        auto view = registry.view<LightComponent, TransformComponent>();
+        auto view = registry.view<LightComponent, TransformComponent>(entt::exclude<HiddenTag>);
         for (auto entity : view)
         {
             const auto &light = view.get<LightComponent>(entity);

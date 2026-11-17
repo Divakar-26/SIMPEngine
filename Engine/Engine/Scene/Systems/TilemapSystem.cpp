@@ -78,7 +78,7 @@ namespace SIMPEngine
 
     void TilemapSystem::Render(entt::registry &registry)
     {
-        auto view = registry.view<TilemapComponent, TransformComponent>(entt::exclude<ShaderGroupMemberTag>);
+        auto view = registry.view<TilemapComponent, TransformComponent>(entt::exclude<ShaderGroupMemberTag, HiddenTag>);
         if (view.begin() == view.end())
             return;
 

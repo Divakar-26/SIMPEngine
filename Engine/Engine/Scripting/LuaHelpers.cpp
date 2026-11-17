@@ -3,6 +3,11 @@
 #include "LuaBindings.h"
 
 #include <new>
+#include <vector>
+#include <cstring>
+#include <cstdio>
+#include <cctype>
+#include <algorithm>
 
 namespace SIMPEngine::LuaBindings
 {
@@ -89,10 +94,59 @@ namespace SIMPEngine::LuaBindings
 
     void ReadRgba(lua_State *L, int first, SDL_Color &color)
     {
+        const int type = lua_type(L, first);
+        if (type == LUA_TSTRING || type == LUA_TTABLE)
+        {
+            SDL_Color value{};
+            if (!ReadColorValue(L, first, value))
+                luaL_error(L, "bad color '%s': use r, g, b, a?, \"#rrggbb\", {r, g, b, a?} or a name (%s)", type == LUA_TSTRING ? lua_tostring(L, first) : "table", ColorNameList());
+            if (lua_isnumber(L, first + 1))
+                value.a = ToByte(L, first + 1);
+            color = value;
+            return;
+        }
         const Uint8 r = ToByte(L, first);
         const Uint8 g = ToByte(L, first + 1);
         const Uint8 b = ToByte(L, first + 2);
         const Uint8 a = ToByteOpt(L, first + 3, color.a);
         color = SDL_Color{r, g, b, a};
+    }
+
+    void SuggestName(const char *name, const char *const *names, size_t count, char *out, size_t size)
+    {
+        if (size == 0)
+            return;
+        out[0] = '\0';
+        const size_t n = std::strlen(name);
+        const char *best = nullptr;
+        size_t bestDistance = std::max<size_t>(2, n / 3) + 1;
+        std::vector<size_t> row;
+        for (size_t k = 0; k < count; ++k)
+        {
+            const char *candidate = names[k];
+            const size_t m = std::strlen(candidate);
+            row.assign(m + 1, 0);
+            for (size_t j = 0; j <= m; ++j)
+                row[j] = j;
+            for (size_t i = 1; i <= n; ++i)
+            {
+                size_t diagonal = row[0];
+                row[0] = i;
+                for (size_t j = 1; j <= m; ++j)
+                {
+                    const size_t above = row[j];
+                    const bool same = std::tolower(static_cast<unsigned char>(name[i - 1])) == std::tolower(static_cast<unsigned char>(candidate[j - 1]));
+                    row[j] = std::min({row[j] + 1, row[j - 1] + 1, diagonal + (same ? 0 : 1)});
+                    diagonal = above;
+                }
+            }
+            if (row[m] < bestDistance)
+            {
+                bestDistance = row[m];
+                best = candidate;
+            }
+        }
+        if (best)
+            std::snprintf(out, size, " (did you mean '%s'?)", best);
     }
 }

@@ -275,6 +275,33 @@ namespace SIMPEngine
         return path;
     }
 
+    VectorPath VectorPath::Rect(float width, float height, float topLeft, float topRight, float bottomRight, float bottomLeft)
+    {
+        VectorPath path;
+        const float w = std::abs(width) * 0.5f;
+        const float h = std::abs(height) * 0.5f;
+        const float limit = std::min(w, h);
+        const float tl = std::clamp(topLeft, 0.0f, limit);
+        const float tr = std::clamp(topRight, 0.0f, limit);
+        const float br = std::clamp(bottomRight, 0.0f, limit);
+        const float bl = std::clamp(bottomLeft, 0.0f, limit);
+        path.MoveTo(-w + bl, -h);
+        path.LineTo(w - br, -h);
+        if (br > 0.0f)
+            path.ArcTo(w - br, -h + br, br, -90.0f, 0.0f);
+        path.LineTo(w, h - tr);
+        if (tr > 0.0f)
+            path.ArcTo(w - tr, h - tr, tr, 0.0f, 90.0f);
+        path.LineTo(-w + tl, h);
+        if (tl > 0.0f)
+            path.ArcTo(-w + tl, h - tl, tl, 90.0f, 180.0f);
+        path.LineTo(-w, -h + bl);
+        if (bl > 0.0f)
+            path.ArcTo(-w + bl, -h + bl, bl, 180.0f, 270.0f);
+        path.Close();
+        return path;
+    }
+
     VectorPath VectorPath::Ellipse(float rx, float ry)
     {
         VectorPath path;

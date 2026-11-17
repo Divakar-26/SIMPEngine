@@ -73,6 +73,8 @@ namespace SIMPEngine
             flags |= SDL_WINDOW_MAXIMIZED;
         if (specification.Borderless)
             flags |= SDL_WINDOW_BORDERLESS;
+        if (specification.Hidden)
+            flags |= SDL_WINDOW_HIDDEN;
         m_Window.SetVSync(specification.VSync);
         if (!m_Window.Init(specification.Title.c_str(), specification.Width, specification.Height, flags))
         {

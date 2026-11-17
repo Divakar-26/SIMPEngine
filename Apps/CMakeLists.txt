@@ -33,6 +33,11 @@ foreach(app IN LISTS SIMP_APPS)
     endif()
 endforeach()
 
+add_custom_target(SIMPEngineResources ALL
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets/fonts" "${SIMP_APP_DIR}/engine/fonts"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets/editor" "${SIMP_APP_DIR}/engine/editor"
+    COMMENT "Copying engine resources next to the executables")
+
 install(TARGETS ${SIMP_APPS} RUNTIME DESTINATION . COMPONENT Editor)
 if(UNIX AND NOT APPLE)
     install(DIRECTORY "${SIMP_APP_DIR}/lib/" DESTINATION lib COMPONENT Editor)

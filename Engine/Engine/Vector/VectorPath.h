@@ -60,6 +60,7 @@ namespace SIMPEngine
         void Rotate(float degrees);
 
         static VectorPath Rect(float width, float height, float radius = 0.0f);
+        static VectorPath Rect(float width, float height, float topLeft, float topRight, float bottomRight, float bottomLeft);
         static VectorPath Ellipse(float rx, float ry);
         static VectorPath Circle(float radius) { return Ellipse(radius, radius); }
         static VectorPath Polygon(int sides, float radius);

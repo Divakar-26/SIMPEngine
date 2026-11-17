@@ -40,6 +40,13 @@ namespace EditorUI
         inline ImVec4 NodeTint;
         inline ImVec4 FolderTint;
         inline ImVec4 CameraFrame;
+        inline ImVec4 TintVisual;
+        inline ImVec4 TintCamera;
+        inline ImVec4 TintLight;
+        inline ImVec4 TintPhysics;
+        inline ImVec4 TintAudio;
+        inline ImVec4 TintUI;
+        inline ImVec4 TintLogic;
     }
 
     namespace Metrics
@@ -102,6 +109,9 @@ namespace EditorUI
         int TabSize = 4;
         bool ShowCameraFrame = true;
         bool ShowToasts = true;
+        bool CollapseLeft = false;
+        bool CollapseRight = false;
+        bool CollapseBottom = false;
     };
 
     EditorSettings DefaultSettings();
